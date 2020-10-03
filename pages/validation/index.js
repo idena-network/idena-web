@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import {useMachine} from '@xstate/react'
 import {useMemo, useEffect} from 'react'
-import {useRouter, Router} from 'next/router'
+import Router, {useRouter} from 'next/router'
 import {padding, margin} from 'polished'
 import {FiCheck, FiThumbsDown} from 'react-icons/fi'
 import {useTranslation} from 'react-i18next'
@@ -52,7 +52,6 @@ import {useTimingState} from '../../shared/providers/timing-context'
 import Flex from '../../shared/components/flex'
 import {PrimaryButton} from '../../shared/components/button'
 import {FloatDebug} from '../../shared/components/components'
-import {StaticPrivateKey} from '../../shared/utils/crypto'
 import {useAuthState} from '../../shared/providers/auth-context'
 
 export default function ValidationPage() {
@@ -66,7 +65,7 @@ export default function ValidationPage() {
     }
   }, [auth])
 
-  if (epoch && timing && timing.shortSession)
+  if (epoch && privateKey && coinbase && timing && timing.shortSession)
     return (
       <ValidationSession
         coinbase={coinbase}
@@ -387,17 +386,11 @@ function ValidationSession({
       )}
 
       {state.matches('validationSucceeded') && (
-        <ValidationSucceededDialog
-          isOpen
-          onSubmit={() => router.push('/profile')}
-        />
+        <ValidationSucceededDialog isOpen onSubmit={() => router.push('/')} />
       )}
 
       {state.matches('validationFailed') && (
-        <ValidationFailedDialog
-          isOpen
-          onSubmit={() => router.push('/profile')}
-        />
+        <ValidationFailedDialog isOpen onSubmit={() => router.push('/')} />
       )}
 
       {global.isDev && <FloatDebug>{state.value}</FloatDebug>}

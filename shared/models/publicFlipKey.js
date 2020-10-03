@@ -5,7 +5,7 @@ import {hexToUint8Array} from '../utils/buffers'
 
 export default class PublicFlipKey {
   constructor(epoch, key) {
-    this.key = key
+    this.key = new Uint8Array(key)
     this.epoch = epoch
   }
 

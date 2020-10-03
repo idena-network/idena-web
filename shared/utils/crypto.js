@@ -11,9 +11,6 @@ import PublicFlipKey from '../models/publicFlipKey'
 
 const ec = new EC('secp256k1')
 
-export const StaticPrivateKey =
-  'bbfc3b5e5424564fcb2543514fc338854317cc86de4b9c8cb0d971b083464775'
-
 export function privateKeyToPublicKey(key) {
   const pubKey = ec
     .keyFromPrivate(key)

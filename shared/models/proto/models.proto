@@ -33,6 +33,16 @@ message ProtoPrivateFlipKeysPackage {
     bytes signature = 2;
 }
 
+message ProtoFlipKey {
+    message Data {
+        bytes key = 1;
+        uint32 epoch = 2;
+    }
+
+    Data data = 1;
+    bytes signature = 2;
+}
+
 message ProtoShortAnswerAttachment {
     bytes answers = 1;
     uint64 rnd = 2 [jstype = JS_STRING];

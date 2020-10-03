@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react'
+import {useMemo, useEffect, useContext, useState, createContext} from 'react'
 import deepEqual from 'dequal'
 import {useMachine} from '@xstate/react'
 import {useInterval} from '../hooks/use-interval'
@@ -10,7 +10,6 @@ import {
 
 import {persistItem} from '../utils/persist'
 import {createValidationFlipsMachine} from '../../screens/validation/machine'
-import {StaticPrivateKey} from '../utils/crypto'
 import {useAuthState} from './auth-context'
 
 export const EpochPeriod = {
@@ -21,15 +20,15 @@ export const EpochPeriod = {
   None: 'None',
 }
 
-const EpochStateContext = React.createContext()
-const EpochDispatchContext = React.createContext()
+const EpochStateContext = createContext()
+const EpochDispatchContext = createContext()
 
 // eslint-disable-next-line react/prop-types
 export function EpochProvider({children}) {
-  const [epoch, setEpoch] = React.useState(null)
-  const [interval, setInterval] = React.useState(1000 * 3)
+  const [epoch, setEpoch] = useState(null)
+  const [interval, setInterval] = useState(1000 * 3)
 
-  React.useEffect(() => {
+  useEffect(() => {
     let ignore = false
 
     async function fetchData() {
@@ -62,7 +61,7 @@ export function EpochProvider({children}) {
     }
   }, interval)
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (
       epoch &&
       shouldExpectValidationResults(epoch.epoch) &&
@@ -77,31 +76,19 @@ export function EpochProvider({children}) {
   const {coinbase, privateKey} = useAuthState()
 
   const validationFlipsMachine = useMemo(
-    () =>
-      createValidationFlipsMachine({
-        coinbase,
-        privateKey,
-        epoch: (epoch && epoch.epoch) || 0,
-      }),
-    [coinbase, epoch, privateKey]
+    () => createValidationFlipsMachine(),
+    []
   )
 
-  const [_, send] = useMachine(
-    validationFlipsMachine.withContext({
-      coinbase,
-      privateKey,
-      epoch: epoch && epoch.epoch,
-    }),
-    {
-      logger: console.log,
-    }
-  )
+  const [_, send] = useMachine(validationFlipsMachine, {
+    logger: console.log,
+  })
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (epoch && privateKey && epoch.currentPeriod !== 'None') {
-      send('START')
+      send('START', {coinbase, privateKey, epoch: epoch?.epoch ?? 0})
     }
-  }, [epoch, privateKey, send])
+  }, [coinbase, epoch, privateKey, send])
 
   return (
     <EpochStateContext.Provider value={epoch || null}>
@@ -113,7 +100,7 @@ export function EpochProvider({children}) {
 }
 
 export function useEpochState() {
-  const context = React.useContext(EpochStateContext)
+  const context = useContext(EpochStateContext)
   if (context === undefined) {
     throw new Error('EpochState must be used within a EpochProvider')
   }
@@ -121,7 +108,7 @@ export function useEpochState() {
 }
 
 export function useEpochDispatch() {
-  const context = React.useContext(EpochDispatchContext)
+  const context = useContext(EpochDispatchContext)
   if (context === undefined) {
     throw new Error('EpochDispatch must be used within a EpochProvider')
   }

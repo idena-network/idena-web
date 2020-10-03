@@ -14,7 +14,7 @@ import {
 import {sendRawTx, getRawTx} from '../../shared/api/chain'
 import {SessionType} from '../../shared/types'
 import {fetchFlipKeys, fetchRawFlip} from '../../shared/api'
-import {fetchWordsSeed} from '../../shared/api/dna'
+import {fetchWordsSeed, fetchIdentity} from '../../shared/api/dna'
 import apiClient from '../../shared/api/api-client'
 import {
   filterRegularFlips,
@@ -47,23 +47,15 @@ import {toHexString, hexToUint8Array} from '../../shared/utils/buffers'
 import {ShortAnswerAttachment} from '../../shared/models/shortAnswerAttachment'
 import {LongAnswerAttachment} from '../../shared/models/longAnswerAttachment'
 
-export const createValidationFlipsMachine = ({
-  coinbase: addr,
-  privateKey: pk,
-  epoch,
-}) => {
-  console.log('inside', addr, pk, epoch)
-  return Machine(
+export const createValidationFlipsMachine = () =>
+  Machine(
     {
       id: 'validationFlips',
       initial: 'idle',
       context: {
-        coinbase: addr,
-        privateKey: pk,
         validationReady: false,
         flipHashes: [],
         retries: 0,
-        epoch,
       },
       states: {
         idle: {
@@ -74,6 +66,9 @@ export const createValidationFlipsMachine = ({
               actions: assign({
                 validationReady: false,
                 flipHashes: [],
+                privateKey: (_, {privateKey}) => privateKey,
+                coinbase: (_, {coinbase}) => coinbase,
+                epoch: (_, {epoch}) => epoch,
               }),
             },
           },
@@ -206,9 +201,26 @@ export const createValidationFlipsMachine = ({
                       },
                     },
                     sendingPrivateKeyPackage: {
-                      initial: 'requestingCandidates',
+                      initial: 'getIdentityState',
                       entry: log('sending keys package'),
                       states: {
+                        getIdentityState: {
+                          entry: log('get identity state'),
+                          invoke: {
+                            src: 'fetchIdentity',
+                            onDone: [
+                              {
+                                target: 'requestingCandidates',
+                                cond: (_, {data: {requiredFlips, madeFlips}}) =>
+                                  requiredFlips > 0 &&
+                                  madeFlips === requiredFlips,
+                              },
+                            ],
+                            onError: {
+                              target: 'fail',
+                            },
+                          },
+                        },
                         requestingCandidates: {
                           entry: log('requesting candidates'),
                           invoke: {
@@ -231,6 +243,14 @@ export const createValidationFlipsMachine = ({
                           entry: log('sending package'),
                           invoke: {
                             src: 'sendPrivateEncryptionKeysPackage',
+                            onDone: {
+                              actions: [
+                                assign({
+                                  packageSent: true,
+                                }),
+                                log(),
+                              ],
+                            },
                             onError: {
                               target: 'fail',
                             },
@@ -267,6 +287,7 @@ export const createValidationFlipsMachine = ({
         },
       },
       services: {
+        fetchIdentity: ({coinbase}) => fetchIdentity(coinbase),
         fetchRawFlips: ({flipHashes}) => cb =>
           fetchRawFlips(flipHashes, cb, 1000),
         fetchValidationIsReady: () => fetchValidationIsReady(),
@@ -274,14 +295,17 @@ export const createValidationFlipsMachine = ({
           fetchFlipHashes(coinbase, SessionType.Short),
         fetchLongHashes: ({coinbase}) =>
           fetchFlipHashes(coinbase, SessionType.Long),
-        fetchPrivateEncryptionKeyCandidates: ctx => {
-          console.log('addr,ok', addr, pk)
-          return fetchPrivateEncryptionKeyCandidates(
-            privateKeyToAddress(ctx.privateKey)
-          )
-        },
-        sendPrivateEncryptionKeysPackage: ({authorCandidates, privateKey}) =>
-          sendKeysPackage(authorCandidates, epoch, privateKey),
+        fetchPrivateEncryptionKeyCandidates: ({privateKey}) =>
+          fetchPrivateEncryptionKeyCandidates(privateKeyToAddress(privateKey)),
+        sendPrivateEncryptionKeysPackage: ({
+          packageSent,
+          authorCandidates,
+          privateKey,
+          epoch,
+        }) =>
+          packageSent
+            ? Promise.resolve()
+            : sendKeysPackage(authorCandidates, epoch, privateKey),
       },
       guards: {
         isValidationReady: ({validationReady}) => validationReady,
@@ -290,7 +314,6 @@ export const createValidationFlipsMachine = ({
       },
     }
   )
-}
 
 export const createValidationMachine = ({
   coinbase,
@@ -328,11 +351,35 @@ export const createValidationMachine = ({
           states: {
             sendPublicKey: {
               entry: log('sending public flip key'),
-              initial: 'sendKey',
+              initial: 'getIdentityState',
               states: {
+                getIdentityState: {
+                  entry: log('get identity state'),
+                  invoke: {
+                    src: 'fetchIdentity',
+                    onDone: [
+                      {
+                        target: 'sendKey',
+                        cond: (_, {data: {requiredFlips, madeFlips}}) =>
+                          requiredFlips > 0 && madeFlips === requiredFlips,
+                      },
+                    ],
+                    onError: {
+                      target: 'fail',
+                    },
+                  },
+                },
                 sendKey: {
                   invoke: {
                     src: 'sendPublicFlipKey',
+                    onDone: {
+                      actions: [
+                        assign({
+                          publicKeySent: true,
+                        }),
+                        log(),
+                      ],
+                    },
                     onError: {
                       target: 'fail',
                     },
@@ -645,27 +692,38 @@ export const createValidationMachine = ({
                       },
                     },
                     submitShortSession: {
-                      initial: 'submitting',
+                      initial: 'submitHash',
                       entry: log(),
                       states: {
-                        submitting: {
+                        submitHash: {
                           invoke: {
                             // eslint-disable-next-line no-shadow
-                            src: ({privateKey, shortHashes, shortFlips}) =>
-                              submitShortAnswersHashTx(
-                                privateKey,
-                                epoch,
-                                shortHashes,
-                                shortFlips.map(
-                                  ({option: answer = 0, hash}) => ({
-                                    answer,
-                                    hash,
-                                  })
-                                )
-                              ),
+                            src: ({
+                              shortHashes,
+                              shortFlips,
+                              shortHashSubmitted,
+                            }) =>
+                              shortHashSubmitted
+                                ? Promise.resolve()
+                                : submitShortAnswersHashTx(
+                                    privateKey,
+                                    epoch,
+                                    shortHashes,
+                                    shortFlips.map(
+                                      ({option: answer = 0, hash}) => ({
+                                        answer,
+                                        hash,
+                                      })
+                                    )
+                                  ),
                             onDone: {
-                              target: '#validation.longSession',
-                              actions: [log()],
+                              target: 'requestWordsSeed',
+                              actions: [
+                                assign({
+                                  shortHashSubmitted: true,
+                                }),
+                                log(),
+                              ],
                             },
                             onError: {
                               target: 'fail',
@@ -681,10 +739,75 @@ export const createValidationMachine = ({
                             },
                           },
                         },
+                        requestWordsSeed: {
+                          invoke: {
+                            src: () => fetchWordsSeed(),
+                            onDone: {
+                              target: 'submitShortAnswers',
+                              actions: assign({
+                                wordsSeed: (_, {data}) => hexToUint8Array(data),
+                              }),
+                            },
+                            onError: {
+                              target: 'fail',
+                              actions: [
+                                assign({
+                                  errorMessage: (_, {data}) => data,
+                                }),
+                                log(
+                                  (context, event) => ({context, event}),
+                                  'Fetch word seed failed'
+                                ),
+                              ],
+                            },
+                          },
+                        },
+                        submitShortAnswers: {
+                          invoke: {
+                            // eslint-disable-next-line no-shadow
+                            src: ({
+                              shortHashes,
+                              shortFlips,
+                              wordsSeed,
+                              shortAnswersSubmitted,
+                            }) =>
+                              shortAnswersSubmitted
+                                ? Promise.resolve()
+                                : submitShortAnswersTx(
+                                    privateKey,
+                                    shortHashes,
+                                    shortFlips.map(
+                                      ({option: answer = 0, hash}) => ({
+                                        answer,
+                                        hash,
+                                      })
+                                    ),
+                                    wordsSeed
+                                  ),
+                            onDone: {
+                              target: '#validation.longSession',
+                              actions: assign({
+                                shortAnswersSubmitted: true,
+                              }),
+                            },
+                            onError: {
+                              target: 'fail',
+                              actions: [
+                                assign({
+                                  errorMessage: (_, {data}) => data,
+                                }),
+                                log(
+                                  (context, event) => ({context, event}),
+                                  'Short answers submit failed'
+                                ),
+                              ],
+                            },
+                          },
+                        },
                         fail: {
                           on: {
                             RETRY_SUBMIT: {
-                              target: 'submitting',
+                              target: 'submitHash',
                             },
                           },
                         },
@@ -792,7 +915,12 @@ export const createValidationMachine = ({
                           ),
                           invoke: {
                             src: ({longFlips}) => cb =>
-                              fetchFlips(missingHashes(longFlips), cb),
+                              fetchFlips(
+                                coinbase,
+                                privateKey,
+                                missingHashes(longFlips),
+                                cb
+                              ),
                             onDone: 'check',
                           },
                         },
@@ -1100,7 +1228,7 @@ export const createValidationMachine = ({
                           invoke: {
                             src: () => fetchWordsSeed(),
                             onDone: {
-                              target: 'submitShortAnswers',
+                              target: 'submitLongAnswers',
                               actions: assign({
                                 wordsSeed: (_, {data}) => hexToUint8Array(data),
                               }),
@@ -1114,48 +1242,6 @@ export const createValidationMachine = ({
                                 log(
                                   (context, event) => ({context, event}),
                                   'Fetch word seed failed'
-                                ),
-                              ],
-                            },
-                          },
-                        },
-                        submitShortAnswers: {
-                          invoke: {
-                            // eslint-disable-next-line no-shadow
-                            src: ({
-                              shortHashes,
-                              shortFlips,
-                              wordsSeed,
-                              shortAnswersSubmitted,
-                            }) =>
-                              shortAnswersSubmitted
-                                ? Promise.resolve()
-                                : submitShortAnswersTx(
-                                    privateKey,
-                                    shortHashes,
-                                    shortFlips.map(
-                                      ({option: answer = 0, hash}) => ({
-                                        answer,
-                                        hash,
-                                      })
-                                    ),
-                                    wordsSeed
-                                  ),
-                            onDone: {
-                              target: 'submitLongAnswers',
-                              actions: assign({
-                                shortAnswersSubmitted: true,
-                              }),
-                            },
-                            onError: {
-                              target: 'fail',
-                              actions: [
-                                assign({
-                                  errorMessage: (_, {data}) => data,
-                                }),
-                                log(
-                                  (context, event) => ({context, event}),
-                                  'Short answers submit failed'
                                 ),
                               ],
                             },
@@ -1262,10 +1348,12 @@ export const createValidationMachine = ({
     {
       services: {
         fetchValidationIsReady: () => fetchValidationIsReady(),
+        fetchIdentity: () => fetchIdentity(coinbase),
         fetchShortHashes: () => fetchFlipHashes(coinbase, SessionType.Short),
         fetchShortFlips: ({shortFlips}) => cb =>
           fetchFlips(
             coinbase,
+            privateKey,
             shortFlips
               .filter(({missing, fetched}) => !fetched && !missing)
               .map(({hash}) => hash),
@@ -1276,6 +1364,7 @@ export const createValidationMachine = ({
         fetchLongFlips: ({longFlips}) => cb =>
           fetchFlips(
             coinbase,
+            privateKey,
             longFlips
               .filter(({missing, fetched}) => !fetched && !missing)
               .map(({hash}) => hash),
@@ -1288,7 +1377,10 @@ export const createValidationMachine = ({
             longFlips[currentIndex].words.map(({id}) => id),
             locale
           ),
-        sendPublicFlipKey: () => sendPublicFlipKey(epoch, privateKey),
+        sendPublicFlipKey: ({publicKeySent}) =>
+          publicKeySent
+            ? Promise.resolve()
+            : sendPublicFlipKey(epoch, privateKey),
       },
       delays: {
         // eslint-disable-next-line no-shadow
@@ -1358,7 +1450,7 @@ export const createValidationMachine = ({
     }
   )
 
-function fetchFlips(addr, hashes, cb, delay = 1000) {
+function fetchFlips(addr, privateKey, hashes, cb, delay = 1000) {
   return forEachAsync(hashes, async hash => {
     const flip = await getRawFlip(hash, true)
     if (!flip) {
@@ -1374,7 +1466,7 @@ function fetchFlips(addr, hashes, cb, delay = 1000) {
     }
     return fetchFlipKeys(addr, hash)
       .then(({result, error}) => {
-        const dec = error ? {} : decodeFlip(flip, {hash, ...result})
+        const dec = error ? {} : decodeFlip(privateKey, flip, {hash, ...result})
         return cb({
           type: 'FLIP',
           flip: {
@@ -1428,14 +1520,25 @@ function fetchRawFlips(hashes, cb, delay = 1000) {
   )
 }
 
-function decodeFlip(flip, {hash, publicKey, privateKey}) {
+function decodeFlip(
+  privateKey,
+  flip,
+  {hash, publicKey, privateKey: flipEncryptedPrivateKey}
+) {
   if (!flip) {
     return null
   }
 
   try {
     const decryptedPublicPart = decryptMessage(publicKey, flip.publicHex)
-    const decryptedPrivatePart = decryptMessage(privateKey, flip.privateHex)
+    const decryptedPrivateKey = decryptMessage(
+      privateKey,
+      flipEncryptedPrivateKey
+    )
+    const decryptedPrivatePart = decryptMessage(
+      decryptedPrivateKey,
+      flip.privateHex
+    )
 
     const [images] = decode(decryptedPublicPart)
     const [privateImages, orders] = decode(decryptedPrivatePart)
@@ -1543,25 +1646,21 @@ async function getRawFlip(hash, withRemote = false) {
 
 async function sendPublicFlipKey(epoch, privateKey) {
   const publicFlipKeyData = preparePublicFlipKey(privateKey, epoch)
-
   const result = await sendPublicEncryptionKey(
-    publicFlipKeyData.getData(),
-    publicFlipKeyData.getSignature(),
+    toHexString(publicFlipKeyData.getKey(), true),
+    toHexString(publicFlipKeyData.getSignature(), true),
     publicFlipKeyData.getEpoch()
   )
-
-  console.log('public flip key sent', result)
+  console.log('public key sent', result)
 }
 
 async function sendKeysPackage(candidates, epoch, privateKey) {
   const packageData = prepareFlipKeysPackage(candidates, privateKey, epoch)
-
   const result = await sendPrivateEncryptionKeysPackage(
-    packageData.getData(),
-    packageData.getSignature(),
+    toHexString(packageData.getData(), true),
+    toHexString(packageData.getSignature(), true),
     packageData.getEpoch()
   )
-
   console.log('private keys sent', result)
 }
 

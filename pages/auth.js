@@ -2,12 +2,15 @@ import {Flex, Checkbox} from '@chakra-ui/core'
 import {margin} from 'polished'
 import {useState} from 'react'
 import Router from 'next/router'
+import {FiChevronRight} from 'react-icons/fi'
 import theme, {rem} from '../shared/theme'
 import {Label, Button} from '../shared/components'
-import {Input} from '../shared/components/components'
+import {Input, Avatar} from '../shared/components/components'
 import {useAuthDispatch} from '../shared/providers/auth-context'
+import {useSettingsState} from '../shared/providers/settings-context'
+import {FlatButton} from '../shared/components/button'
 
-export default function Auth() {
+function InitKey() {
   const [key, setKey] = useState(null)
   const [pass, setPass] = useState(null)
   const [storeKey, setStoreKey] = useState(true)
@@ -15,7 +18,6 @@ export default function Auth() {
 
   const addKey = () => {
     try {
-      console.log(storeKey)
       setNewKey(key, pass, storeKey)
       Router.push('/')
     } catch (e) {
@@ -114,17 +116,155 @@ export default function Auth() {
               </Flex>
             </form>
           </Flex>
-          {/* <Flex width="100%" css={{marginTop: 10}}>
-            <Progress
-              value={nodeProgress.percentage}
-              max={100}
-              rounded="2px"
-              bg="xblack.016"
-              color="brandBlue"
-              h={1}
-              mt="11px"
-            />
-          </Flex> */}
+        </>
+      </div>
+      <style jsx>{`
+        section {
+          background: ${theme.colors.darkGraphite};
+          color: white;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: center;
+          flex: 1;
+          height: 100vh;
+        }
+        section > div {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-direction: column;
+          width: ${rem(600)};
+        }
+
+        input {
+          background-color: ${theme.colors.darkGraphite}!important;
+        }
+
+        img {
+          width: ${rem(60)};
+          height: ${rem(60)};
+          margin-right: ${rem(10)};
+        }
+        section .gray {
+          opacity: 0.5;
+        }
+
+        h2 {
+          font-size: ${rem(18, theme.fontSizes.base)};
+          font-weight: 500;
+          margin: 0;
+          word-break: break-all;
+        }
+        span {
+          font-size: ${rem(14, theme.fontSizes.base)};
+          line-height: ${rem(20, theme.fontSizes.base)};
+        }
+        li {
+          margin-bottom: ${rem(theme.spacings.small8, theme.fontSizes.base)};
+        }
+      `}</style>
+    </section>
+  )
+}
+
+export default function Auth() {
+  const [pass, setPass] = useState(null)
+  const {login, logout} = useAuthDispatch()
+  const {encryptedKey, coinbase} = useSettingsState()
+
+  return !encryptedKey || !coinbase ? (
+    <InitKey />
+  ) : (
+    <section>
+      <div>
+        <>
+          <Flex width="100%">
+            <Avatar address={coinbase} />
+            <Flex
+              direction="column"
+              justify="space-between"
+              flex="1"
+              style={{
+                ...margin(0, 0, 0, theme.spacings.normal),
+              }}
+            >
+              <h2>Enter password to unlock your account</h2>
+
+              <Flex justify="space-between">
+                <div className="gray">
+                  <span>{coinbase}</span>
+                </div>
+              </Flex>
+
+              <Flex justify="space-between">
+                <FlatButton
+                  color={theme.colors.primary}
+                  onClick={logout}
+                  style={{
+                    marginBottom: rem(19),
+                    fontSize: rem(12),
+                  }}
+                >
+                  <span>Remove private key from this computer</span>
+
+                  <FiChevronRight
+                    style={{
+                      display: 'inline-block',
+                    }}
+                    fontSize={rem(19)}
+                  />
+                </FlatButton>
+              </Flex>
+            </Flex>
+          </Flex>
+          <Flex
+            width="100%"
+            style={{
+              ...margin(theme.spacings.normal, 0, 0, 0),
+            }}
+          >
+            <form
+              onSubmit={e => {
+                try {
+                  e.preventDefault()
+                  login(pass)
+                  Router.push('/')
+                } catch (err) {
+                  console.log(err)
+                }
+              }}
+            >
+              <Label
+                htmlFor="pass"
+                style={{
+                  color: 'white',
+                  fontSize: rem(14),
+                  ...margin(theme.spacings.normal, 0, theme.spacings.normal, 0),
+                }}
+              >
+                Password
+              </Label>
+              <Flex width="100%">
+                <Input
+                  id="pass"
+                  value={pass}
+                  type="password"
+                  style={{
+                    ...margin(0, theme.spacings.normal, 0, 0),
+                    width: rem(450),
+                    backgroundColor: theme.colors.gray3,
+                    borderColor: theme.colors.gray5,
+                  }}
+                  onChange={e => setPass(e.target.value)}
+                  placeholder="Enter your password"
+                />
+                <Button type="submit" disabled={!pass}>
+                  Proceed
+                </Button>
+              </Flex>
+            </form>
+          </Flex>
         </>
       </div>
       <style jsx>{`

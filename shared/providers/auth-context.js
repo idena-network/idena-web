@@ -1,7 +1,7 @@
 /* eslint-disable react/display-name */
 import {createContext, useContext, useState} from 'react'
 import {decryptPrivateKey, privateKeyToAddress} from '../utils/crypto'
-import {useSettingsDispatch} from './settings-context'
+import {useSettingsDispatch, useSettingsState} from './settings-context'
 
 const AuthStateContext = createContext()
 const AuthDispatchContext = createContext()
@@ -15,17 +15,19 @@ const initialState = {
 function AuthProvider({children}) {
   const [state, setState] = useState(initialState)
 
+  const {encryptedKey} = useSettingsState()
   const {saveEncryptedKey, removeEncryptedKey} = useSettingsDispatch()
 
   const setNewKey = (key, pass, persist) => {
     const privateKey = decryptPrivateKey(key, pass)
+    const coinbase = privateKeyToAddress(privateKey)
     if (persist) {
-      saveEncryptedKey(key)
+      saveEncryptedKey(coinbase, key)
     }
     setState({
       auth: true,
       privateKey,
-      coinbase: privateKeyToAddress(privateKey),
+      coinbase,
     })
   }
 
@@ -34,12 +36,23 @@ function AuthProvider({children}) {
     setState(initialState)
   }
 
+  const login = pass => {
+    const privateKey = decryptPrivateKey(encryptedKey, pass)
+    const coinbase = privateKeyToAddress(privateKey)
+    setState({
+      auth: true,
+      privateKey,
+      coinbase,
+    })
+  }
+
   return (
     <AuthStateContext.Provider value={state}>
       <AuthDispatchContext.Provider
         value={{
           setNewKey,
           logout,
+          login,
         }}
       >
         {children}

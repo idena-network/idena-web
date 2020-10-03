@@ -5,14 +5,29 @@ import useLogger from '../hooks/use-logger'
 
 const SAVE_ENCRYPTED_KEY = 'SAVE_ENCRYPTED_KEY'
 const CLEAR_ENCRYPTED_KEY = 'CLEAR_ENCRYPTED_KEY'
+const SAVE_CONNECTION = 'SAVE_CONNECTION'
 
 function settingsReducer(state, action) {
   switch (action.type) {
     case SAVE_ENCRYPTED_KEY: {
-      return {...state, encryptedKey: action.data}
+      return {
+        ...state,
+        encryptedKey: action.data.key,
+        coinbase: action.data.coinbase,
+      }
     }
     case CLEAR_ENCRYPTED_KEY: {
-      return {...state, encryptedKey: null}
+      const s = {...state}
+      delete s.encryptedKey
+      delete s.coinbase
+      return s
+    }
+    case SAVE_CONNECTION: {
+      return {
+        ...state,
+        url: action.data.url,
+        apiKey: action.data.key,
+      }
     }
     default:
       return state
@@ -31,12 +46,16 @@ function SettingsProvider({children}) {
     'settings'
   )
 
-  const saveEncryptedKey = key => {
-    dispatch({type: SAVE_ENCRYPTED_KEY, data: key})
+  const saveEncryptedKey = (coinbase, key) => {
+    dispatch({type: SAVE_ENCRYPTED_KEY, data: {coinbase, key}})
   }
 
   const removeEncryptedKey = () => {
     dispatch({type: CLEAR_ENCRYPTED_KEY})
+  }
+
+  const saveConnection = (url, key) => {
+    dispatch({type: SAVE_CONNECTION, data: {url, key}})
   }
 
   return (
@@ -45,6 +64,7 @@ function SettingsProvider({children}) {
         value={{
           saveEncryptedKey,
           removeEncryptedKey,
+          saveConnection,
         }}
       >
         {children}

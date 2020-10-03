@@ -71,7 +71,7 @@ function Nav() {
           textAlign: 'left',
         }}
       >
-        <NavItem href="/" active icon={<i className="icon icon--user" />}>
+        <NavItem href="/" icon={<i className="icon icon--user" />}>
           {t('My Idena') || nickname}
         </NavItem>
         <NavItem href="/settings" icon={<i className="icon icon--settings" />}>
@@ -104,7 +104,7 @@ function Nav() {
 // eslint-disable-next-line react/prop-types
 function NavItem({href, icon, children, onClick}) {
   const router = useRouter()
-  const active = router.pathname.startsWith(href)
+  const active = router.pathname === href
   const bg = active ? transparentize(0.84, theme.colors.black0) : ''
   const bgHover = active
     ? transparentize(0.84, theme.colors.black0)
@@ -241,7 +241,7 @@ function CurrentTask({epoch, period, identity}) {
       switch (true) {
         case canActivateInvite:
           return (
-            <Link href="/profile" color={theme.colors.white}>
+            <Link href="/" color={theme.colors.white}>
               {t('Activate invite')}
             </Link>
           )

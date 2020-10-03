@@ -171,10 +171,8 @@ export function ActivateInviteForm() {
 
       const hex = tx.toHex()
 
-      const result = await sendRawTx(`0x${hex}`)
-      console.log(result)
+      await sendRawTx(`0x${hex}`)
     } catch (e) {
-      console.log(e)
       addError({title: 'Failed to activate invite'})
     }
   }
