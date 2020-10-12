@@ -53,6 +53,7 @@ import Flex from '../../shared/components/flex'
 import {PrimaryButton} from '../../shared/components/button'
 import {FloatDebug} from '../../shared/components/components'
 import {useAuthState} from '../../shared/providers/auth-context'
+import {info} from '../../shared/utils/logs'
 
 export default function ValidationPage() {
   const epoch = useEpochState()
@@ -112,7 +113,7 @@ function ValidationSession({
   )
   const [state, send] = useMachine(validationMachine, {
     state: loadValidationState(),
-    logger: console.log,
+    logger: msg => info({coinbase, machine: 'validation'}, msg),
   })
 
   const {currentIndex, translations} = state.context

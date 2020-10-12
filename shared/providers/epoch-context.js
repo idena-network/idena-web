@@ -1,6 +1,5 @@
-import {useMemo, useEffect, useContext, useState, createContext} from 'react'
+import {useEffect, useContext, useState, createContext} from 'react'
 import deepEqual from 'dequal'
-import {useMachine} from '@xstate/react'
 import {useInterval} from '../hooks/use-interval'
 import {fetchEpoch} from '../api'
 import {
@@ -9,8 +8,6 @@ import {
 } from '../../screens/validation/utils'
 
 import {persistItem} from '../utils/persist'
-import {createValidationFlipsMachine} from '../../screens/validation/machine'
-import {useAuthState} from './auth-context'
 
 export const EpochPeriod = {
   FlipLottery: 'FlipLottery',
@@ -72,23 +69,6 @@ export function EpochProvider({children}) {
       })
     }
   }, [epoch])
-
-  const {coinbase, privateKey} = useAuthState()
-
-  const validationFlipsMachine = useMemo(
-    () => createValidationFlipsMachine(),
-    []
-  )
-
-  const [_, send] = useMachine(validationFlipsMachine, {
-    logger: console.log,
-  })
-
-  useEffect(() => {
-    if (epoch && privateKey && epoch.currentPeriod !== 'None') {
-      send('START', {coinbase, privateKey, epoch: epoch?.epoch ?? 0})
-    }
-  }, [coinbase, epoch, privateKey, send])
 
   return (
     <EpochStateContext.Provider value={epoch || null}>

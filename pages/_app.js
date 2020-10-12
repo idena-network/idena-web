@@ -19,6 +19,7 @@ import {SettingsProvider} from '../shared/providers/settings-context'
 // eslint-disable-next-line import/no-extraneous-dependencies
 import 'tui-image-editor/dist/tui-image-editor.css'
 import {AuthProvider} from '../shared/providers/auth-context'
+import Flips from '../shared/components/flips'
 
 export default class MyApp extends App {
   render() {
@@ -49,6 +50,7 @@ function AppProviders(props) {
         <TimingProvider>
           <EpochProvider>
             <IdentityProvider>
+              <Flips />
               <NotificationProvider {...props} />
             </IdentityProvider>
           </EpochProvider>

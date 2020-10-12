@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState} from 'react'
 import {margin, padding, borderRadius} from 'polished'
 import {useTranslation} from 'react-i18next'
 import {FiEye, FiEyeOff} from 'react-icons/fi'

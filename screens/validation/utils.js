@@ -1,12 +1,9 @@
 import {State} from 'xstate'
 import dayjs, {isDayjs} from 'dayjs'
-import {
-  persistState,
-  loadPersistentState,
-  loadPersistentStateValue,
-} from '../../shared/utils/persist'
+import {loadPersistentStateValue} from '../../shared/utils/persist'
 import {EpochPeriod} from '../../shared/types'
 import {canValidate} from '../../shared/providers/identity-context'
+import db from '../../shared/utils/db'
 
 export const decodedFlip = ({decoded}) => decoded
 
@@ -108,6 +105,14 @@ export function shouldStartValidation(epoch, identity) {
     )
 
   if (isValidationRunning && canValidate(identity)) {
+    // remove old flips
+    db.table('flips')
+      .where('epoch')
+      .below(epoch.epoch)
+      .delete()
+      .catch(e => {
+        console.error('cannot delete old flips', e)
+      })
     // Hooray! We're in but still need to check against persisted validation state and epoch
     const validationStateDefinition = loadValidationState()
     if (validationStateDefinition) {

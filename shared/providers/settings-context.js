@@ -41,7 +41,12 @@ const SettingsDispatchContext = createContext()
 function SettingsProvider({children}) {
   const [state, dispatch] = usePersistence(
     useLogger(
-      useReducer(settingsReducer, loadPersistentState('settings') || {})
+      useReducer(
+        settingsReducer,
+        loadPersistentState('settings') || {
+          url: 'https://app.idena.io/api/node',
+        }
+      )
     ),
     'settings'
   )

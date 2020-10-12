@@ -46,6 +46,7 @@ import {Transaction} from '../../shared/models/transaction'
 import {toHexString, hexToUint8Array} from '../../shared/utils/buffers'
 import {ShortAnswerAttachment} from '../../shared/models/shortAnswerAttachment'
 import {LongAnswerAttachment} from '../../shared/models/longAnswerAttachment'
+import db from '../../shared/utils/db'
 
 export const createValidationFlipsMachine = () =>
   Machine(
@@ -64,8 +65,13 @@ export const createValidationFlipsMachine = () =>
             START: {
               target: 'working',
               actions: assign({
+                shortReady: false,
+                longReady: false,
                 validationReady: false,
                 flipHashes: [],
+                retries: 0,
+                authorCandidates: [],
+                packageSent: false,
                 privateKey: (_, {privateKey}) => privateKey,
                 coinbase: (_, {coinbase}) => coinbase,
                 epoch: (_, {epoch}) => epoch,
@@ -94,6 +100,9 @@ export const createValidationFlipsMachine = () =>
                             }),
                             log(),
                           ],
+                        },
+                        onError: {
+                          actions: [log()],
                         },
                       },
                     },
@@ -213,7 +222,13 @@ export const createValidationFlipsMachine = () =>
                                 target: 'requestingCandidates',
                                 cond: (_, {data: {requiredFlips, madeFlips}}) =>
                                   requiredFlips > 0 &&
-                                  madeFlips === requiredFlips,
+                                  madeFlips >= requiredFlips,
+                                actions: log('candidates received'),
+                              },
+                              {
+                                actions: log(
+                                  'candidate does not meet a requirement to send keys package'
+                                ),
                               },
                             ],
                             onError: {
@@ -280,9 +295,9 @@ export const createValidationFlipsMachine = () =>
     },
     {
       actions: {
-        saveFlip: (ctx, {flip}) => {
-          if (!flip.exists) {
-            setFlipToLocalStorage(flip)
+        saveFlip: async (ctx, {flip}) => {
+          if (!flip.fromStorage) {
+            await saveFlipToIndexedDb(ctx.epoch, flip)
           }
         },
       },
@@ -343,6 +358,7 @@ export const createValidationMachine = ({
         retries: 0,
         locale,
         translations: {},
+        publicKeySent: false,
       },
       states: {
         shortSession: {
@@ -361,7 +377,12 @@ export const createValidationMachine = ({
                       {
                         target: 'sendKey',
                         cond: (_, {data: {requiredFlips, madeFlips}}) =>
-                          requiredFlips > 0 && madeFlips === requiredFlips,
+                          requiredFlips > 0 && madeFlips >= requiredFlips,
+                      },
+                      {
+                        actions: log(
+                          'candidate does not meet a requirement to send public key'
+                        ),
                       },
                     ],
                     onError: {
@@ -1347,7 +1368,6 @@ export const createValidationMachine = ({
     },
     {
       services: {
-        fetchValidationIsReady: () => fetchValidationIsReady(),
         fetchIdentity: () => fetchIdentity(coinbase),
         fetchShortHashes: () => fetchFlipHashes(coinbase, SessionType.Short),
         fetchShortFlips: ({shortFlips}) => cb =>
@@ -1369,7 +1389,7 @@ export const createValidationMachine = ({
               .filter(({missing, fetched}) => !fetched && !missing)
               .map(({hash}) => hash),
             cb,
-            3000
+            1000
           ),
         // eslint-disable-next-line no-shadow
         fetchTranslations: ({longFlips, currentIndex, locale}) =>
@@ -1628,13 +1648,28 @@ function removeByHash(hashes, hash) {
   return [...hashes.slice(0, idx), ...hashes.slice(idx + 1)]
 }
 
-function setFlipToLocalStorage(flip) {
-  localStorage.setItem(flip.hash, JSON.stringify(flip))
+async function saveFlipToIndexedDb(epoch, flip) {
+  try {
+    await db.table('flips').add({
+      hash: flip.hash,
+      epoch,
+      publicHex: flip.publicHex,
+      privateHex: flip.privateHex,
+      fromStorage: true,
+    })
+  } catch (e) {
+    console.error('cannot save flip', e)
+  }
 }
 
 async function getRawFlip(hash, withRemote = false) {
-  const flip = JSON.parse(localStorage.getItem(hash))
-  if (!withRemote) {
+  let flip = null
+  try {
+    flip = await db.table('flips').get(hash)
+  } catch (e) {
+    console.error('cannot get flip from storage', hash, e)
+  }
+  if (flip || !withRemote) {
     return flip
   }
   const {result, error} = await fetchRawFlip(hash)

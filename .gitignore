@@ -95,3 +95,4 @@ datadir
 .DS_Store
 
 main/node/**
+.env.local
