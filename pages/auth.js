@@ -15,12 +15,15 @@ function InitKey() {
   const [pass, setPass] = useState(null)
   const [storeKey, setStoreKey] = useState(true)
   const {setNewKey} = useAuthDispatch()
+  const [error, setError] = useState()
 
   const addKey = () => {
     try {
+      setError(null)
       setNewKey(key, pass, storeKey)
       Router.push('/')
     } catch (e) {
+      setError('Key or password is invalid. Try again.')
       console.log(e)
     }
   }
@@ -114,6 +117,22 @@ function InitKey() {
                   Save the encrypted key on this computer
                 </Checkbox>
               </Flex>
+              {error && (
+                <Flex
+                  style={{
+                    marginTop: rem(30, theme.fontSizes.base),
+                    backgroundColor: theme.colors.danger,
+                    borderRadius: rem(9, theme.fontSizes.base),
+                    fontSize: rem(14, theme.fontSizes.base),
+                    padding: `${rem(18, theme.fontSizes.base)} ${rem(
+                      24,
+                      theme.fontSizes.base
+                    )}`,
+                  }}
+                >
+                  {error}
+                </Flex>
+              )}
             </form>
           </Flex>
         </>
@@ -172,6 +191,7 @@ export default function Auth() {
   const [pass, setPass] = useState(null)
   const {login, logout} = useAuthDispatch()
   const {encryptedKey, coinbase} = useSettingsState()
+  const [error, setError] = useState()
 
   return !encryptedKey || !coinbase ? (
     <InitKey />
@@ -228,9 +248,11 @@ export default function Auth() {
               onSubmit={e => {
                 try {
                   e.preventDefault()
+                  setError(null)
                   login(pass)
                   Router.push('/')
                 } catch (err) {
+                  setError('Passowrd is invalid. Try again.')
                   console.log(err)
                 }
               }}
@@ -263,6 +285,22 @@ export default function Auth() {
                   Proceed
                 </Button>
               </Flex>
+              {error && (
+                <Flex
+                  style={{
+                    marginTop: rem(30, theme.fontSizes.base),
+                    backgroundColor: theme.colors.danger,
+                    borderRadius: rem(9, theme.fontSizes.base),
+                    fontSize: rem(14, theme.fontSizes.base),
+                    padding: `${rem(18, theme.fontSizes.base)} ${rem(
+                      24,
+                      theme.fontSizes.base
+                    )}`,
+                  }}
+                >
+                  {error}
+                </Flex>
+              )}
             </form>
           </Flex>
         </>
