@@ -151,6 +151,8 @@ export function ActivateInviteForm() {
 
   const [code, setCode] = React.useState()
 
+  const [{mining}, setHash] = useTx()
+
   if (!canActivateInvite) {
     return null
   }
@@ -171,13 +173,13 @@ export function ActivateInviteForm() {
 
       const hex = tx.toHex()
 
-      await sendRawTx(`0x${hex}`)
+      const result = await sendRawTx(`0x${hex}`)
+      console.log(result)
+      setHash(result)
     } catch (e) {
-      addError({title: 'Failed to activate invite'})
+      addError({title: `Failed to activate invite: ${e.message}`})
     }
   }
-
-  const mining = false
 
   return (
     <Box
@@ -186,7 +188,6 @@ export function ActivateInviteForm() {
         e.preventDefault()
         try {
           await sendActivateInviteTx(code)
-          // await activateInvite(code)
         } catch ({message}) {
           addError({
             title: message,
@@ -249,236 +250,6 @@ export function ActivateInviteForm() {
           {t('Activate invite')}
         </PrimaryButton>
       </Stack>
-    </Box>
-  )
-}
-
-export function SpoilInviteDrawer({children, ...props}) {
-  const {t} = useTranslation()
-  return (
-    <Drawer {...props}>
-      <DrawerHeader mb={6}>
-        <Avatar address={`0x${'2'.repeat(64)}`} mx="auto" />
-        <Heading
-          fontSize="lg"
-          fontWeight={500}
-          color="brandGray.500"
-          mt={4}
-          mb={0}
-          textAlign="center"
-        >
-          {t('Spoil invitation code')}
-        </Heading>
-      </DrawerHeader>
-      <DrawerBody>
-        <Text fontSize="md" mb={6}>
-          {t(
-            `Spoil invitations that are shared publicly. This will encourage people to share invitations privately and prevent bots from collecting invitation codes.`
-          )}
-        </Text>
-        {children}
-      </DrawerBody>
-    </Drawer>
-  )
-}
-
-export function SpoilInviteForm({onSpoil}) {
-  const {t} = useTranslation()
-  return (
-    <Stack
-      as="form"
-      spacing={6}
-      onSubmit={e => {
-        e.preventDefault()
-        onSpoil(e.target.elements.key.value)
-      }}
-    >
-      <FormControl>
-        <FormLabel htmlFor="key">Invitation code</FormLabel>
-        <Input id="key" placeholder={t('Invitation code to spoil')} />
-      </FormControl>
-      <Text fontSize="md">
-        {t(
-          `When you click 'Spoil' the invitation code will be activated by a random address and wasted.`
-        )}
-      </Text>
-      <PrimaryButton ml="auto" type="submit">
-        {t('Spoil invite')}
-      </PrimaryButton>
-    </Stack>
-  )
-}
-
-export function MinerStatusSwitcher() {
-  const {t} = useTranslation()
-
-  const {colors} = useTheme()
-
-  const initialRef = React.useRef()
-
-  const identity = useIdentityState()
-  const {addError} = useNotificationDispatch()
-
-  const [{result: hash, error}, callRpc] = useRpc()
-  const [{mined}, setHash] = useTx()
-
-  const [state, dispatch] = React.useReducer(
-    function miningReducer(
-      // eslint-disable-next-line no-shadow
-      state,
-      [action, payload]
-    ) {
-      switch (action) {
-        case 'init':
-          return {
-            ...state,
-            online: payload.online,
-          }
-        case 'open':
-          return {
-            ...state,
-            showModal: true,
-          }
-        case 'close':
-          return {
-            ...state,
-            showModal: false,
-          }
-
-        case 'toggle':
-          return {
-            ...state,
-            isMining: true,
-          }
-        case 'mined':
-          return {
-            ...state,
-            isMining: false,
-            showModal: false,
-          }
-        case 'error':
-          return {
-            ...state,
-            showModal: false,
-            isMining: false,
-          }
-        default:
-          return state
-      }
-    },
-    {
-      online: null,
-      showModal: false,
-      isMining: false,
-    }
-  )
-
-  React.useEffect(() => {
-    if (!state.showModal) {
-      dispatch(['init', identity])
-    }
-  }, [identity, state.showModal])
-
-  React.useEffect(() => setHash(hash), [hash, setHash])
-
-  React.useEffect(() => {
-    if (error) {
-      dispatch(['error'])
-      addError({title: error.message})
-    }
-  }, [addError, error])
-
-  React.useEffect(() => {
-    if (mined) {
-      dispatch(['mined'])
-    }
-  }, [mined])
-
-  if (!identity.canMine) {
-    return null
-  }
-
-  return (
-    <Box mb={6}>
-      <FormGroup onClick={() => dispatch(['open'])}>
-        <div className="form-control">
-          <Flex align="center" justify="space-between">
-            <Label
-              htmlFor="switcher"
-              style={{margin: 0, cursor: 'pointer', maxWidth: rem(110)}}
-            >
-              {t('Mining')}
-            </Label>
-            <Box pointerEvents="none">
-              {state.online !== null && state.online !== undefined && (
-                <Switcher
-                  withStatusHint
-                  isChecked={state.online}
-                  isInProgress={state.isMining}
-                  bgOff={colors.red[500]}
-                  bgOn={colors.brandBlue[500]}
-                />
-              )}
-            </Box>
-          </Flex>
-        </div>
-        <style jsx>{`
-          .form-control {
-            border: solid 1px ${colors.gray[300]};
-            color: ${colors.brandGray[500]};
-            background: ${colors.white};
-            border-radius: 6px;
-            font-size: 1em;
-            padding: 0.5em 1em 0.65em;
-            cursor: pointer;
-          }
-        `}</style>
-      </FormGroup>
-      <Dialog
-        title={
-          !state.online
-            ? t('Activate mining status')
-            : t('Deactivate mining status')
-        }
-        isOpen={state.showModal}
-        initialFocusRef={state.online ? null : initialRef}
-        onClose={() => dispatch(['close'])}
-      >
-        <DialogBody>
-          <Stack spacing={1}>
-            <Text>
-              {state.online
-                ? t('Submit the form to deactivate your mining status.')
-                : t(`Submit the form to start mining. Your node has to be online
-              unless you deactivate your status. Otherwise penalties might be
-              charged after being offline more than 1 hour.`)}
-            </Text>
-            <Text>
-              {state.online
-                ? t('You can activate it again afterwards.')
-                : t('You can deactivate your online status at any time.')}
-            </Text>
-          </Stack>
-        </DialogBody>
-        <DialogFooter>
-          <SecondaryButton onClick={() => dispatch(['close'])}>
-            {t('Cancel')}
-          </SecondaryButton>
-          <PrimaryButton
-            ref={initialRef}
-            onClick={() => {
-              dispatch(['toggle'])
-              callRpc(
-                state.online ? 'dna_becomeOffline' : 'dna_becomeOnline',
-                {}
-              )
-            }}
-            isDisabled={state.isMining}
-          >
-            {state.isMining ? t('Waiting...') : t('Submit')}
-          </PrimaryButton>
-        </DialogFooter>
-      </Dialog>
     </Box>
   )
 }
@@ -565,7 +336,8 @@ export function ValidationResultToast({epoch}) {
           }
           action={() => {
             dispatch(true)
-            global.openExternal(url)
+            const win = window.open(url, '_blank')
+            win.focus()
           }}
           actionName={t('Open')}
         />

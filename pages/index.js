@@ -1,13 +1,5 @@
 import React, {useEffect} from 'react'
-import {
-  Stack,
-  Box,
-  Text,
-  Icon,
-  useDisclosure,
-  useToast,
-  Button,
-} from '@chakra-ui/core'
+import {Stack, useDisclosure, useToast} from '@chakra-ui/core'
 import {useTranslation} from 'react-i18next'
 import Router from 'next/router'
 import {
@@ -24,28 +16,17 @@ import {
   UserStatLabel,
   UserStatValue,
   AnnotatedUserStat,
-  SpoilInviteDrawer,
-  SpoilInviteForm,
-  MinerStatusSwitcher,
   ActivateInviteForm,
   ValidationResultToast,
 } from '../screens/profile/components'
-import {IconButton2} from '../shared/components/button'
-import {IconLink} from '../shared/components/link'
 import Layout from '../shared/components/layout'
 import {IdentityStatus} from '../shared/types'
-import {toPercent, toLocaleDna, callRpc} from '../shared/utils/utils'
-import {Toast} from '../shared/components/components'
-import KillForm, {
-  KillIdentityDrawer,
-} from '../screens/wallets/components/kill-form'
+import {toPercent, toLocaleDna} from '../shared/utils/utils'
 import {
   shouldExpectValidationResults,
   hasPersistedValidationResults,
 } from '../screens/validation/utils'
 import {persistItem} from '../shared/utils/persist'
-import {rem} from '../shared/theme'
-import {generateFlipKey} from '../shared/utils/crypto'
 import {useAuthState} from '../shared/providers/auth-context'
 
 export default function ProfilePage() {
@@ -53,20 +34,6 @@ export default function ProfilePage() {
     t,
     i18n: {language},
   } = useTranslation()
-
-  const {
-    isOpen: isOpenKillForm,
-    onOpen: onOpenKillForm,
-    onClose: onCloseKillForm,
-  } = useDisclosure()
-
-  const {
-    isOpen: isOpenSpoilForm,
-    onOpen: onOpenSpoilForm,
-    onClose: onCloseSpoilForm,
-  } = useDisclosure()
-
-  const toast = useToast()
 
   const {
     address,

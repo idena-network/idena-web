@@ -80,8 +80,10 @@ export default function useTx(initialHash) {
   const [{result, error}, fetchTx] = useRpc('bcn_transaction', initialHash)
 
   useEffect(() => {
-    dispatch({type: 'reset'})
-    fetchTx('bcn_transaction', hash)
+    if (hash) {
+      dispatch({type: 'reset'})
+      fetchTx('bcn_transaction', hash)
+    }
   }, [fetchTx, hash])
 
   useInterval(

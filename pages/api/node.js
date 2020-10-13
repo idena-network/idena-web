@@ -19,6 +19,7 @@ const methods = [
   'bcn_syncing',
   'bcn_getRawTx',
   'bcn_sendRawTx',
+  'bcn_transaction',
 ]
 
 const proxy = createProxyMiddleware({

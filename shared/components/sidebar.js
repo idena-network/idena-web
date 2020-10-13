@@ -260,21 +260,19 @@ function CurrentTask({epoch, period, identity}) {
 
           const shouldSendFlips = remainingRequiredFlipsNumber > 0
 
-          return shouldSendFlips ? (
-            <Link href="/flips/list" color={theme.colors.white}>
-              Create {remainingRequiredFlipsNumber} required{' '}
-              {pluralize('flip', remainingRequiredFlipsNumber)}
-            </Link>
-          ) : (
-            `Wait for validation${
-              optionalFlipsNumber > 0
-                ? ` or create ${optionalFlipsNumber} optional ${pluralize(
-                    'flip',
-                    optionalFlipsNumber
-                  )}`
-                : ''
-            }`
-          )
+          return shouldSendFlips
+            ? `Create ${remainingRequiredFlipsNumber} required ${pluralize(
+                'flip',
+                remainingRequiredFlipsNumber
+              )}`
+            : `Wait for validation${
+                optionalFlipsNumber > 0
+                  ? ` or create ${optionalFlipsNumber} optional ${pluralize(
+                      'flip',
+                      optionalFlipsNumber
+                    )}`
+                  : ''
+              }`
         }
 
         case [
