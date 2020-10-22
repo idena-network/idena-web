@@ -1,4 +1,4 @@
-import {createContext, useReducer, useContext} from 'react'
+import {createContext, useReducer, useContext, useEffect} from 'react'
 import {usePersistence} from '../hooks/use-persistent-state'
 import {loadPersistentState} from '../utils/persist'
 import useLogger from '../hooks/use-logger'
@@ -6,6 +6,7 @@ import useLogger from '../hooks/use-logger'
 const SAVE_ENCRYPTED_KEY = 'SAVE_ENCRYPTED_KEY'
 const CLEAR_ENCRYPTED_KEY = 'CLEAR_ENCRYPTED_KEY'
 const SAVE_CONNECTION = 'SAVE_CONNECTION'
+const RESTORE_SETTINGS = 'RESTORE_SETTINGS'
 
 function settingsReducer(state, action) {
   switch (action.type) {
@@ -29,6 +30,11 @@ function settingsReducer(state, action) {
         apiKey: action.data.key,
       }
     }
+    case RESTORE_SETTINGS: {
+      return {
+        ...action.data,
+      }
+    }
     default:
       return state
   }
@@ -41,15 +47,19 @@ const SettingsDispatchContext = createContext()
 function SettingsProvider({children}) {
   const [state, dispatch] = usePersistence(
     useLogger(
-      useReducer(
-        settingsReducer,
-        loadPersistentState('settings') || {
-          url: 'https://app.idena.io/api/node',
-        }
-      )
+      useReducer(settingsReducer, {
+        url: 'https://app.idena.io/api/node',
+      })
     ),
     'settings'
   )
+
+  useEffect(() => {
+    const settings = loadPersistentState('settings')
+    if (settings) {
+      dispatch({type: RESTORE_SETTINGS, data: settings})
+    }
+  }, [dispatch])
 
   const saveEncryptedKey = (coinbase, key) => {
     dispatch({type: SAVE_ENCRYPTED_KEY, data: {coinbase, key}})
