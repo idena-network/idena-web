@@ -8,7 +8,6 @@ import {
   StatNumber,
   useTheme,
   FormControl,
-  Text,
   Box,
   Flex,
   Textarea,
@@ -17,20 +16,9 @@ import {
 import {useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
 import {useMachine} from '@xstate/react'
-import {
-  Avatar,
-  Tooltip,
-  FormLabel,
-  Input,
-  Drawer,
-  DrawerHeader,
-  DrawerBody,
-  Dialog,
-  DialogBody,
-  DialogFooter,
-} from '../../shared/components/components'
+import {Avatar, Tooltip, FormLabel} from '../../shared/components/components'
 import {rem} from '../../shared/theme'
-import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
+import {PrimaryButton} from '../../shared/components/button'
 import {
   mapToFriendlyStatus,
   useIdentityState,
@@ -40,9 +28,7 @@ import {
   useNotificationDispatch,
   NotificationType,
 } from '../../shared/providers/notification-context'
-import useRpc from '../../shared/hooks/use-rpc'
 import useTx from '../../shared/hooks/use-tx'
-import {FormGroup, Label, Switcher} from '../../shared/components'
 import {Notification, Snackbar} from '../../shared/components/notifications'
 import {Spinner} from '../../shared/components/spinner'
 import {

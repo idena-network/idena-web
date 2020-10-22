@@ -1,14 +1,5 @@
 /* eslint-disable react/prop-types */
-import {Flex, Heading, Text} from '@chakra-ui/core'
-import {useTranslation} from 'react-i18next'
-import {
-  Dialog,
-  DialogFooter,
-  DialogHeader,
-  DialogBody,
-} from '../../shared/components/components'
-import {Link} from '../../shared/components'
-import {PrimaryButton} from '../../shared/components/button'
+import {Flex, Heading} from '@chakra-ui/core'
 
 export function LayoutContainer(props) {
   return (

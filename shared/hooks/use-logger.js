@@ -1,7 +1,5 @@
 import React from 'react'
 
-const {logger} = global
-
 const EXPLICIT_REDACTIONS = ['SET_EXTERNAL_KEY', 'SET_INTERNAL_KEY']
 
 // TODO: pass log fn default to console.log

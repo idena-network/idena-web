@@ -24,7 +24,7 @@ function FlipsMachine({coinbase, privateKey, epoch}) {
     []
   )
 
-  const [_, send] = useMachine(validationFlipsMachine, {
+  const [, send] = useMachine(validationFlipsMachine, {
     logger: msg => info({coinbase, machine: 'flips'}, msg),
   })
 

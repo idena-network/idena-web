@@ -1,6 +1,6 @@
 import {Machine, assign} from 'xstate'
 import {decode} from 'rlp'
-import {log} from 'xstate/lib/actions'
+import {choose, log} from 'xstate/lib/actions'
 import dayjs from 'dayjs'
 import {Evaluate} from '@idena/vrf-js'
 import BN from 'bn.js'
@@ -28,6 +28,7 @@ import {
   shouldTranslate,
   shouldPollLongFlips,
   decodedFlip,
+  availableReportsNumber,
 } from './utils'
 import {forEachAsync, wait} from '../../shared/utils/fn'
 import {fetchConfirmedKeywordTranslations} from '../flips/utils'
@@ -201,7 +202,15 @@ export const createValidationFlipsMachine = () =>
                             5000: [
                               {
                                 target: '#validationFlips.idle',
-                                cond: 'allFlipsFetched',
+                                cond: ({
+                                  shortReady,
+                                  longReady,
+                                  flipHashes,
+                                  retries,
+                                }) =>
+                                  shortReady &&
+                                  longReady &&
+                                  (flipHashes.length === 0 || retries >= 10),
                               },
                               {target: 'fetching'},
                             ],
@@ -359,6 +368,7 @@ export const createValidationMachine = ({
         locale,
         translations: {},
         publicKeySent: false,
+        reportedFlipsCount: 0,
       },
       states: {
         shortSession: {
@@ -1226,15 +1236,7 @@ export const createValidationMachine = ({
                           ],
                         },
                         TOGGLE_WORDS: {
-                          actions: [
-                            assign({
-                              longFlips: ({longFlips}, {hash, relevance}) =>
-                                mergeFlipsByHash(longFlips, [
-                                  {hash, relevance},
-                                ]),
-                            }),
-                            log(),
-                          ],
+                          actions: ['toggleKeywords', log()],
                         },
                         SUBMIT: {
                           target: 'submitAnswers',
@@ -1378,7 +1380,7 @@ export const createValidationMachine = ({
               .filter(({missing, fetched}) => !fetched && !missing)
               .map(({hash}) => hash),
             cb,
-            1000
+            0
           ),
         fetchLongHashes: () => fetchFlipHashes(coinbase, SessionType.Long),
         fetchLongFlips: ({longFlips}) => cb =>
@@ -1426,6 +1428,63 @@ export const createValidationMachine = ({
           ) * 1000,
       },
       actions: {
+        toggleKeywords: choose([
+          {
+            cond: ({longFlips}, {hash, relevance}) =>
+              // eslint-disable-next-line no-use-before-define
+              relevance === RelevanceType.Relevant &&
+              !longFlips.find(x => x.hash === hash)?.relevance,
+            actions: [
+              assign({
+                longFlips: ({longFlips}, {hash, relevance}) =>
+                  mergeFlipsByHash(longFlips, [{hash, relevance}]),
+              }),
+            ],
+          },
+          {
+            cond: ({longFlips}, {hash, relevance}) =>
+              // eslint-disable-next-line no-use-before-define
+              relevance === RelevanceType.Relevant &&
+              longFlips.find(x => x.hash === hash)?.relevance ===
+                // eslint-disable-next-line no-use-before-define
+                RelevanceType.Irrelevant,
+            actions: [
+              assign({
+                longFlips: ({longFlips}, {hash, relevance}) =>
+                  mergeFlipsByHash(longFlips, [{hash, relevance}]),
+                reportedFlipsCount: ({reportedFlipsCount}) =>
+                  reportedFlipsCount - 1,
+              }),
+              log(),
+            ],
+          },
+          {
+            cond: ({longFlips, reportedFlipsCount}, {relevance}) =>
+              // eslint-disable-next-line no-use-before-define
+              relevance === RelevanceType.Irrelevant &&
+              reportedFlipsCount < availableReportsNumber(longFlips),
+            actions: [
+              assign({
+                longFlips: ({longFlips}, {hash, relevance}) =>
+                  mergeFlipsByHash(longFlips, [{hash, relevance}]),
+                reportedFlipsCount: ({longFlips, reportedFlipsCount}, {hash}) =>
+                  longFlips.find(x => x.hash === hash)?.relevance ===
+                  // eslint-disable-next-line no-use-before-define
+                  RelevanceType.Irrelevant
+                    ? reportedFlipsCount
+                    : reportedFlipsCount + 1,
+              }),
+              log(),
+            ],
+          },
+          {
+            cond: ({longFlips, reportedFlipsCount}, {relevance}) =>
+              // eslint-disable-next-line no-use-before-define
+              relevance === RelevanceType.Irrelevant &&
+              reportedFlipsCount >= availableReportsNumber(longFlips),
+            actions: ['onExceededReports', log()],
+          },
+        ]),
         cleanupShortFlips: ({shortFlips}) => {
           filterSolvableFlips(shortFlips).forEach(({images}) =>
             images.forEach(URL.revokeObjectURL)

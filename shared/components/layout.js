@@ -1,24 +1,32 @@
 /* eslint-disable react/prop-types */
-import React from 'react'
-import {useRouter} from 'next/router'
+import React, {useEffect} from 'react'
+import Router, {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
 import {Flex} from '@chakra-ui/core'
 import Sidebar from './sidebar'
 import Notifications from './notifications'
-import {LoadingApp} from './syncing-app'
 import {EpochPeriod, useEpochState} from '../providers/epoch-context'
 import {shouldStartValidation} from '../../screens/validation/utils'
 import {useIdentityState} from '../providers/identity-context'
 import {loadPersistentStateValue, persistItem} from '../utils/persist'
 import {ValidationToast} from '../../screens/validation/components'
 import {LayoutContainer} from '../../screens/app/components'
+import {useAuthState} from '../providers/auth-context'
+import Auth from './auth'
 
-export default function Layout({loading, ...props}) {
+export default function Layout({...props}) {
+  const {auth} = useAuthState()
+
   return (
     <LayoutContainer>
-      <Sidebar />
-      {loading && <LoadingApp />}
-      {!loading && <NormalApp {...props} />}
+      {auth ? (
+        <>
+          <Sidebar />
+          <NormalApp {...props} />
+        </>
+      ) : (
+        <Auth />
+      )}
     </LayoutContainer>
   )
 }
