@@ -11,6 +11,7 @@ const methods = [
   'dna_getBalance',
   'flip_getRaw',
   'flip_getKeys',
+  'flip_words',
   'flip_shortHashes',
   'flip_longHashes',
   'flip_privateEncryptionKeyCandidates',
@@ -22,25 +23,31 @@ const methods = [
   'bcn_transaction',
 ]
 
+export const config = {
+  api: {
+    externalResolver: true,
+  },
+}
+
 const proxy = createProxyMiddleware({
   changeOrigin: true,
   secure: false,
   target: process.env.NODE_URL,
   onProxyReq(proxyReq, req, res) {
-    if (methods.indexOf(req.body.method) === -1) {
-      proxyReq.destroy()
-      res.status(403).send('method not available')
-      return
-    }
-    if (AVAILABLE_KEYS.indexOf(req.body.key) === -1) {
-      proxyReq.destroy()
-      res.status(403).send('API key is invalid')
-      return
-    }
     const data = JSON.stringify({...req.body, key: process.env.NODE_KEY})
     proxyReq.setHeader('Content-Length', Buffer.byteLength(data))
     proxyReq.write(data)
   },
 })
 
-export default proxy
+export default async (req, res) => {
+  if (methods.indexOf(req.body.method) === -1) {
+    res.status(403).send('method not available')
+    return
+  }
+  if (AVAILABLE_KEYS.indexOf(req.body.key) === -1) {
+    res.status(403).send('API key is invalid')
+    return
+  }
+  return proxy(req, res)
+}
