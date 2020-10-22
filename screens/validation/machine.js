@@ -197,7 +197,7 @@ export const createValidationFlipsMachine = () =>
                           },
                         },
                         check: {
-                          entry: log('check raw flips'),
+                          entry: log('check flips loaded'),
                           after: {
                             5000: [
                               {
@@ -208,9 +208,10 @@ export const createValidationFlipsMachine = () =>
                                   flipHashes,
                                   retries,
                                 }) =>
-                                  shortReady &&
-                                  longReady &&
-                                  (flipHashes.length === 0 || retries >= 10),
+                                  (shortReady &&
+                                    longReady &&
+                                    flipHashes.length === 0) ||
+                                  retries >= 20,
                               },
                               {target: 'fetching'},
                             ],
