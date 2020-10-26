@@ -197,7 +197,6 @@ export const createValidationFlipsMachine = () =>
                           },
                         },
                         check: {
-                          entry: log('check flips loaded'),
                           after: {
                             5000: [
                               {
@@ -211,7 +210,12 @@ export const createValidationFlipsMachine = () =>
                                   (shortReady &&
                                     longReady &&
                                     flipHashes.length === 0) ||
-                                  retries >= 20,
+                                  retries > 10,
+                                actions: ({retries}) => {
+                                  log(
+                                    `flips loading finished, retries: ${retries}`
+                                  )
+                                },
                               },
                               {target: 'fetching'},
                             ],
