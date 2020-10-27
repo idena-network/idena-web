@@ -1,7 +1,6 @@
 import {Flex, Checkbox} from '@chakra-ui/core'
 import {margin} from 'polished'
 import {useState} from 'react'
-import Router from 'next/router'
 import {FiChevronRight} from 'react-icons/fi'
 import theme, {rem} from '../theme'
 import {Label, Button} from '.'
@@ -21,7 +20,6 @@ function InitKey() {
     try {
       setError(null)
       setNewKey(key, pass, storeKey)
-      Router.push('/')
     } catch (e) {
       setError('Key or password is invalid. Try again.')
       console.log(e)
@@ -248,9 +246,8 @@ function RestoreKey() {
                   e.preventDefault()
                   setError(null)
                   login(pass)
-                  Router.push('/')
                 } catch (err) {
-                  setError('Passowrd is invalid. Try again.')
+                  setError('Password is invalid. Try again.')
                   console.log(err)
                 }
               }}

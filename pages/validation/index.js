@@ -66,17 +66,21 @@ import {
   Tooltip,
 } from '../../shared/components/components'
 import {Tooltip as TooltipLegacy} from '../../shared/components/tooltip'
+import {LayoutContainer} from '../../screens/app/components'
+import Auth from '../../shared/components/auth'
 
 export default function ValidationPage() {
   const epoch = useEpochState()
   const timing = useTimingState()
   const {auth, privateKey, coinbase} = useAuthState()
 
-  useEffect(() => {
-    if (!auth) {
-      Router.push('/auth')
-    }
-  }, [auth])
+  if (!auth) {
+    return (
+      <LayoutContainer>
+        <Auth />
+      </LayoutContainer>
+    )
+  }
 
   if (epoch && privateKey && coinbase && timing && timing.shortSession)
     return (

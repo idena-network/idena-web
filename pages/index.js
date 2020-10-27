@@ -27,7 +27,6 @@ import {
   hasPersistedValidationResults,
 } from '../screens/validation/utils'
 import {persistItem} from '../shared/utils/persist'
-import {useAuthState} from '../shared/providers/auth-context'
 
 export default function ProfilePage() {
   const {
