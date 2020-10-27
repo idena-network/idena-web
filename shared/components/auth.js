@@ -1,14 +1,13 @@
 import {Flex, Checkbox} from '@chakra-ui/core'
 import {margin} from 'polished'
 import {useState} from 'react'
-import Router from 'next/router'
 import {FiChevronRight} from 'react-icons/fi'
-import theme, {rem} from '../shared/theme'
-import {Label, Button} from '../shared/components'
-import {Input, Avatar} from '../shared/components/components'
-import {useAuthDispatch} from '../shared/providers/auth-context'
-import {useSettingsState} from '../shared/providers/settings-context'
-import {FlatButton} from '../shared/components/button'
+import theme, {rem} from '../theme'
+import {Label, Button} from '.'
+import {Input, Avatar} from './components'
+import {useAuthDispatch} from '../providers/auth-context'
+import {useSettingsState} from '../providers/settings-context'
+import {FlatButton} from './button'
 
 function InitKey() {
   const [key, setKey] = useState(null)
@@ -21,7 +20,6 @@ function InitKey() {
     try {
       setError(null)
       setNewKey(key, pass, storeKey)
-      Router.push('/')
     } catch (e) {
       setError('Key or password is invalid. Try again.')
       console.log(e)
@@ -29,7 +27,7 @@ function InitKey() {
   }
 
   return (
-    <section>
+    <section key="init">
       <div>
         <>
           <Flex width="100%">
@@ -187,16 +185,14 @@ function InitKey() {
   )
 }
 
-export default function Auth() {
+function RestoreKey() {
   const [pass, setPass] = useState(null)
   const {login, logout} = useAuthDispatch()
-  const {encryptedKey, coinbase} = useSettingsState()
+  const {coinbase} = useSettingsState()
   const [error, setError] = useState()
 
-  return !encryptedKey || !coinbase ? (
-    <InitKey />
-  ) : (
-    <section>
+  return (
+    <section key="restore">
       <div>
         <>
           <Flex width="100%">
@@ -250,9 +246,8 @@ export default function Auth() {
                   e.preventDefault()
                   setError(null)
                   login(pass)
-                  Router.push('/')
                 } catch (err) {
-                  setError('Passowrd is invalid. Try again.')
+                  setError('Password is invalid. Try again.')
                   console.log(err)
                 }
               }}
@@ -353,4 +348,9 @@ export default function Auth() {
       `}</style>
     </section>
   )
+}
+
+export default function Auth() {
+  const {encryptedKey, coinbase} = useSettingsState()
+  return !encryptedKey || !coinbase ? <InitKey /> : <RestoreKey />
 }

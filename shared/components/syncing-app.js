@@ -1,12 +1,5 @@
 import {useTranslation} from 'react-i18next'
-import {Progress} from '@chakra-ui/core'
-import theme, {rem} from '../theme'
-import {useIdentityState} from '../providers/identity-context'
-import useRpc from '../hooks/use-rpc'
-import {usePoll} from '../hooks/use-interval'
-import Avatar from './avatar'
-
-import {Spinner} from './spinner'
+import theme from '../theme'
 
 export function LoadingApp() {
   const {t} = useTranslation()

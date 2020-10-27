@@ -24,12 +24,17 @@ function FlipsMachine({coinbase, privateKey, epoch}) {
     []
   )
 
-  const [_, send] = useMachine(validationFlipsMachine, {
+  const [, send] = useMachine(validationFlipsMachine, {
     logger: msg => info({coinbase, machine: 'flips'}, msg),
   })
 
   useEffect(() => {
-    if (epoch && privateKey && epoch.currentPeriod !== 'None') {
+    if (
+      epoch &&
+      privateKey &&
+      (epoch.currentPeriod === 'FlipLottery' ||
+        epoch.currentPeriod === 'ShortSession')
+    ) {
       send('START', {coinbase, privateKey, epoch: epoch?.epoch ?? 0})
     }
   }, [coinbase, epoch, privateKey, send])

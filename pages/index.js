@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react'
-import {Stack, useDisclosure, useToast} from '@chakra-ui/core'
+import {Stack} from '@chakra-ui/core'
 import {useTranslation} from 'react-i18next'
 import Router from 'next/router'
 import {
@@ -27,7 +27,6 @@ import {
   hasPersistedValidationResults,
 } from '../screens/validation/utils'
 import {persistItem} from '../shared/utils/persist'
-import {useAuthState} from '../shared/providers/auth-context'
 
 export default function ProfilePage() {
   const {
@@ -44,9 +43,6 @@ export default function ProfilePage() {
     age,
     totalShortFlipPoints,
     totalQualifiedFlips,
-    invites: invitesCount,
-    canTerminate,
-    canMine,
   } = useIdentityState()
 
   const epoch = useEpochState()
@@ -68,14 +64,6 @@ export default function ProfilePage() {
   }, [epoch])
 
   const toDna = toLocaleDna(language)
-
-  const {auth} = useAuthState()
-
-  useEffect(() => {
-    if (!auth) {
-      Router.push('/auth')
-    }
-  }, [auth])
 
   return (
     <Layout>

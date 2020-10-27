@@ -78,7 +78,7 @@ function Nav() {
           {t('Settings')}
         </NavItem>
         <NavItem
-          href="/auth"
+          href="#"
           icon={<i className="icon icon--delete" />}
           onClick={logout}
         >
