@@ -29,7 +29,12 @@ function FlipsMachine({coinbase, privateKey, epoch}) {
   })
 
   useEffect(() => {
-    if (epoch && privateKey && epoch.currentPeriod !== 'None') {
+    if (
+      epoch &&
+      privateKey &&
+      (epoch.currentPeriod === 'FlipLottery' ||
+        epoch.currentPeriod === 'ShortSession')
+    ) {
       send('START', {coinbase, privateKey, epoch: epoch?.epoch ?? 0})
     }
   }, [coinbase, epoch, privateKey, send])
