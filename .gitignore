@@ -88,6 +88,9 @@ typings/
 
 # End of https://www.gitignore.io/api/node
 
+# vercel
+.vercel
+
 # idena
 datadir
 
@@ -96,3 +99,4 @@ datadir
 
 main/node/**
 .env.local
+
