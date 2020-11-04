@@ -187,20 +187,6 @@ function ValidationSession({
               {t('out of')} {flips.length}
             </Text>
           </Title>
-
-          <IconButton
-            icon="fullscreen"
-            bg={isShortSession(state) ? 'brandGray.060' : 'gray.300'}
-            color={isShortSession(state) ? 'white' : 'brandGray.500'}
-            borderRadius="lg"
-            fontSize={rem(20)}
-            w={10}
-            h={10}
-            _hover={{
-              bg: isShortSession(state) ? 'brandGray.060' : 'gray.300',
-            }}
-            onClick={global.toggleFullScreen}
-          />
         </Flex>
       </Header>
       <CurrentStep>

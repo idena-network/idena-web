@@ -551,15 +551,17 @@ export function FlipKeywordTranslationSwitch({
               icon="gtranslate"
               _hover={{background: 'transparent'}}
               onClick={() => {
-                global.openExternal(
+                const win = window.open(
                   `https://translate.google.com/#view=home&op=translate&sl=auto&tl=${
                     global.locale
                   }&text=${encodeURIComponent(
                     keywords.words
                       .map(({name, desc}) => `${name}\n${desc}`)
                       .join('\n')
-                  )}`
+                  )}`,
+                  '_blank'
                 )
+                win.focus()
               }}
             >
               Google Translate
