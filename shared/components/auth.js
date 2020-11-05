@@ -10,8 +10,8 @@ import {useSettingsState} from '../providers/settings-context'
 import {FlatButton} from './button'
 
 function InitKey() {
-  const [key, setKey] = useState(null)
-  const [pass, setPass] = useState(null)
+  const [key, setKey] = useState('')
+  const [pass, setPass] = useState('')
   const [storeKey, setStoreKey] = useState(true)
   const {setNewKey} = useAuthDispatch()
   const [error, setError] = useState()
@@ -186,7 +186,7 @@ function InitKey() {
 }
 
 function RestoreKey() {
-  const [pass, setPass] = useState(null)
+  const [pass, setPass] = useState('')
   const {login, logout} = useAuthDispatch()
   const {coinbase} = useSettingsState()
   const [error, setError] = useState()

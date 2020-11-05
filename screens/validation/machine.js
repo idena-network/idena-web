@@ -27,8 +27,8 @@ import {
   exponentialBackoff,
   shouldTranslate,
   shouldPollLongFlips,
-  decodedFlip,
   availableReportsNumber,
+  decodedWithoutKeywords,
 } from './utils'
 import {forEachAsync, wait} from '../../shared/utils/fn'
 import {fetchConfirmedKeywordTranslations} from '../flips/utils'
@@ -1040,17 +1040,9 @@ export const createValidationMachine = ({
                   states: {
                     fetching: {
                       invoke: {
-                        src: ({longFlips}) =>
-                          Promise.all(
-                            longFlips.filter(decodedFlip).map(({hash}) =>
-                              fetchWords(hash)
-                                .then(({result}) => ({hash, ...result}))
-                                .catch(() => ({hash}))
-                            )
-                          ),
+                        src: 'fetchWords',
                         onDone: {
-                          target:
-                            '#validation.longSession.fetch.keywords.success',
+                          target: 'check',
                           actions: assign({
                             longFlips: ({longFlips}, {data}) =>
                               mergeFlipsByHash(
@@ -1067,16 +1059,14 @@ export const createValidationMachine = ({
                         },
                       },
                     },
-                    success: {
+                    check: {
                       after: {
                         10000: [
                           {
                             target: 'fetching',
                             cond: ({longFlips}) =>
                               longFlips.length === 0 ||
-                              longFlips
-                                .filter(decodedFlip)
-                                .some(({words}) => !words || !words.length),
+                              longFlips.some(decodedWithoutKeywords),
                           },
                           {
                             target: 'done',
@@ -1384,8 +1374,7 @@ export const createValidationMachine = ({
             shortFlips
               .filter(({missing, fetched}) => !fetched && !missing)
               .map(({hash}) => hash),
-            cb,
-            0
+            cb
           ),
         fetchLongHashes: () => fetchFlipHashes(coinbase, SessionType.Long),
         fetchLongFlips: ({longFlips}) => cb =>
@@ -1395,8 +1384,7 @@ export const createValidationMachine = ({
             longFlips
               .filter(({missing, fetched}) => !fetched && !missing)
               .map(({hash}) => hash),
-            cb,
-            1000
+            cb
           ),
         // eslint-disable-next-line no-shadow
         fetchTranslations: ({longFlips, currentIndex, locale}) =>
@@ -1408,6 +1396,10 @@ export const createValidationMachine = ({
           publicKeySent
             ? Promise.resolve()
             : sendPublicFlipKey(epoch, privateKey),
+        fetchWords: ({longFlips}) =>
+          loadWords(
+            longFlips.filter(decodedWithoutKeywords).map(({hash}) => hash)
+          ),
       },
       delays: {
         // eslint-disable-next-line no-shadow
@@ -1534,7 +1526,17 @@ export const createValidationMachine = ({
     }
   )
 
-function fetchFlips(addr, privateKey, hashes, cb, delay = 1000) {
+async function loadWords(hashes) {
+  const res = []
+  await forEachAsync(hashes, async hash =>
+    fetchWords(hash)
+      .then(({result}) => res.push({hash, ...result}))
+      .catch()
+  )
+  return res
+}
+
+function fetchFlips(addr, privateKey, hashes, cb) {
   return forEachAsync(hashes, async hash => {
     const flip = await getRawFlip(hash, true)
     if (!flip) {
@@ -1560,7 +1562,6 @@ function fetchFlips(addr, privateKey, hashes, cb, delay = 1000) {
           },
         })
       })
-      .then(() => wait(delay))
       .catch(() => {
         console.debug(`Catch flip_get reject`, hash)
         cb({

@@ -18,8 +18,8 @@ function Settings() {
   const settingsState = useSettingsState()
   const {saveConnection} = useSettingsDispatch()
   const [state, setState] = useState({
-    url: settingsState.url,
-    apiKey: settingsState.apiKey,
+    url: settingsState.url || '',
+    apiKey: settingsState.apiKey || '',
   })
 
   const notify = () =>

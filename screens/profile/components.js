@@ -198,7 +198,9 @@ export function ActivateInviteForm() {
                 _hover={{bg: 'unset'}}
                 _active={{bg: 'unset'}}
                 _focus={{boxShadow: 'none'}}
-                onClick={() => setCode(global.clipboard.readText())}
+                onClick={() =>
+                  navigator.clipboard.readText().then(text => setCode(text))
+                }
               >
                 {t('Paste')}
               </Button>
