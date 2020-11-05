@@ -43,12 +43,14 @@ function settingsReducer(state, action) {
 const SettingsStateContext = createContext()
 const SettingsDispatchContext = createContext()
 
+const DEFAULT_NODE_URL = 'https://node.idena.io/'
+
 // eslint-disable-next-line react/prop-types
 function SettingsProvider({children}) {
   const [state, dispatch] = usePersistence(
     useLogger(
       useReducer(settingsReducer, {
-        url: 'https://app.idena.io/api/node',
+        url: DEFAULT_NODE_URL,
       })
     ),
     'settings'
@@ -60,6 +62,16 @@ function SettingsProvider({children}) {
       dispatch({type: RESTORE_SETTINGS, data: settings})
     }
   }, [dispatch])
+
+  // TODO: remove in future releases
+  useEffect(() => {
+    if (state && state.url && state.url.indexOf('app.idena.io') !== -1) {
+      dispatch({
+        type: SAVE_CONNECTION,
+        data: {url: DEFAULT_NODE_URL, key: state.apiKey},
+      })
+    }
+  }, [dispatch, state])
 
   const saveEncryptedKey = (coinbase, key) => {
     dispatch({type: SAVE_ENCRYPTED_KEY, data: {coinbase, key}})
