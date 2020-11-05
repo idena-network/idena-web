@@ -33,11 +33,15 @@ export default class MyApp extends App {
         <GoogleFonts href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" />
         <Head>
           <meta charSet="UTF-8" />
-          <title>Idena Web Validation</title>
+          <title>Idena app: Proof-of-person blockchain</title>
           <meta httpEquiv="X-UA-Compatible" content="chrome=1" />
           <meta
             name="viewport"
             content="width=device-width, initial-scale=1, maximum-scale=1, shrink-to-fit=no"
+          />
+          <meta
+            name="description"
+            content="Take part in the Idena validation ceremony using your browser"
           />
 
           <link rel="shortcut icon" href="/favicon.ico" />
