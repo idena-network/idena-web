@@ -29,7 +29,7 @@ export default class MyApp extends App {
     const {err} = this.props
 
     return (
-      <ThemeProvider theme={uiTheme}>
+      <>
         <GoogleFonts href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" />
         <Head>
           <meta charSet="UTF-8" />
@@ -59,12 +59,19 @@ export default class MyApp extends App {
             href="/favicon-16x16.png"
           />
           <link href="/static/fonts/icons.css" rel="stylesheet" />
+          <style>{`
+            html {
+              -moz-osx-font-smoothing: grayscale;
+            }
+          `}</style>
         </Head>
-        <CSSReset />
-        <AppProviders>
-          <Component {...{...pageProps, err}} />
-        </AppProviders>
-      </ThemeProvider>
+        <ThemeProvider theme={uiTheme}>
+          <CSSReset />
+          <AppProviders>
+            <Component {...{...pageProps, err}} />
+          </AppProviders>
+        </ThemeProvider>
+      </>
     )
   }
 }
