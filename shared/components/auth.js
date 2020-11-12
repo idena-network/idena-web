@@ -1,140 +1,311 @@
-import {Flex, Checkbox} from '@chakra-ui/core'
-import {margin} from 'polished'
+import {Flex, Checkbox, Box} from '@chakra-ui/core'
+import {borderRadius, margin, padding} from 'polished'
 import {useState} from 'react'
-import {FiChevronRight} from 'react-icons/fi'
+import {FiChevronRight, FiEye, FiEyeOff} from 'react-icons/fi'
+import axios from 'axios'
 import theme, {rem} from '../theme'
 import {Label, Button} from '.'
 import {Input, Avatar} from './components'
 import {useAuthDispatch} from '../providers/auth-context'
-import {useSettingsState} from '../providers/settings-context'
+import {
+  useSettingsDispatch,
+  useSettingsState,
+} from '../providers/settings-context'
 import {FlatButton} from './button'
 
 function InitKey() {
-  const [key, setKey] = useState('')
-  const [pass, setPass] = useState('')
-  const [storeKey, setStoreKey] = useState(true)
-  const {setNewKey} = useAuthDispatch()
+  const [state, setState] = useState({
+    key: '',
+    pass: '',
+    saveKey: true,
+    url: '',
+    apiKey: '',
+  })
+  const {setNewKey, checkKey} = useAuthDispatch()
+  const {saveConnection} = useSettingsDispatch()
   const [error, setError] = useState()
+  const [step, setStep] = useState(0)
 
   const addKey = () => {
-    try {
+    if (checkKey(state.key, state.pass)) {
       setError(null)
-      setNewKey(key, pass, storeKey)
-    } catch (e) {
+      setStep(1)
+    } else {
       setError('Key or password is invalid. Try again.')
-      console.log(e)
+    }
+  }
+
+  const skipNodeSettings = () => {
+    setNewKey(state.key, state.pass, state.saveKey)
+  }
+
+  const save = async () => {
+    try {
+      const {data} = await axios.post(state.url, {
+        key: state.apiKey,
+        method: 'dna_version',
+        params: [],
+        id: 1,
+      })
+      if (data.error) {
+        setError('API key is invalid.')
+      }
+      saveConnection(state.url, state.apiKey)
+      setNewKey(state.key, state.pass, state.saveKey)
+    } catch (e) {
+      setError('Node is unreachable.')
     }
   }
 
   return (
     <section key="init">
-      <div>
-        <>
-          <Flex width="100%">
-            <img src="/static/idena_white.svg" alt="logo" />
-            <Flex direction="column" justify="space-between" flex="1">
-              <h2>Import your private key</h2>
+      {step === 0 && (
+        <div>
+          <>
+            <Flex width="100%">
+              <img src="/static/idena_white.svg" alt="logo" />
+              <Flex direction="column" justify="center" flex="1">
+                <h2>Import your private key</h2>
 
-              <Flex justify="space-between">
-                <div className="gray">
-                  <span>
-                    Enter your private key exported from the desktop version of
-                    Idena App
-                  </span>
-                </div>
+                <Flex justify="space-between">
+                  <div className="gray">
+                    <span>
+                      Enter your private key exported from the desktop version
+                      of Idena App
+                    </span>
+                  </div>
+                </Flex>
               </Flex>
             </Flex>
-          </Flex>
-          <Flex
-            width="100%"
-            style={{
-              ...margin(theme.spacings.normal, 0, 0, 0),
-            }}
-          >
-            <form
-              onSubmit={e => {
-                e.preventDefault()
-                addKey()
+            <Flex
+              width="100%"
+              style={{
+                ...margin(theme.spacings.medium24, 0, 0, 0),
               }}
             >
-              <Label htmlFor="key" style={{color: 'white', fontSize: rem(14)}}>
-                Exported private key
-              </Label>
-              <Flex width="100%">
-                <Input
-                  id="key"
-                  value={key}
-                  style={{
-                    ...margin(0, theme.spacings.normal, 0, 0),
-                    width: rem(450),
-                    backgroundColor: theme.colors.gray3,
-                    borderColor: theme.colors.gray5,
-                  }}
-                  onChange={e => setKey(e.target.value)}
-                  placeholder="Enter your exported private key"
-                />
-              </Flex>
-              <Label
-                htmlFor="key"
-                style={{
-                  color: 'white',
-                  fontSize: rem(14),
-                  ...margin(theme.spacings.normal, 0, theme.spacings.normal, 0),
+              <form
+                onSubmit={e => {
+                  e.preventDefault()
+                  addKey()
                 }}
               >
-                Password
-              </Label>
-              <Flex width="100%">
-                <Input
-                  id="pass"
-                  value={pass}
-                  type="password"
-                  style={{
-                    ...margin(0, theme.spacings.normal, 0, 0),
-                    width: rem(450),
-                    backgroundColor: theme.colors.gray3,
-                    borderColor: theme.colors.gray5,
-                  }}
-                  onChange={e => setPass(e.target.value)}
-                  placeholder="Enter your password"
-                />
-                <Button type="submit" disabled={!key}>
-                  Import
-                </Button>
-              </Flex>
-              <Flex
-                style={{
-                  ...margin(theme.spacings.normal, 0, 0, 0),
-                }}
-              >
-                <Checkbox
-                  value={storeKey}
-                  isChecked={storeKey}
-                  onChange={e => setStoreKey(e.target.checked)}
+                <Label
+                  htmlFor="key"
+                  style={{color: 'white', fontSize: rem(13)}}
                 >
-                  Save the encrypted key on this computer
-                </Checkbox>
-              </Flex>
-              {error && (
+                  Exported private key
+                </Label>
+                <Flex width="100%" style={{marginBottom: rem(20)}}>
+                  <Input
+                    id="key"
+                    value={state.key}
+                    style={{
+                      backgroundColor: theme.colors.gray3,
+                      borderColor: theme.colors.gray5,
+                    }}
+                    onChange={e => setState({...state, key: e.target.value})}
+                    placeholder="Enter your exported private key"
+                  />
+                </Flex>
+                <Label
+                  htmlFor="key"
+                  style={{
+                    color: 'white',
+                    fontSize: rem(13),
+                  }}
+                >
+                  Password
+                </Label>
+                <Flex width="100%">
+                  <Input
+                    id="pass"
+                    value={state.pass}
+                    type="password"
+                    style={{
+                      backgroundColor: theme.colors.gray3,
+                      borderColor: theme.colors.gray5,
+                    }}
+                    onChange={e => setState({...state, pass: e.target.value})}
+                    placeholder="Enter your password"
+                  />
+                </Flex>
                 <Flex
                   style={{
-                    marginTop: rem(30, theme.fontSizes.base),
-                    backgroundColor: theme.colors.danger,
-                    borderRadius: rem(9, theme.fontSizes.base),
-                    fontSize: rem(14, theme.fontSizes.base),
-                    padding: `${rem(18, theme.fontSizes.base)} ${rem(
-                      24,
-                      theme.fontSizes.base
-                    )}`,
+                    ...margin(theme.spacings.normal, 0, 0, 0),
+                  }}
+                  justify="space-between"
+                >
+                  <Checkbox
+                    value={state.saveKey}
+                    isChecked={state.saveKey}
+                    onChange={e =>
+                      setState({...state, saveKey: e.target.checked})
+                    }
+                  >
+                    Save the encrypted key on this computer
+                  </Checkbox>
+                  <Button type="submit" disabled={!state.key}>
+                    Import
+                  </Button>
+                </Flex>
+                {error && (
+                  <Flex
+                    style={{
+                      marginTop: rem(30, theme.fontSizes.base),
+                      backgroundColor: theme.colors.danger,
+                      borderRadius: rem(9, theme.fontSizes.base),
+                      fontSize: rem(14, theme.fontSizes.base),
+                      padding: `${rem(18, theme.fontSizes.base)} ${rem(
+                        24,
+                        theme.fontSizes.base
+                      )}`,
+                    }}
+                  >
+                    {error}
+                  </Flex>
+                )}
+              </form>
+            </Flex>
+          </>
+        </div>
+      )}
+      {step === 1 && (
+        <div>
+          <>
+            <Flex width="100%">
+              <img src="/static/idena_white.svg" alt="logo" />
+              <Flex direction="column" justify="center" flex="1">
+                <h2>Connect to Idena node</h2>
+
+                <Flex justify="space-between">
+                  <div className="gray">
+                    <span>
+                      Enter an Idena shared node IP address and API key
+                    </span>
+                  </div>
+                </Flex>
+              </Flex>
+            </Flex>
+            <Flex
+              width="100%"
+              style={{
+                ...margin(theme.spacings.medium24, 0, 0, 0),
+              }}
+            >
+              <form
+                onSubmit={e => {
+                  e.preventDefault()
+                  save()
+                }}
+              >
+                <Label
+                  htmlFor="key"
+                  style={{color: 'white', fontSize: rem(13)}}
+                >
+                  Node address
+                </Label>
+                <Flex width="100%" style={{marginBottom: rem(20)}}>
+                  <Input
+                    id="key"
+                    value={state.url}
+                    style={{
+                      backgroundColor: theme.colors.gray3,
+                      borderColor: theme.colors.gray5,
+                    }}
+                    onChange={e => setState({...state, url: e.target.value})}
+                    placeholder="Enter your node address"
+                  />
+                </Flex>
+                <Label
+                  htmlFor="key"
+                  style={{
+                    color: 'white',
+                    fontSize: rem(13),
                   }}
                 >
-                  {error}
+                  Node api key
+                </Label>
+                <Flex width="100%" style={{position: 'relative'}}>
+                  <Input
+                    id="pass"
+                    value={state.apiKey}
+                    type={state.showApiKey ? 'text' : 'password'}
+                    style={{
+                      backgroundColor: theme.colors.gray3,
+                      borderColor: theme.colors.gray5,
+                    }}
+                    onChange={e => setState({...state, apiKey: e.target.value})}
+                    placeholder="Enter your api key"
+                  />
+                  <Box
+                    style={{
+                      ...borderRadius('right', rem(6)),
+                      cursor: 'pointer',
+                      fontSize: rem(20),
+                      position: 'absolute',
+                      ...padding(0, rem(8)),
+                      top: '-4px',
+                      height: '100%',
+                      right: '6px',
+                      zIndex: 10,
+                    }}
+                    onClick={() =>
+                      setState({...state, showApiKey: !state.showApiKey})
+                    }
+                  >
+                    {state.showApiKey ? (
+                      <FiEyeOff style={{transform: 'translate(0, 50%)'}} />
+                    ) : (
+                      <FiEye style={{transform: 'translate(0, 50%)'}} />
+                    )}
+                  </Box>
                 </Flex>
-              )}
-            </form>
-          </Flex>
-        </>
-      </div>
+                <Flex
+                  style={{
+                    ...margin(theme.spacings.medium32, 0, 0, 0),
+                  }}
+                  justify="space-between"
+                >
+                  <Box
+                    style={{padding: `${rem(6)} 0`, cursor: 'pointer'}}
+                    onClick={() => setStep(0)}
+                  >
+                    {' '}
+                    &lt;&nbsp;Back
+                  </Box>
+                  <Flex>
+                    <Button
+                      type="submit"
+                      variant="secondary"
+                      css={{marginRight: rem(10)}}
+                      onClick={skipNodeSettings}
+                    >
+                      Skip
+                    </Button>
+                    <Button type="submit">Next</Button>
+                  </Flex>
+                </Flex>
+                {error && (
+                  <Flex
+                    style={{
+                      marginTop: rem(30, theme.fontSizes.base),
+                      backgroundColor: theme.colors.danger,
+                      borderRadius: rem(9, theme.fontSizes.base),
+                      fontSize: rem(14, theme.fontSizes.base),
+                      padding: `${rem(18, theme.fontSizes.base)} ${rem(
+                        24,
+                        theme.fontSizes.base
+                      )}`,
+                    }}
+                  >
+                    {error}
+                  </Flex>
+                )}
+              </form>
+            </Flex>
+          </>
+        </div>
+      )}
       <style jsx>{`
         section {
           background: ${theme.colors.darkGraphite};
@@ -151,7 +322,11 @@ function InitKey() {
           align-items: center;
           justify-content: space-between;
           flex-direction: column;
-          width: ${rem(600)};
+          width: ${rem(480)};
+        }
+
+        form {
+          width: 100%;
         }
 
         input {
@@ -159,8 +334,8 @@ function InitKey() {
         }
 
         img {
-          width: ${rem(60)};
-          height: ${rem(60)};
+          width: ${rem(79)};
+          height: ${rem(79)};
           margin-right: ${rem(10)};
         }
         section .gray {
@@ -256,8 +431,7 @@ function RestoreKey() {
                 htmlFor="pass"
                 style={{
                   color: 'white',
-                  fontSize: rem(14),
-                  ...margin(theme.spacings.normal, 0, theme.spacings.normal, 0),
+                  fontSize: rem(13),
                 }}
               >
                 Password
@@ -269,7 +443,6 @@ function RestoreKey() {
                   type="password"
                   style={{
                     ...margin(0, theme.spacings.normal, 0, 0),
-                    width: rem(450),
                     backgroundColor: theme.colors.gray3,
                     borderColor: theme.colors.gray5,
                   }}
@@ -316,9 +489,12 @@ function RestoreKey() {
           align-items: center;
           justify-content: space-between;
           flex-direction: column;
-          width: ${rem(600)};
+          width: ${rem(480)};
         }
 
+        form {
+          width: 100%;
+        }
         input {
           background-color: ${theme.colors.darkGraphite}!important;
         }

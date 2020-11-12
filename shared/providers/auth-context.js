@@ -31,6 +31,16 @@ function AuthProvider({children}) {
     })
   }
 
+  const checkKey = (key, pass) => {
+    try {
+      const privateKey = decryptPrivateKey(key, pass)
+      privateKeyToAddress(privateKey)
+      return true
+    } catch (e) {
+      return false
+    }
+  }
+
   const logout = () => {
     removeEncryptedKey()
     setState(initialState)
@@ -51,6 +61,7 @@ function AuthProvider({children}) {
       <AuthDispatchContext.Provider
         value={{
           setNewKey,
+          checkKey,
           logout,
           login,
         }}
