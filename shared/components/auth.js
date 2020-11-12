@@ -43,7 +43,7 @@ function InitKey() {
     try {
       const {data} = await axios.post(state.url, {
         key: state.apiKey,
-        method: 'dna_version',
+        method: 'dna_epoch',
         params: [],
         id: 1,
       })
