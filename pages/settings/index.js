@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {margin, padding, borderRadius} from 'polished'
 import {useTranslation} from 'react-i18next'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
@@ -21,6 +21,10 @@ function Settings() {
     url: settingsState.url || '',
     apiKey: settingsState.apiKey || '',
   })
+
+  useEffect(() => {
+    setState({url: settingsState.url, apiKey: settingsState.apiKey})
+  }, [settingsState])
 
   const notify = () =>
     addNotification({

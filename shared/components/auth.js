@@ -1,6 +1,6 @@
 import {Flex, Checkbox, Box} from '@chakra-ui/core'
 import {borderRadius, margin, padding} from 'polished'
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import {FiChevronRight, FiEye, FiEyeOff} from 'react-icons/fi'
 import axios from 'axios'
 import theme, {rem} from '../theme'
@@ -14,6 +14,7 @@ import {
 import {FlatButton} from './button'
 
 function InitKey() {
+  const settings = useSettingsState()
   const [state, setState] = useState({
     key: '',
     pass: '',
@@ -25,6 +26,11 @@ function InitKey() {
   const {saveConnection} = useSettingsDispatch()
   const [error, setError] = useState()
   const [step, setStep] = useState(0)
+
+  useEffect(() => {
+    setState({...state, url: settings.url, apiKey: settings.apiKey})
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings])
 
   const addKey = () => {
     if (checkKey(state.key, state.pass)) {
