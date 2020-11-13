@@ -185,9 +185,7 @@ function InitKey() {
 
                 <Flex justify="space-between">
                   <div className="gray">
-                    <span>
-                      Enter an Idena shared node IP address and API key
-                    </span>
+                    <span>Enter an Idena shared node URL and API key</span>
                   </div>
                 </Flex>
               </Flex>
@@ -208,7 +206,7 @@ function InitKey() {
                   htmlFor="key"
                   style={{color: 'white', fontSize: rem(13)}}
                 >
-                  Node address
+                  Shared node URL
                 </Label>
                 <Flex width="100%" style={{marginBottom: rem(20)}}>
                   <Input
@@ -229,7 +227,7 @@ function InitKey() {
                     fontSize: rem(13),
                   }}
                 >
-                  Node api key
+                  Shared node api key
                 </Label>
                 <Flex width="100%" style={{position: 'relative'}}>
                   <Input
