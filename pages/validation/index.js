@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import {useMachine} from '@xstate/react'
 import {useMemo, useEffect} from 'react'
-import Router, {useRouter} from 'next/router'
+import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
 import {
   Flex,
@@ -26,6 +26,7 @@ import {
   rearrangeFlips,
   decodedWithKeywords,
   availableReportsNumber,
+  filterSolvableFlips,
 } from '../../screens/validation/utils'
 import {
   ValidationScene,
@@ -46,9 +47,9 @@ import {
   WelcomeKeywordsQualificationDialog,
   ValidationTimer,
   ValidationFailedDialog,
-  ValidationSucceededDialog,
   SubmitFailedDialog,
   FailedFlipAnnotation,
+  ReviewValidationDialog,
 } from '../../screens/validation/components'
 import theme, {rem} from '../../shared/theme'
 import {AnswerType} from '../../shared/types'
@@ -146,6 +147,9 @@ function ValidationSession({
       onExceededReports: () => {
         onOpenExceededTooltip()
         setTimeout(onCloseExceededTooltip, 3000)
+      },
+      onValidationSucceeded: () => {
+        router.push('/')
       },
     },
     state: loadValidationState(),
@@ -419,10 +423,6 @@ function ValidationSession({
         />
       )}
 
-      {state.matches('validationSucceeded') && (
-        <ValidationSucceededDialog isOpen onSubmit={() => router.push('/')} />
-      )}
-
       {state.matches('validationFailed') && (
         <ValidationFailedDialog isOpen onSubmit={() => router.push('/')} />
       )}
@@ -476,6 +476,26 @@ function ValidationSession({
           </PrimaryButton>
         </DialogFooter>
       </Dialog>
+      <ReviewValidationDialog
+        flips={filterSolvableFlips(flips)}
+        reportedFlipsCount={reportedFlipsCount}
+        availableReportsCount={availableReportsNumber(longFlips)}
+        isOpen={state.matches('longSession.solve.answer.review')}
+        isSubmitting={isSubmitting(state)}
+        onSubmit={() => send('SUBMIT')}
+        onMisingAnswers={() => {
+          send({
+            type: 'CHECK_FLIPS',
+            index: flips.findIndex(({option = 0}) => option < 1),
+          })
+        }}
+        onMisingReports={() => {
+          send('CHECK_REPORTS')
+        }}
+        onCancel={() => {
+          send('CANCEL')
+        }}
+      />
       {global.isDev && <FloatDebug>{state.value}</FloatDebug>}
     </ValidationScene>
   )

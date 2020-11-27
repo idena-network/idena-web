@@ -1,6 +1,6 @@
 import {Machine, assign} from 'xstate'
 import {decode} from 'rlp'
-import {choose, log} from 'xstate/lib/actions'
+import {choose, log, send} from 'xstate/lib/actions'
 import dayjs from 'dayjs'
 import {Evaluate} from '@idena/vrf-js'
 import BN from 'bn.js'
@@ -1180,7 +1180,39 @@ export const createValidationMachine = ({
                           actions: ['toggleKeywords', log()],
                         },
                         SUBMIT: {
-                          target: 'submitAnswers',
+                          target: 'review',
+                        },
+                        PICK_INDEX: {
+                          actions: [
+                            send((_, {index}) => ({
+                              type: 'PICK',
+                              index,
+                            })),
+                          ],
+                        },
+                      },
+                    },
+                    review: {
+                      on: {
+                        CHECK_FLIPS: {
+                          target: 'keywords',
+                          actions: [
+                            send((_, {index}) => ({
+                              type: 'PICK_INDEX',
+                              index,
+                            })),
+                          ],
+                        },
+                        CHECK_REPORTS: 'keywords',
+                        SUBMIT: 'submitAnswers',
+                        CANCEL: {
+                          target: 'keywords',
+                          actions: [
+                            send(({currentIndex}) => ({
+                              type: 'PICK_INDEX',
+                              index: currentIndex,
+                            })),
+                          ],
                         },
                       },
                     },
@@ -1305,7 +1337,7 @@ export const createValidationMachine = ({
         },
         validationSucceeded: {
           type: 'final',
-          entry: log('VALIDATION SUCCEEDED'),
+          entry: ['onValidationSucceeded', log('VALIDATION SUCCEEDED')],
         },
       },
     },
