@@ -23,10 +23,7 @@ import {
   availableExtraFlip,
   failedFlip,
   hasEnoughAnswers,
-  missingHashes,
-  exponentialBackoff,
   shouldTranslate,
-  shouldPollLongFlips,
   availableReportsNumber,
   decodedWithoutKeywords,
 } from './utils'
@@ -894,7 +891,7 @@ export const createValidationMachine = ({
                           ],
                         },
                         onError: {
-                          target: 'fetchFlips',
+                          target: 'fetchHashes',
                           actions: log(),
                         },
                       },
@@ -904,86 +901,50 @@ export const createValidationMachine = ({
                         src: 'fetchLongFlips',
                         onDone: [
                           {
-                            target: 'enqueueNextFetch',
+                            target: 'check',
                             actions: [
                               assign({
                                 retries: ({retries}) => retries + 1,
                               }),
                             ],
-                            // eslint-disable-next-line no-shadow
-                            cond: ({longFlips, validationStart}) =>
-                              shouldPollLongFlips(longFlips, {
-                                validationStart,
-                                shortSessionDuration,
-                              }),
-                          },
-                          {
-                            target: 'detectMissing',
                           },
                         ],
+                        onError: {
+                          target: 'check',
+                        },
                       },
                     },
-                    enqueueNextFetch: {
+                    check: {
                       after: {
-                        5000: 'fetchHashes',
-                      },
-                    },
-                    detectMissing: {
-                      on: {
-                        '': [
-                          {target: 'fetchMissing', cond: 'hasMissingFlips'},
+                        5000: [
+                          {
+                            target: 'fetchFlips',
+                            cond: ({longFlips}) =>
+                              longFlips.some(
+                                ({time}) =>
+                                  time &&
+                                  dayjs()
+                                    .subtract(3, 'minute')
+                                    .isBefore(time)
+                              ) && longFlips.some(({decoded}) => !decoded),
+                          },
                           {
                             target: 'done',
-                          },
-                        ],
-                      },
-                    },
-                    fetchMissing: {
-                      initial: 'polling',
-                      entry: assign({
-                        retries: 0,
-                      }),
-                      states: {
-                        polling: {
-                          entry: log(
-                            ({longFlips}) => missingHashes(longFlips),
-                            'fetching missing hashes'
-                          ),
-                          invoke: {
-                            src: ({longFlips}) => cb =>
-                              fetchFlips(
-                                coinbase,
-                                privateKey,
-                                missingHashes(longFlips),
-                                cb
-                              ),
-                            onDone: 'check',
-                          },
-                        },
-                        check: {
-                          on: {
-                            '': [
-                              {target: 'enqueue', cond: 'hasMissingFlips'},
-                              {
-                                target:
-                                  '#validation.longSession.fetch.flips.done',
-                              },
+                            actions: [
+                              assign({
+                                longFlips: ({longFlips}) =>
+                                  mergeFlipsByHash(
+                                    longFlips,
+                                    longFlips.filter(failedFlip).map(flip => ({
+                                      ...flip,
+                                      failed: true,
+                                    }))
+                                  ),
+                              }),
+                              log(),
                             ],
                           },
-                        },
-                        enqueue: {
-                          // somehow `after` doesn't work here thus custom delay
-                          invoke: {
-                            src: ({retries}) =>
-                              wait(exponentialBackoff(retries) * 1000),
-                            onDone: {
-                              target: 'polling',
-                              actions: assign({
-                                retries: ({retries}) => retries + 1,
-                              }),
-                            },
-                          },
-                        },
+                        ],
                       },
                     },
                     done: {
@@ -1016,24 +977,6 @@ export const createValidationMachine = ({
                       ],
                     },
                   },
-                  after: {
-                    FINALIZE_LONG_FLIPS: {
-                      target: '.done',
-                      actions: [
-                        assign({
-                          longFlips: ({longFlips}) =>
-                            mergeFlipsByHash(
-                              longFlips,
-                              longFlips.filter(failedFlip).map(flip => ({
-                                ...flip,
-                                failed: true,
-                              }))
-                            ),
-                        }),
-                        log(),
-                      ],
-                    },
-                  },
                 },
                 keywords: {
                   initial: 'fetching',
@@ -1056,6 +999,9 @@ export const createValidationMachine = ({
                                 }))
                               ),
                           }),
+                        },
+                        onError: {
+                          target: 'check',
                         },
                       },
                     },
@@ -1417,12 +1363,6 @@ export const createValidationMachine = ({
             validationStart,
             shortSessionDuration - 10 + longSessionDuration
           ) * 1000,
-        // eslint-disable-next-line no-shadow
-        FINALIZE_LONG_FLIPS: ({validationStart, shortSessionDuration}) =>
-          Math.max(
-            adjustDuration(validationStart, shortSessionDuration + 120),
-            5
-          ) * 1000,
       },
       actions: {
         toggleKeywords: choose([
@@ -1519,7 +1459,6 @@ export const createValidationMachine = ({
             regularFlips.every(({missing, decoded}) => decoded || missing)
           )
         },
-        hasMissingFlips: ({longFlips}) => missingHashes(longFlips).length > 0,
         shouldTranslate: ({translations, longFlips, currentIndex}) =>
           shouldTranslate(translations, longFlips[currentIndex]),
       },
@@ -1632,6 +1571,7 @@ function decodeFlip(
     return {
       hash,
       decoded: true,
+      time: dayjs(),
       images: result.map(buffer =>
         URL.createObjectURL(new Blob([buffer], {type: 'image/png'}))
       ),
