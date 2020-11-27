@@ -23,9 +23,13 @@ import {
   Text,
   Heading,
   Icon,
+  Alert,
+  AlertIcon,
+  useTheme,
+  Button,
 } from '@chakra-ui/core'
 import {useMachine} from '@xstate/react'
-import {useTranslation} from 'react-i18next'
+import {Trans, useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
 import {useRouter} from 'next/router'
 import {State} from 'xstate'
@@ -410,7 +414,12 @@ export function Thumbnail({
             height={32}
             width={32}
             fit="cover"
-            style={{borderRadius: rem(12)}}
+            style={{
+              borderRadius: rem(12),
+              border: isCurrent
+                ? 'transparent'
+                : 'solid 1px rgb(83 86 92 /0.16)',
+            }}
           />
         </>
       )}
@@ -739,29 +748,6 @@ export function SubmitFailedDialog(props) {
   )
 }
 
-export function ValidationSucceededDialog(props) {
-  const {t} = useTranslation()
-  return (
-    <ValidationDialog
-      title={t('Wait for validation results')}
-      submitText={t('Go to My Idena')}
-      {...props}
-    >
-      <ValidationDialogBody>
-        <Text>
-          {t(`Your answers for the qualification session have been submited
-          successfully!`)}
-        </Text>
-        <Text>
-          {t(`Please wait for the validation results. It will take some time for
-          network to reach consensus about the list of validated accounts. You
-          can find the validation end time on the left panel.`)}
-        </Text>
-      </ValidationDialogBody>
-    </ValidationDialog>
-  )
-}
-
 export function ValidationFailedDialog(props) {
   const {t} = useTranslation()
   return (
@@ -960,3 +946,134 @@ function ValidationSpinner({size = 30}) {
     </div>
   )
 }
+
+export function ReviewValidationDialog({
+  flips,
+  reportedFlipsCount,
+  availableReportsCount,
+  isSubmitting,
+  onSubmit,
+  onMisingAnswers,
+  onMisingReports,
+  onCancel,
+  ...props
+}) {
+  const {t} = useTranslation()
+
+  const answeredFlipsCount = flips.filter(({option}) => option > 0).length
+
+  const areFlipsUnanswered = answeredFlipsCount < flips.length
+  const areReportsMissing = reportedFlipsCount < availableReportsCount
+
+  return (
+    <Dialog title={t('Submit the answers')} onClose={onCancel} {...props}>
+      <ValidationDialogBody>
+        <Stack spacing={6}>
+          <Stack spacing={4}>
+            <Stack spacing={2}>
+              <ReviewValidationDialog.Stat
+                label={t('Answered')}
+                value={t('{{answeredFlips}} out of {{totalFlips}}', {
+                  answeredFlips: answeredFlipsCount,
+                  totalFlips: flips.length,
+                })}
+              />
+              <ReviewValidationDialog.Stat
+                label={t('Flips reported')}
+                value={t(
+                  '{{reportedFlipsCount}} out of {{availableReportsCount}}',
+                  {
+                    reportedFlipsCount,
+                    availableReportsCount,
+                  }
+                )}
+              />
+            </Stack>
+            {(areFlipsUnanswered || areReportsMissing) && (
+              <Text color="muted">
+                {areFlipsUnanswered && (
+                  <Trans i18nKey="reviewMissingFlips" t={t}>
+                    You need to answer{' '}
+                    <ReviewValidationDialog.LinkButton
+                      onClick={onMisingAnswers}
+                    >
+                      all flips
+                    </ReviewValidationDialog.LinkButton>{' '}
+                    otherwise you may fail the validation.
+                  </Trans>
+                )}{' '}
+                {areReportsMissing && (
+                  <Trans i18nKey="reviewMissingReports" t={t}>
+                    In order to get maximum rewards use{' '}
+                    <ReviewValidationDialog.LinkButton
+                      variant="link"
+                      onClick={onMisingReports}
+                    >
+                      all available reports
+                    </ReviewValidationDialog.LinkButton>{' '}
+                    for the worst flips.
+                  </Trans>
+                )}
+              </Text>
+            )}
+          </Stack>
+          {areReportsMissing && (
+            <Alert
+              status="error"
+              bg="red.010"
+              borderWidth="1px"
+              borderColor="red.050"
+              fontWeight={500}
+              rounded="md"
+              px={3}
+              py={2}
+            >
+              <AlertIcon name="info" color="red.500" size={5} mr={3} />
+              {t('You may lose rewards. Are you sure?')}
+            </Alert>
+          )}
+        </Stack>
+      </ValidationDialogBody>
+      <DialogFooter {...props}>
+        <SecondaryButton onClick={onCancel}>{t('Cancel')}</SecondaryButton>
+        <PrimaryButton
+          isLoading={isSubmitting}
+          loadingText={t('Submitting answers...')}
+          onClick={onSubmit}
+        >
+          {t('Submit answers')}
+        </PrimaryButton>
+      </DialogFooter>
+    </Dialog>
+  )
+}
+
+function ReviewValidationDialogStat({label, value, ...props}) {
+  return (
+    <Flex justify="space-between" {...props}>
+      <Text color="muted">{label}</Text>
+      <Text>{value}</Text>
+    </Flex>
+  )
+}
+ReviewValidationDialog.Stat = ReviewValidationDialogStat
+
+function ReviewValidationDialogLinkButton(props) {
+  const {colors} = useTheme()
+  return (
+    <Button
+      variant="link"
+      color="muted"
+      fontWeight="normal"
+      verticalAlign="baseline"
+      borderColor="red.500"
+      textDecoration={`underline ${colors.muted}`}
+      _hover={{
+        color: 'brandGray.500',
+      }}
+      _focus={null}
+      {...props}
+    />
+  )
+}
+ReviewValidationDialog.LinkButton = ReviewValidationDialogLinkButton
