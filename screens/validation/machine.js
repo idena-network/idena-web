@@ -750,7 +750,7 @@ export const createValidationMachine = ({
                                     )
                                   ),
                             onDone: {
-                              target: 'requestWordsSeed',
+                              target: '#validation.longSession',
                               actions: [
                                 assign({
                                   shortHashSubmitted: true,
@@ -766,72 +766,7 @@ export const createValidationMachine = ({
                                 }),
                                 log(
                                   (context, event) => ({context, event}),
-                                  'Short session submit failed'
-                                ),
-                              ],
-                            },
-                          },
-                        },
-                        requestWordsSeed: {
-                          invoke: {
-                            src: () => fetchWordsSeed(),
-                            onDone: {
-                              target: 'submitShortAnswers',
-                              actions: assign({
-                                wordsSeed: (_, {data}) => hexToUint8Array(data),
-                              }),
-                            },
-                            onError: {
-                              target: 'fail',
-                              actions: [
-                                assign({
-                                  errorMessage: (_, {data}) => data,
-                                }),
-                                log(
-                                  (context, event) => ({context, event}),
-                                  'Fetch word seed failed'
-                                ),
-                              ],
-                            },
-                          },
-                        },
-                        submitShortAnswers: {
-                          invoke: {
-                            // eslint-disable-next-line no-shadow
-                            src: ({
-                              shortHashes,
-                              shortFlips,
-                              wordsSeed,
-                              shortAnswersSubmitted,
-                            }) =>
-                              shortAnswersSubmitted
-                                ? Promise.resolve()
-                                : submitShortAnswersTx(
-                                    privateKey,
-                                    shortHashes,
-                                    shortFlips.map(
-                                      ({option: answer = 0, hash}) => ({
-                                        answer,
-                                        hash,
-                                      })
-                                    ),
-                                    wordsSeed
-                                  ),
-                            onDone: {
-                              target: '#validation.longSession',
-                              actions: assign({
-                                shortAnswersSubmitted: true,
-                              }),
-                            },
-                            onError: {
-                              target: 'fail',
-                              actions: [
-                                assign({
-                                  errorMessage: (_, {data}) => data,
-                                }),
-                                log(
-                                  (context, event) => ({context, event}),
-                                  'Short answers submit failed'
+                                  'Short session hash submit failed'
                                 ),
                               ],
                             },
@@ -1325,9 +1260,103 @@ export const createValidationMachine = ({
                 },
               },
             },
+            sendShortAnswers: {
+              initial: 'idle',
+              states: {
+                idle: {},
+                send: {
+                  initial: 'requestWordsSeed',
+                  entry: log(),
+                  states: {
+                    requestWordsSeed: {
+                      entry: log('request words seed'),
+                      invoke: {
+                        src: () => fetchWordsSeed(),
+                        onDone: {
+                          target: 'submitShortAnswers',
+                          actions: assign({
+                            wordsSeed: (_, {data}) => hexToUint8Array(data),
+                          }),
+                        },
+                        onError: {
+                          target: 'fail',
+                          actions: [
+                            assign({
+                              errorMessage: (_, {data}) => data,
+                            }),
+                            log(
+                              (context, event) => ({context, event}),
+                              'Fetch word seed failed'
+                            ),
+                          ],
+                        },
+                      },
+                    },
+                    submitShortAnswers: {
+                      entry: log('submit short answers'),
+                      invoke: {
+                        // eslint-disable-next-line no-shadow
+                        src: ({
+                          shortHashes,
+                          shortFlips,
+                          wordsSeed,
+                          shortAnswersSubmitted,
+                        }) =>
+                          shortAnswersSubmitted
+                            ? Promise.resolve()
+                            : submitShortAnswersTx(
+                                privateKey,
+                                shortHashes,
+                                shortFlips.map(
+                                  ({option: answer = 0, hash}) => ({
+                                    answer,
+                                    hash,
+                                  })
+                                ),
+                                wordsSeed
+                              ),
+                        onDone: {
+                          target: 'done',
+                          actions: assign({
+                            shortAnswersSubmitted: true,
+                          }),
+                        },
+                        onError: {
+                          target: 'fail',
+                          actions: [
+                            assign({
+                              errorMessage: (_, {data}) => data,
+                            }),
+                            log(
+                              (context, event) => ({context, event}),
+                              'Short answers submit failed'
+                            ),
+                          ],
+                        },
+                      },
+                    },
+                    fail: {
+                      after: {
+                        1000: 'requestWordsSeed',
+                      },
+                    },
+                    done: {
+                      type: 'final',
+                      entry: log(),
+                    },
+                  },
+                },
+              },
+              after: {
+                SEND_SHORT_ANSWERS: {
+                  target: '.send',
+                },
+              },
+            },
             exit: ['cleanupLongFlips'],
           },
         },
+
         validationFailed: {
           type: 'final',
           entry: log(
@@ -1395,6 +1424,10 @@ export const createValidationMachine = ({
             validationStart,
             shortSessionDuration - 10 + longSessionDuration
           ) * 1000,
+        // eslint-disable-next-line no-shadow
+        SEND_SHORT_ANSWERS: ({validationStart, shortSessionDuration}) =>
+          Math.max(adjustDuration(validationStart, shortSessionDuration), 5) *
+          1000,
       },
       actions: {
         toggleKeywords: choose([
