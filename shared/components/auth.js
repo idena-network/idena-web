@@ -12,6 +12,7 @@ import {
   useSettingsState,
 } from '../providers/settings-context'
 import {FlatButton} from './button'
+import Link from './link'
 
 function InitKey() {
   const settings = useSettingsState()
@@ -187,6 +188,22 @@ function InitKey() {
                   <div className="gray">
                     <span>Enter an Idena shared node URL and API key</span>
                   </div>
+                </Flex>
+                <Flex>
+                  <Link
+                    href="https://t.me/IdenaSharedNodes"
+                    target="_blank"
+                    color={theme.colors.primary}
+                    fontSize={rem(13)}
+                  >
+                    Ask idena community members to share their node for you
+                    <FiChevronRight
+                      style={{
+                        display: 'inline-block',
+                      }}
+                      fontSize={rem(12)}
+                    />
+                  </Link>
                 </Flex>
               </Flex>
             </Flex>
