@@ -50,7 +50,9 @@ export default function ImportKey() {
                 flex="1"
                 style={{marginLeft: rem(20)}}
               >
-                <SubHeading color="white">Import your private key</SubHeading>
+                <SubHeading color="white">
+                  Import your private key backup to sign in
+                </SubHeading>
                 <Flex justify="space-between">
                   <Text color="xwhite.050" fontSize={rem(14)}>
                     Enter your private key backup. You can export your private

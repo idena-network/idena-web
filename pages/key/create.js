@@ -17,7 +17,6 @@ import {
   PasswordInput,
 } from '../../shared/components/components'
 import {SubHeading} from '../../shared/components/typo'
-import {useAuthDispatch} from '../../shared/providers/auth-context'
 import theme from '../../shared/theme'
 import {
   FlatButton,
@@ -30,20 +29,18 @@ import {
   privateKeyToAddress,
 } from '../../shared/utils/crypto'
 import {AuthLayout} from '../../shared/components/auth'
-import NodeConnectionSetup from '../../screens/key/components'
 
 const steps = {
   AVATAR: 0,
   PASSWORD: 1,
   BACKUP: 2,
-  NODE: 3,
+  SUCCESS: 3,
 }
 
 export default function CreateKey() {
   const [state, setState] = useState({
     step: steps.AVATAR,
   })
-  const {setNewKey} = useAuthDispatch()
   const [error, setError] = useState()
   const {onCopy, hasCopied} = useClipboard(state.encryptedPrivateKey)
 
@@ -67,9 +64,7 @@ export default function CreateKey() {
         ...prevState,
         encryptedPrivateKey: encryptedKey,
         step: steps.BACKUP,
-        showBackupNotification: true,
       }))
-      setNewKey(encryptedKey, state.password, true)
       setError(null)
     }
   }
@@ -104,13 +99,9 @@ export default function CreateKey() {
                   </div>
                 </div>
               </Flex>
-              <Flex
-                style={{
-                  ...margin(33, 18, 5, 19),
-                }}
-                justifyContent="center"
-              >
-                <h2>Your address</h2>
+
+              <Flex textAlign="center">
+                <SubHeading color="white">Your address</SubHeading>
               </Flex>
 
               <Flex
@@ -311,7 +302,7 @@ export default function CreateKey() {
               <form
                 onSubmit={e => {
                   e.preventDefault()
-                  setStep(steps.NODE)
+                  setStep(steps.SUCCESS)
                 }}
                 style={{width: '100%'}}
               >
@@ -396,29 +387,6 @@ export default function CreateKey() {
             </Flex>
           </AuthLayout.Normal>
           <Dialog
-            key="warning"
-            isOpen={state.showBackupNotification}
-            closeOnOverlayClick={false}
-            closeOnEsc={false}
-            closeO
-            onClose={() => setState({...state, showBackupNotification: false})}
-          >
-            <DialogHeader>Backup your private key</DialogHeader>
-            <DialogBody>
-              Please save your private key, otherwise you may lose access to
-              your wallet.
-            </DialogBody>
-            <DialogFooter>
-              <PrimaryButton
-                onClick={() =>
-                  setState({...state, showBackupNotification: false})
-                }
-              >
-                Okay, I understand
-              </PrimaryButton>
-            </DialogFooter>
-          </Dialog>
-          <Dialog
             key="qr"
             isOpen={state.showQrDialog}
             closeO
@@ -451,10 +419,36 @@ export default function CreateKey() {
           </Dialog>
         </AuthLayout>
       )}
-      {state.step === steps.NODE && (
-        <NodeConnectionSetup
-          onBack={() => setStep(steps.BACKUP)}
-        ></NodeConnectionSetup>
+      {state.step === steps.SUCCESS && (
+        <AuthLayout>
+          <AuthLayout.Small>
+            <Flex width="100%" direction="column">
+              <Flex justifyContent="center">
+                <div style={{position: 'relative'}}>
+                  <Avatar address={state.address} />
+                </div>
+              </Flex>
+              <Flex textAlign="center" marginTop={rem(30)}>
+                <SubHeading color="white">Successfully created!</SubHeading>
+              </Flex>
+
+              <Flex
+                style={{
+                  ...margin(5, 0, 45),
+                  opacity: 0.5,
+                  textAlign: 'center',
+                  fontSize: rem(14),
+                  wordBreak: 'break-all',
+                }}
+              >
+                {state.address}
+              </Flex>
+              <Button onClick={() => Router.push('/key/import')}>
+                Sign in
+              </Button>
+            </Flex>
+          </AuthLayout.Small>
+        </AuthLayout>
       )}
     </>
   )
