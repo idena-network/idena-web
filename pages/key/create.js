@@ -249,12 +249,16 @@ export default function CreateKey() {
                   }}
                   justify="space-between"
                 >
-                  <div>
-                    <Icon name="info" w={4} h={4}></Icon>
-                    <span style={{fontSize: rem(13), marginLeft: rem(5)}}>
-                      The password cannot be recovered if you lose it
-                    </span>
-                  </div>
+                  <FlatButton
+                    color="white"
+                    onClick={() => setStep(steps.AVATAR)}
+                    style={{
+                      fontSize: rem(13),
+                      textAlign: 'center',
+                    }}
+                  >
+                    &lt;&nbsp;Back
+                  </FlatButton>
                   <Button type="submit">Next</Button>
                 </Flex>
                 {error && (
@@ -351,12 +355,16 @@ export default function CreateKey() {
                   }}
                   justify="space-between"
                 >
-                  <div>
-                    <Icon name="info" w={4} h={4}></Icon>
-                    <span style={{fontSize: rem(13), marginLeft: rem(5)}}>
-                      Save the encrypted private key
-                    </span>
-                  </div>
+                  <FlatButton
+                    color="white"
+                    onClick={() => setStep(steps.PASSWORD)}
+                    style={{
+                      fontSize: rem(13),
+                      textAlign: 'center',
+                    }}
+                  >
+                    &lt;&nbsp;Back
+                  </FlatButton>
                   <Flex>
                     <Button
                       variant="secondary"

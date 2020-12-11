@@ -1,6 +1,7 @@
 import {Flex, Checkbox, Text} from '@chakra-ui/core'
 import {rem, margin} from 'polished'
 import {useState} from 'react'
+import Router from 'next/router'
 import {Button, Label, SubHeading} from '../../shared/components'
 import {Input, PasswordInput} from '../../shared/components/components'
 import {useAuthDispatch} from '../../shared/providers/auth-context'
@@ -126,9 +127,18 @@ export default function ImportKey() {
                   >
                     Save the encrypted key on this computer
                   </Checkbox>
-                  <Button type="submit" disabled={!state.key}>
-                    Import
-                  </Button>
+                  <Flex>
+                    <Button
+                      variant="secondary"
+                      css={{marginRight: rem(10)}}
+                      onClick={() => Router.push('/')}
+                    >
+                      Cancel
+                    </Button>
+                    <Button type="submit" disabled={!state.key}>
+                      Import
+                    </Button>
+                  </Flex>
                 </Flex>
                 {error && (
                   <Flex

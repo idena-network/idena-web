@@ -136,7 +136,7 @@ export default function NodeConnectionSetup({onBack, onSkip, onSave}) {
               justify="space-between"
             >
               <FlatButton
-                color={theme.colors.primary}
+                color="white"
                 onClick={() => onBack()}
                 style={{
                   fontSize: rem(13),
