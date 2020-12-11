@@ -446,6 +446,19 @@ export default function CreateKey() {
               <Button onClick={() => Router.push('/key/import')}>
                 Sign in
               </Button>
+              <Flex justifyContent="center">
+                <FlatButton
+                  color={theme.colors.primary}
+                  onClick={() => setStep(steps.BACKUP)}
+                  style={{
+                    marginTop: rem(20),
+                    fontSize: rem(13),
+                    textAlign: 'center',
+                  }}
+                >
+                  Back
+                </FlatButton>
+              </Flex>
             </Flex>
           </AuthLayout.Small>
         </AuthLayout>
