@@ -1,6 +1,10 @@
 /* eslint-disable react/display-name */
 import {createContext, useContext, useState} from 'react'
-import {decryptPrivateKey, privateKeyToAddress} from '../utils/crypto'
+import {
+  decryptPrivateKey,
+  encryptPrivateKey,
+  privateKeyToAddress,
+} from '../utils/crypto'
 import {useSettingsDispatch, useSettingsState} from './settings-context'
 
 const AuthStateContext = createContext()
@@ -56,6 +60,8 @@ function AuthProvider({children}) {
     })
   }
 
+  const exportKey = pass => encryptPrivateKey(state.privateKey, pass)
+
   return (
     <AuthStateContext.Provider value={state}>
       <AuthDispatchContext.Provider
@@ -64,6 +70,7 @@ function AuthProvider({children}) {
           checkKey,
           logout,
           login,
+          exportKey,
         }}
       >
         {children}
