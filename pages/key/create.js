@@ -29,7 +29,7 @@ import {
   generatePrivateKey,
   privateKeyToAddress,
 } from '../../shared/utils/crypto'
-import {AuthLayout} from '../../shared/components/layout'
+import {AuthLayout} from '../../shared/components/auth'
 import NodeConnectionSetup from '../../screens/key/components'
 
 const steps = {
@@ -207,10 +207,8 @@ export default function CreateKey() {
                     id="password"
                     value={state.password}
                     width="100%"
-                    style={{
-                      borderColor: 'rgba(0, 0, 0, 0.08)',
-                      backgroundColor: 'rgba(0, 0, 0, 0.16)',
-                    }}
+                    borderColor="xblack.008"
+                    backgroundColor="xblack.016"
                     onChange={e =>
                       setState({
                         ...state,
@@ -234,10 +232,8 @@ export default function CreateKey() {
                     id="passwordConfirm"
                     value={state.passwordConfirm}
                     width="100%"
-                    style={{
-                      borderColor: 'rgba(0, 0, 0, 0.08)',
-                      backgroundColor: 'rgba(0, 0, 0, 0.16)',
-                    }}
+                    borderColor="xblack.008"
+                    backgroundColor="xblack.016"
                     onChange={e =>
                       setState({
                         ...state,
@@ -343,11 +339,9 @@ export default function CreateKey() {
                 >
                   <Input
                     value={state.encryptedPrivateKey}
-                    style={{
-                      borderColor: 'rgba(0, 0, 0, 0.08)',
-                      backgroundColor: 'rgba(0, 0, 0, 0.16)',
-                      width: '100%',
-                    }}
+                    borderColor="xblack.008"
+                    backgroundColor="xblack.016"
+                    width="100%"
                     disabled
                   />
                 </Flex>

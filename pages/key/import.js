@@ -6,7 +6,7 @@ import {Input, PasswordInput} from '../../shared/components/components'
 import {useAuthDispatch} from '../../shared/providers/auth-context'
 import theme from '../../shared/theme'
 import NodeConnectionSetup from '../../screens/key/components'
-import {AuthLayout} from '../../shared/components/layout'
+import {AuthLayout} from '../../shared/components/auth'
 
 const steps = {
   KEY: 0,
@@ -52,8 +52,8 @@ export default function ImportKey() {
                 <SubHeading color="white">Import your private key</SubHeading>
                 <Flex justify="space-between">
                   <Text color="xwhite.050" fontSize={rem(14)}>
-                    Enter your private key exported from the desktop version of
-                    Idena App
+                    Enter your private key backup. You can export your private
+                    key from Idena app (see Settings page).
                   </Text>
                 </Flex>
               </Flex>
@@ -75,18 +75,16 @@ export default function ImportKey() {
                   htmlFor="key"
                   style={{color: 'white', fontSize: rem(13)}}
                 >
-                  Exported private key
+                  Encrypted private key
                 </Label>
                 <Flex width="100%" style={{marginBottom: rem(20)}}>
                   <Input
                     id="key"
                     value={state.key}
-                    style={{
-                      backgroundColor: theme.colors.gray3,
-                      borderColor: theme.colors.gray5,
-                    }}
+                    borderColor="xblack.008"
+                    backgroundColor="xblack.016"
                     onChange={e => setState({...state, key: e.target.value})}
-                    placeholder="Enter your exported private key"
+                    placeholder="Enter your private key backup"
                   />
                 </Flex>
                 <Label
@@ -102,10 +100,8 @@ export default function ImportKey() {
                   <PasswordInput
                     value={state.password}
                     width="100%"
-                    style={{
-                      borderColor: 'rgba(0, 0, 0, 0.08)',
-                      backgroundColor: 'rgba(0, 0, 0, 0.16)',
-                    }}
+                    borderColor="xblack.008"
+                    backgroundColor="xblack.016"
                     onChange={e =>
                       setState({
                         ...state,

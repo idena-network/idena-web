@@ -1,207 +1,192 @@
-import {Flex} from '@chakra-ui/core'
+/* eslint-disable react/prop-types */
+import {Flex, Text} from '@chakra-ui/core'
 import {margin} from 'polished'
 import {useState} from 'react'
 import {FiChevronRight} from 'react-icons/fi'
 import Router from 'next/router'
 import theme, {rem} from '../theme'
 import {Label, Button} from '.'
-import {Input, Avatar} from './components'
+import {
+  Avatar,
+  Dialog,
+  DialogBody,
+  DialogFooter,
+  DialogHeader,
+  PasswordInput,
+} from './components'
 import {useAuthDispatch} from '../providers/auth-context'
 import {useSettingsState} from '../providers/settings-context'
-import {FlatButton} from './button'
+import {FlatButton, PrimaryButton, SecondaryButton} from './button'
+import {SubHeading} from './typo'
 
 function RestoreKey() {
-  const [pass, setPass] = useState('')
+  const [warning, showWarning] = useState(false)
+  const [password, setPassword] = useState('')
   const {login, logout} = useAuthDispatch()
   const {coinbase} = useSettingsState()
   const [error, setError] = useState()
 
   return (
-    <section key="restore">
-      <div>
-        <>
-          <Flex width="100%">
-            <Avatar address={coinbase} />
-            <Flex
-              direction="column"
-              justify="space-between"
-              flex="1"
-              style={{
-                ...margin(0, 0, 0, theme.spacings.normal),
-              }}
-            >
-              <h2>Enter password to unlock your account</h2>
-
-              <Flex justify="space-between">
-                <div className="gray">
-                  <span>{coinbase}</span>
-                </div>
-              </Flex>
-
-              <Flex justify="space-between">
-                <FlatButton
-                  color={theme.colors.primary}
-                  onClick={logout}
-                  style={{
-                    marginBottom: rem(19),
-                    fontSize: rem(12),
-                  }}
-                >
-                  <span>Remove private key from this computer</span>
-
-                  <FiChevronRight
-                    style={{
-                      display: 'inline-block',
-                    }}
-                    fontSize={rem(19)}
-                  />
-                </FlatButton>
-              </Flex>
-            </Flex>
-          </Flex>
+    <AuthLayout>
+      <AuthLayout.Normal>
+        <Flex width="100%">
+          <Avatar address={coinbase} borderRadius={rem(20)} />
           <Flex
-            width="100%"
-            style={{
-              ...margin(theme.spacings.normal, 0, 0, 0),
-            }}
+            direction="column"
+            justify="center"
+            flex="1"
+            style={{marginLeft: rem(20)}}
           >
-            <form
-              onSubmit={e => {
-                try {
-                  e.preventDefault()
-                  setError(null)
-                  login(pass)
-                } catch (err) {
-                  setError('Password is invalid. Try again.')
-                  console.log(err)
-                }
-              }}
-            >
-              <Label
-                htmlFor="pass"
+            <SubHeading color="white">
+              Enter password to unlock your account
+            </SubHeading>
+
+            <Flex justify="space-between">
+              <Text color="xwhite.050" fontSize={rem(14)}>
+                {coinbase}
+              </Text>
+            </Flex>
+
+            <Flex justify="space-between">
+              <FlatButton
+                color={theme.colors.primary}
+                onClick={() => showWarning(true)}
                 style={{
-                  color: 'white',
+                  marginBottom: rem(19),
                   fontSize: rem(13),
                 }}
               >
-                Password
-              </Label>
-              <Flex width="100%">
-                <Input
-                  id="pass"
-                  value={pass}
-                  type="password"
+                <span>Remove private key from this computer</span>
+
+                <FiChevronRight
                   style={{
-                    ...margin(0, theme.spacings.normal, 0, 0),
-                    backgroundColor: theme.colors.gray3,
-                    borderColor: theme.colors.gray5,
+                    display: 'inline-block',
                   }}
-                  onChange={e => setPass(e.target.value)}
-                  placeholder="Enter your password"
+                  fontSize={rem(19)}
                 />
-                <Button type="submit" disabled={!pass}>
-                  Proceed
-                </Button>
-              </Flex>
-              {error && (
-                <Flex
-                  style={{
-                    marginTop: rem(30, theme.fontSizes.base),
-                    backgroundColor: theme.colors.danger,
-                    borderRadius: rem(9, theme.fontSizes.base),
-                    fontSize: rem(14, theme.fontSizes.base),
-                    padding: `${rem(18, theme.fontSizes.base)} ${rem(
-                      24,
-                      theme.fontSizes.base
-                    )}`,
-                  }}
-                >
-                  {error}
-                </Flex>
-              )}
-            </form>
+              </FlatButton>
+            </Flex>
           </Flex>
-        </>
-      </div>
-      <style jsx>{`
-        section {
-          background: ${theme.colors.darkGraphite};
-          color: white;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          flex: 1;
-          height: 100vh;
-        }
-        section > div {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          flex-direction: column;
-          width: ${rem(480)};
-        }
-
-        form {
-          width: 100%;
-        }
-        input {
-          background-color: ${theme.colors.darkGraphite}!important;
-        }
-
-        img {
-          width: ${rem(60)};
-          height: ${rem(60)};
-          margin-right: ${rem(10)};
-        }
-        section .gray {
-          opacity: 0.5;
-        }
-
-        h2 {
-          font-size: ${rem(18, theme.fontSizes.base)};
-          font-weight: 500;
-          margin: 0;
-          word-break: break-all;
-        }
-        span {
-          font-size: ${rem(14, theme.fontSizes.base)};
-          line-height: ${rem(20, theme.fontSizes.base)};
-        }
-        li {
-          margin-bottom: ${rem(theme.spacings.small8, theme.fontSizes.base)};
-        }
-      `}</style>
-    </section>
+        </Flex>
+        <Flex
+          width="100%"
+          style={{
+            ...margin(theme.spacings.normal, 0, 0, 0),
+          }}
+        >
+          <form
+            style={{width: '100%'}}
+            onSubmit={e => {
+              try {
+                e.preventDefault()
+                setError(null)
+                login(password)
+              } catch (err) {
+                setError('Password is invalid. Try again.')
+                console.log(err)
+              }
+            }}
+          >
+            <Label
+              htmlFor="password"
+              style={{
+                color: 'white',
+                fontSize: rem(13),
+              }}
+            >
+              Password
+            </Label>
+            <Flex width="100%">
+              <PasswordInput
+                width="100%"
+                value={password}
+                borderColor="xblack.008"
+                backgroundColor="xblack.016"
+                onChange={e => setPassword(e.target.value)}
+                placeholder="Enter your password"
+              />
+              <Button
+                type="submit"
+                disabled={!password}
+                style={{marginLeft: rem(10)}}
+              >
+                Proceed
+              </Button>
+            </Flex>
+            {error && (
+              <Flex
+                style={{
+                  marginTop: rem(30, theme.fontSizes.base),
+                  backgroundColor: theme.colors.danger,
+                  borderRadius: rem(9, theme.fontSizes.base),
+                  fontSize: rem(14, theme.fontSizes.base),
+                  padding: `${rem(18, theme.fontSizes.base)} ${rem(
+                    24,
+                    theme.fontSizes.base
+                  )}`,
+                }}
+              >
+                {error}
+              </Flex>
+            )}
+          </form>
+        </Flex>
+        <Dialog
+          key="warning"
+          isOpen={warning}
+          onClose={() => showWarning(false)}
+        >
+          <DialogHeader>Remove private key?</DialogHeader>
+          <DialogBody>
+            Make sure you have the private key backup. Otherwise you will lose
+            access to your account.
+          </DialogBody>
+          <DialogFooter>
+            <SecondaryButton onClick={() => showWarning(false)}>
+              Cancel
+            </SecondaryButton>
+            <PrimaryButton
+              onClick={logout}
+              backgroundColor="red.090"
+              _hover={{
+                bg: 'red.500',
+              }}
+            >
+              Remove
+            </PrimaryButton>
+          </DialogFooter>
+        </Dialog>
+      </AuthLayout.Normal>
+    </AuthLayout>
   )
 }
 
 function Init() {
   return (
-    <section>
-      <div>
+    <AuthLayout>
+      <AuthLayout.Small>
         <Flex width="100%" direction="column">
-          <Flex justifyContent="center">
-            <img src="/static/idena_white.svg" alt="logo" />
-          </Flex>
-          <Flex
-            style={{
-              ...margin(33, 18, 5, 19),
-            }}
-          >
-            <h2>Proof-Of-Person Blockchain</h2>
+          <Flex justifyContent="center" marginBottom={rem(35)}>
+            <img
+              src="/static/idena_white.svg"
+              alt="logo"
+              style={{width: rem(80), height: rem(80)}}
+            />
           </Flex>
 
-          <Flex
-            style={{
-              ...margin(5, 0, 45),
-              opacity: 0.5,
-              textAlign: 'center',
-              fontSize: rem(14),
-            }}
+          <Flex textAlign="center">
+            <SubHeading color="white">Proof-Of-Person Blockchain</SubHeading>
+          </Flex>
+
+          <Text
+            color="xwhite.050"
+            fontSize={rem(14)}
+            textAlign="center"
+            marginBottom={rem(45)}
           >
             Join the mining of the first human-centric cryptocurrency
-          </Flex>
+          </Text>
+
           <Button onClick={() => Router.push('/key/create')}>
             Create an account
           </Button>
@@ -220,7 +205,23 @@ function Init() {
             </FlatButton>
           </Flex>
         </Flex>
-      </div>
+      </AuthLayout.Small>
+    </AuthLayout>
+  )
+}
+
+export default function Auth() {
+  const {encryptedKey, coinbase, initialized} = useSettingsState()
+  if (!initialized) {
+    return <AuthLayout />
+  }
+  return !encryptedKey || !coinbase ? <Init /> : <RestoreKey />
+}
+
+export function AuthLayout({children}) {
+  return (
+    <>
+      <section>{children}</section>
       <style jsx>{`
         section {
           background: ${theme.colors.darkGraphite};
@@ -232,7 +233,35 @@ function Init() {
           flex: 1;
           height: 100vh;
         }
-        section > div {
+      `}</style>
+    </>
+  )
+}
+
+// eslint-disable-next-line react/display-name
+AuthLayout.Normal = function({children}) {
+  return (
+    <>
+      <div>{children}</div>
+      <style jsx>{`
+        div {
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          flex-direction: column;
+          width: ${rem(480)};
+        }
+      `}</style>
+    </>
+  )
+}
+// eslint-disable-next-line react/display-name
+AuthLayout.Small = function({children}) {
+  return (
+    <>
+      <div>{children}</div>
+      <style jsx>{`
+        div {
           display: flex;
           align-items: center;
           justify-content: space-between;
@@ -242,56 +271,7 @@ function Init() {
           padding: 52px 40px 36px;
           border-radius: 8px;
         }
-
-        img {
-          width: ${rem(79)};
-          height: ${rem(79)};
-        }
-
-        form {
-          width: 100%;
-        }
-        input {
-          background-color: ${theme.colors.darkGraphite}!important;
-        }
-
-        h2 {
-          font-size: ${rem(18, theme.fontSizes.base)};
-          font-weight: 500;
-          margin: 0;
-          word-break: break-all;
-        }
-        span {
-          font-size: ${rem(14, theme.fontSizes.base)};
-          line-height: ${rem(20, theme.fontSizes.base)};
-        }
-        li {
-          margin-bottom: ${rem(theme.spacings.small8, theme.fontSizes.base)};
-        }
       `}</style>
-    </section>
+    </>
   )
-}
-
-export default function Auth() {
-  const {encryptedKey, coinbase, initialized} = useSettingsState()
-  if (!initialized) {
-    return (
-      <section>
-        <style jsx>{`
-          section {
-            background: ${theme.colors.darkGraphite};
-            color: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            flex: 1;
-            height: 100vh;
-          }
-        `}</style>
-      </section>
-    )
-  }
-  return !encryptedKey || !coinbase ? <Init /> : <RestoreKey />
 }

@@ -4,7 +4,7 @@ import Router from 'next/router'
 import axios from 'axios'
 import {useEffect, useState} from 'react'
 import {Label, SubHeading} from '../../shared/components'
-import {AuthLayout} from '../../shared/components/layout'
+import {AuthLayout} from '../../shared/components/auth'
 import {
   useSettingsDispatch,
   useSettingsState,
@@ -99,10 +99,8 @@ export default function NodeConnectionSetup({onBack, onSkip, onSave}) {
               <Input
                 id="key"
                 value={state.url}
-                style={{
-                  backgroundColor: theme.colors.gray3,
-                  borderColor: theme.colors.gray5,
-                }}
+                borderColor="xblack.008"
+                backgroundColor="xblack.016"
                 onChange={e => setState({...state, url: e.target.value})}
                 placeholder="Enter your node address"
               />
@@ -120,10 +118,8 @@ export default function NodeConnectionSetup({onBack, onSkip, onSave}) {
               <PasswordInput
                 value={state.apiKey}
                 width="100%"
-                style={{
-                  borderColor: 'rgba(0, 0, 0, 0.08)',
-                  backgroundColor: 'rgba(0, 0, 0, 0.16)',
-                }}
+                borderColor="xblack.008"
+                backgroundColor="xblack.016"
                 onChange={e =>
                   setState({
                     ...state,
