@@ -51,10 +51,7 @@ function AuthProvider({children}) {
   }
 
   const logout = () => {
-    setState({
-      auth: false,
-      privateKey: null,
-    })
+    setState(initialState)
   }
 
   const login = pass => {
