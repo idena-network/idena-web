@@ -4,5 +4,6 @@ module.exports = {
     '<rootDir>/renderer/out/',
     '<rootDir>/dist/',
     '<rootDir>/node_modules/',
+    '<rootDir>/.vercel/',
   ],
 }
