@@ -120,6 +120,25 @@ describe('create answers attachment', () => {
     expect(result).toStrictEqual([138, 194, 81])
   })
 
+  it('answer reports', () => {
+    const hashes = ['a', 'b', 'c', 'd', 'e']
+    const answers = [
+      {hash: 'a', answer: 1, wrongWords: true},
+      {hash: 'd', answer: 2},
+      {hash: 'b', answer: 0},
+      {hash: 'e', answer: 1},
+      {hash: 'c', answer: 2, wrongWords: true},
+    ]
+
+    const result = serializeAnswers(hashes, answers)
+
+    console.log(result)
+    console.log(toHexString(result))
+
+    // 0000 0001 0000 0101 1001 0001
+    expect(result).toStrictEqual([1, 5, 145])
+  })
+
   it('key to address', () => {
     expect(privateKeyToAddress(key)).toBe(
       '0xa79b11814a162129a6dC136885C1c92EE1336Ffc'.toLowerCase()

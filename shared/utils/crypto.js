@@ -125,15 +125,15 @@ export function serializeAnswers(hashesInOrder, answers) {
   const res = orderedAnswers.reduce((cum, current, idx) => {
     // left
     if (current.answer === 1) {
-      return cum.setn(idx, true)
+      cum.setn(idx, true)
     }
     // right
     if (current.answer === 2) {
-      return cum.setn(idx + orderedAnswers.length, true)
+      cum.setn(idx + orderedAnswers.length, true)
     }
     // wrong words
     if (current.wrongWords) {
-      return cum.setn(idx + orderedAnswers.length * 3, true)
+      cum.setn(idx * 3 + orderedAnswers.length * 2, true)
     }
     return cum
   }, new BN(0))
