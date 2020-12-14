@@ -15,7 +15,7 @@ import {Input, PasswordInput} from '../../shared/components/components'
 import Button, {FlatButton} from '../../shared/components/button'
 
 // eslint-disable-next-line react/prop-types
-export default function NodeConnectionSetup({onBack, onSkip, onSave}) {
+export default function NodeConnectionSetup({onBack, onSave}) {
   const settings = useSettingsState()
   const [state, setState] = useState({
     url: '',
@@ -31,11 +31,6 @@ export default function NodeConnectionSetup({onBack, onSkip, onSave}) {
       apiKey: settings.apiKey,
     }))
   }, [settings.apiKey, settings.url])
-
-  const skipNodeSettings = () => {
-    if (onSkip) onSkip()
-    Router.push('/')
-  }
 
   const save = async () => {
     try {
@@ -162,16 +157,7 @@ export default function NodeConnectionSetup({onBack, onSkip, onSave}) {
               >
                 &lt;&nbsp;Back
               </FlatButton>
-              <Flex>
-                <Button
-                  variant="secondary"
-                  css={{marginRight: rem(10)}}
-                  onClick={skipNodeSettings}
-                >
-                  Skip
-                </Button>
-                <Button type="submit">Next</Button>
-              </Flex>
+              <Button type="submit">Next</Button>
             </Flex>
             {error && (
               <Flex

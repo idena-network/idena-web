@@ -166,7 +166,6 @@ export default function ImportKey() {
       {step === steps.NODE && (
         <NodeConnectionSetup
           onBack={() => setStep(steps.KEY)}
-          onSkip={() => setNewKey(state.key, state.password, state.saveKey)}
           onSave={() => setNewKey(state.key, state.password, state.saveKey)}
         ></NodeConnectionSetup>
       )}
