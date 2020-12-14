@@ -3,7 +3,7 @@
 import {Flex, Icon, Text, useClipboard} from '@chakra-ui/core'
 import {rem, margin} from 'polished'
 import {useState, useEffect} from 'react'
-import Router from 'next/router'
+import {useRouter} from 'next/router'
 import QRCode from 'qrcode.react'
 import {saveAs} from 'file-saver'
 import {Button, Label} from '../../shared/components'
@@ -38,6 +38,7 @@ const steps = {
 }
 
 export default function CreateKey() {
+  const router = useRouter()
   const [state, setState] = useState({
     step: steps.AVATAR,
   })
@@ -120,7 +121,7 @@ export default function CreateKey() {
               <Flex justifyContent="center">
                 <FlatButton
                   color={theme.colors.primary}
-                  onClick={() => Router.push('/')}
+                  onClick={() => router.push('/')}
                   style={{
                     marginTop: rem(20),
                     fontSize: rem(13),
@@ -357,14 +358,15 @@ export default function CreateKey() {
                     &lt;&nbsp;Back
                   </FlatButton>
                   <Flex>
-                    <Button
-                      variant="secondary"
-                      css={{marginRight: rem(10)}}
+                    <SecondaryButton
+                      type="button"
+                      mr={rem(10)}
+                      fontSize={rem(13)}
                       onClick={() => setState({...state, showQrDialog: true})}
                     >
                       Show QR code
-                    </Button>
-                    <Button type="submit">Next</Button>
+                    </SecondaryButton>
+                    <PrimaryButton type="submit">Next</PrimaryButton>
                   </Flex>
                 </Flex>
                 {error && (
@@ -443,7 +445,7 @@ export default function CreateKey() {
               >
                 {state.address}
               </Flex>
-              <Button onClick={() => Router.push('/key/import')}>
+              <Button onClick={() => router.push('/key/import')}>
                 Sign in
               </Button>
               <Flex justifyContent="center">
