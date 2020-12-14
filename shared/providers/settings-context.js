@@ -33,6 +33,7 @@ function settingsReducer(state, action) {
     case RESTORE_SETTINGS: {
       return {
         ...action.data,
+        initialized: true,
       }
     }
     default:
@@ -57,10 +58,10 @@ function SettingsProvider({children}) {
   )
 
   useEffect(() => {
-    const settings = loadPersistentState('settings')
-    if (settings) {
-      dispatch({type: RESTORE_SETTINGS, data: settings})
-    }
+    dispatch({
+      type: RESTORE_SETTINGS,
+      data: loadPersistentState('settings') || {},
+    })
   }, [dispatch])
 
   // TODO: remove in future releases

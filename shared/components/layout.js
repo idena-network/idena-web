@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react'
 import {useRouter} from 'next/router'
-import {useTranslation} from 'react-i18next'
 import {Flex} from '@chakra-ui/core'
 import Sidebar from './sidebar'
 import Notifications from './notifications'

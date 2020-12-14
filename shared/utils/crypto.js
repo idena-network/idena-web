@@ -31,6 +31,30 @@ export function privateKeyToAddress(key) {
   return toHexString(sha3.keccak_256.array(pubKey.slice(1)).slice(12), true)
 }
 
+export function generatePrivateKey() {
+  const buf = new Uint8Array(32)
+  window.crypto.getRandomValues(buf)
+  return buf
+}
+
+export function encryptPrivateKey(data, passphrase) {
+  const key = sha3.sha3_256.array(passphrase)
+  const dataArray = Buffer.from(
+    typeof data === 'string' ? hexToUint8Array(data) : new Uint8Array(data)
+  )
+  const nonce = new Uint8Array(12)
+  window.crypto.getRandomValues(nonce)
+  const cipher = crypto.createCipheriv('aes-256-gcm', key, Buffer.from(nonce))
+
+  const encrypted = [
+    ...nonce,
+    ...cipher.update(dataArray),
+    ...cipher.final(),
+    ...cipher.getAuthTag(),
+  ]
+  return toHexString(encrypted, true)
+}
+
 export function decryptPrivateKey(data, passphrase) {
   const key = sha3.sha3_256.array(passphrase)
   const dataArray = Buffer.from(

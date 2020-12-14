@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React from 'react'
+import React, {useState} from 'react'
 import {
   Code,
   Drawer as ChakraDrawer,
@@ -28,6 +28,8 @@ import {
   Box,
   Button,
 } from '@chakra-ui/core'
+import {borderRadius} from 'polished'
+import {FiEye, FiEyeOff} from 'react-icons/fi'
 import {rem} from '../theme'
 
 export function FloatDebug({children, ...props}) {
@@ -83,6 +85,40 @@ export function Input(props) {
       }}
       {...props}
     />
+  )
+}
+
+export function PasswordInput({width, ...props}) {
+  const [show, setShow] = useState(false)
+
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width,
+      }}
+    >
+      <Input type={show ? 'text' : 'password'} {...props} />
+      <Box
+        style={{
+          ...borderRadius('right', rem(6)),
+          cursor: 'pointer',
+          fontSize: rem(20),
+          position: 'absolute',
+          top: rem(-3),
+          height: '100%',
+          right: rem(10),
+          zIndex: 5,
+        }}
+        onClick={() => setShow(!show)}
+      >
+        {show ? (
+          <FiEyeOff style={{transform: 'translate(0, 50%)'}} />
+        ) : (
+          <FiEye style={{transform: 'translate(0, 50%)'}} />
+        )}
+      </Box>
+    </div>
   )
 }
 
