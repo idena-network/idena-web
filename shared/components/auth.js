@@ -22,7 +22,7 @@ import {SubHeading} from './typo'
 function RestoreKey() {
   const [warning, showWarning] = useState(false)
   const [password, setPassword] = useState('')
-  const {login, logout} = useAuthDispatch()
+  const {login, removeKey} = useAuthDispatch()
   const {coinbase} = useSettingsState()
   const [error, setError] = useState()
 
@@ -146,7 +146,7 @@ function RestoreKey() {
               Cancel
             </SecondaryButton>
             <PrimaryButton
-              onClick={logout}
+              onClick={removeKey}
               backgroundColor="red.090"
               _hover={{
                 bg: 'red.500',

@@ -45,9 +45,16 @@ function AuthProvider({children}) {
     }
   }
 
-  const logout = () => {
+  const removeKey = () => {
     removeEncryptedKey()
     setState(initialState)
+  }
+
+  const logout = () => {
+    setState({
+      auth: false,
+      privateKey: null,
+    })
   }
 
   const login = pass => {
@@ -71,6 +78,7 @@ function AuthProvider({children}) {
           logout,
           login,
           exportKey,
+          removeKey,
         }}
       >
         {children}
