@@ -1,8 +1,9 @@
-import {Flex, Text} from '@chakra-ui/core'
+import {Flex, Link, Text} from '@chakra-ui/core'
 import {margin, rem} from 'polished'
 import Router from 'next/router'
 import axios from 'axios'
 import {useEffect, useState} from 'react'
+import {FiChevronRight} from 'react-icons/fi'
 import {Label, SubHeading} from '../../shared/components'
 import {AuthLayout} from '../../shared/components/auth'
 import {
@@ -76,6 +77,22 @@ export default function NodeConnectionSetup({onBack, onSkip, onSave}) {
               <Text color="xwhite.050" fontSize={rem(14)}>
                 Enter an Idena shared node URL and API key
               </Text>
+            </Flex>
+            <Flex>
+              <Link
+                href="https://t.me/IdenaSharedNodes"
+                target="_blank"
+                color={theme.colors.primary}
+                fontSize={rem(13)}
+              >
+                Ask idena community members to share their node for you
+                <FiChevronRight
+                  style={{
+                    display: 'inline-block',
+                  }}
+                  fontSize={rem(12)}
+                />
+              </Link>
             </Flex>
           </Flex>
         </Flex>
