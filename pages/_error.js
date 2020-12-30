@@ -2,6 +2,7 @@ import React from 'react'
 import Error from 'next/error'
 import {margin} from 'polished'
 import {useTranslation} from 'react-i18next'
+import Router from 'next/router'
 import Layout from '../shared/components/layout'
 import {Button} from '../shared/components'
 import theme, {rem} from '../shared/theme'
@@ -34,7 +35,7 @@ function MyError({statusCode, hasGetInitialPropsRun, err}) {
                 : t('An error occurred on client')}
             </h2>
             <div>
-              <Button onClick={() => global.ipcRenderer.send('reload')}>
+              <Button onClick={() => Router.push('/')}>
                 {t('Go to My Idena')}
               </Button>
             </div>

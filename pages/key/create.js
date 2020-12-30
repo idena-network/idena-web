@@ -391,7 +391,6 @@ export default function CreateKey() {
           <Dialog
             key="qr"
             isOpen={state.showQrDialog}
-            closeO
             onClose={() => setState({...state, showQrDialog: false})}
           >
             <DialogHeader>Encrypted private key</DialogHeader>

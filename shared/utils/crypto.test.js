@@ -5,6 +5,7 @@ import {
   generateShortAnswersSalt,
   privateKeyToAddress,
   preparePublicFlipKey,
+  encryptFlipData,
 } from './crypto'
 import {toHexString} from './buffers'
 
@@ -143,16 +144,5 @@ describe('create answers attachment', () => {
     expect(privateKeyToAddress(key)).toBe(
       '0xa79b11814a162129a6dC136885C1c92EE1336Ffc'.toLowerCase()
     )
-  })
-
-  it('asdsad', () => {
-    preparePublicFlipKey(
-      'c6fccb1b926e774d7e3a1716eddeba55ae7d40db4fb7c22d2705835f48d5be1b',
-      4
-    )
-    // decryptPrivateKey(
-    //   '9fd8590f1be62fa5a75ef4911a017bd8377cce5baf44f2ded91c1bfef990982bbf84f1cece689116936e6c9c655245a3295d123ecc94b3faea6a4c9b',
-    //   '123123'
-    // )
   })
 })

@@ -5,9 +5,15 @@ import {fetchEpoch} from '../api'
 import {
   shouldExpectValidationResults,
   hasPersistedValidationResults,
+  didValidate,
 } from '../../screens/validation/utils'
 
 import {persistItem} from '../utils/persist'
+import {
+  archiveFlips,
+  didArchiveFlips,
+  markFlipsArchived,
+} from '../../screens/flips/utils'
 
 export const EpochPeriod = {
   FlipLottery: 'FlipLottery',
@@ -57,6 +63,13 @@ export function EpochProvider({children}) {
       console.error('An error occured while fetching epoch', error.message)
     }
   }, interval)
+
+  useEffect(() => {
+    if (epoch && didValidate(epoch.epoch) && !didArchiveFlips(epoch.epoch)) {
+      archiveFlips()
+      markFlipsArchived(epoch.epoch)
+    }
+  }, [epoch])
 
   useEffect(() => {
     if (

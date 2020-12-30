@@ -1,24 +1,71 @@
-export function imageResize(
-  img,
+export const imageResize = async (imgUrl, width, height) =>
+  new Promise((resolve, reject) => {
+    if (!imgUrl) {
+      resolve()
+    }
+    try {
+      const img = document.createElement('img')
+
+      img.onload = function() {
+        const canvas = document.createElement('canvas')
+        const ctx = canvas.getContext('2d')
+
+        canvas.width = width
+        canvas.height = height
+
+        ctx.drawImage(this, 0, 0, width, height)
+        const dataURI = canvas.toDataURL()
+        resolve(dataURI)
+      }
+
+      img.onerror = reject
+
+      img.src = imgUrl
+    } catch (e) {
+      reject(e.message)
+    }
+  })
+
+export const imageResizeSoft = async (
+  imgUrl,
   maxWidth = 400,
   maxHeight = 300,
   softResize = true
-) {
-  if (!img || img.isEmpty()) return
-  const {width, height} = img.getSize()
-  const {newWidth, newHeight} = resizing(
-    width,
-    height,
-    maxWidth,
-    maxHeight,
-    softResize
-  )
-  const nextImage =
-    width > maxWidth || height > maxHeight || !softResize
-      ? img.resize({width: newWidth, height: newHeight})
-      : img
-  return nextImage.toDataURL()
-}
+) =>
+  new Promise((resolve, reject) => {
+    if (!imgUrl) {
+      resolve()
+    }
+    try {
+      const img = document.createElement('img')
+
+      img.onload = function() {
+        const {width, height} = img
+
+        const {newWidth, newHeight} = resizing(
+          width,
+          height,
+          maxWidth,
+          maxHeight,
+          softResize
+        )
+
+        // resize
+        if (width > maxWidth || height > maxHeight || !softResize) {
+          return imageResize(imgUrl, newWidth, newHeight)
+            .then(resolve)
+            .catch(reject)
+        }
+        return resolve(imgUrl)
+      }
+
+      img.onerror = reject
+
+      img.src = imgUrl
+    } catch (e) {
+      return reject(e.message)
+    }
+  })
 
 export function resizing(
   width,

@@ -64,6 +64,10 @@ export default class MyApp extends App {
               -moz-osx-font-smoothing: grayscale;
             }
           `}</style>
+          <script
+            type="text/javascript"
+            src="https://apis.google.com/js/api.js"
+          ></script>
         </Head>
         <ThemeProvider theme={uiTheme}>
           <CSSReset />

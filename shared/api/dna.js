@@ -184,6 +184,19 @@ export async function submitFlip(publicHex, privateHex, pairId) {
   return data
 }
 
+export async function submitRawFlip(
+  encryptedPublicHex,
+  encryptedPrivateHex,
+  tx
+) {
+  const {data} = await api().post('/', {
+    method: 'flip_rawSubmit',
+    params: [{encryptedPublicHex, encryptedPrivateHex, tx}],
+    id: 1,
+  })
+  return data
+}
+
 export async function deleteFlip(hash) {
   const {data} = await api().post('/', {
     method: 'flip_delete',
