@@ -52,7 +52,7 @@ export function encryptPrivateKey(data, passphrase) {
     ...cipher.final(),
     ...cipher.getAuthTag(),
   ]
-  return toHexString(encrypted, true)
+  return toHexString(encrypted, false)
 }
 
 export function decryptPrivateKey(data, passphrase) {
