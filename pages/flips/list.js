@@ -65,6 +65,12 @@ export default function FlipListPage() {
 
   const [selectedFlip, setSelectedFlip] = React.useState()
 
+  const canSubmitFlips = [
+    IdentityStatus.Verified,
+    IdentityStatus.Human,
+    IdentityStatus.Newbie,
+  ].includes(status)
+
   const [current, send] = useMachine(flipsMachine, {
     context: {
       knownFlips: knownFlips || [],
@@ -89,10 +95,10 @@ export default function FlipListPage() {
   })
 
   useEffect(() => {
-    if (epochState && privateKey) {
-      send('INITIALIZE', {epoch: epochState.epoch, privateKey})
+    if (epochState && privateKey && status) {
+      send('INITIALIZE', {epoch: epochState.epoch, privateKey, canSubmitFlips})
     }
-  }, [epochState, privateKey, send])
+  }, [canSubmitFlips, epochState, privateKey, send, status])
 
   const {flips, missingFlips, filter} = current.context
 
@@ -124,12 +130,6 @@ export default function FlipListPage() {
   const remainingOptionalFlips =
     availableFlipsNumber - Math.max(requiredFlipsNumber, madeFlipsNumber)
 
-  const canSubmitFlips = [
-    IdentityStatus.Verified,
-    IdentityStatus.Human,
-    IdentityStatus.Newbie,
-  ].includes(status)
-
   return (
     <Layout>
       <Page>
@@ -150,7 +150,7 @@ export default function FlipListPage() {
             </FlipFilterOption>
           </FlipFilter>
           <IconLink href="/flips/new" icon="plus-solid">
-            {t('Add flip')}
+            {t('New flip')}
           </IconLink>
         </Flex>
         {current.matches('ready.dirty.active') &&
@@ -180,7 +180,7 @@ export default function FlipListPage() {
             </Box>
           )}
 
-        {!canSubmitFlips && (
+        {status && !canSubmitFlips && (
           <Box alignSelf="stretch" mb={8}>
             <Alert
               status="error"
@@ -283,12 +283,6 @@ export default function FlipListPage() {
             onCloseDeleteForm()
           }}
         />
-
-        {true && (
-          <Box position="absolute" left={6} bottom={6} zIndex="popover">
-            <Debug>{current.value}</Debug>
-          </Box>
-        )}
       </Page>
     </Layout>
   )

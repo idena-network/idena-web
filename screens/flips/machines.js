@@ -30,6 +30,7 @@ export const flipsMachine = Machine(
       flips: null,
       knownFlips: [],
       availableKeywords: [],
+      canSubmitFlips: null,
     },
     initial: 'idle',
     states: {
@@ -41,6 +42,7 @@ export const flipsMachine = Machine(
               assign({
                 privateKey: (_, {privateKey}) => privateKey,
                 epoch: (_, {epoch}) => epoch,
+                canSubmitFlips: (_, {canSubmitFlips}) => canSubmitFlips,
               }),
             ],
           },
@@ -98,7 +100,11 @@ export const flipsMachine = Machine(
             {
               target: 'ready.pristine',
               actions: log(),
-              cond: (_, {data: {persistedFlips, missingFlips}}) =>
+              cond: (
+                {canSubmitFlips},
+                {data: {persistedFlips, missingFlips}}
+              ) =>
+                !canSubmitFlips &&
                 persistedFlips.concat(missingFlips).length === 0,
             },
             {
@@ -146,7 +152,18 @@ export const flipsMachine = Machine(
       ready: {
         initial: 'pristine',
         states: {
-          pristine: {},
+          pristine: {
+            on: {
+              FILTER: {
+                actions: [
+                  assign({
+                    filter: (_, {filter}) => filter,
+                  }),
+                  'persistFilter',
+                ],
+              },
+            },
+          },
           dirty: {
             on: {
               FILTER: {
