@@ -23,11 +23,8 @@ import {Tooltip} from '../../../shared/components/tooltip'
 import {Tooltip as TooltipX} from '../../../shared/components/components'
 import theme from '../../../shared/theme'
 import Flex from '../../../shared/components/flex'
-import {resizing, imageResize} from '../../../shared/utils/img'
-import {
-  getImageURLFromClipboard,
-  writeImageURLToClipboard,
-} from '../../../shared/utils/clipboard'
+import {resizing, imageResize, imageResizeSoft} from '../../../shared/utils/img'
+import {writeImageURLToClipboard} from '../../../shared/utils/clipboard'
 
 import {
   Brushes,
@@ -37,6 +34,7 @@ import {
   ImageEraseEditor,
   ApplyChangesBottomPanel,
 } from './flip-editor-tools'
+import useGooglePicker from './picker'
 
 const ImageEditor =
   typeof window !== 'undefined'
@@ -60,16 +58,12 @@ const IMAGE_HEIGHT = 330
 const INSERT_OBJECT_IMAGE = 1
 const INSERT_BACKGROUND_IMAGE = 2
 const BLANK_IMAGE_DATAURL =
-  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAADElEQVQYlWP4//8/AAX+Av5e8BQ1AAAAAElFTkSuQmCC'
-const BLANK_IMAGE =
-  global.nativeImage &&
-  global.nativeImage
-    .createFromDataURL(BLANK_IMAGE_DATAURL)
-    .resize({width: IMAGE_WIDTH, height: IMAGE_HEIGHT})
-    .toDataURL()
+  'data:image/png;base64,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'
 
 function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
   const {t} = useTranslation()
+
+  const [blankImage, setBlankImage] = useState(BLANK_IMAGE_DATAURL)
 
   // Button menu
   const [isInsertImageMenuOpen, setInsertImageMenuOpen] = useState(false)
@@ -148,7 +142,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
       if (!editor) return
 
       if (!url) {
-        editor.loadImageFromURL(BLANK_IMAGE, 'blank').then(() => {
+        editor.loadImageFromURL(blankImage, 'blank').then(() => {
           setChangesCnt(NOCHANGES)
           onChange(null)
         })
@@ -190,7 +184,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
       }
 
       if (nextInsertMode === INSERT_BACKGROUND_IMAGE) {
-        editor.loadImageFromURL(BLANK_IMAGE, 'blank').then(() => {
+        editor.loadImageFromURL(blankImage, 'blank').then(() => {
           editor.addImageObject(url).then(objectProps => {
             const {id} = objectProps
             const {width, height} = editor.getObjectProperties(id, [
@@ -239,8 +233,18 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
         })
       }
     },
-    [editors, handleOnChanged, idx, insertImageMode, onChange]
+    [blankImage, editors, handleOnChanged, idx, insertImageMode, onChange]
   )
+
+  const {open, url: pickedUrl} = useGooglePicker()
+
+  useEffect(() => {
+    if (pickedUrl) {
+      setImageUrl({url: pickedUrl})
+      setInsertImageMode(0)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pickedUrl])
 
   // File upload handling
   const handleUpload = e => {
@@ -250,9 +254,12 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
       return
     }
     const reader = new FileReader()
-    reader.addEventListener('loadend', re => {
-      const img = global.nativeImage.createFromDataURL(re.target.result)
-      const url = imageResize(img, IMAGE_WIDTH, IMAGE_HEIGHT)
+    reader.addEventListener('loadend', async re => {
+      const url = await imageResizeSoft(
+        re.target.result,
+        IMAGE_WIDTH,
+        IMAGE_HEIGHT
+      )
       setImageUrl({url})
       setInsertImageMode(0)
     })
@@ -260,44 +267,28 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
     e.target.value = ''
   }
 
-  // // Google search handling
-  // useEffect(() => {
-  //   // eslint-disable-next-line no-shadow
-  //   const handleImageSearchPick = (_, data) => {
-  //     if (visible) {
-  //       const [{url}] = data.docs[0].thumbnails
-  //       setImageUrl({url})
-  //     }
-  //     setInsertImageMode(0)
-  //   }
-  //   global.ipcRenderer.on(IMAGE_SEARCH_PICK, handleImageSearchPick)
-  //   return () => {
-  //     global.ipcRenderer.removeListener(
-  //       IMAGE_SEARCH_PICK,
-  //       handleImageSearchPick
-  //     )
-  //   }
-  // }, [setImageUrl, insertImageMode, visible])
-
-  // Clipboard handling
-  const handleImageFromClipboard = (insertMode = null) => {
-    const url = getImageURLFromClipboard(IMAGE_WIDTH, IMAGE_HEIGHT)
-    if (url) {
-      if (insertMode) {
-        setImageUrl({url, insertMode})
-      } else {
-        // Auto detect insert mode by image size
-        let img = new Image()
-        img.src = url
-        img.onload = function() {
-          if (img.width === IMAGE_WIDTH && img.height === IMAGE_HEIGHT) {
-            setImageUrl({url, insertMode: INSERT_BACKGROUND_IMAGE})
-          } else {
-            setImageUrl({url, insertMode: INSERT_OBJECT_IMAGE})
-          }
-          img = null
+  const handleImageFromClipboard = async (
+    insertMode = INSERT_BACKGROUND_IMAGE
+  ) => {
+    const list = await navigator.clipboard.read()
+    let type
+    const item = list.find(listItem =>
+      listItem.types.some(itemType => {
+        if (itemType.startsWith('image/')) {
+          type = itemType
+          return true
         }
-      }
+        return false
+      })
+    )
+    const blob = item && (await item.getType(type))
+
+    if (blob) {
+      const reader = new FileReader()
+      reader.addEventListener('loadend', async re => {
+        setImageUrl({url: re.target.result, insertMode})
+      })
+      reader.readAsDataURL(blob)
     }
   }
 
@@ -306,10 +297,11 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
   const handleOnCopy = () => {
     const url = activeObjectUrl || (editors[idx] && editors[idx].toDataURL())
     if (url) {
-      writeImageURLToClipboard(url)
-      addNotification({
-        title: t('Copied'),
-      })
+      writeImageURLToClipboard(url).then(() =>
+        addNotification({
+          title: t('Copied'),
+        })
+      )
     }
   }
 
@@ -504,54 +496,66 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
       })
     }
 
-    const containerEl = document.querySelectorAll(
-      '.tui-image-editor-canvas-container'
-    )[idx]
+    async function initEditor() {
+      const data = await imageResize(
+        BLANK_IMAGE_DATAURL,
+        IMAGE_WIDTH,
+        IMAGE_HEIGHT,
+        false
+      )
+      setBlankImage(data)
 
-    const containerCanvas = document.querySelectorAll('.lower-canvas')[idx]
+      const containerEl = document.querySelectorAll(
+        '.tui-image-editor-canvas-container'
+      )[idx]
 
-    if (containerEl) {
-      containerEl.parentElement.style.height = rem(328)
-      containerEl.addEventListener('contextmenu', e => {
-        setContextMenuCursor({x: e.layerX, y: e.layerY})
-        setShowContextMenu(true)
-        setRightMenuPanel(RightMenu.None)
-        if (editors[idx]) {
-          editors[idx].stopDrawingMode()
-        }
-        e.preventDefault()
-      })
-    }
+      const containerCanvas = document.querySelectorAll('.lower-canvas')[idx]
 
-    if (containerCanvas) {
-      containerCanvas.style.borderRadius = rem(8)
-    }
+      if (containerEl) {
+        containerEl.parentElement.style.height = rem(328)
+        containerEl.addEventListener('contextmenu', e => {
+          setContextMenuCursor({x: e.layerX, y: e.layerY})
+          setShowContextMenu(true)
+          setRightMenuPanel(RightMenu.None)
+          if (editors[idx]) {
+            editors[idx].stopDrawingMode()
+          }
+          e.preventDefault()
+        })
+      }
 
-    const newEditor =
-      editorRefs.current[idx] &&
-      editorRefs.current[idx].current &&
-      editorRefs.current[idx].current.getInstance()
+      if (containerCanvas) {
+        containerCanvas.style.borderRadius = rem(8)
+      }
 
-    if (newEditor) {
-      if (!editors[idx]) {
-        setEditor(idx, newEditor)
-        newEditor.setBrush({width: brush, color: brushColor})
+      const newEditor =
+        editorRefs.current[idx] &&
+        editorRefs.current[idx].current &&
+        editorRefs.current[idx].current.getInstance()
 
-        if (src) {
-          newEditor.loadImageFromURL(src, 'src').then(() => {
-            newEditor.clearUndoStack()
-            newEditor.clearRedoStack()
-            updateEvents(newEditor)
-          })
-        } else {
-          newEditor.loadImageFromURL(BLANK_IMAGE, 'blank').then(() => {
-            newEditor.clearUndoStack()
-            newEditor.clearRedoStack()
-            updateEvents(newEditor)
-          })
+      if (newEditor) {
+        if (!editors[idx]) {
+          setEditor(idx, newEditor)
+          newEditor.setBrush({width: brush, color: brushColor})
+
+          if (src) {
+            newEditor.loadImageFromURL(src, 'src').then(() => {
+              newEditor.clearUndoStack()
+              newEditor.clearRedoStack()
+              updateEvents(newEditor)
+            })
+          } else {
+            newEditor.loadImageFromURL(blankImage, 'blank').then(() => {
+              newEditor.clearUndoStack()
+              newEditor.clearRedoStack()
+              updateEvents(newEditor)
+            })
+          }
         }
       }
     }
+
+    initEditor()
 
     return () => {
       mousetrap.reset()
@@ -619,9 +623,9 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
               onCopy={() => {
                 handleOnCopy()
               }}
-              onPaste={() => {
-                handleOnPaste()
-              }}
+              onPaste={async () =>
+                handleImageFromClipboard(INSERT_OBJECT_IMAGE)
+              }
               onDelete={
                 activeObjectId || isSelectionCreated ? handleOnDelete : null
               }
@@ -655,7 +659,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
 
           {bottomMenuPanel === BottomMenu.Main && (
             <Stack isInline align="center" spacing={3} mt={6}>
-              {/* <FlipEditorIcon
+              <FlipEditorIcon
                 tooltip={t('Search on Google')}
                 icon="google"
                 onClick={() => {
@@ -663,12 +667,9 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
                     setRightMenuPanel(RightMenu.None)
                   }
                   setInsertImageMode(INSERT_BACKGROUND_IMAGE)
-                  global.ipcRenderer.send(IMAGE_SEARCH_TOGGLE, {
-                    on: true,
-                    id: `google-search-img`,
-                  })
+                  open()
                 }}
-              /> */}
+              />
 
               <ArrowHint
                 visible={showArrowHint}
@@ -705,6 +706,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
                     setRightMenuPanel(RightMenu.None)
                   }
                   editors[idx].stopDrawingMode()
+                  setRightMenuPanel(RightMenu.None)
                   setInsertImageMenuOpen(!isInsertImageMenuOpen)
                 }}
               />
@@ -713,15 +715,13 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
 
               <FlipEditorIcon
                 icon="undo"
-                tooltip={`${t('Undo')} (${global.isMac ? 'Cmd+Z' : 'Ctrl+Z'})`}
+                tooltip={`${t('Undo')} (Ctrl/Cmd+Z})`}
                 isDisabled={editors[idx] && editors[idx].isEmptyUndoStack()}
                 onClick={handleUndo}
               />
               <FlipEditorIcon
                 icon="redo"
-                tooltip={`${t('Redo')} (${
-                  global.isMac ? 'Cmd+Shift+Z' : 'Ctrl+Shift+Z'
-                })`}
+                tooltip={`${t('Redo')} (Ctrl/Cmd+Shift+Z})`}
                 isDisabled={editors[idx] && editors[idx].isEmptyUndoStack()}
                 onClick={handleRedo}
               />
@@ -851,20 +851,17 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
                   <Box ref={insertMenuRef[idx]}>
                     <Absolute top="-11.4em" right="-17em" zIndex={100}>
                       <Menu>
-                        {/* <MenuItem
+                        <MenuItem
                           onClick={async () => {
                             setInsertImageMenuOpen(false)
                             setInsertImageMode(INSERT_OBJECT_IMAGE)
-                            global.ipcRenderer.send(IMAGE_SEARCH_TOGGLE, {
-                              on: true,
-                              id: `google-search-img`,
-                            })
+                            open()
                           }}
                           disabled={false}
                           icon={<Icon size={5} name="google" />}
                         >
                           {t('Search on Google')}
-                        </MenuItem> */}
+                        </MenuItem>
                         <MenuItem
                           onClick={async () => {
                             setInsertImageMenuOpen(false)

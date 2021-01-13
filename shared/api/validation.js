@@ -126,3 +126,14 @@ export async function sendPrivateEncryptionKeysPackage(data, signature, epoch) {
   if (error) throw new Error(error.message)
   return result
 }
+
+export async function fetchWordPairs(address, vrfHash) {
+  const {data: response} = await api().post('/', {
+    method: `flip_wordPairs`,
+    params: [address, vrfHash],
+    id: 1,
+  })
+  const {result, error} = response
+  if (error) throw new Error(error.message)
+  return result
+}

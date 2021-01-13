@@ -1,11 +1,23 @@
 import {encode} from 'rlp'
 import axios from 'axios'
 import Jimp from 'jimp'
+import CID from 'cids'
 import {loadPersistentStateValue, persistItem} from '../../shared/utils/persist'
 import {FlipType} from '../../shared/types'
 import {areSame, areEual} from '../../shared/utils/arr'
-import {submitFlip} from '../../shared/api'
+import {getRawTx, submitRawFlip} from '../../shared/api'
 import {signNonce} from '../../shared/utils/dna-link'
+import {
+  encryptFlipData,
+  privateKeyToAddress,
+  privateKeyToPublicKey,
+} from '../../shared/utils/crypto'
+import {IpfsFlip} from '../../shared/models/ipfsFlip'
+import {getCid} from '../../shared/api/ipfs'
+import {FlipSubmitAttachment} from '../../shared/models/flipSubmitAttachment'
+import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
+import {Transaction} from '../../shared/models/transaction'
+import db from '../../shared/utils/db'
 
 export const FLIP_LENGTH = 4
 export const DEFAULT_FLIP_ORDER = [0, 1, 2, 3]
@@ -35,15 +47,17 @@ export function didArchiveFlips(epoch) {
   return false
 }
 
-export function archiveFlips() {
-  const {getFlips, saveFlips} = global.flipStore
-  saveFlips(
-    getFlips().map(flip =>
-      flip.type === FlipType.Archived
-        ? flip
-        : {...flip, type: FlipType.Archived}
-    )
-  )
+export async function archiveFlips() {
+  const data = await db.table('ownFlips').toArray()
+
+  for (const flip of data) {
+    if (flip.type === FlipType.Archived) {
+      await db.table('ownFlips').delete(flip.id)
+    } else {
+      const newFlip = {...flip, type: FlipType.Archived}
+      await createOrUpdateFlip(newFlip)
+    }
+  }
 }
 
 export function markFlipsArchived(epoch) {
@@ -55,45 +69,55 @@ export function markFlipsArchived(epoch) {
   })
 }
 
-function perm(maxValue) {
-  const permArray = new Array(maxValue)
-  for (let i = 0; i < maxValue; i += 1) {
-    permArray[i] = i
+const perm = arr => {
+  const ret = []
+  for (let i = 0; i < arr.length; i += 1) {
+    const rest = perm(arr.slice(0, i).concat(arr.slice(i + 1)))
+    if (!rest.length) {
+      ret.push([arr[i]])
+    } else {
+      for (let j = 0; j < rest.length; j += 1) {
+        ret.push([arr[i]].concat(rest[j]))
+      }
+    }
   }
-  for (let i = maxValue - 1; i >= 0; i -= 1) {
-    const randPos = Math.floor(i * Math.random())
-    const tmpStore = permArray[i]
-    permArray[i] = permArray[randPos]
-    permArray[randPos] = tmpStore
-  }
-  return permArray
+  return ret
 }
 
-function shufflePics(pics, shuffledOrder, seed) {
+const randomNumber = () => {
+  const buf = new Uint32Array(1)
+  window.crypto.getRandomValues(buf)
+  return buf[0]
+}
+
+const randomPerm = arr => {
+  const output = perm(arr)
+  return output[randomNumber() % output.length]
+}
+
+function shufflePics(pics, shuffledOrder) {
+  const seed = randomPerm(DEFAULT_FLIP_ORDER)
   const newPics = []
-  const cache = {}
   const firstOrder = new Array(FLIP_LENGTH)
 
   seed.forEach((value, idx) => {
     newPics.push(pics[value])
-    if (value < FLIP_LENGTH) firstOrder[value] = idx
-    cache[value] = newPics.length - 1
+    firstOrder[value] = idx
   })
 
-  const secondOrder = shuffledOrder.map(value => cache[value])
+  const secondOrder = shuffledOrder.map(value => firstOrder[value])
 
   return {
     pics: newPics,
     orders:
-      Math.random() < 0.5
+      randomNumber() % 2 === 0
         ? [firstOrder, secondOrder]
         : [secondOrder, firstOrder],
   }
 }
 
 export function flipToHex(pics, order) {
-  const seed = perm(FLIP_LENGTH)
-  const shuffled = shufflePics(pics, order, seed)
+  const shuffled = shufflePics(pics, order)
 
   const publicRlp = encode([
     shuffled.pics
@@ -128,17 +152,16 @@ export function updateFlipType(flips, {id, type}) {
 
 export async function publishFlip({
   keywordPairId,
-  pics,
-  compressedPics,
-  images = compressedPics || pics,
+  images,
   originalOrder,
   order,
   orderPermutations,
-  hint,
+  privateKey,
+  epoch,
 }) {
   if (images.some(x => !x)) throw new Error('You must use 4 images for a flip')
 
-  const flips = global.flipStore.getFlips()
+  const flips = await db.table('ownFlips').toArray()
 
   if (
     flips.some(
@@ -150,7 +173,7 @@ export async function publishFlip({
   )
     throw new Error('You already submitted this flip')
 
-  if (areEual(order, hint ? DEFAULT_FLIP_ORDER : originalOrder))
+  if (areEual(order, originalOrder))
     throw new Error('You must shuffle flip before submit')
 
   const compressedImages = await Promise.all(
@@ -165,14 +188,51 @@ export async function publishFlip({
   )
 
   const [publicHex, privateHex] = flipToHex(
-    hint ? images : originalOrder.map(num => compressedImages[num]),
-    hint ? order : orderPermutations
+    originalOrder.map(num => compressedImages[num]),
+    orderPermutations
   )
 
   if (publicHex.length + privateHex.length > 2 * 1024 * 1024)
     throw new Error('Flip is too large')
 
-  const {result, error} = await submitFlip(publicHex, privateHex, keywordPairId)
+  const {encryptedPublicData, encryptedPrivateData} = encryptFlipData(
+    publicHex,
+    privateHex,
+    privateKey,
+    epoch
+  )
+
+  const ipfsFlip = new IpfsFlip(
+    hexToUint8Array(privateKeyToPublicKey(privateKey)),
+    encryptedPublicData,
+    encryptedPrivateData
+  )
+
+  const cidString = await getCid(ipfsFlip.toHex())
+  const cid = new CID(cidString)
+
+  const attachment = new FlipSubmitAttachment(
+    cid.bytes,
+    keywordPairId
+  ).toBytes()
+
+  const rawTx = await getRawTx(
+    4,
+    privateKeyToAddress(privateKey),
+    null,
+    0,
+    0,
+    toHexString(attachment, true)
+  )
+  const tx = new Transaction().fromHex(rawTx)
+  tx.sign(privateKey)
+  const hex = tx.toHex()
+
+  const {result, error} = await submitRawFlip(
+    toHexString(encryptedPublicData, true),
+    toHexString(encryptedPrivateData, true),
+    `0x${hex}`
+  )
 
   if (error) {
     let {message} = error
@@ -186,7 +246,7 @@ export async function publishFlip({
     throw new Error(message)
   }
 
-  return result
+  return {...result, hash: cidString}
 }
 
 export function formatKeywords(keywords) {
@@ -264,7 +324,7 @@ export async function suggestKeywordTranslation({
   wordId,
   name,
   desc,
-  locale = global.locale,
+  locale = 'en',
 }) {
   const timestamp = new Date().toISOString()
 
@@ -296,4 +356,39 @@ export async function suggestKeywordTranslation({
     name,
     desc,
   }
+}
+
+export async function createOrUpdateFlip({
+  id,
+  keywordPairId,
+  originalOrder,
+  order,
+  orderPermutations,
+  images,
+  keywords,
+  type,
+  createdAt,
+  modifiedAt,
+  hash,
+  txHash,
+}) {
+  const nextFlip = {
+    id,
+    keywordPairId,
+    originalOrder,
+    order,
+    orderPermutations,
+    images,
+    keywords,
+    type,
+    createdAt,
+    modifiedAt,
+    hash,
+    txHash,
+  }
+
+  return db
+    .table('ownFlips')
+    .put(nextFlip)
+    .then(dbKey => console.log('updated draft', 'key', dbKey))
 }

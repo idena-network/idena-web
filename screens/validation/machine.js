@@ -1815,7 +1815,6 @@ async function submitShortAnswersTx(key, hashes, answers, wordsSeed) {
 }
 
 async function submitLongAnswersTx(key, hashes, answers, wordsSeed, epoch) {
-  console.log('seed', wordsSeed)
   const [, proof] = Evaluate(key, wordsSeed)
   const data = serializeAnswers(hashes, answers)
   const attachment = new LongAnswerAttachment(

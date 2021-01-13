@@ -1,6 +1,7 @@
 import {Machine, assign, spawn, sendParent} from 'xstate'
 import {log, send} from 'xstate/lib/actions'
 import nanoid from 'nanoid'
+import {Evaluate} from '@idena/vrf-js'
 import {
   fetchKeywordTranslations,
   voteForKeywordTranslation,
@@ -8,51 +9,67 @@ import {
   publishFlip,
   updateFlipType,
   DEFAULT_FLIP_ORDER,
+  createOrUpdateFlip,
 } from './utils'
 import {callRpc} from '../../shared/utils/utils'
 import {shuffle} from '../../shared/utils/arr'
 import {FlipType, FlipFilter} from '../../shared/types'
-import {fetchTx, deleteFlip} from '../../shared/api'
+import {fetchTx, deleteFlip, fetchWordsSeed} from '../../shared/api'
 import {HASH_IN_MEMPOOL} from '../../shared/hooks/use-tx'
 import {persistState} from '../../shared/utils/persist'
+import db from '../../shared/utils/db'
+import {keywords as allKeywords} from '../../shared/utils/keywords'
+import {fetchWordPairs} from '../../shared/api/validation'
+import {privateKeyToAddress} from '../../shared/utils/crypto'
+import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
 
 export const flipsMachine = Machine(
   {
     id: 'flips',
     context: {
       flips: null,
-      epoch: null,
       knownFlips: [],
       availableKeywords: [],
+      canSubmitFlips: null,
     },
-    on: {
-      EPOCH: {
-        actions: [
-          assign({
-            flips: [],
-          }),
-        ],
-      },
-    },
-    initial: 'initializing',
+    initial: 'idle',
     states: {
+      idle: {
+        on: {
+          INITIALIZE: {
+            target: 'loadPairs',
+            actions: [
+              assign({
+                privateKey: (_, {privateKey}) => privateKey,
+                epoch: (_, {epoch}) => epoch,
+                canSubmitFlips: (_, {canSubmitFlips}) => canSubmitFlips,
+              }),
+            ],
+          },
+        },
+      },
+      loadPairs: {
+        invoke: {
+          src: 'loadWordPairs',
+          onDone: {
+            target: 'initializing',
+            actions: [
+              assign({
+                availableKeywords: (_, {data}) => data,
+              }),
+              log(),
+            ],
+          },
+          onError: {
+            actions: [log('error while loading key words')],
+            target: 'initializing',
+          },
+        },
+      },
       initializing: {
         invoke: {
           src: async ({knownFlips, availableKeywords}) => {
-            const flipDb = global.flipStore
-
-            const persistedFlips = flipDb
-              .getFlips()
-              .map(
-                ({pics, compressedPics, hint, images, keywords, ...flip}) => ({
-                  ...flip,
-                  images: images || compressedPics || pics,
-                  keywords: keywords || hint || [],
-                  pics,
-                  compressedPics,
-                  hint,
-                })
-              )
+            const persistedFlips = await db.table('ownFlips').toArray()
 
             const persistedHashes = persistedFlips.map(flip => flip.hash)
 
@@ -67,7 +84,7 @@ export const flipsMachine = Machine(
                 )
                 .map(({id, words}) => ({
                   id,
-                  words: words.map(global.loadKeyword),
+                  words: words.map(idx => allKeywords[idx]),
                 }))
 
               missingFlips = missingFlips.map((hash, idx) => ({
@@ -83,19 +100,23 @@ export const flipsMachine = Machine(
             {
               target: 'ready.pristine',
               actions: log(),
-              cond: (_, {data: {persistedFlips, missingFlips}}) =>
+              cond: (
+                {canSubmitFlips},
+                {data: {persistedFlips, missingFlips}}
+              ) =>
+                !canSubmitFlips &&
                 persistedFlips.concat(missingFlips).length === 0,
             },
             {
               target: 'ready.dirty',
               actions: [
                 assign({
-                  flips: (_, {data: {persistedFlips}}) =>
+                  flips: ({privateKey, epoch}, {data: {persistedFlips}}) =>
                     persistedFlips.map(flip => ({
                       ...flip,
                       ref: spawn(
                         // eslint-disable-next-line no-use-before-define
-                        flipMachine.withContext(flip),
+                        flipMachine.withContext({...flip, privateKey, epoch}),
                         `flip-${flip.id}`
                       ),
                     })),
@@ -131,7 +152,18 @@ export const flipsMachine = Machine(
       ready: {
         initial: 'pristine',
         states: {
-          pristine: {},
+          pristine: {
+            on: {
+              FILTER: {
+                actions: [
+                  assign({
+                    filter: (_, {filter}) => filter,
+                  }),
+                  'persistFilter',
+                ],
+              },
+            },
+          },
           dirty: {
             on: {
               FILTER: {
@@ -238,6 +270,14 @@ export const flipsMachine = Machine(
     },
   },
   {
+    services: {
+      loadWordPairs: async ({privateKey}) => {
+        const seed = await fetchWordsSeed()
+        const [vrfHash] = Evaluate(privateKey, hexToUint8Array(seed))
+        const address = privateKeyToAddress(privateKey)
+        return fetchWordPairs(address, toHexString(vrfHash, true))
+      },
+    },
     actions: {
       persistFilter: ({filter}) => persistState('flipFilter', filter),
     },
@@ -467,9 +507,7 @@ export const flipMachine = Machine(
       },
     },
     actions: {
-      persistFlip: context => {
-        global.flipStore.updateDraft(context)
-      },
+      persistFlip: async context => createOrUpdateFlip(context),
     },
   }
 )
@@ -497,8 +535,38 @@ export const flipMasterMachine = Machine(
         ],
       },
     },
-    initial: 'prepare',
+    initial: 'idle',
     states: {
+      idle: {
+        on: {
+          PREPARE_FLIP: {
+            target: 'loadPairs',
+            actions: assign({
+              id: (_, {id}) => id,
+              privateKey: (_, {privateKey}) => privateKey,
+              epoch: (_, {epoch}) => epoch,
+            }),
+          },
+        },
+      },
+      loadPairs: {
+        invoke: {
+          src: 'loadWordPairs',
+          onDone: {
+            target: 'prepare',
+            actions: [
+              assign({
+                wordPairs: (_, {data}) => data,
+              }),
+              log(),
+            ],
+          },
+          onError: {
+            actions: [log('error while loading key words')],
+            target: 'prepare',
+          },
+        },
+      },
       prepare: {
         invoke: {
           src: 'prepareFlip',
@@ -513,7 +581,7 @@ export const flipMasterMachine = Machine(
             ],
           },
           onError: {
-            actions: [log()],
+            actions: [log('error while preparing flip')],
           },
         },
       },
@@ -791,9 +859,15 @@ export const flipMasterMachine = Machine(
   },
   {
     services: {
+      loadWordPairs: async ({privateKey}) => {
+        const seed = await fetchWordsSeed()
+        const [vrfHash] = Evaluate(privateKey, hexToUint8Array(seed))
+        const address = privateKeyToAddress(privateKey)
+        return fetchWordPairs(address, toHexString(vrfHash, true))
+      },
       loadKeywords: async ({availableKeywords, keywordPairId}) => {
         const {words} = availableKeywords.find(({id}) => id === keywordPairId)
-        return words.map(id => ({id, ...global.loadKeyword(id)}))
+        return words.map(id => ({id, ...allKeywords[id]}))
       },
       loadTranslations: async ({availableKeywords, keywordPairId, locale}) => {
         const {words} = availableKeywords.find(({id}) => id === keywordPairId)
@@ -844,10 +918,9 @@ export const flipMasterMachine = Machine(
                 type: FlipType.Draft,
               }
 
-          if (id) global.flipStore.updateDraft(nextFlip)
-          else global.flipStore.addDraft(nextFlip)
-
-          cb({type: 'PERSISTED', flip: nextFlip})
+          createOrUpdateFlip(nextFlip).then(() =>
+            cb({type: 'PERSISTED', flip: nextFlip})
+          )
         }
       },
       voteForKeywordTranslation: async (_, e) => voteForKeywordTranslation(e),
@@ -869,18 +942,15 @@ export const flipMasterMachine = Machine(
         orderPermutations: ({originalOrder}, {order}) =>
           order.map(n => originalOrder.findIndex(o => o === n)),
       }),
-      persistFlip: context => {
-        global.flipStore.updateDraft(context)
-      },
+      persistFlip: async context => createOrUpdateFlip(context),
     },
   }
 )
 
-export const createViewFlipMachine = id =>
+export const createViewFlipMachine = () =>
   Machine(
     {
       context: {
-        id,
         keywords: {
           words: [],
           translations: [],
@@ -888,8 +958,18 @@ export const createViewFlipMachine = id =>
         order: [],
         originalOrder: [],
       },
-      initial: 'loading',
+      initial: 'idle',
       states: {
+        idle: {
+          on: {
+            LOAD: {
+              target: 'loading',
+              actions: assign({
+                id: (_, {id}) => id,
+              }),
+            },
+          },
+        },
         loading: {
           invoke: {
             src: 'loadFlip',
@@ -998,9 +1078,7 @@ export const createViewFlipMachine = id =>
           ),
       },
       actions: {
-        persistFlip: context => {
-          global.flipStore.updateDraft(context)
-        },
+        persistFlip: async context => createOrUpdateFlip(context),
       },
     }
   )

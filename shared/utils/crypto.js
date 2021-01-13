@@ -171,3 +171,23 @@ function generateKeyFromSeed(seed) {
   k = k.add(new BN(1))
   return k.toArray()
 }
+
+export function encryptFlipData(publicHex, privateHex, privateKey, epoch) {
+  const publicFlipKey = generateFlipKey(true, epoch, privateKey)
+  const privateFlipKey = generateFlipKey(false, epoch, privateKey)
+
+  const encryptedPublicData = eciesjs.encrypt(
+    secp256k1.publicKeyCreate(new Uint8Array(publicFlipKey)),
+    publicHex
+  )
+
+  const encryptedPrivateData = eciesjs.encrypt(
+    secp256k1.publicKeyCreate(new Uint8Array(privateFlipKey)),
+    privateHex
+  )
+
+  return {
+    encryptedPublicData,
+    encryptedPrivateData,
+  }
+}

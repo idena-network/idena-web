@@ -104,12 +104,15 @@ export default function NodeConnectionSetup({onBack, onSave}) {
             }}
             style={{width: '100%'}}
           >
-            <Label htmlFor="key" style={{color: 'white', fontSize: rem(13)}}>
+            <Label
+              htmlFor="nodeUrl"
+              style={{color: 'white', fontSize: rem(13)}}
+            >
               Shared node URL
             </Label>
             <Flex width="100%" style={{marginBottom: rem(20)}}>
               <Input
-                id="key"
+                id="nodeUrl"
                 value={state.url}
                 borderColor="xblack.008"
                 backgroundColor="xblack.016"
@@ -118,7 +121,7 @@ export default function NodeConnectionSetup({onBack, onSave}) {
               />
             </Flex>
             <Label
-              htmlFor="key"
+              htmlFor="nodeKey"
               style={{
                 color: 'white',
                 fontSize: rem(13),
@@ -128,6 +131,7 @@ export default function NodeConnectionSetup({onBack, onSave}) {
             </Label>
             <Flex width="100%" style={{position: 'relative'}}>
               <PasswordInput
+                id="nodeKey"
                 value={state.apiKey}
                 width="100%"
                 borderColor="xblack.008"

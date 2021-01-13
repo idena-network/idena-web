@@ -496,7 +496,6 @@ function ValidationSession({
           send('CANCEL')
         }}
       />
-      {global.isDev && <FloatDebug>{state.value}</FloatDebug>}
     </ValidationScene>
   )
 }

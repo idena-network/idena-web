@@ -74,6 +74,12 @@ function Nav() {
         <NavItem href="/" icon={<i className="icon icon--user" />}>
           {t('My Idena') || nickname}
         </NavItem>
+        <NavItem
+          href="/flips/list"
+          icon={<i className="icon icon--menu_gallery" />}
+        >
+          {t('Flips')}
+        </NavItem>
         <NavItem href="/settings" icon={<i className="icon icon--settings" />}>
           {t('Settings')}
         </NavItem>

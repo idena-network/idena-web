@@ -255,7 +255,7 @@ export function EditorContextMenu({
                   }}
                   icon={<Icon name="copy" size={5} />}
                 >
-                  {`${t('Copy')} (${global.isMac ? 'Cmd+C' : 'Ctrl+C'})`}
+                  {`${t('Copy')} (Ctrl/Cmd+C)`}
                 </MenuItem>
 
                 <MenuItem
@@ -266,7 +266,7 @@ export function EditorContextMenu({
                   }}
                   icon={<Icon name="clipboard" size={5} />}
                 >
-                  {`${t('Paste image')} (${global.isMac ? 'Cmd+V' : 'Ctrl+V'})`}
+                  {`${t('Paste image')} (Ctrl/Cmd+V)`}
                 </MenuItem>
 
                 {onBringOnTop && (

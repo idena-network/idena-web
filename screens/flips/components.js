@@ -552,9 +552,7 @@ export function FlipKeywordTranslationSwitch({
               _hover={{background: 'transparent'}}
               onClick={() => {
                 const win = window.open(
-                  `https://translate.google.com/#view=home&op=translate&sl=auto&tl=${
-                    global.locale
-                  }&text=${encodeURIComponent(
+                  `https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=${encodeURIComponent(
                     keywords.words
                       .map(({name, desc}) => `${name}\n${desc}`)
                       .join('\n')
