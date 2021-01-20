@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
-import {Flex, Icon, Text, useClipboard} from '@chakra-ui/core'
+import {Checkbox, Flex, Icon, Text, useClipboard} from '@chakra-ui/core'
 import {rem, margin} from 'polished'
 import {useState, useEffect} from 'react'
 import {useRouter} from 'next/router'
@@ -249,7 +249,12 @@ export default function CreateKey() {
                       textAlign: 'center',
                     }}
                   >
-                    &lt;&nbsp;Back
+                    <Icon
+                      name="arrow-up"
+                      size={5}
+                      style={{transform: 'rotate(-90deg)', marginTop: -3}}
+                    ></Icon>
+                    Back
                   </FlatButton>
                   <Button type="submit">Next</Button>
                 </Flex>
@@ -341,6 +346,33 @@ export default function CreateKey() {
                     disabled
                   />
                 </Flex>
+                <Flex>
+                  <Checkbox
+                    value={state.understand1}
+                    isChecked={state.understand1}
+                    onChange={e =>
+                      setState({...state, understand1: e.target.checked})
+                    }
+                  >
+                    I understand that Idena cannot recover the private key for
+                    me.
+                  </Checkbox>
+                </Flex>
+                <Flex
+                  style={{
+                    ...margin(theme.spacings.small8, 0, 0, 0),
+                  }}
+                >
+                  <Checkbox
+                    value={state.understand2}
+                    isChecked={state.understand2}
+                    onChange={e =>
+                      setState({...state, understand2: e.target.checked})
+                    }
+                  >
+                    I understand the risk of compromising my private key backup.
+                  </Checkbox>
+                </Flex>
                 <Flex
                   style={{
                     ...margin(theme.spacings.xlarge, 0, 0, 0),
@@ -355,7 +387,12 @@ export default function CreateKey() {
                       textAlign: 'center',
                     }}
                   >
-                    &lt;&nbsp;Back
+                    <Icon
+                      name="arrow-up"
+                      size={5}
+                      style={{transform: 'rotate(-90deg)', marginTop: -3}}
+                    ></Icon>
+                    Back
                   </FlatButton>
                   <Flex>
                     <SecondaryButton
@@ -366,7 +403,12 @@ export default function CreateKey() {
                     >
                       Show QR code
                     </SecondaryButton>
-                    <PrimaryButton type="submit">Next</PrimaryButton>
+                    <PrimaryButton
+                      type="submit"
+                      disabled={!state.understand1 || !state.understand2}
+                    >
+                      Next
+                    </PrimaryButton>
                   </Flex>
                 </Flex>
                 {error && (

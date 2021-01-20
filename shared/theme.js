@@ -643,5 +643,17 @@ export const uiTheme = {
       ),
       viewBox: '0 0 20 20',
     },
+    'arrow-up': {
+      path: (
+        <g fill="none" fillRule="evenodd">
+          <path
+            fill="#FFF"
+            d="M9 7L14 13 4 13z"
+            transform="translate(-300 -534) translate(300 534)"
+          />
+        </g>
+      ),
+      viewBox: '0 0 20 20',
+    },
   },
 }

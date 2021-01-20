@@ -1,4 +1,4 @@
-import {Flex, Link, Text} from '@chakra-ui/core'
+import {Flex, Icon, Link, Text} from '@chakra-ui/core'
 import {margin, rem} from 'polished'
 import Router from 'next/router'
 import axios from 'axios'
@@ -159,7 +159,12 @@ export default function NodeConnectionSetup({onBack, onSave}) {
                   textAlign: 'center',
                 }}
               >
-                &lt;&nbsp;Back
+                <Icon
+                  name="arrow-up"
+                  size={5}
+                  style={{transform: 'rotate(-90deg)', marginTop: -3}}
+                ></Icon>
+                Back
               </FlatButton>
               <Button type="submit">Next</Button>
             </Flex>
