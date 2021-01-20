@@ -1,7 +1,7 @@
-import React, {useEffect} from 'react'
+import React from 'react'
 import {Stack} from '@chakra-ui/core'
 import {useTranslation} from 'react-i18next'
-import Router from 'next/router'
+import {useRouter} from 'next/router'
 import {
   useIdentityState,
   mapToFriendlyStatus,
