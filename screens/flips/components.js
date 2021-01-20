@@ -507,6 +507,28 @@ export function FlipKeywordTranslationSwitch({
   const hasBothTranslations =
     keywords.translations.reduce((acc, {length}) => acc + length, 0) > 1
 
+  const translate = () => {
+    const langs = [
+      ...(window.navigator.languages || []),
+      window.navigator.language,
+      window.navigator.browserLanguage,
+      window.navigator.userLanguage,
+      window.navigator.systemLanguage,
+    ]
+      .filter(Boolean)
+      .map(language => language.substr(0, 2))
+
+    const win = window.open(
+      `https://translate.google.com/#view=home&op=translate&sl=auto&tl=${
+        langs.length ? langs[0] : 'en'
+      }&text=${encodeURIComponent(
+        keywords.words.map(({name, desc}) => `${name}\n${desc}`).join('\n')
+      )}`,
+      '_blank'
+    )
+    win.focus()
+  }
+
   return (
     <Stack spacing={rem(30)}>
       <FlipKeywordPair isInline={isInline} spacing={isInline ? 10 : rem(15)}>
@@ -550,17 +572,7 @@ export function FlipKeywordTranslationSwitch({
             <IconButton2
               icon="gtranslate"
               _hover={{background: 'transparent'}}
-              onClick={() => {
-                const win = window.open(
-                  `https://translate.google.com/#view=home&op=translate&sl=auto&tl=en&text=${encodeURIComponent(
-                    keywords.words
-                      .map(({name, desc}) => `${name}\n${desc}`)
-                      .join('\n')
-                  )}`,
-                  '_blank'
-                )
-                win.focus()
-              }}
+              onClick={translate}
             >
               Google Translate
             </IconButton2>
