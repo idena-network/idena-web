@@ -135,7 +135,7 @@ export function ActivateInviteForm() {
   const {canActivateInvite, state: status} = useIdentityState()
   const {coinbase, privateKey} = useAuthState()
 
-  const [code, setCode] = React.useState()
+  const [code, setCode] = React.useState('')
 
   const [{mining}, setHash] = useTx()
 
@@ -144,10 +144,15 @@ export function ActivateInviteForm() {
   }
 
   const sendActivateInviteTx = async () => {
+    const trimmedCode = code.trim()
+    const from = trimmedCode
+      ? privateKeyToAddress(trimmedCode)
+      : privateKeyToAddress(privateKey)
+
     try {
       const rawTx = await getRawTx(
         1,
-        privateKeyToAddress(code),
+        from,
         coinbase,
         0,
         0,
@@ -155,7 +160,7 @@ export function ActivateInviteForm() {
       )
 
       const tx = new Transaction().fromHex(rawTx)
-      tx.sign(code)
+      tx.sign(trimmedCode || privateKey)
 
       const hex = tx.toHex()
 
