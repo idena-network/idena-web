@@ -201,7 +201,7 @@ function Init() {
                 textAlign: 'center',
               }}
             >
-              Import private key
+              Sign In
             </FlatButton>
           </Flex>
         </Flex>
