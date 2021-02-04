@@ -126,6 +126,7 @@ export default function ImportKey() {
                     onChange={e =>
                       setState({...state, saveKey: e.target.checked})
                     }
+                    style={{fontWeight: 300}}
                   >
                     Save the encrypted key on this computer
                   </Checkbox>
