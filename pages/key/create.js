@@ -353,6 +353,7 @@ export default function CreateKey() {
                     onChange={e =>
                       setState({...state, understand1: e.target.checked})
                     }
+                    style={{fontWeight: 300}}
                   >
                     I understand that Idena cannot recover the private key for
                     me.
@@ -369,6 +370,7 @@ export default function CreateKey() {
                     onChange={e =>
                       setState({...state, understand2: e.target.checked})
                     }
+                    style={{fontWeight: 300}}
                   >
                     I understand the risk of compromising my private key backup.
                   </Checkbox>

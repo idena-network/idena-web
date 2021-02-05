@@ -30,7 +30,7 @@ export default class MyApp extends App {
 
     return (
       <>
-        <GoogleFonts href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" />
+        <GoogleFonts href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" />
         <Head>
           <meta charSet="UTF-8" />
           <title>Idena app: Proof-of-person blockchain</title>
