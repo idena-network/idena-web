@@ -12,6 +12,7 @@ import {
   IconButton as ChakraIconButton,
   Divider,
   Icon,
+  useToast,
 } from '@chakra-ui/core'
 import {useNotificationDispatch} from '../../../shared/providers/notification-context'
 import useClickOutside from '../../../shared/hooks/use-click-outside'
@@ -20,7 +21,7 @@ import {Menu, MenuItem} from '../../../shared/components/menu'
 import {useInterval} from '../../../shared/hooks/use-interval'
 import {Box, Absolute} from '../../../shared/components'
 import {Tooltip} from '../../../shared/components/tooltip'
-import {Tooltip as TooltipX} from '../../../shared/components/components'
+import {Toast, Tooltip as TooltipX} from '../../../shared/components/components'
 import theme from '../../../shared/theme'
 import Flex from '../../../shared/components/flex'
 import {resizing, imageResize, imageResizeSoft} from '../../../shared/utils/img'
@@ -34,12 +35,9 @@ import {
   ImageEraseEditor,
   ApplyChangesBottomPanel,
 } from './flip-editor-tools'
-import useGooglePicker from './picker'
+import {ImageSearchDialog} from './image-search'
 
-const ImageEditor =
-  typeof window !== 'undefined'
-    ? require('@toast-ui/react-image-editor').default
-    : null
+const ImageEditor = typeof window !== 'undefined' ? require('@toast-ui/react-image-editor').default : null
 
 const BottomMenu = {
   Main: 0,
@@ -62,6 +60,7 @@ const BLANK_IMAGE_DATAURL =
 
 function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
   const {t} = useTranslation()
+  const toast = useToast()
 
   const [blankImage, setBlankImage] = useState(BLANK_IMAGE_DATAURL)
 
@@ -85,12 +84,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
   const [showArrowHint, setShowArrowHint] = useState(!src && idx === 0)
 
   // Editors
-  const editorRefs = useRef([
-    createRef(),
-    createRef(),
-    createRef(),
-    createRef(),
-  ])
+  const editorRefs = useRef([createRef(), createRef(), createRef(), createRef()])
   const uploaderRef = useRef()
   const [editors, setEditors] = useState([null, null, null, null])
   const setEditor = (k, e) => {
@@ -154,19 +148,14 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
 
         let replaceObjectProps
         if (data.replaceObjectId) {
-          replaceObjectProps = editors[
-            idx
-          ].getObjectProperties(data.replaceObjectId, ['left', 'top', 'angle'])
+          replaceObjectProps = editors[idx].getObjectProperties(data.replaceObjectId, ['left', 'top', 'angle'])
           editors[idx].execute('removeObject', data.replaceObjectId)
         }
         Jimp.read(url).then(image => {
           image.getBase64Async('image/png').then(nextUrl => {
             editor.addImageObject(nextUrl).then(objectProps => {
               if (data.replaceObjectId) {
-                editors[idx].setObjectPropertiesQuietly(
-                  objectProps.id,
-                  replaceObjectProps
-                )
+                editors[idx].setObjectPropertiesQuietly(objectProps.id, replaceObjectProps)
               }
 
               handleOnChanged()
@@ -187,19 +176,8 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
         editor.loadImageFromURL(blankImage, 'blank').then(() => {
           editor.addImageObject(url).then(objectProps => {
             const {id} = objectProps
-            const {width, height} = editor.getObjectProperties(id, [
-              'left',
-              'top',
-              'width',
-              'height',
-            ])
-            const {newWidth, newHeight} = resizing(
-              width,
-              height,
-              IMAGE_WIDTH,
-              IMAGE_HEIGHT,
-              false
-            )
+            const {width, height} = editor.getObjectProperties(id, ['left', 'top', 'width', 'height'])
+            const {newWidth, newHeight} = resizing(width, height, IMAGE_WIDTH, IMAGE_HEIGHT, false)
             editor.setObjectPropertiesQuietly(id, {
               left: IMAGE_WIDTH / 2 + Math.random() * 200 - 400,
               top: IMAGE_HEIGHT / 2 + Math.random() * 200 - 400,
@@ -236,15 +214,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
     [blankImage, editors, handleOnChanged, idx, insertImageMode, onChange]
   )
 
-  const {open, url: pickedUrl} = useGooglePicker()
-
-  useEffect(() => {
-    if (pickedUrl) {
-      setImageUrl({url: pickedUrl})
-      setInsertImageMode(0)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pickedUrl])
+  const [showImageSearch, setShowImageSearch] = React.useState()
 
   // File upload handling
   const handleUpload = e => {
@@ -255,11 +225,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
     }
     const reader = new FileReader()
     reader.addEventListener('loadend', async re => {
-      const url = await imageResizeSoft(
-        re.target.result,
-        IMAGE_WIDTH,
-        IMAGE_HEIGHT
-      )
+      const url = await imageResizeSoft(re.target.result, IMAGE_WIDTH, IMAGE_HEIGHT)
       setImageUrl({url})
       setInsertImageMode(0)
     })
@@ -267,9 +233,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
     e.target.value = ''
   }
 
-  const handleImageFromClipboard = async (
-    insertMode = INSERT_BACKGROUND_IMAGE
-  ) => {
+  const handleImageFromClipboard = async (insertMode = INSERT_BACKGROUND_IMAGE) => {
     const list = await navigator.clipboard.read()
     let type
     const item = list.find(listItem =>
@@ -376,9 +340,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
 
   function getEditorInstance() {
     const editor =
-      editorRefs.current[idx] &&
-      editorRefs.current[idx].current &&
-      editorRefs.current[idx].current.getInstance()
+      editorRefs.current[idx] && editorRefs.current[idx].current && editorRefs.current[idx].current.getInstance()
     return editor
   }
 
@@ -393,16 +355,14 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
   }
 
   function getEditorObjecUrl(editor, objId) {
-    const obj =
-      objId && editor && editor._graphics && editor._graphics._objects[objId]
+    const obj = objId && editor && editor._graphics && editor._graphics._objects[objId]
     const url = obj && obj._element && obj._element.src
 
     return url
   }
 
   function getEditorObjecProps(editor, objId) {
-    const obj =
-      objId && editor && editor._graphics && editor._graphics._objects[objId]
+    const obj = objId && editor && editor._graphics && editor._graphics._objects[objId]
     if (obj) {
       return {
         x: obj.translateX,
@@ -497,17 +457,10 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
     }
 
     async function initEditor() {
-      const data = await imageResize(
-        BLANK_IMAGE_DATAURL,
-        IMAGE_WIDTH,
-        IMAGE_HEIGHT,
-        false
-      )
+      const data = await imageResize(BLANK_IMAGE_DATAURL, IMAGE_WIDTH, IMAGE_HEIGHT, false)
       setBlankImage(data)
 
-      const containerEl = document.querySelectorAll(
-        '.tui-image-editor-canvas-container'
-      )[idx]
+      const containerEl = document.querySelectorAll('.tui-image-editor-canvas-container')[idx]
 
       const containerCanvas = document.querySelectorAll('.lower-canvas')[idx]
 
@@ -529,9 +482,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
       }
 
       const newEditor =
-        editorRefs.current[idx] &&
-        editorRefs.current[idx].current &&
-        editorRefs.current[idx].current.getInstance()
+        editorRefs.current[idx] && editorRefs.current[idx].current && editorRefs.current[idx].current.getInstance()
 
       if (newEditor) {
         if (!editors[idx]) {
@@ -571,16 +522,12 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
     >
       <Flex>
         <Box>
-          {(bottomMenuPanel === BottomMenu.Erase ||
-            rightMenuPanel === RightMenu.Erase) && (
+          {(bottomMenuPanel === BottomMenu.Erase || rightMenuPanel === RightMenu.Erase) && (
             <ImageEraseEditor
               url={activeObjectUrl}
               isDone={bottomMenuPanel !== BottomMenu.Erase}
               brushWidth={brush}
-              imageObjectProps={getEditorObjecProps(
-                editors[idx],
-                activeObjectId
-              )}
+              imageObjectProps={getEditorObjecProps(editors[idx], activeObjectId)}
               onChanging={() => {
                 if (editors[idx] && activeObjectId) {
                   setChangesCnt(NOCHANGES)
@@ -623,22 +570,12 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
               onCopy={() => {
                 handleOnCopy()
               }}
-              onPaste={async () =>
-                handleImageFromClipboard(INSERT_OBJECT_IMAGE)
-              }
-              onDelete={
-                activeObjectId || isSelectionCreated ? handleOnDelete : null
-              }
+              onPaste={async () => handleImageFromClipboard(INSERT_OBJECT_IMAGE)}
+              onDelete={activeObjectId || isSelectionCreated ? handleOnDelete : null}
             />
           )}
 
-          <ChakraBox
-            h={rem(IMAGE_HEIGHT)}
-            w={rem(IMAGE_WIDTH)}
-            border="1px"
-            borderColor="brandGray.016"
-            rounded="lg"
-          >
+          <ChakraBox h={rem(IMAGE_HEIGHT)} w={rem(IMAGE_WIDTH)} border="1px" borderColor="brandGray.016" rounded="lg">
             <ImageEditor
               key={idx}
               ref={editorRefs.current[idx]}
@@ -667,15 +604,11 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
                     setRightMenuPanel(RightMenu.None)
                   }
                   setInsertImageMode(INSERT_BACKGROUND_IMAGE)
-                  open()
+                  setShowImageSearch(true)
                 }}
               />
 
-              <ArrowHint
-                visible={showArrowHint}
-                hint={t('Start from uploading an image')}
-                leftHanded
-              />
+              <ArrowHint visible={showArrowHint} hint={t('Start from uploading an image')} leftHanded />
 
               <FlipEditorIcon
                 tooltip={t('Select file')}
@@ -689,13 +622,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
                 }}
               />
               <VisuallyHidden>
-                <input
-                  id="file"
-                  type="file"
-                  accept="image/*"
-                  ref={uploaderRef}
-                  onChange={handleUpload}
-                />
+                <input id="file" type="file" accept="image/*" ref={uploaderRef} onChange={handleUpload} />
               </VisuallyHidden>
 
               <FlipEditorIcon
@@ -762,9 +689,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
 
               <FlipEditorIcon
                 isDisabled={!activeObjectUrl}
-                tooltip={
-                  activeObjectUrl ? t('Erase') : t('Select image to erase')
-                }
+                tooltip={activeObjectUrl ? t('Erase') : t('Select image to erase')}
                 isActive={rightMenuPanel === RightMenu.Erase}
                 icon="eraser"
                 onClick={() => {
@@ -807,17 +732,15 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
                   if (width < 1 || height < 1) {
                     editors[idx].stopDrawingMode()
                   } else {
-                    editors[idx]
-                      .crop(editors[idx].getCropzoneRect())
-                      .then(() => {
-                        editors[idx].stopDrawingMode()
-                        setRightMenuPanel(RightMenu.None)
-                        setImageUrl({
-                          url: editors[idx].toDataURL(),
-                          insertMode: INSERT_BACKGROUND_IMAGE,
-                          customEditor: editors[idx],
-                        })
+                    editors[idx].crop(editors[idx].getCropzoneRect()).then(() => {
+                      editors[idx].stopDrawingMode()
+                      setRightMenuPanel(RightMenu.None)
+                      setImageUrl({
+                        url: editors[idx].toDataURL(),
+                        insertMode: INSERT_BACKGROUND_IMAGE,
+                        customEditor: editors[idx],
                       })
+                    })
                   }
                 }
               }}
@@ -855,7 +778,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
                           onClick={async () => {
                             setInsertImageMenuOpen(false)
                             setInsertImageMode(INSERT_OBJECT_IMAGE)
-                            open()
+                            setShowImageSearch(true)
                           }}
                           disabled={false}
                           icon={<Icon size={5} name="google" />}
@@ -893,8 +816,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
           </Box>
         </Box>
 
-        {(rightMenuPanel === RightMenu.FreeDrawing ||
-          rightMenuPanel === RightMenu.Erase) && (
+        {(rightMenuPanel === RightMenu.FreeDrawing || rightMenuPanel === RightMenu.Erase) && (
           <Stack align="center" ml={6}>
             <ColorPicker
               color={brushColor}
@@ -934,6 +856,25 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
           </Stack>
         )}
       </Flex>
+      <ImageSearchDialog
+        isOpen={showImageSearch}
+        onPick={url => {
+          if (visible) {
+            setImageUrl({url})
+          }
+          setInsertImageMode(0)
+          setShowImageSearch(false)
+        }}
+        onClose={() => {
+          setShowImageSearch(false)
+        }}
+        onError={error =>
+          toast({
+            // eslint-disable-next-line react/display-name
+            render: () => <Toast title={error} status="error" />,
+          })
+        }
+      />
     </div>
   )
 }
@@ -965,25 +906,13 @@ function FlipEditorIcon({tooltip, isActive, isDisabled, mr, ...props}) {
   )
   return (
     <ChakraBox mr={mr}>
-      {isDisabled ? (
-        <Tooltip content={tooltip}>{icon}</Tooltip>
-      ) : (
-        <TooltipX label={tooltip}>{icon}</TooltipX>
-      )}
+      {isDisabled ? <Tooltip content={tooltip}>{icon}</Tooltip> : <TooltipX label={tooltip}>{icon}</TooltipX>}
     </ChakraBox>
   )
 }
 
 function FlipEditorToolbarDivider(props) {
-  return (
-    <Divider
-      orientation="vertical"
-      borderColor="gray.300"
-      h={5}
-      mx={0}
-      {...props}
-    />
-  )
+  return <Divider orientation="vertical" borderColor="gray.300" h={5} mx={0} {...props} />
 }
 
 export default FlipEditor

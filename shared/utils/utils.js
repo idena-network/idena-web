@@ -39,3 +39,5 @@ export const toLocaleDna = locale => {
   })
   return value => `${formatter.format(value)} DNA`
 }
+
+export const eitherState = (current, ...states) => states.some(current.matches)
