@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React from 'react'
+import React, {useState} from 'react'
 import {
   AspectRatioBox,
   Box,
@@ -45,6 +45,7 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
         idle: {},
         searching: {
           invoke: {
+            // eslint-disable-next-line no-shadow
             src: (_, {query}) => searchImages(query),
             onDone: {
               target: 'done',
@@ -81,6 +82,7 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
   )
 
   const {images, selectedImage} = current.context
+  const [query, setQuery] = useState()
 
   return (
     <Dialog size={440} onClose={onClose} {...props}>
@@ -91,7 +93,7 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
             as="form"
             onSubmit={e => {
               e.preventDefault()
-              send('SEARCH', {query: e.target.elements.query.value})
+              send('SEARCH', {query})
             }}
           >
             <InputGroup w="full">
@@ -123,6 +125,8 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
                 placeholder={t('Search the picture on the web')}
                 bg="gray.50"
                 pl={10}
+                value={query}
+                onChange={e => setQuery(e.target.value)}
               />
             </InputGroup>
           </Stack>
