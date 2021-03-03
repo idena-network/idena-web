@@ -12,6 +12,7 @@ import {
   IconButton as ChakraIconButton,
   Divider,
   Icon,
+  useToast,
 } from '@chakra-ui/core'
 import {useNotificationDispatch} from '../../../shared/providers/notification-context'
 import useClickOutside from '../../../shared/hooks/use-click-outside'
@@ -20,7 +21,7 @@ import {Menu, MenuItem} from '../../../shared/components/menu'
 import {useInterval} from '../../../shared/hooks/use-interval'
 import {Box, Absolute} from '../../../shared/components'
 import {Tooltip} from '../../../shared/components/tooltip'
-import {Tooltip as TooltipX} from '../../../shared/components/components'
+import {Toast, Tooltip as TooltipX} from '../../../shared/components/components'
 import theme from '../../../shared/theme'
 import Flex from '../../../shared/components/flex'
 import {resizing, imageResize, imageResizeSoft} from '../../../shared/utils/img'
@@ -34,7 +35,7 @@ import {
   ImageEraseEditor,
   ApplyChangesBottomPanel,
 } from './flip-editor-tools'
-import useGooglePicker from './picker'
+import {ImageSearchDialog} from './image-search'
 
 const ImageEditor =
   typeof window !== 'undefined'
@@ -62,6 +63,7 @@ const BLANK_IMAGE_DATAURL =
 
 function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
   const {t} = useTranslation()
+  const toast = useToast()
 
   const [blankImage, setBlankImage] = useState(BLANK_IMAGE_DATAURL)
 
@@ -236,15 +238,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
     [blankImage, editors, handleOnChanged, idx, insertImageMode, onChange]
   )
 
-  const {open, url: pickedUrl} = useGooglePicker()
-
-  useEffect(() => {
-    if (pickedUrl) {
-      setImageUrl({url: pickedUrl})
-      setInsertImageMode(0)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pickedUrl])
+  const [showImageSearch, setShowImageSearch] = React.useState()
 
   // File upload handling
   const handleUpload = e => {
@@ -660,14 +654,14 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
           {bottomMenuPanel === BottomMenu.Main && (
             <Stack isInline align="center" spacing={3} mt={6}>
               <FlipEditorIcon
-                tooltip={t('Search on Google')}
+                tooltip={t('Search on web')}
                 icon="google"
                 onClick={() => {
                   if (rightMenuPanel === RightMenu.Erase) {
                     setRightMenuPanel(RightMenu.None)
                   }
                   setInsertImageMode(INSERT_BACKGROUND_IMAGE)
-                  open()
+                  setShowImageSearch(true)
                 }}
               />
 
@@ -855,12 +849,12 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
                           onClick={async () => {
                             setInsertImageMenuOpen(false)
                             setInsertImageMode(INSERT_OBJECT_IMAGE)
-                            open()
+                            setShowImageSearch(true)
                           }}
                           disabled={false}
                           icon={<Icon size={5} name="google" />}
                         >
-                          {t('Search on Google')}
+                          {t('Search on web')}
                         </MenuItem>
                         <MenuItem
                           onClick={async () => {
@@ -934,6 +928,25 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
           </Stack>
         )}
       </Flex>
+      <ImageSearchDialog
+        isOpen={showImageSearch}
+        onPick={url => {
+          if (visible) {
+            setImageUrl({url})
+          }
+          setInsertImageMode(0)
+          setShowImageSearch(false)
+        }}
+        onClose={() => {
+          setShowImageSearch(false)
+        }}
+        onError={error =>
+          toast({
+            // eslint-disable-next-line react/display-name
+            render: () => <Toast title={error} status="error" />,
+          })
+        }
+      />
     </div>
   )
 }
