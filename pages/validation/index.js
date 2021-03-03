@@ -153,7 +153,7 @@ function ValidationSession({
       },
     },
     state: loadValidationState(),
-    logger: msg => info({coinbase, machine: 'validation'}, msg),
+    logger: (msg, label) => info({coinbase}, msg, label),
   })
 
   const {
