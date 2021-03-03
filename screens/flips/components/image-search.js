@@ -20,7 +20,12 @@ import {Machine} from 'xstate'
 import {assign, log} from 'xstate/lib/actions'
 import axios from 'axios'
 import {PrimaryButton, SecondaryButton} from '../../../shared/components/button'
-import {Dialog, DialogBody, DialogFooter, Input} from '../../../shared/components/components'
+import {
+  Dialog,
+  DialogBody,
+  DialogFooter,
+  Input,
+} from '../../../shared/components/components'
 import {eitherState} from '../../../shared/utils/utils'
 
 async function searchImages(q) {
@@ -128,19 +133,23 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
                   <Icon name="search" size="56px" color="gray.300" />
                 </Box>
                 <Text color="muted" textAlign="center" w="full">
-                  {t('Type your search in the box above to find images using search box')}
+                  {t(
+                    'Type your search in the box above to find images using search box'
+                  )}
                 </Text>
               </Stack>
             </Flex>
           )}
           {eitherState(current, 'done') && (
-            <SimpleGrid columns={4} spacing={2} overflow="auto" mx={-8} px={8}>
+            <SimpleGrid columns={4} spacing={2} overflow="auto" mx={-6} px={6}>
               {images.map(({thumbnail}) => (
                 <AspectRatioBox
                   ratio={1}
                   w={88}
                   bg={thumbnail === selectedImage ? 'blue.032' : 'white'}
-                  borderColor={thumbnail === selectedImage ? 'blue.500' : 'gray.50'}
+                  borderColor={
+                    thumbnail === selectedImage ? 'blue.500' : 'gray.50'
+                  }
                   borderWidth={1}
                   borderRadius="md"
                   overflow="hidden"
@@ -157,7 +166,9 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
                     src={thumbnail}
                     objectFit="contain"
                     objectPosition="center"
-                    borderColor={thumbnail === selectedImage ? 'blue.500' : 'transparent'}
+                    borderColor={
+                      thumbnail === selectedImage ? 'blue.500' : 'transparent'
+                    }
                     borderWidth={1}
                     borderRadius="md"
                   />

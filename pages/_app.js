@@ -59,6 +59,7 @@ export default class MyApp extends App {
             href="/favicon-16x16.png"
           />
           <link href="/static/fonts/icons.css" rel="stylesheet" />
+          <link href="/static/scrollbars.css" rel="stylesheet" />
           <style>{`
             html {
               -moz-osx-font-smoothing: grayscale;
