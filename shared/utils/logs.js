@@ -24,12 +24,12 @@ export function info(ctx, data) {
     resData = {
       ...resData,
       ...redactObj(data, redactValues, undefined, {ignoreUnknown: true}),
-      message: `context - ${ctx ? ctx.coinbase : 'undefined context'}`,
+      message: `machine context`,
     }
   } else {
     resData = {
       ...resData,
-      message: `${data} - ${ctx ? ctx.coinbase : 'undefined context'}`,
+      message: data.toString(),
     }
   }
 

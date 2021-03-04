@@ -3,7 +3,7 @@ import {useMemo, useEffect} from 'react'
 import {createValidationFlipsMachine} from '../../screens/validation/machine'
 import {useAuthState} from '../providers/auth-context'
 import {useEpochState} from '../providers/epoch-context'
-import {info} from '../utils/logs'
+import {redact} from '../utils/logs'
 
 export default function Flips() {
   const {coinbase, privateKey} = useAuthState()
@@ -25,7 +25,7 @@ function FlipsMachine({coinbase, privateKey, epoch}) {
   )
 
   const [, send] = useMachine(validationFlipsMachine, {
-    logger: msg => info({coinbase, machine: 'flips'}, msg),
+    logger: msg => console.log(redact(msg)),
   })
 
   useEffect(() => {

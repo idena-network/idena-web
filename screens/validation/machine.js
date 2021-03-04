@@ -410,7 +410,6 @@ export const createValidationMachine = ({
                         assign({
                           publicKeySent: true,
                         }),
-                        log(),
                       ],
                     },
                     onError: {
@@ -458,7 +457,6 @@ export const createValidationMachine = ({
                                   shortHashes: (ctx, {data}) =>
                                     data.map(x => x.hash),
                                 }),
-                                log(),
                               ],
                             },
                           },
@@ -469,6 +467,7 @@ export const createValidationMachine = ({
                       initial: 'fetching',
                       states: {
                         fetching: {
+                          entry: log('Fetching short flips'),
                           invoke: {
                             src: 'fetchShortFlips',
                             onDone: {
@@ -489,13 +488,17 @@ export const createValidationMachine = ({
                                       {...flip, retries},
                                     ]),
                                 }),
-                                log(),
+                                choose([
+                                  {
+                                    actions: [log()],
+                                    cond: (_, {flip}) => flip.fetched,
+                                  },
+                                ]),
                               ],
                             },
                           },
                         },
                         check: {
-                          entry: log(),
                           after: {
                             1000: [
                               {
@@ -511,7 +514,7 @@ export const createValidationMachine = ({
                   },
                 },
                 extraFlips: {
-                  entry: log('bump extra flips'),
+                  entry: log('Bump extra flips'),
                   invoke: {
                     src: ({shortFlips}) => cb => {
                       const extraFlips = shortFlips.filter(availableExtraFlip)
@@ -542,7 +545,6 @@ export const createValidationMachine = ({
                           shortFlips: ({shortFlips}, {flips}) =>
                             mergeFlipsByHash(shortFlips, flips),
                         }),
-                        log(),
                       ],
                     },
                   },
@@ -585,7 +587,7 @@ export const createValidationMachine = ({
                           }))
                         ),
                     }),
-                    log(),
+                    log('Flip finalizing done'),
                   ],
                 },
               },
@@ -614,7 +616,6 @@ export const createValidationMachine = ({
                           assign({
                             currentIndex: ({currentIndex}) => currentIndex - 1,
                           }),
-                          log(),
                         ],
                       },
                       {
@@ -624,7 +625,6 @@ export const createValidationMachine = ({
                           assign({
                             currentIndex: ({currentIndex}) => currentIndex - 1,
                           }),
-                          log(),
                         ],
                       },
                     ],
@@ -643,7 +643,6 @@ export const createValidationMachine = ({
                           assign({
                             currentIndex: ({currentIndex}) => currentIndex + 1,
                           }),
-                          log(),
                         ],
                       },
                       {
@@ -655,7 +654,6 @@ export const createValidationMachine = ({
                           assign({
                             currentIndex: ({currentIndex}) => currentIndex + 1,
                           }),
-                          log(),
                         ],
                       },
                     ],
@@ -667,7 +665,6 @@ export const createValidationMachine = ({
                           assign({
                             currentIndex: (_, {index}) => index,
                           }),
-                          log(),
                         ],
                       },
                       {
@@ -678,7 +675,6 @@ export const createValidationMachine = ({
                           assign({
                             currentIndex: (_, {index}) => index,
                           }),
-                          log(),
                         ],
                       },
                       {
@@ -687,7 +683,6 @@ export const createValidationMachine = ({
                           assign({
                             currentIndex: (_, {index}) => index,
                           }),
-                          log(),
                         ],
                       },
                     ],
@@ -704,7 +699,10 @@ export const createValidationMachine = ({
                               shortFlips: ({shortFlips}, {hash, option}) =>
                                 mergeFlipsByHash(shortFlips, [{hash, option}]),
                             }),
-                            log(),
+                            log(
+                              (_, {hash, option}) =>
+                                `Make answer, hash: ${hash}, option: ${option}`
+                            ),
                           ],
                         },
                         SUBMIT: {
@@ -726,7 +724,7 @@ export const createValidationMachine = ({
                     },
                     submitShortSession: {
                       initial: 'submitHash',
-                      entry: log(),
+                      entry: log('Submit short answers hash'),
                       states: {
                         submitHash: {
                           invoke: {
@@ -755,7 +753,7 @@ export const createValidationMachine = ({
                                 assign({
                                   shortHashSubmitted: true,
                                 }),
-                                log(),
+                                log('Short answers hash sent'),
                               ],
                             },
                             onError: {
@@ -764,10 +762,7 @@ export const createValidationMachine = ({
                                 assign({
                                   errorMessage: (_, {data}) => data,
                                 }),
-                                log(
-                                  (context, event) => ({context, event}),
-                                  'Short session hash submit failed'
-                                ),
+                                log(),
                               ],
                             },
                           },
@@ -822,7 +817,6 @@ export const createValidationMachine = ({
                               longHashes: (ctx, {data}) =>
                                 data.map(x => x.hash),
                             }),
-                            log(),
                           ],
                         },
                         onError: {
@@ -876,7 +870,6 @@ export const createValidationMachine = ({
                                     }))
                                   ),
                               }),
-                              log(),
                             ],
                           },
                         ],
@@ -884,7 +877,7 @@ export const createValidationMachine = ({
                     },
                     done: {
                       type: 'final',
-                      entry: log(),
+                      entry: log('Fetching long flips done'),
                     },
                   },
                   on: {
@@ -894,7 +887,12 @@ export const createValidationMachine = ({
                           longFlips: ({longFlips, retries}, {flip}) =>
                             mergeFlipsByHash(longFlips, [{...flip, retries}]),
                         }),
-                        log(),
+                        choose([
+                          {
+                            actions: [log()],
+                            cond: (_, {flip}) => flip.fetched,
+                          },
+                        ]),
                       ],
                     },
                     REFETCH_FLIPS: {
@@ -988,7 +986,6 @@ export const createValidationMachine = ({
                           assign({
                             currentIndex: ({currentIndex}) => currentIndex - 1,
                           }),
-                          log(),
                         ],
                       },
                       {
@@ -998,7 +995,6 @@ export const createValidationMachine = ({
                           assign({
                             currentIndex: ({currentIndex}) => currentIndex - 1,
                           }),
-                          log(),
                         ],
                       },
                     ],
@@ -1016,7 +1012,6 @@ export const createValidationMachine = ({
                           assign({
                             currentIndex: ({currentIndex}) => currentIndex + 1,
                           }),
-                          log(),
                         ],
                       },
                       {
@@ -1027,7 +1022,6 @@ export const createValidationMachine = ({
                           assign({
                             currentIndex: ({currentIndex}) => currentIndex + 1,
                           }),
-                          log(),
                         ],
                       },
                     ],
@@ -1039,7 +1033,6 @@ export const createValidationMachine = ({
                           assign({
                             currentIndex: (_, {index}) => index,
                           }),
-                          log(),
                         ],
                       },
                       {
@@ -1051,7 +1044,6 @@ export const createValidationMachine = ({
                           assign({
                             currentIndex: (_, {index}) => index,
                           }),
-                          log(),
                         ],
                       },
                       {
@@ -1060,7 +1052,6 @@ export const createValidationMachine = ({
                           assign({
                             currentIndex: (_, {index}) => index,
                           }),
-                          log(),
                         ],
                       },
                     ],
@@ -1082,12 +1073,15 @@ export const createValidationMachine = ({
                               longFlips: ({longFlips}, {hash, option}) =>
                                 mergeFlipsByHash(longFlips, [{hash, option}]),
                             }),
-                            log(),
+                            log(
+                              (_, {hash, option}) =>
+                                `Make answer, hash: ${hash}, option: ${option}`
+                            ),
                           ],
                         },
                         FINISH_FLIPS: {
                           target: 'finishFlips',
-                          actions: log(),
+                          actions: log('Start checking keywords'),
                         },
                       },
                     },
@@ -1095,7 +1089,6 @@ export const createValidationMachine = ({
                       on: {
                         START_KEYWORDS_QUALIFICATION: {
                           target: 'keywords',
-                          actions: log(),
                         },
                       },
                     },
@@ -1108,11 +1101,14 @@ export const createValidationMachine = ({
                               longFlips: ({longFlips}, {hash, option}) =>
                                 mergeFlipsByHash(longFlips, [{hash, option}]),
                             }),
-                            log(),
+                            log(
+                              (_, {hash, option}) =>
+                                `Make answer, hash: ${hash}, option: ${option}`
+                            ),
                           ],
                         },
                         TOGGLE_WORDS: {
-                          actions: ['toggleKeywords', log()],
+                          actions: ['toggleKeywords'],
                         },
                         SUBMIT: {
                           target: 'review',
@@ -1153,7 +1149,7 @@ export const createValidationMachine = ({
                     },
                     submitAnswers: {
                       initial: 'requestWordsSeed',
-                      entry: log(),
+                      entry: log('Submit long answers'),
                       states: {
                         requestWordsSeed: {
                           invoke: {
@@ -1170,10 +1166,7 @@ export const createValidationMachine = ({
                                 assign({
                                   errorMessage: (_, {data}) => data,
                                 }),
-                                log(
-                                  (context, event) => ({context, event}),
-                                  'Fetch word seed failed'
-                                ),
+                                log(),
                               ],
                             },
                           },
@@ -1210,10 +1203,13 @@ export const createValidationMachine = ({
                                     epoch
                                   ),
                             onDone: {
-                              target: '#validation.validationSucceeded',
-                              actions: assign({
-                                longAnswersSubmitted: true,
-                              }),
+                              actions: [
+                                assign({
+                                  longAnswersSubmitted: true,
+                                }),
+                                log('Long answers sent'),
+                                send('FORCE_SUBMIT_SHORT_ANSWERS'),
+                              ],
                             },
                             onError: {
                               target: 'fail',
@@ -1221,10 +1217,7 @@ export const createValidationMachine = ({
                                 assign({
                                   errorMessage: (_, {data}) => data,
                                 }),
-                                log(
-                                  (context, event) => ({context, event}),
-                                  'Long answers submit failed'
-                                ),
+                                log(),
                               ],
                             },
                           },
@@ -1261,15 +1254,15 @@ export const createValidationMachine = ({
               },
             },
             sendShortAnswers: {
+              entry: log('Start waiting long session to submit short answers'),
               initial: 'idle',
               states: {
                 idle: {},
                 send: {
                   initial: 'requestWordsSeed',
-                  entry: log(),
+                  entry: log('Submit public short answers'),
                   states: {
                     requestWordsSeed: {
-                      entry: log('request words seed'),
                       invoke: {
                         src: () => fetchWordsSeed(),
                         onDone: {
@@ -1284,16 +1277,12 @@ export const createValidationMachine = ({
                             assign({
                               errorMessage: (_, {data}) => data,
                             }),
-                            log(
-                              (context, event) => ({context, event}),
-                              'Fetch word seed failed'
-                            ),
+                            log(),
                           ],
                         },
                       },
                     },
                     submitShortAnswers: {
-                      entry: log('submit short answers'),
                       invoke: {
                         // eslint-disable-next-line no-shadow
                         src: ({
@@ -1327,10 +1316,7 @@ export const createValidationMachine = ({
                             assign({
                               errorMessage: (_, {data}) => data,
                             }),
-                            log(
-                              (context, event) => ({context, event}),
-                              'Short answers submit failed'
-                            ),
+                            log(),
                           ],
                         },
                       },
@@ -1341,8 +1327,14 @@ export const createValidationMachine = ({
                       },
                     },
                     done: {
-                      type: 'final',
-                      entry: log(),
+                      entry: log('Public short answers sent'),
+                      always: [
+                        {
+                          cond: ({longAnswersSubmitted}) =>
+                            longAnswersSubmitted,
+                          target: '#validation.validationSucceeded',
+                        },
+                      ],
                     },
                   },
                 },
@@ -1355,14 +1347,16 @@ export const createValidationMachine = ({
             },
             exit: ['cleanupLongFlips'],
           },
+          on: {
+            FORCE_SUBMIT_SHORT_ANSWERS: {
+              target: '.sendShortAnswers.send',
+            },
+          },
         },
 
         validationFailed: {
           type: 'final',
-          entry: log(
-            (context, event) => ({context, event}),
-            'VALIDATION FAILED'
-          ),
+          entry: log('VALIDATION FAILED'),
         },
         validationSucceeded: {
           type: 'final',
@@ -1457,7 +1451,6 @@ export const createValidationMachine = ({
                 reportedFlipsCount: ({reportedFlipsCount}) =>
                   reportedFlipsCount - 1,
               }),
-              log(),
             ],
           },
           {
@@ -1476,7 +1469,6 @@ export const createValidationMachine = ({
                     ? reportedFlipsCount
                     : reportedFlipsCount + 1,
               }),
-              log(),
             ],
           },
           {
@@ -1671,7 +1663,7 @@ const stepStates = {
         src: 'fetchTranslations',
         onDone: {
           target: 'idle',
-          actions: ['applyTranslations', log()],
+          actions: ['applyTranslations'],
         },
         onError: {
           actions: [log()],
