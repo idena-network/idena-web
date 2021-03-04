@@ -1419,13 +1419,9 @@ export const createValidationMachine = ({
             shortSessionDuration - 10 + longSessionDuration
           ) * 1000,
         // eslint-disable-next-line no-shadow
-        SEND_SHORT_ANSWERS: ({validationStart, shortSessionDuration}) => {
-          const a =
-            Math.max(adjustDuration(validationStart, shortSessionDuration), 5) *
-            1000
-          console.log('send answers time', a)
-          return a
-        },
+        SEND_SHORT_ANSWERS: ({validationStart, shortSessionDuration}) =>
+          Math.max(adjustDuration(validationStart, shortSessionDuration), 5) *
+          1000,
       },
       actions: {
         toggleKeywords: choose([
