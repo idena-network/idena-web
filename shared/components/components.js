@@ -156,6 +156,7 @@ export function Toast({
   icon = 'info',
   status = 'info',
   actionContent,
+  actionColor = status === 'error' ? 'red.500' : 'brandBlue.500',
   onAction,
   ...props
 }) {
@@ -187,7 +188,7 @@ export function Toast({
       {actionContent && (
         <Button
           variant="ghost"
-          color="brandBlue.500"
+          color={actionColor}
           fontWeight={500}
           lineHeight="base"
           px={3}
