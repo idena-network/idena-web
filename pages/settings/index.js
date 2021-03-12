@@ -48,7 +48,7 @@ function Settings() {
         <Box py={theme.spacings.xlarge}>
           <Flex align="center">
             <Label htmlFor="url" style={{width: 120}}>
-              {t('Node address')}
+              {t('Shared node URL')}
             </Label>
             <Input
               id="url"
@@ -61,7 +61,7 @@ function Settings() {
           </Flex>
           <Flex align="center" css={{marginTop: 10}}>
             <Label htmlFor="key" style={{width: 120}}>
-              {`${t('Node api key')} `}
+              {`${t('Shared node api key')} `}
             </Label>
             <Box style={{position: 'relative'}}>
               <PasswordInput
