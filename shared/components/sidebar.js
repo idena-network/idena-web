@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import PropTypes from 'prop-types'
 import {useRouter} from 'next/router'
 import {margin, borderRadius, darken, transparentize, padding} from 'polished'
@@ -11,11 +11,13 @@ import {useEpochState, EpochPeriod} from '../providers/epoch-context'
 import {pluralize} from '../utils/string'
 import {parsePersistedValidationState} from '../../screens/validation/utils'
 import {useAuthDispatch} from '../providers/auth-context'
+import {apiKeyStates, useSettingsState} from '../providers/settings-context'
 
 function Sidebar() {
   return (
     <section>
       <Flex direction="column" align="flex-start">
+        <ApiStatus />
         <Logo />
         <Nav />
         <ActionPanel />
@@ -36,6 +38,48 @@ function Sidebar() {
         }
       `}</style>
     </section>
+  )
+}
+
+function ApiStatus() {
+  const settings = useSettingsState()
+
+  let bg = theme.colors.white01
+  let color = theme.colors.muted
+  let text = 'Loading...'
+
+  if (settings.apiKeyState === apiKeyStates.OFFLINE) {
+    bg = theme.colors.danger02
+    color = theme.colors.danger
+    text = 'Offline'
+  } else if (settings.apiKeyState === apiKeyStates.EXPIRED) {
+    bg = theme.colors.warning02
+    color = theme.colors.warning
+    text = 'Expired'
+  } else if (
+    settings.apiKeyState === apiKeyStates.ONLINE ||
+    settings.apiKeyState === apiKeyStates.EXTERNAL
+  ) {
+    bg = theme.colors.success02
+    color = theme.colors.success
+    text = 'Online'
+  }
+
+  return (
+    <Box
+      bg={bg}
+      css={{
+        borderRadius: rem(12),
+        ...margin(0, 0, 0, rem(-8)),
+        ...padding(rem(2), rem(12), rem(4), rem(12)),
+      }}
+    >
+      <Flex align="baseline">
+        <Text color={color} fontWeight={500} lineHeight={rem(18)}>
+          {text}
+        </Text>
+      </Flex>
+    </Box>
   )
 }
 

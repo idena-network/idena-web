@@ -28,7 +28,7 @@ export const HASH_IN_MEMPOOL =
  * @param {string} initialHash
  * @returns {[Tx & TxStatus, *]} tx
  */
-export default function useTx(initialHash) {
+export default function useTx(initialHash, useGuestKey) {
   const [hash, setHash] = useState(initialHash)
   const [state, dispatch] = useReducer(
     (prevState, action) => {
@@ -77,7 +77,11 @@ export default function useTx(initialHash) {
     }
   )
 
-  const [{result, error}, fetchTx] = useRpc('bcn_transaction', initialHash)
+  const [{result, error}, fetchTx] = useRpc(
+    'bcn_transaction',
+    useGuestKey,
+    initialHash
+  )
 
   useEffect(() => {
     if (hash) {
@@ -91,9 +95,9 @@ export default function useTx(initialHash) {
       if (error) {
         dispatch({type: 'fail', error})
       }
-      if (result === null) {
-        dispatch({type: 'missing'})
-      }
+      // if (result === null) {
+      //   dispatch({type: 'missing'})
+      // }
       if (result !== null) {
         const {blockHash} = result
         if (blockHash === HASH_IN_MEMPOOL) {

@@ -35,13 +35,11 @@ function AuthProvider({children}) {
     })
   }
 
-  const checkKey = (key, pass) => {
+  const decryptKey = (key, pass) => {
     try {
-      const privateKey = decryptPrivateKey(key, pass)
-      privateKeyToAddress(privateKey)
-      return true
+      return decryptPrivateKey(key, pass)
     } catch (e) {
-      return false
+      return null
     }
   }
 
@@ -71,7 +69,7 @@ function AuthProvider({children}) {
       <AuthDispatchContext.Provider
         value={{
           setNewKey,
-          checkKey,
+          decryptKey,
           logout,
           login,
           exportKey,

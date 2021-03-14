@@ -1,0 +1,109 @@
+import {Box, CloseButton, Flex, Radio, Stack} from '@chakra-ui/core'
+import {useRouter} from 'next/router'
+import {rem} from 'polished'
+import {useEffect, useState} from 'react'
+import {useQuery} from 'react-query'
+import {Page, PageTitle} from '../../screens/app/components'
+import {BuySharedNodeForm} from '../../screens/node/components'
+import {fetchEpoch} from '../../shared/api'
+import {getProviders} from '../../shared/api/marketplace'
+import {
+  Table,
+  TableCol,
+  TableHeaderCol,
+  TableRow,
+} from '../../shared/components'
+import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
+import Layout from '../../shared/components/layout'
+import {useAuthState} from '../../shared/providers/auth-context'
+
+export default function Rent() {
+  const router = useRouter()
+
+  const [showDrawer, setShowDrawer] = useState(false)
+
+  const [state, setState] = useState(0)
+
+  const fetchProviders = () => getProviders()
+
+  const {data: providers} = useQuery(['providers'], fetchProviders, {
+    initialData: [],
+  })
+
+  const {coinbase} = useAuthState()
+
+  const selectedProvider = providers && providers[state]
+
+  return (
+    <Layout canRedirect={false}>
+      <Page>
+        <Flex align="center" alignSelf="stretch" justify="space-between">
+          <PageTitle>Rent a shared node</PageTitle>
+          <CloseButton onClick={() => router.back()} />
+        </Flex>
+        <Flex width="100%">
+          <Table height="90%">
+            <thead>
+              <TableRow>
+                <TableHeaderCol width={rem(40)}></TableHeaderCol>
+                <TableHeaderCol>Node URL</TableHeaderCol>
+                <TableHeaderCol>Owner</TableHeaderCol>
+                <TableHeaderCol className="text-right">
+                  Slots available
+                </TableHeaderCol>
+                <TableHeaderCol className="text-right">
+                  Price per validation
+                </TableHeaderCol>
+              </TableRow>
+            </thead>
+            <tbody>
+              {providers
+                .filter(x => x.slots)
+                .map((p, idx) => (
+                  <TableRow>
+                    <TableCol>
+                      <Radio
+                        isChecked={state === idx}
+                        onClick={() => setState(idx)}
+                        borderColor="#d2d4d9"
+                      ></Radio>
+                    </TableCol>
+                    <TableCol>{p.provider.url}</TableCol>
+                    <TableCol>{p.provider.ownerName}</TableCol>
+                    <TableCol className="text-right">{p.slots}</TableCol>
+                    <TableCol className="text-right">
+                      {p.provider.price} DNA
+                    </TableCol>
+                  </TableRow>
+                ))}
+            </tbody>
+          </Table>
+        </Flex>
+        <Box
+          alignSelf="stretch"
+          borderTop="1px"
+          borderTopColor="gray.300"
+          mt="auto"
+          pt={5}
+        >
+          <Stack isInline spacing={2} justify="flex-end">
+            <SecondaryButton onClick={() => router.back()}>
+              Cancel
+            </SecondaryButton>
+            <PrimaryButton onClick={() => setShowDrawer(true)}>
+              Continue
+            </PrimaryButton>
+          </Stack>
+        </Box>
+        <BuySharedNodeForm
+          isOpen={showDrawer}
+          onClose={() => setShowDrawer(false)}
+          provider={selectedProvider && selectedProvider.id}
+          from={coinbase}
+          to={selectedProvider && selectedProvider.provider.ownerAddress}
+          amount={selectedProvider && selectedProvider.provider.price}
+        />
+      </Page>
+    </Layout>
+  )
+}

@@ -80,8 +80,8 @@ export async function fetchIdentity(address) {
  *
  * @returns {Epoch} Epoch details
  */
-export async function fetchEpoch() {
-  const {data} = await api().post('/', {
+export async function fetchEpoch(useProxy) {
+  const {data} = await api(useProxy).post('/', {
     method: 'dna_epoch',
     params: [],
     id: 1,

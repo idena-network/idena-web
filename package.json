@@ -79,6 +79,7 @@
     "react-i18next": "^11.2.5",
     "react-icons": "^3.7.0",
     "react-indexed-db": "^1.0.12",
+    "react-query": "^3.9.8",
     "redact-object": "^3.0.1",
     "reverse-line-reader": "^0.2.6",
     "rlp": "^2.2.2",

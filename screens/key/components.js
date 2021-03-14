@@ -11,11 +11,22 @@ import {
   useSettingsState,
 } from '../../shared/providers/settings-context'
 import theme from '../../shared/theme'
-import {Input, PasswordInput} from '../../shared/components/components'
-import Button, {FlatButton} from '../../shared/components/button'
+import {Avatar, Input, PasswordInput} from '../../shared/components/components'
+import Button, {
+  FlatButton,
+  PrimaryButton,
+  SecondaryButton,
+} from '../../shared/components/button'
+import {
+  privateKeyToAddress,
+  privateKeyToPublicKey,
+} from '../../shared/utils/crypto'
+import useTx from '../../shared/hooks/use-tx'
+import {getRawTx, sendRawTx} from '../../shared/api'
+import {Transaction} from '../../shared/models/transaction'
 
 // eslint-disable-next-line react/prop-types
-export default function NodeConnectionSetup({onBack, onSave}) {
+export default function NodeConnectionSetup({onBack, onNext}) {
   const settings = useSettingsState()
   const [state, setState] = useState({
     url: '',
@@ -44,7 +55,7 @@ export default function NodeConnectionSetup({onBack, onSave}) {
         setError('API key is invalid.')
       } else {
         saveConnection(state.url, state.apiKey)
-        if (onSave) onSave()
+        if (onNext) onNext()
         Router.push('/')
       }
     } catch (e) {
@@ -167,6 +178,166 @@ export default function NodeConnectionSetup({onBack, onSave}) {
                 Back
               </FlatButton>
               <Button type="submit">Next</Button>
+            </Flex>
+            {error && (
+              <Flex
+                style={{
+                  marginTop: rem(30, theme.fontSizes.base),
+                  backgroundColor: theme.colors.danger,
+                  borderRadius: rem(9, theme.fontSizes.base),
+                  fontSize: rem(14, theme.fontSizes.base),
+                  padding: `${rem(18, theme.fontSizes.base)} ${rem(
+                    24,
+                    theme.fontSizes.base
+                  )}`,
+                }}
+              >
+                {error}
+              </Flex>
+            )}
+          </form>
+        </Flex>
+      </AuthLayout.Normal>
+    </AuthLayout>
+  )
+}
+
+// eslint-disable-next-line react/prop-types
+export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
+  const [state, setState] = useState({
+    code: '',
+  })
+  const [error, setError] = useState('')
+
+  const coinbase = privateKeyToAddress(privateKey)
+
+  const [{mining, mined, error: miningError}, setHash] = useTx(null, true)
+
+  const activateInvite = async () => {
+    const trimmedCode = state.code.trim()
+    const from = privateKeyToAddress(trimmedCode)
+
+    try {
+      const rawTx = await getRawTx(
+        1,
+        from,
+        coinbase,
+        0,
+        0,
+        privateKeyToPublicKey(privateKey),
+        0,
+        true
+      )
+
+      const tx = new Transaction().fromHex(rawTx)
+      tx.sign(trimmedCode)
+
+      const hex = tx.toHex()
+
+      const result = await sendRawTx(`0x${hex}`, true)
+      setHash(result)
+    } catch (e) {
+      setError(`Failed to activate invite: ${e.message}`)
+    }
+  }
+
+  useEffect(() => {
+    if (mined) {
+      if (miningError) {
+        setError(miningError)
+      } else {
+        onNext()
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mined, miningError])
+
+  return (
+    <AuthLayout>
+      <AuthLayout.Normal>
+        <Flex width="100%">
+          <Avatar address={coinbase} borderRadius={rem(20)} />
+          <Flex
+            direction="column"
+            justify="center"
+            flex="1"
+            style={{marginLeft: rem(20)}}
+          >
+            <SubHeading color="white">Enter invitation code</SubHeading>
+            <Flex justify="space-between">
+              <Text color="xwhite.050" fontSize={rem(14)}>
+                Enter an invitation code to get a free shared node connection or
+                skip it to enter the invitation code later.
+              </Text>
+            </Flex>
+          </Flex>
+        </Flex>
+        <Flex
+          width="100%"
+          style={{
+            ...margin(theme.spacings.medium24, 0, 0, 0),
+          }}
+        >
+          <form
+            onSubmit={async e => {
+              e.preventDefault()
+              await activateInvite()
+            }}
+            style={{width: '100%'}}
+          >
+            <Label htmlFor="code" style={{color: 'white', fontSize: rem(13)}}>
+              Invitation code
+            </Label>
+            <Flex width="100%" style={{marginBottom: rem(20)}}>
+              <Input
+                id="code"
+                value={state.code}
+                borderColor="xblack.008"
+                backgroundColor="xblack.016"
+                onChange={e => setState({...state, code: e.target.value})}
+                placeholder="Your invitation code"
+              />
+            </Flex>
+
+            <Flex
+              style={{
+                ...margin(theme.spacings.xlarge, 0, 0, 0),
+              }}
+              justify="space-between"
+            >
+              <FlatButton
+                color="white"
+                onClick={onBack}
+                style={{
+                  fontSize: rem(13),
+                  textAlign: 'center',
+                }}
+              >
+                <Icon
+                  name="arrow-up"
+                  size={5}
+                  style={{transform: 'rotate(-90deg)', marginTop: -3}}
+                ></Icon>
+                Back
+              </FlatButton>
+              <Flex>
+                <SecondaryButton
+                  type="button"
+                  mr={rem(10)}
+                  fontSize={rem(13)}
+                  onClick={onSkip}
+                >
+                  Skip for now
+                </SecondaryButton>
+                <PrimaryButton
+                  isLoading={mining}
+                  loadingText="Mining..."
+                  type="submit"
+                  ml="auto"
+                >
+                  Activate
+                </PrimaryButton>
+              </Flex>
             </Flex>
             {error && (
               <Flex

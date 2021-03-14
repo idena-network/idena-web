@@ -38,8 +38,8 @@ export async function fetchSync() {
 /**
  * Send raw tx
  */
-export async function sendRawTx(hex) {
-  const {data} = await api().post('/', {
+export async function sendRawTx(hex, useProxy) {
+  const {data} = await api(useProxy).post(useProxy ? '/api/node/proxy' : '/', {
     method: 'bcn_sendRawTx',
     params: [hex],
     id: 1,
@@ -49,8 +49,17 @@ export async function sendRawTx(hex) {
   return result
 }
 
-export async function getRawTx(type, from, to, amount, maxFee, payload, tips) {
-  const {data} = await api().post('/', {
+export async function getRawTx(
+  type,
+  from,
+  to,
+  amount,
+  maxFee,
+  payload,
+  tips,
+  useProxy
+) {
+  const {data} = await api(useProxy).post(useProxy ? '/api/node/proxy' : '/', {
     method: 'bcn_getRawTx',
     params: [
       strip({

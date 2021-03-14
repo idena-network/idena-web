@@ -1,7 +1,8 @@
 /* eslint-disable react/prop-types */
-import React from 'react'
+import React, {useState} from 'react'
 import {useRouter} from 'next/router'
-import {Flex} from '@chakra-ui/core'
+import {Flex, Radio, RadioGroup, Stack} from '@chakra-ui/core'
+import {padding} from 'polished'
 import Sidebar from './sidebar'
 import Notifications from './notifications'
 import {useEpochState} from '../providers/epoch-context'
@@ -11,6 +12,11 @@ import {ValidationToast} from '../../screens/validation/components'
 import {LayoutContainer} from '../../screens/app/components'
 import {useAuthState} from '../providers/auth-context'
 import Auth from './auth'
+
+import {Avatar} from './components'
+import {SubHeading, Text} from './typo'
+import {apiKeyStates, useSettingsState} from '../providers/settings-context'
+import {PrimaryButton} from './button'
 
 export default function Layout({...props}) {
   const {auth} = useAuthState()
@@ -29,15 +35,20 @@ export default function Layout({...props}) {
   )
 }
 
-function NormalApp({children}) {
+function NormalApp({children, canRedirect = true}) {
   const router = useRouter()
 
   const epoch = useEpochState()
   const identity = useIdentityState()
+  const settings = useSettingsState()
 
   React.useEffect(() => {
-    if (shouldStartValidation(epoch, identity)) router.push('/validation')
-  }, [epoch, identity, router])
+    if (!canRedirect) return
+    if (settings.apiKeyState === apiKeyStates.OFFLINE) {
+      router.push('/node/offline')
+    } else if (shouldStartValidation(epoch, identity))
+      router.push('/validation')
+  }, [canRedirect, epoch, identity, router, settings.apiKeyState])
 
   return (
     <Flex as="section" direction="column" flex={1} h="100vh" overflowY="auto">

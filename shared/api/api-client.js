@@ -18,10 +18,12 @@ export function getRpcParams() {
   }
 }
 
-function api() {
+export default function api(useProxy = false) {
   const params = getRpcParams()
   const instance = axios.create({
-    baseURL: params.url,
+    baseURL: useProxy
+      ? `${process.env.NEXT_PUBLIC_MARKETPLACE_URL}`
+      : params.url,
   })
   instance.interceptors.request.use(function(config) {
     config.data.key = params.key
@@ -29,5 +31,3 @@ function api() {
   })
   return instance
 }
-
-export default api
