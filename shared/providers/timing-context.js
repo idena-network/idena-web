@@ -4,6 +4,7 @@ import {useTranslation} from 'react-i18next'
 import {fetchCeremonyIntervals} from '../api/dna'
 import {Toast} from '../components/components'
 import {useInterval} from '../hooks/use-interval'
+import {ntp} from '../utils/utils'
 
 const TIME_DRIFT_THRESHOLD = 10 * 1000
 
@@ -57,13 +58,16 @@ export function TimingProvider(props) {
 
   useInterval(
     async () => {
-      const {datetime} = await (
-        await fetch('http://worldtimeapi.org/api/ip')
-      ).json()
+      const requestOriginTime = Date.now()
 
-      // same as within the node = 10 sec
+      const {result} = await (
+        await fetch('https://api.idena.io/api/now')
+      ).json()
+      const serverTime = new Date(result)
+
       setWrongClientTime(
-        Math.abs(new Date() - new Date(datetime)) > TIME_DRIFT_THRESHOLD
+        ntp(requestOriginTime, serverTime, serverTime, Date.now()).offset >
+          TIME_DRIFT_THRESHOLD
       )
     },
     1000 * 60 * 5,
