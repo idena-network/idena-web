@@ -70,7 +70,6 @@ export function TimingProvider(props) {
           ntp(requestOriginTime, serverTime, serverTime, Date.now()).offset >
             TIME_DRIFT_THRESHOLD
         )
-        setInterval(1000 * 60 * 1)
       } catch (error) {
         global.logger.error('An error occured while fetching time API')
       }
