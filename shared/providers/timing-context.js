@@ -58,17 +58,22 @@ export function TimingProvider(props) {
 
   useInterval(
     async () => {
-      const requestOriginTime = Date.now()
+      try {
+        const requestOriginTime = Date.now()
 
-      const {result} = await (
-        await fetch('https://api.idena.io/api/now')
-      ).json()
-      const serverTime = new Date(result)
+        const {result} = await (
+          await fetch('https://api.idena.io/api/now')
+        ).json()
+        const serverTime = new Date(result)
 
-      setWrongClientTime(
-        ntp(requestOriginTime, serverTime, serverTime, Date.now()).offset >
-          TIME_DRIFT_THRESHOLD
-      )
+        setWrongClientTime(
+          ntp(requestOriginTime, serverTime, serverTime, Date.now()).offset >
+            TIME_DRIFT_THRESHOLD
+        )
+        setInterval(1000 * 60 * 1)
+      } catch (error) {
+        global.logger.error('An error occured while fetching time API')
+      }
     },
     1000 * 60 * 5,
     true
