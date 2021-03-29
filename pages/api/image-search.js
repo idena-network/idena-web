@@ -5,7 +5,7 @@ export default async (req, res) => {
   try {
     const result = await image_search({
       query: req.query.q,
-      moderate: false,
+      moderate: true,
     })
     return res.status(200).json(result)
   } catch (e) {

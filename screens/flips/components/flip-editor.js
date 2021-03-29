@@ -655,7 +655,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
             <Stack isInline align="center" spacing={3} mt={6}>
               <FlipEditorIcon
                 tooltip={t('Search on web')}
-                icon="google"
+                icon="search"
                 onClick={() => {
                   if (rightMenuPanel === RightMenu.Erase) {
                     setRightMenuPanel(RightMenu.None)
@@ -852,7 +852,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
                             setShowImageSearch(true)
                           }}
                           disabled={false}
-                          icon={<Icon size={5} name="google" />}
+                          icon={<Icon size={5} name="search" />}
                         >
                           {t('Search on web')}
                         </MenuItem>
