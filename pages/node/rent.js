@@ -18,6 +18,7 @@ import {useAuthState} from '../../shared/providers/auth-context'
 
 export default function Rent() {
   const router = useRouter()
+  const {coinbase} = useAuthState()
 
   const [showDrawer, setShowDrawer] = useState(false)
 
@@ -29,9 +30,10 @@ export default function Rent() {
     initialData: [],
   })
 
-  const {coinbase} = useAuthState()
+  const availableProviders = providers.filter(x => x.slots)
 
-  const selectedProvider = providers && providers[state]
+  const selectedProvider =
+    availableProviders.length && availableProviders[state]
 
   return (
     <Layout canRedirect={false}>
@@ -56,25 +58,21 @@ export default function Rent() {
               </TableRow>
             </thead>
             <tbody>
-              {providers
-                .filter(x => x.slots)
-                .map((p, idx) => (
-                  <TableRow>
-                    <TableCol>
-                      <Radio
-                        isChecked={state === idx}
-                        onClick={() => setState(idx)}
-                        borderColor="#d2d4d9"
-                      ></Radio>
-                    </TableCol>
-                    <TableCol>{p.data.url}</TableCol>
-                    <TableCol>{p.data.ownerName}</TableCol>
-                    <TableCol className="text-right">{p.slots}</TableCol>
-                    <TableCol className="text-right">
-                      {p.data.price} DNA
-                    </TableCol>
-                  </TableRow>
-                ))}
+              {availableProviders.map((p, idx) => (
+                <TableRow>
+                  <TableCol>
+                    <Radio
+                      isChecked={state === idx}
+                      onClick={() => setState(idx)}
+                      borderColor="#d2d4d9"
+                    ></Radio>
+                  </TableCol>
+                  <TableCol>{p.data.url}</TableCol>
+                  <TableCol>{p.data.ownerName}</TableCol>
+                  <TableCol className="text-right">{p.slots}</TableCol>
+                  <TableCol className="text-right">{p.data.price} DNA</TableCol>
+                </TableRow>
+              ))}
             </tbody>
           </Table>
         </Flex>
