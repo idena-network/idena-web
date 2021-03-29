@@ -75,7 +75,10 @@ export default function useRpc(initialMethod, useProxy, ...initialParams) {
 
     async function fetchData() {
       try {
-        const {data} = await api(useProxy).post('/', rpcBody)
+        const {data} = await api(useProxy).post(
+          useProxy ? '/api/node/proxy' : '/',
+          rpcBody
+        )
         if (!ignore) {
           dataDispatch({type: 'done', ...data})
         }

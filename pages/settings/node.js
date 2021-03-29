@@ -17,12 +17,15 @@ import {
   PasswordInput,
 } from '../../shared/components/components'
 import {Section} from '../../screens/settings/components'
+import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
+import {getKeyById, getProvider} from '../../shared/api'
 
 function Settings() {
   const {t} = useTranslation()
-  const {addNotification} = useNotificationDispatch()
+  const {addNotification, addError} = useNotificationDispatch()
   const settingsState = useSettingsState()
-  const {saveConnection} = useSettingsDispatch()
+  const {saveConnection, addPurchasedKey} = useSettingsDispatch()
+
   const [state, setState] = useState({
     url: settingsState.url || '',
     apiKey: settingsState.apiKey || '',
@@ -37,6 +40,16 @@ function Settings() {
       title: 'Settings updated',
       body: `Connected to url ${state.url}`,
     })
+
+  const restorePurchase = async () => {
+    try {
+      const result = await getKeyById(settingsState.apiKeyId)
+      const provider = await getProvider(settingsState.apiKeyData.provider)
+      addPurchasedKey(provider.data.url, result.key, result.epoch)
+    } catch {
+      addError({title: 'Restore failed. Please, try again.'})
+    }
+  }
 
   return (
     <SettingsLayout>
@@ -95,15 +108,21 @@ function Settings() {
           ></PasswordInput>
         </FormControl>
 
-        <Flex justify="flex-end">
-          <Button
+        <Flex justify="space-between">
+          {settingsState.apiKeyId && (
+            <SecondaryButton onClick={restorePurchase}>
+              {t('Restore purchase')}
+            </SecondaryButton>
+          )}
+          <PrimaryButton
             onClick={() => {
               saveConnection(state.url, state.apiKey)
               notify()
             }}
+            ml="auto"
           >
             {t('Save')}
-          </Button>
+          </PrimaryButton>
         </Flex>
       </Stack>
     </SettingsLayout>

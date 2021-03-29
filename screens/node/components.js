@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
 import {
   Box,
-  Button,
   Flex,
   FormControl,
   FormHelperText,
@@ -9,12 +8,11 @@ import {
   Icon,
   Stack,
 } from '@chakra-ui/core'
+import dayjs from 'dayjs'
 import {useRouter} from 'next/router'
-import {margin, padding, rem, wordWrap} from 'polished'
 import {useEffect, useState} from 'react'
 import {useQuery} from 'react-query'
-import {getRawTx, sendRawTx, getKeyById, buyKey} from '../../shared/api'
-import {Field, FormGroup, SubHeading} from '../../shared/components'
+import {getRawTx, getKeyById, buyKey} from '../../shared/api'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {
   Drawer,
@@ -24,6 +22,7 @@ import {
   FormLabel,
   Input,
 } from '../../shared/components/components'
+import useRpc from '../../shared/hooks/use-rpc'
 import {Transaction} from '../../shared/models/transaction'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useNotificationDispatch} from '../../shared/providers/notification-context'
@@ -31,28 +30,30 @@ import {
   useSettingsDispatch,
   useSettingsState,
 } from '../../shared/providers/settings-context'
-import theme from '../../shared/theme'
 import {privateKeyToPublicKey} from '../../shared/utils/crypto'
 
 export function BuySharedNodeForm({
   isOpen,
   onClose,
-  provider,
+  providerId,
+  url,
   from,
-  to,
   amount,
-  onCancel,
 }) {
   const router = useRouter()
   const [submitting, setSubmitting] = useState(false)
 
   const {coinbase, privateKey} = useAuthState()
 
-  const {addNotification, addError} = useNotificationDispatch()
+  const {addError} = useNotificationDispatch()
 
   const {apiKeyId} = useSettingsState()
-  const {addApiKeyId, addApiKey} = useSettingsDispatch()
+  const {addPurchase, addPurchasedKey} = useSettingsDispatch()
 
+  const [{result: balanceResult}] = useRpc('dna_getBalance', true, from)
+
+  const [{result: epochResult}] = useRpc('dna_epoch', true)
+  console.log(epochResult)
   const {isLoading, data} = useQuery(
     ['get-key-by-id', apiKeyId],
     () => getKeyById(apiKeyId),
@@ -65,10 +66,10 @@ export function BuySharedNodeForm({
 
   useEffect(() => {
     if (data) {
-      addApiKey(data.key, data.epoch)
+      addPurchasedKey(url, data.key, data.epoch)
       router.push('/')
     }
-  }, [addApiKey, data, onClose, router])
+  }, [addPurchasedKey, data, onClose, router, url])
 
   const transfer = async () => {
     setSubmitting(true)
@@ -86,10 +87,10 @@ export function BuySharedNodeForm({
 
       const tx = new Transaction().fromHex(rawTx)
       tx.sign(privateKey)
-      const result = await buyKey(coinbase, `0x${tx.toHex()}`, provider)
-      addApiKeyId(result.id)
+      const result = await buyKey(coinbase, `0x${tx.toHex()}`, providerId)
+      addPurchase(result.id, providerId)
     } catch (e) {
-      addError(`Failed to send DNA: ${e.message}`)
+      addError({title: `Failed to send DNA: ${e.response.data}`})
     } finally {
       setSubmitting(false)
     }
@@ -135,18 +136,24 @@ export function BuySharedNodeForm({
                 Available
               </FormHelperText>
               <FormHelperText color="black" fontSize="md">
-                123123213 iDNA
+                {(balanceResult && balanceResult.balance) || 0} iDNA
               </FormHelperText>
             </Flex>
           </CustomFormControl>
           <CustomFormControl label="To">
-            <Input isDisabled value={to} />
+            <Input
+              isDisabled
+              value={process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS}
+            />
           </CustomFormControl>
           <CustomFormControl label="Amount, iDNA">
             <Input isDisabled value={amount} />
             <FormHelperText color="muted" fontSize="md">
               Node operator provides you the shared node for the upcoming
-              validation ceremony 18.01.21
+              validation ceremony{' '}
+              {epochResult
+                ? new Date(epochResult.nextValidation).toLocaleDateString()
+                : ''}
             </FormHelperText>
           </CustomFormControl>
         </Stack>
@@ -163,7 +170,7 @@ export function BuySharedNodeForm({
           <Stack isInline spacing={2} justify="flex-end">
             <SecondaryButton
               fontSize={13}
-              onClick={onCancel}
+              onClick={onClose}
               isDisabled={waiting}
             >
               Not now

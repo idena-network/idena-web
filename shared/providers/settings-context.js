@@ -1,18 +1,24 @@
-import {createContext, useReducer, useContext, useEffect} from 'react'
-import axios from 'axios'
+import {
+  createContext,
+  useReducer,
+  useContext,
+  useEffect,
+  useCallback,
+} from 'react'
 import {usePersistence} from '../hooks/use-persistent-state'
 import {loadPersistentState} from '../utils/persist'
 import useLogger from '../hooks/use-logger'
 import {fetchEpoch} from '../api'
 import {checkKey} from '../api/marketplace'
+import {useInterval} from '../hooks/use-interval'
 
 const SAVE_ENCRYPTED_KEY = 'SAVE_ENCRYPTED_KEY'
 const CLEAR_ENCRYPTED_KEY = 'CLEAR_ENCRYPTED_KEY'
 const SAVE_CONNECTION = 'SAVE_CONNECTION'
 const RESTORE_SETTINGS = 'RESTORE_SETTINGS'
 const SET_API_KEY_STATE = 'SET_API_KEY_STATE'
-const ADD_API_KEY_ID = 'ADD_API_KEY_ID'
-const ADD_API_KEY = 'ADD_API_KEY'
+const ADD_PURCHASED_KEY = 'ADD_PURCHASED_KEY'
+const ADD_PURCHASE = 'ADD_PURCHASE'
 
 export const apiKeyStates = {
   NONE: 0,
@@ -56,18 +62,25 @@ function settingsReducer(state, action) {
         ...action.data,
       }
     }
-    case ADD_API_KEY_ID: {
+    case ADD_PURCHASE: {
       return {
         ...state,
-        apiKeyId: action.data,
+        apiKeyId: action.data.apiKeyId,
+        apiKeyData: {
+          provider: action.data.provider,
+        },
       }
     }
-    case ADD_API_KEY: {
+    case ADD_PURCHASED_KEY: {
       return {
         ...state,
         apiKey: action.data.key,
-        apiKeyEpoch: action.data.epoch,
+        apiKeyData: {
+          ...state.apiKeyData,
+          ...action.data,
+        },
         apiKeyState: apiKeyStates.ONLINE,
+        url: action.data.url || state.url,
         apiKeyId: null,
       }
     }
@@ -99,24 +112,24 @@ function SettingsProvider({children}) {
     })
   }, [dispatch])
 
-  useEffect(() => {
+  const performCheck = useCallback(() => {
     async function loadData() {
       try {
         const epochData = await fetchEpoch()
         const result = await checkKey(state.apiKey)
-        if (result.data) {
-          if (result.data.epoch < epochData.epoch) {
+        if (result) {
+          if (result.epoch < epochData.epoch) {
             dispatch({
               type: SET_API_KEY_STATE,
               data: {
                 apiKeyState: apiKeyStates.EXPIRED,
-                apiKeyData: result.data,
+                apiKeyData: result,
               },
             })
           } else {
             dispatch({
               type: SET_API_KEY_STATE,
-              data: {apiKeyState: apiKeyStates.ONLINE, apiKeyData: result.data},
+              data: {apiKeyState: apiKeyStates.ONLINE, apiKeyData: result},
             })
           }
         } else {
@@ -132,8 +145,7 @@ function SettingsProvider({children}) {
         })
       }
     }
-
-    if (state.apiKey) {
+    if (state.url && state.apiKey) {
       loadData()
     } else {
       dispatch({
@@ -141,8 +153,13 @@ function SettingsProvider({children}) {
         data: {apiKeyState: apiKeyStates.OFFLINE},
       })
     }
-    // load api key state
-  }, [dispatch, state.apiKey])
+  }, [dispatch, state.apiKey, state.url])
+
+  useEffect(() => {
+    performCheck()
+  }, [performCheck])
+
+  useInterval(performCheck, 60 * 1000)
 
   const saveEncryptedKey = (coinbase, key) => {
     dispatch({type: SAVE_ENCRYPTED_KEY, data: {coinbase, key}})
@@ -156,12 +173,12 @@ function SettingsProvider({children}) {
     dispatch({type: SAVE_CONNECTION, data: {url, key}})
   }
 
-  const addApiKeyId = id => {
-    dispatch({type: ADD_API_KEY_ID, data: id})
+  const addPurchase = (apiKeyId, provider) => {
+    dispatch({type: ADD_PURCHASE, data: {apiKeyId, provider}})
   }
 
-  const addApiKey = (key, epoch) => {
-    dispatch({type: ADD_API_KEY, data: {key, epoch}})
+  const addPurchasedKey = (url, key, epoch, provider) => {
+    dispatch({type: ADD_PURCHASED_KEY, data: {url, key, epoch, provider}})
   }
 
   return (
@@ -171,8 +188,8 @@ function SettingsProvider({children}) {
           saveEncryptedKey,
           removeEncryptedKey,
           saveConnection,
-          addApiKeyId,
-          addApiKey,
+          addPurchase,
+          addPurchasedKey,
         }}
       >
         {children}

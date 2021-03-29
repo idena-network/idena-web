@@ -8,6 +8,8 @@ import {useAuthDispatch} from '../../shared/providers/auth-context'
 import theme from '../../shared/theme'
 import NodeConnectionSetup, {ActivateInvite} from '../../screens/key/components'
 import {AuthLayout} from '../../shared/components/auth'
+import {fetchIdentity} from '../../shared/api'
+import {privateKeyToAddress} from '../../shared/utils/crypto'
 
 const steps = {
   KEY: 0,
@@ -25,10 +27,20 @@ export default function ImportKey() {
   const [error, setError] = useState()
   const [step, setStep] = useState(steps.KEY)
 
-  const addKey = () => {
-    if (decryptKey(state.key, state.password)) {
+  const addKey = async () => {
+    const key = decryptKey(state.key, state.password)
+    if (key) {
       setError(null)
-      setStep(steps.INVITATION)
+      try {
+        const identity = await fetchIdentity(privateKeyToAddress(key), true)
+        if (identity.state === 'Undefined') {
+          setStep(steps.INVITATION)
+        } else {
+          setStep(steps.NODE)
+        }
+      } catch {
+        setStep(steps.NODE)
+      }
     } else {
       setError('Key or password is invalid. Try again.')
     }
@@ -69,9 +81,9 @@ export default function ImportKey() {
               }}
             >
               <form
-                onSubmit={e => {
+                onSubmit={async e => {
                   e.preventDefault()
-                  addKey()
+                  await addKey()
                 }}
                 style={{width: '100%'}}
               >

@@ -14,10 +14,16 @@ export function checkKey(key) {
     .then(x => x.data)
 }
 
-export function getProviders(epoch) {
+export function getProviders() {
   return api()
-    .get('/api/providers', {
-      params: {epoch},
+    .get('/api/provider/list')
+    .then(x => x.data)
+}
+
+export function getProvider(id) {
+  return api()
+    .get('/api/provider/get', {
+      params: {id},
     })
     .then(x => x.data)
 }

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react'
+import React from 'react'
 import PropTypes from 'prop-types'
 import {useRouter} from 'next/router'
 import {margin, borderRadius, darken, transparentize, padding} from 'polished'
@@ -75,9 +75,17 @@ function ApiStatus() {
       }}
     >
       <Flex align="baseline">
-        <Text color={color} fontWeight={500} lineHeight={rem(18)}>
-          {text}
-        </Text>
+        {settings.apiKeyState === apiKeyStates.EXPIRED ? (
+          <Link href="/node/expired">
+            <Text color={color} fontWeight={500} lineHeight={rem(18)}>
+              {text}
+            </Text>
+          </Link>
+        ) : (
+          <Text color={color} fontWeight={500} lineHeight={rem(18)}>
+            {text}
+          </Text>
+        )}
       </Flex>
     </Box>
   )

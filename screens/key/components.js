@@ -4,6 +4,7 @@ import Router from 'next/router'
 import axios from 'axios'
 import {useEffect, useState} from 'react'
 import {FiChevronRight} from 'react-icons/fi'
+import {useQuery} from 'react-query'
 import {Label, SubHeading} from '../../shared/components'
 import {AuthLayout} from '../../shared/components/auth'
 import {
@@ -22,7 +23,13 @@ import {
   privateKeyToPublicKey,
 } from '../../shared/utils/crypto'
 import useTx from '../../shared/hooks/use-tx'
-import {getRawTx, sendRawTx} from '../../shared/api'
+import {
+  buyKey,
+  getKeyById,
+  getProvider,
+  getRawTx,
+  sendRawTx,
+} from '../../shared/api'
 import {Transaction} from '../../shared/models/transaction'
 
 // eslint-disable-next-line react/prop-types
@@ -204,6 +211,8 @@ export default function NodeConnectionSetup({onBack, onNext}) {
 
 // eslint-disable-next-line react/prop-types
 export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
+  const [submitting, setSubmitting] = useState(false)
+
   const [state, setState] = useState({
     code: '',
   })
@@ -211,13 +220,41 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
 
   const coinbase = privateKeyToAddress(privateKey)
 
-  const [{mining, mined, error: miningError}, setHash] = useTx(null, true)
+  const {apiKeyId} = useSettingsState()
+  const {addPurchase, addPurchasedKey} = useSettingsDispatch()
+
+  const {isLoading, data} = useQuery(
+    ['get-key-by-id', apiKeyId],
+    () => getKeyById(apiKeyId),
+    {
+      enabled: !!apiKeyId,
+      retry: true,
+      retryDelay: 5000,
+    }
+  )
+
+  const {data: provider} = useQuery(
+    ['get-provider-by-id', process.env.NEXT_PUBLIC_IDENA_PROVIDER],
+    () => getProvider(process.env.NEXT_PUBLIC_IDENA_PROVIDER),
+    {
+      retry: false,
+    }
+  )
+
+  useEffect(() => {
+    if (provider && data) {
+      addPurchasedKey(provider.data.url, data.key, data.epoch)
+      if (onNext) onNext()
+    }
+  }, [addPurchasedKey, data, onNext, provider])
 
   const activateInvite = async () => {
-    const trimmedCode = state.code.trim()
-    const from = privateKeyToAddress(trimmedCode)
+    setSubmitting(true)
 
     try {
+      const trimmedCode = state.code.trim()
+      const from = privateKeyToAddress(trimmedCode)
+
       const rawTx = await getRawTx(
         1,
         from,
@@ -231,26 +268,16 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
 
       const tx = new Transaction().fromHex(rawTx)
       tx.sign(trimmedCode)
-
-      const hex = tx.toHex()
-
-      const result = await sendRawTx(`0x${hex}`, true)
-      setHash(result)
+      const result = await buyKey(coinbase, `0x${tx.toHex()}`)
+      addPurchase(result.id, provider && provider.id)
     } catch (e) {
-      setError(`Failed to activate invite: ${e.message}`)
+      setError(`Failed to activate invite: ${e.response.data}`)
+    } finally {
+      setSubmitting(false)
     }
   }
 
-  useEffect(() => {
-    if (mined) {
-      if (miningError) {
-        setError(miningError)
-      } else {
-        onNext()
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mined, miningError])
+  const waiting = submitting || isLoading
 
   return (
     <AuthLayout>
@@ -312,6 +339,7 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
                   fontSize: rem(13),
                   textAlign: 'center',
                 }}
+                disabled={waiting}
               >
                 <Icon
                   name="arrow-up"
@@ -320,17 +348,19 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
                 ></Icon>
                 Back
               </FlatButton>
+
               <Flex>
                 <SecondaryButton
                   type="button"
                   mr={rem(10)}
                   fontSize={rem(13)}
                   onClick={onSkip}
+                  isDisabled={waiting}
                 >
                   Skip for now
                 </SecondaryButton>
                 <PrimaryButton
-                  isLoading={mining}
+                  isLoading={waiting}
                   loadingText="Mining..."
                   type="submit"
                   ml="auto"

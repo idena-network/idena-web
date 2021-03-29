@@ -1,11 +1,10 @@
 import {Box, CloseButton, Flex, Radio, Stack} from '@chakra-ui/core'
 import {useRouter} from 'next/router'
 import {rem} from 'polished'
-import {useEffect, useState} from 'react'
+import {useState} from 'react'
 import {useQuery} from 'react-query'
 import {Page, PageTitle} from '../../screens/app/components'
 import {BuySharedNodeForm} from '../../screens/node/components'
-import {fetchEpoch} from '../../shared/api'
 import {getProviders} from '../../shared/api/marketplace'
 import {
   Table,
@@ -68,11 +67,11 @@ export default function Rent() {
                         borderColor="#d2d4d9"
                       ></Radio>
                     </TableCol>
-                    <TableCol>{p.provider.url}</TableCol>
-                    <TableCol>{p.provider.ownerName}</TableCol>
+                    <TableCol>{p.data.url}</TableCol>
+                    <TableCol>{p.data.ownerName}</TableCol>
                     <TableCol className="text-right">{p.slots}</TableCol>
                     <TableCol className="text-right">
-                      {p.provider.price} DNA
+                      {p.data.price} DNA
                     </TableCol>
                   </TableRow>
                 ))}
@@ -98,10 +97,10 @@ export default function Rent() {
         <BuySharedNodeForm
           isOpen={showDrawer}
           onClose={() => setShowDrawer(false)}
-          provider={selectedProvider && selectedProvider.id}
+          providerId={selectedProvider && selectedProvider.id}
+          url={selectedProvider && selectedProvider.data.url}
           from={coinbase}
-          to={selectedProvider && selectedProvider.provider.ownerAddress}
-          amount={selectedProvider && selectedProvider.provider.price}
+          amount={selectedProvider && selectedProvider.data.price}
         />
       </Page>
     </Layout>
