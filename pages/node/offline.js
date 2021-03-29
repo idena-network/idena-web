@@ -28,7 +28,7 @@ export default function Offline() {
 
   const process = () => {
     if (state === options.ENTER_KEY) {
-      return router.push('/settings')
+      return router.push('/settings/node')
     }
     return router.push('/node/rent')
   }

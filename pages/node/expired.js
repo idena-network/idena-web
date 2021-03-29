@@ -37,7 +37,7 @@ export default function Expired() {
     if (state === options.PROLONG) {
       setShowDrawer(true)
     } else if (state === options.ENTER_KEY) {
-      return router.push('/settings')
+      return router.push('/settings/node')
     } else return router.push('/node/rent')
   }
 
