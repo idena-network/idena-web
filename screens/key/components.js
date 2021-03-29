@@ -268,8 +268,12 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
 
       const tx = new Transaction().fromHex(rawTx)
       tx.sign(trimmedCode)
-      const result = await buyKey(coinbase, `0x${tx.toHex()}`)
-      addPurchase(result.id, provider && provider.id)
+      const result = await buyKey(
+        coinbase,
+        `0x${tx.toHex()}`,
+        process.env.NEXT_PUBLIC_IDENA_PROVIDER
+      )
+      addPurchase(result.id, process.env.NEXT_PUBLIC_IDENA_PROVIDER)
     } catch (e) {
       setError(`Failed to activate invite: ${e.response.data}`)
     } finally {
