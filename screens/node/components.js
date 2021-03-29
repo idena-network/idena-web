@@ -53,7 +53,7 @@ export function BuySharedNodeForm({
   const [{result: balanceResult}] = useRpc('dna_getBalance', true, from)
 
   const [{result: epochResult}] = useRpc('dna_epoch', true)
-  console.log(epochResult)
+
   const {isLoading, data} = useQuery(
     ['get-key-by-id', apiKeyId],
     () => getKeyById(apiKeyId),

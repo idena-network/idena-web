@@ -1,9 +1,11 @@
+/* eslint-disable no-nested-ternary */
 import React from 'react'
 import PropTypes from 'prop-types'
 import {useRouter} from 'next/router'
 import {margin, borderRadius, darken, transparentize, padding} from 'polished'
 import {useTranslation} from 'react-i18next'
-import {Box, Link, Text} from '.'
+import {Text} from '@chakra-ui/core'
+import {Box, Link} from '.'
 import Flex from './flex'
 import theme, {rem} from '../theme'
 import {useIdentityState, IdentityStatus} from '../providers/identity-context'
@@ -12,6 +14,7 @@ import {pluralize} from '../utils/string'
 import {parsePersistedValidationState} from '../../screens/validation/utils'
 import {useAuthDispatch} from '../providers/auth-context'
 import {apiKeyStates, useSettingsState} from '../providers/settings-context'
+import {Tooltip} from './components'
 
 function Sidebar() {
   return (
@@ -43,6 +46,7 @@ function Sidebar() {
 
 function ApiStatus() {
   const settings = useSettingsState()
+  const epoch = useEpochState()
 
   let bg = theme.colors.white01
   let color = theme.colors.muted
@@ -81,6 +85,20 @@ function ApiStatus() {
               {text}
             </Text>
           </Link>
+        ) : settings.apiKeyState === apiKeyStates.ONLINE ? (
+          <Tooltip
+            label={`Will be expired after validation ceremony ${
+              epoch ? new Date(epoch.nextValidation).toLocaleString() : ''
+            }`}
+            placement="right"
+            zIndex={1000}
+            bg="#45484d"
+            width={200}
+          >
+            <Text color={color} fontWeight={500} lineHeight={rem(18)}>
+              {text}
+            </Text>
+          </Tooltip>
         ) : (
           <Text color={color} fontWeight={500} lineHeight={rem(18)}>
             {text}
