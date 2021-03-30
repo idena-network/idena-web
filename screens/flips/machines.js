@@ -2,6 +2,7 @@ import {Machine, assign, spawn, sendParent} from 'xstate'
 import {log, send} from 'xstate/lib/actions'
 import nanoid from 'nanoid'
 import {Evaluate} from '@idena/vrf-js'
+import CID from 'cids'
 import {
   fetchKeywordTranslations,
   voteForKeywordTranslation,
@@ -14,7 +15,7 @@ import {
 import {callRpc} from '../../shared/utils/utils'
 import {shuffle} from '../../shared/utils/arr'
 import {FlipType, FlipFilter} from '../../shared/types'
-import {fetchTx, deleteFlip, fetchWordsSeed} from '../../shared/api'
+import {fetchTx, fetchWordsSeed, getRawTx, sendRawTx} from '../../shared/api'
 import {HASH_IN_MEMPOOL} from '../../shared/hooks/use-tx'
 import {persistState} from '../../shared/utils/persist'
 import db from '../../shared/utils/db'
@@ -22,6 +23,8 @@ import {keywords as allKeywords} from '../../shared/utils/keywords'
 import {fetchWordPairs} from '../../shared/api/validation'
 import {privateKeyToAddress} from '../../shared/utils/crypto'
 import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
+import {FlipDeleteAttachment} from '../../shared/models/flipDeleteAttachment'
+import {Transaction} from '../../shared/models/transaction'
 
 export const flipsMachine = Machine(
   {
@@ -481,10 +484,27 @@ export const flipMachine = Machine(
   {
     services: {
       publishFlip: context => publishFlip(context),
-      deleteFlip: async ({hash}) => {
-        const {result, error} = await deleteFlip(hash)
-        if (error) throw new Error(error.message)
-        return result
+      deleteFlip: async ({privateKey, hash}) => {
+        const from = privateKeyToAddress(privateKey)
+
+        const cid = new CID(hash)
+        const attachment = new FlipDeleteAttachment(cid.bytes)
+
+        const rawTx = await getRawTx(
+          14,
+          from,
+          null,
+          0,
+          0,
+          toHexString(attachment.toBytes(), true)
+        )
+
+        const tx = new Transaction().fromHex(rawTx)
+        tx.sign(privateKey)
+
+        const hex = tx.toHex()
+
+        return sendRawTx(`0x${hex}`)
       },
       pollStatus: ({txHash}) => cb => {
         let timeoutId
