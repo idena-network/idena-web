@@ -70,6 +70,11 @@ export default function NodeConnectionSetup({onBack, onNext}) {
     }
   }
 
+  const skip = () => {
+    if (onNext) onNext()
+    Router.push('/')
+  }
+
   return (
     <AuthLayout>
       <AuthLayout.Normal>
@@ -184,7 +189,17 @@ export default function NodeConnectionSetup({onBack, onNext}) {
                 ></Icon>
                 Back
               </FlatButton>
-              <Button type="submit">Next</Button>
+              <Flex>
+                <SecondaryButton
+                  type="button"
+                  mr={rem(10)}
+                  fontSize={rem(13)}
+                  onClick={skip}
+                >
+                  Skip
+                </SecondaryButton>
+                <Button type="submit">Next</Button>
+              </Flex>
             </Flex>
             {error && (
               <Flex
