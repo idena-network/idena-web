@@ -115,10 +115,15 @@ function SettingsProvider({children}) {
   const performCheck = useCallback(() => {
     async function loadData() {
       try {
-        const epochData = await fetchEpoch()
+        const {epoch} = await fetchEpoch()
         const result = await checkKey(state.apiKey)
         if (result) {
-          if (result.epoch < epochData.epoch) {
+          if (result.epoch < epoch - 1) {
+            dispatch({
+              type: SET_API_KEY_STATE,
+              data: {apiKeyState: apiKeyStates.OFFLINE},
+            })
+          } else if (result.epoch < epoch) {
             dispatch({
               type: SET_API_KEY_STATE,
               data: {
