@@ -5,6 +5,7 @@ import {
   useEffect,
   useCallback,
 } from 'react'
+import {useRouter} from 'next/router'
 import {usePersistence} from '../hooks/use-persistent-state'
 import {loadPersistentState} from '../utils/persist'
 import useLogger from '../hooks/use-logger'
@@ -94,8 +95,13 @@ const SettingsDispatchContext = createContext()
 
 const DEFAULT_NODE_URL = 'https://node.idena.io/'
 
+const API_KEY_CHECK_INTERVAL = 5 * 60 * 1000
+const EXPIRED_INTERVAL = 5 * 60 * 1000
+
 // eslint-disable-next-line react/prop-types
 function SettingsProvider({children}) {
+  const router = useRouter()
+
   const [state, dispatch] = usePersistence(
     useLogger(
       useReducer(settingsReducer, {
@@ -164,7 +170,14 @@ function SettingsProvider({children}) {
     performCheck()
   }, [performCheck])
 
-  useInterval(performCheck, 60 * 1000)
+  useInterval(performCheck, API_KEY_CHECK_INTERVAL)
+
+  useInterval(
+    () => {
+      if (router.pathname !== '/node/expired') router.push('/node/expired')
+    },
+    state.apiKeyState === apiKeyStates.EXPIRED ? EXPIRED_INTERVAL : null
+  )
 
   const saveEncryptedKey = (coinbase, key) => {
     dispatch({type: SAVE_ENCRYPTED_KEY, data: {coinbase, key}})

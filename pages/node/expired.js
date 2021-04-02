@@ -43,7 +43,7 @@ export default function Expired() {
 
   const {data: provider} = useQuery(
     ['get-provider-by-id', apiKeyData && apiKeyData.provider],
-    () => getProvider(apiKeyData.provider),
+    () => getProvider(apiKeyData && apiKeyData.provider),
     {
       enabled: apiKeyData && !!apiKeyData.provider,
       retry: false,
