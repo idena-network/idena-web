@@ -90,7 +90,7 @@ export function BuySharedNodeForm({
       const result = await buyKey(coinbase, `0x${tx.toHex()}`, providerId)
       addPurchase(result.id, providerId)
     } catch (e) {
-      addError({title: `Failed to send DNA: ${e.response.data}`})
+      addError({title: `Failed to send iDNA: ${e.response.data}`})
     } finally {
       setSubmitting(false)
     }
@@ -124,7 +124,7 @@ export function BuySharedNodeForm({
           lineHeight="base"
           mt={4}
         >
-          Send DNA's
+          Send iDNA
         </Heading>
       </DrawerHeader>
       <DrawerBody>

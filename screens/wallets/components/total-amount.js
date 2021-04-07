@@ -13,7 +13,7 @@ function TotalAmount({amount, percentChanges, amountChanges}) {
       </Box>
       <Box>
         <SubHeading>
-          <div className="value">{amount} DNA</div>
+          <div className="value">{amount} iDNA</div>
           {false && ( // TODO: show wallet changes
             <div className="changes">
               {percentChanges}% <span>({amountChanges} USD)</span>

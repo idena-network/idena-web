@@ -87,7 +87,7 @@ export default function Offline() {
                 fontSize={rem(11)}
                 css={{opacity: 0.5}}
               >
-                Choose an option you prefer
+                Choose an option
               </Text>
             </Flex>
             <Flex marginTop={rem(15)}>
@@ -120,8 +120,16 @@ export default function Offline() {
                 fontSize={rem(14)}
                 css={{opacity: 0.5, marginTop: rem(theme.spacings.small12)}}
               >
-                You can run your own node at your desktop computer. You can run
-                your own node at your desktop computer.
+                You can run your own node for free at your desktop computer.
+                Download it{' '}
+                <a
+                  href="https://idena.io.download"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  here
+                </a>
+                .
               </Text>
             </Flex>
             <Flex marginTop={rem(30)} style={{marginLeft: 'auto'}}>

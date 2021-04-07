@@ -54,9 +54,7 @@ function Settings() {
   return (
     <SettingsLayout>
       <Stack spacing={5} mt={rem(20)} width={rem(480)}>
-        {[apiKeyStates.EXPIRED, apiKeyStates.OFFLINE].includes(
-          settingsState.apiKeyState
-        ) && (
+        {settingsState.apiKeyState === apiKeyStates.EXPIRED && (
           <Alert
             status="error"
             bg="red.010"
@@ -68,13 +66,33 @@ function Settings() {
             py={2}
           >
             <AlertIcon name="info" color="red.500" size={5} mr={3}></AlertIcon>
-            {settingsState.apiKeyState === apiKeyStates.EXPIRED
-              ? t(
-                  'API key is expired. You can not use the node for the upcoming validation ceremony'
-                )
-              : t('Node is unreachable.')}
+            {t(
+              'API key is expired. You can not use the node for the upcoming validation ceremony'
+            )}
           </Alert>
         )}
+        {settingsState.apiKeyState === apiKeyStates.OFFLINE &&
+          !!settingsState.url &&
+          !!settingsState.apiKey && (
+            <Alert
+              status="error"
+              bg="red.010"
+              borderWidth="1px"
+              borderColor="red.050"
+              fontWeight={500}
+              rounded="md"
+              px={3}
+              py={2}
+            >
+              <AlertIcon
+                name="info"
+                color="red.500"
+                size={5}
+                mr={3}
+              ></AlertIcon>
+              {t('Node is unavailable.')}
+            </Alert>
+          )}
         <FormControl>
           <Flex justify="space-between">
             <FormLabel color="brandGray.500" mb={2}>

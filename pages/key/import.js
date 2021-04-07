@@ -6,15 +6,14 @@ import {Button, Label, SubHeading} from '../../shared/components'
 import {Input, PasswordInput} from '../../shared/components/components'
 import {useAuthDispatch} from '../../shared/providers/auth-context'
 import theme from '../../shared/theme'
-import NodeConnectionSetup, {ActivateInvite} from '../../screens/key/components'
+import {ActivateInvite} from '../../screens/key/components'
 import {AuthLayout} from '../../shared/components/auth'
 import {fetchIdentity} from '../../shared/api'
 import {privateKeyToAddress} from '../../shared/utils/crypto'
 
 const steps = {
   KEY: 0,
-  NODE: 1,
-  INVITATION: 2,
+  INVITATION: 1,
 }
 
 export default function ImportKey() {
@@ -36,10 +35,12 @@ export default function ImportKey() {
         if (identity.state === 'Undefined') {
           setStep(steps.INVITATION)
         } else {
-          setStep(steps.NODE)
+          setNewKey(state.key, state.password, state.saveKey)
+          Router.push('/')
         }
       } catch {
-        setStep(steps.NODE)
+        setNewKey(state.key, state.password, state.saveKey)
+        Router.push('/')
       }
     } else {
       setError('Key or password is invalid. Try again.')
@@ -177,20 +178,14 @@ export default function ImportKey() {
           </AuthLayout.Normal>
         </AuthLayout>
       )}
-      {step === steps.NODE && (
-        <NodeConnectionSetup
-          onBack={() => setStep(steps.KEY)}
-          onNext={() => {
-            setNewKey(state.key, state.password, state.saveKey)
-            Router.push('/')
-          }}
-        ></NodeConnectionSetup>
-      )}
       {step === steps.INVITATION && (
         <ActivateInvite
           privateKey={decryptKey(state.key, state.password)}
           onBack={() => setStep(steps.KEY)}
-          onSkip={() => setStep(steps.NODE)}
+          onSkip={() => {
+            setNewKey(state.key, state.password, state.saveKey)
+            Router.push('/')
+          }}
           onNext={() => {
             setNewKey(state.key, state.password, state.saveKey)
             Router.push('/')

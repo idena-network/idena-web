@@ -110,7 +110,7 @@ export default function Expired() {
                 fontSize={rem(11)}
                 css={{opacity: 0.5}}
               >
-                Choose an option you prefer
+                Choose an option
               </Text>
             </Flex>
             <Flex marginTop={rem(15)}>
@@ -124,7 +124,7 @@ export default function Expired() {
                   >
                     <Text color={theme.colors.white} fontSize={rem(13)}>
                       Prolong node access{' '}
-                      {provider ? `(${provider.data.price} DNA)` : ''}
+                      {provider ? `(${provider.data.price} iDNA)` : ''}
                     </Text>
                   </Radio>
                   <Radio

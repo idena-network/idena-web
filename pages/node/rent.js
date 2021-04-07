@@ -70,7 +70,9 @@ export default function Rent() {
                   <TableCol>{p.data.url}</TableCol>
                   <TableCol>{p.data.ownerName}</TableCol>
                   <TableCol className="text-right">{p.slots}</TableCol>
-                  <TableCol className="text-right">{p.data.price} DNA</TableCol>
+                  <TableCol className="text-right">
+                    {p.data.price} iDNA
+                  </TableCol>
                 </TableRow>
               ))}
             </tbody>
