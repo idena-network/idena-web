@@ -100,7 +100,7 @@ export default function Expired() {
           >
             <Flex>
               <Text color={theme.colors.white} fontSize={rem(18)}>
-                Your Idena node will be expired soon
+                Your access to the shared node will be expired soon
               </Text>
             </Flex>
 
@@ -154,13 +154,21 @@ export default function Expired() {
                 fontSize={rem(14)}
                 css={{opacity: 0.5, marginTop: rem(theme.spacings.small12)}}
               >
-                You can run your own node at your desktop computer. You can run
-                your own node at your desktop computer.
+                You can run your own node for free at your desktop computer.
+                Download it{' '}
+                <a
+                  href="https://idena.io.download"
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  here
+                </a>
+                .
               </Text>
             </Flex>
             <Flex marginTop={rem(30)} style={{marginLeft: 'auto'}}>
               <SecondaryButton onClick={() => router.back()} mr={2}>
-                Now now
+                Not now
               </SecondaryButton>
               <PrimaryButton onClick={process}>Continue</PrimaryButton>
             </Flex>

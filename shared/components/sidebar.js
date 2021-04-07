@@ -87,7 +87,7 @@ function ApiStatus() {
           </Link>
         ) : settings.apiKeyState === apiKeyStates.ONLINE ? (
           <Tooltip
-            label={`Will be expired after validation ceremony ${
+            label={`Access to the shared node will be expired after the validation ceremony ${
               epoch ? new Date(epoch.nextValidation).toLocaleString() : ''
             }`}
             placement="right"

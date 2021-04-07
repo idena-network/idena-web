@@ -28,6 +28,7 @@ import {
   Stack,
   Box,
   Button,
+  PseudoBox,
 } from '@chakra-ui/core'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
@@ -132,7 +133,7 @@ export function PasswordInput({width, ...props}) {
 }
 
 export function Avatar({address, ...props}) {
-  return (
+  return address ? (
     <Image
       size={rem(80)}
       src={`https://robohash.idena.io/${address}`}
@@ -141,6 +142,8 @@ export function Avatar({address, ...props}) {
       ignoreFallback
       {...props}
     />
+  ) : (
+    <PseudoBox size={rem(80)} bg="gray.50" rounded="lg"></PseudoBox>
   )
 }
 

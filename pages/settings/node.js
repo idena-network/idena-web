@@ -67,7 +67,7 @@ function Settings() {
           >
             <AlertIcon name="info" color="red.500" size={5} mr={3}></AlertIcon>
             {t(
-              'API key is expired. You can not use the node for the upcoming validation ceremony'
+              'API key is expired. You cannot use the node for the upcoming validation ceremony'
             )}
           </Alert>
         )}
