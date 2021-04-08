@@ -1,7 +1,6 @@
 import React from 'react'
-import {Stack} from '@chakra-ui/core'
+import {Icon, Stack} from '@chakra-ui/core'
 import {useTranslation} from 'react-i18next'
-import {useRouter} from 'next/router'
 import {
   useIdentityState,
   mapToFriendlyStatus,
@@ -27,6 +26,7 @@ import {
   hasPersistedValidationResults,
 } from '../screens/validation/utils'
 import {persistItem} from '../shared/utils/persist'
+import {IconLink} from '../shared/components/link'
 
 export default function ProfilePage() {
   const {
@@ -151,6 +151,13 @@ export default function ProfilePage() {
               )}
             </UserStatList>
             <ActivateInviteForm />
+          </Stack>
+          <Stack spacing={10} w={48}>
+            <Stack spacing={1} align="flex-start" mt={104}>
+              <IconLink href="/flips/new" icon={<Icon name="photo" size={5} />}>
+                {t('New flip')}
+              </IconLink>
+            </Stack>
           </Stack>
         </Stack>
 
