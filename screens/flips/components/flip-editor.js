@@ -162,8 +162,13 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
           editors[idx].execute('removeObject', data.replaceObjectId)
         }
         Jimp.read(url).then(image => {
-          image.getBase64Async('image/png').then(nextUrl => {
-            editor.addImageObject(nextUrl).then(objectProps => {
+          image.getBase64Async('image/png').then(async nextUrl => {
+            const resizedNextUrl = await imageResizeSoft(
+              nextUrl,
+              IMAGE_WIDTH,
+              IMAGE_HEIGHT
+            )
+            editor.addImageObject(resizedNextUrl).then(objectProps => {
               if (data.replaceObjectId) {
                 editors[idx].setObjectPropertiesQuietly(
                   objectProps.id,
@@ -173,7 +178,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
 
               handleOnChanged()
               setActiveObjectId(objectProps.id)
-              setActiveObjectUrl(nextUrl)
+              setActiveObjectUrl(resizedNextUrl)
 
               if (onDone) onDone()
 
