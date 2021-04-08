@@ -5,7 +5,6 @@ import {
   Box,
   Flex,
   Icon,
-  IconButton,
   Image,
   InputGroup,
   InputLeftElement,
@@ -133,6 +132,7 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
                 <AspectRatioBox
                   ratio={1}
                   w={32}
+                  minH={32}
                   bg={thumbnail === selectedImage ? 'blue.032' : 'white'}
                   borderColor={
                     thumbnail === selectedImage ? 'blue.500' : 'gray.50'
