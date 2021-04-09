@@ -16,9 +16,10 @@ import {
   Input,
   PasswordInput,
 } from '../../shared/components/components'
-import {Section} from '../../screens/settings/components'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
-import {getKeyById, getProvider} from '../../shared/api'
+import {checkKey, fetchEpoch, getKeyById, getProvider} from '../../shared/api'
+
+const BASIC_ERROR = 'Node is unavailable.'
 
 function Settings() {
   const {t} = useTranslation()
@@ -30,6 +31,8 @@ function Settings() {
     url: settingsState.url || '',
     apiKey: settingsState.apiKey || '',
   })
+
+  const [offlineError, setOfflineError] = useState(BASIC_ERROR)
 
   useEffect(() => {
     setState({url: settingsState.url, apiKey: settingsState.apiKey})
@@ -50,6 +53,26 @@ function Settings() {
       addError({title: 'Restore failed. Please, try again.'})
     }
   }
+
+  useEffect(() => {
+    async function check() {
+      try {
+        const {epoch} = await fetchEpoch(true)
+        const result = await checkKey(settingsState.apiKey)
+        if (result.epoch >= epoch - 1) {
+          const provider = await getProvider(result.provider)
+          setOfflineError(
+            `This node is unavailable. Please contact the node owner: ${provider.data.ownerName}`
+          )
+        }
+      } catch (e) {
+        setOfflineError(BASIC_ERROR)
+      }
+    }
+
+    if (settingsState.apiKeyState === apiKeyStates.OFFLINE) check()
+    else setOfflineError(BASIC_ERROR)
+  }, [settingsState.apiKeyState, settingsState.url, settingsState.apiKey])
 
   return (
     <SettingsLayout>
@@ -90,7 +113,7 @@ function Settings() {
                 size={5}
                 mr={3}
               ></AlertIcon>
-              {t('Node is unavailable.')}
+              {t(offlineError, {nsSeparator: 'null'})}
             </Alert>
           )}
         <FormControl>

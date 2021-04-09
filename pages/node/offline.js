@@ -1,7 +1,8 @@
-import {Flex, Radio, RadioGroup, Stack} from '@chakra-ui/core'
+import {Alert, AlertIcon, Flex, Radio, RadioGroup, Stack} from '@chakra-ui/core'
 import {useRouter} from 'next/router'
 import {padding} from 'polished'
 import {useEffect, useState} from 'react'
+import {checkKey, fetchEpoch, getProvider} from '../../shared/api'
 
 import {SubHeading, Text} from '../../shared/components'
 import {PrimaryButton} from '../../shared/components/button'
@@ -20,10 +21,11 @@ const options = {
 }
 
 export default function Offline() {
-  const {apiKeyState} = useSettingsState()
+  const {apiKeyState, apiKey} = useSettingsState()
   const auth = useAuthState()
   const router = useRouter()
 
+  const [error, setError] = useState('')
   const [state, setState] = useState(options.BUY)
 
   const process = () => {
@@ -40,6 +42,25 @@ export default function Offline() {
     )
       router.push('/')
   }, [apiKeyState, router])
+
+  useEffect(() => {
+    async function check() {
+      try {
+        const {epoch} = await fetchEpoch(true)
+        const result = await checkKey(apiKey)
+        if (result.epoch >= epoch - 1) {
+          const provider = await getProvider(result.provider)
+          setError(
+            `This node is unavailable. Please contact the node owner: ${provider.data.ownerName}`
+          )
+        }
+      } catch (e) {
+        setError('')
+      }
+    }
+
+    check()
+  }, [apiKey])
 
   return (
     <Layout canRedirect={false}>
@@ -137,6 +158,24 @@ export default function Offline() {
             </Flex>
           </Flex>
         </Flex>
+        {error && (
+          <Alert
+            status="error"
+            bg="red.010"
+            borderWidth="1px"
+            borderColor="red.050"
+            fontWeight={500}
+            color="white"
+            rounded="md"
+            px={3}
+            py={2}
+            maxWidth={rem(480)}
+            mt={2}
+          >
+            <AlertIcon name="info" color="red.500" size={5} mr={3}></AlertIcon>
+            {error}
+          </Alert>
+        )}
       </Flex>
     </Layout>
   )
