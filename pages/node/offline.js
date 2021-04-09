@@ -1,4 +1,12 @@
-import {Alert, AlertIcon, Flex, Radio, RadioGroup, Stack} from '@chakra-ui/core'
+import {
+  Alert,
+  AlertIcon,
+  Flex,
+  Link,
+  Radio,
+  RadioGroup,
+  Stack,
+} from '@chakra-ui/core'
 import {useRouter} from 'next/router'
 import {padding} from 'polished'
 import {useEffect, useState} from 'react'
@@ -139,17 +147,20 @@ export default function Offline() {
               <Text
                 color={theme.colors.white}
                 fontSize={rem(14)}
-                css={{opacity: 0.5, marginTop: rem(theme.spacings.small12)}}
+                css={{marginTop: rem(theme.spacings.small12)}}
               >
-                You can run your own node for free at your desktop computer.
-                Download it{' '}
-                <a
-                  href="https://idena.io.download"
+                <span style={{opacity: 0.5}}>
+                  You can run your own node for free at your desktop computer.
+                  Download it{' '}
+                </span>{' '}
+                <Link
+                  href="https://idena.io/download"
                   target="_blank"
                   rel="noreferrer"
+                  color="brandBlue.100"
                 >
                   here
-                </a>
+                </Link>
                 .
               </Text>
             </Flex>
