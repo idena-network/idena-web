@@ -51,7 +51,7 @@ export default function Offline() {
         if (result.epoch >= epoch - 1) {
           const provider = await getProvider(result.provider)
           setError(
-            `This node is unavailable. Please contact the node owner: ${provider.data.ownerName}`
+            `The node is unavailable. Please contact the node owner: ${provider.data.ownerName}`
           )
         }
       } catch (e) {
