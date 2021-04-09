@@ -161,7 +161,7 @@ export default function Offline() {
         {error && (
           <Alert
             status="error"
-            bg="red.010"
+            bg="red.500"
             borderWidth="1px"
             borderColor="red.050"
             fontWeight={500}
@@ -172,7 +172,7 @@ export default function Offline() {
             maxWidth={rem(480)}
             mt={2}
           >
-            <AlertIcon name="info" color="red.500" size={5} mr={3}></AlertIcon>
+            <AlertIcon name="info" color="white" size={5} mr={3}></AlertIcon>
             {error}
           </Alert>
         )}
