@@ -65,3 +65,7 @@ message ProtoFlipSubmitAttachment {
     bytes cid = 1;
     uint32 pair = 2;
 }
+
+message ProtoDeleteFlipAttachment {
+    bytes cid = 1;
+}
