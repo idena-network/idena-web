@@ -78,7 +78,7 @@ export function BuySharedNodeForm({
         0,
         coinbase,
         process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS,
-        0,
+        amount,
         0,
         privateKeyToPublicKey(privateKey),
         0,
