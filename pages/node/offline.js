@@ -10,7 +10,12 @@ import {
 import {useRouter} from 'next/router'
 import {padding} from 'polished'
 import {useEffect, useState} from 'react'
-import {checkKey, fetchEpoch, getProvider} from '../../shared/api'
+import {
+  checkKey,
+  fetchEpoch,
+  fetchIdentity,
+  getProvider,
+} from '../../shared/api'
 
 import {SubHeading, Text} from '../../shared/components'
 import {PrimaryButton} from '../../shared/components/button'
@@ -26,6 +31,7 @@ import theme, {rem} from '../../shared/theme'
 const options = {
   BUY: 0,
   ENTER_KEY: 1,
+  ACTIVATE: 2,
 }
 
 export default function Offline() {
@@ -35,12 +41,14 @@ export default function Offline() {
 
   const [error, setError] = useState('')
   const [state, setState] = useState(options.BUY)
+  const [activateActive, setActivateActive] = useState(false)
 
   const process = () => {
     if (state === options.ENTER_KEY) {
       return router.push('/settings/node')
     }
-    return router.push('/node/rent')
+    if (state === options.BUY) return router.push('/node/rent')
+    return router.push('/node/activate')
   }
 
   useEffect(() => {
@@ -69,6 +77,16 @@ export default function Offline() {
 
     check()
   }, [apiKey])
+
+  useEffect(() => {
+    async function load() {
+      const identity = await fetchIdentity(auth.coinbase, true)
+      if (identity.state === 'Undefined') {
+        setActivateActive(true)
+      }
+    }
+    load()
+  }, [auth.coinbase])
 
   return (
     <Layout canRedirect={false}>
@@ -140,6 +158,16 @@ export default function Offline() {
                       Enter shared node API key
                     </Text>
                   </Radio>
+                  <Radio
+                    isChecked={state === options.ACTIVATE}
+                    onClick={() => setState(options.ACTIVATE)}
+                    borderColor="white"
+                    isDisabled={!activateActive}
+                  >
+                    <Text color={theme.colors.white} fontSize={rem(13)}>
+                      Activate invite
+                    </Text>
+                  </Radio>
                 </Stack>
               </RadioGroup>
             </Flex>
@@ -164,8 +192,10 @@ export default function Offline() {
                 .
               </Text>
             </Flex>
-            <Flex marginTop={rem(30)} style={{marginLeft: 'auto'}}>
-              <PrimaryButton onClick={process}>Continue</PrimaryButton>
+            <Flex marginTop={rem(30)}>
+              <PrimaryButton onClick={process} ml="auto">
+                Continue
+              </PrimaryButton>
             </Flex>
           </Flex>
         </Flex>

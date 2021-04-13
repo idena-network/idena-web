@@ -179,18 +179,22 @@ export default function ImportKey() {
         </AuthLayout>
       )}
       {step === steps.INVITATION && (
-        <ActivateInvite
-          privateKey={decryptKey(state.key, state.password)}
-          onBack={() => setStep(steps.KEY)}
-          onSkip={() => {
-            setNewKey(state.key, state.password, state.saveKey)
-            Router.push('/')
-          }}
-          onNext={() => {
-            setNewKey(state.key, state.password, state.saveKey)
-            Router.push('/')
-          }}
-        ></ActivateInvite>
+        <AuthLayout>
+          <AuthLayout.Normal>
+            <ActivateInvite
+              privateKey={decryptKey(state.key, state.password)}
+              onBack={() => setStep(steps.KEY)}
+              onSkip={() => {
+                setNewKey(state.key, state.password, state.saveKey)
+                Router.push('/')
+              }}
+              onNext={() => {
+                setNewKey(state.key, state.password, state.saveKey)
+                Router.push('/')
+              }}
+            ></ActivateInvite>
+          </AuthLayout.Normal>
+        </AuthLayout>
       )}
     </>
   )

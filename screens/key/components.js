@@ -3,7 +3,6 @@ import {margin, rem} from 'polished'
 import {useEffect, useState} from 'react'
 import {useQuery} from 'react-query'
 import {Label, SubHeading} from '../../shared/components'
-import {AuthLayout} from '../../shared/components/auth'
 import {
   useSettingsDispatch,
   useSettingsState,
@@ -62,6 +61,7 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
   }, [addPurchasedKey, data, onNext, provider])
 
   const activateInvite = async () => {
+    setError('')
     setSubmitting(true)
 
     try {
@@ -88,7 +88,11 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
       )
       addPurchase(result.id, process.env.NEXT_PUBLIC_IDENA_PROVIDER)
     } catch (e) {
-      setError(`Failed to activate invite: ${e.response.data}`)
+      setError(
+        `Failed to activate invite: ${
+          e.response ? e.response.data : 'invitation is invalid'
+        }`
+      )
     } finally {
       setSubmitting(false)
     }
@@ -97,76 +101,77 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
   const waiting = submitting || isLoading
 
   return (
-    <AuthLayout>
-      <AuthLayout.Normal>
-        <Flex width="100%">
-          <Avatar address={coinbase} borderRadius={rem(20)} />
-          <Flex
-            direction="column"
-            justify="center"
-            flex="1"
-            style={{marginLeft: rem(20)}}
-          >
-            <SubHeading color="white">Enter invitation code</SubHeading>
-            <Flex justify="space-between">
-              <Text color="xwhite.050" fontSize={rem(14)}>
-                Enter an invitation code to get a free shared node connection or
-                skip it to enter the invitation code later.
-              </Text>
-            </Flex>
+    <>
+      <Flex width="100%">
+        <Avatar address={coinbase} borderRadius={rem(20)} />
+        <Flex
+          direction="column"
+          justify="center"
+          flex="1"
+          style={{marginLeft: rem(20)}}
+        >
+          <SubHeading color="white">Enter invitation code</SubHeading>
+          <Flex justify="space-between">
+            <Text color="xwhite.050" fontSize={rem(14)}>
+              Enter an invitation code to get a free shared node connection or
+              skip it to enter the invitation code later.
+            </Text>
           </Flex>
         </Flex>
-        <Flex
-          width="100%"
-          style={{
-            ...margin(theme.spacings.medium24, 0, 0, 0),
+      </Flex>
+      <Flex
+        width="100%"
+        style={{
+          ...margin(theme.spacings.medium24, 0, 0, 0),
+        }}
+      >
+        <form
+          onSubmit={async e => {
+            e.preventDefault()
+            await activateInvite()
           }}
+          style={{width: '100%'}}
         >
-          <form
-            onSubmit={async e => {
-              e.preventDefault()
-              await activateInvite()
+          <Label htmlFor="code" style={{color: 'white', fontSize: rem(13)}}>
+            Invitation code
+          </Label>
+          <Flex width="100%" style={{marginBottom: rem(20)}}>
+            <Input
+              id="code"
+              value={state.code}
+              borderColor="xblack.008"
+              backgroundColor="xblack.016"
+              onChange={e => setState({...state, code: e.target.value})}
+              placeholder="Your invitation code"
+              color="white"
+            />
+          </Flex>
+
+          <Flex
+            style={{
+              ...margin(theme.spacings.xlarge, 0, 0, 0),
             }}
-            style={{width: '100%'}}
+            justify="space-between"
           >
-            <Label htmlFor="code" style={{color: 'white', fontSize: rem(13)}}>
-              Invitation code
-            </Label>
-            <Flex width="100%" style={{marginBottom: rem(20)}}>
-              <Input
-                id="code"
-                value={state.code}
-                borderColor="xblack.008"
-                backgroundColor="xblack.016"
-                onChange={e => setState({...state, code: e.target.value})}
-                placeholder="Your invitation code"
-              />
-            </Flex>
-
-            <Flex
+            <FlatButton
+              color="white"
+              onClick={onBack}
               style={{
-                ...margin(theme.spacings.xlarge, 0, 0, 0),
+                fontSize: rem(13),
+                textAlign: 'center',
               }}
-              justify="space-between"
+              disabled={waiting}
             >
-              <FlatButton
-                color="white"
-                onClick={onBack}
-                style={{
-                  fontSize: rem(13),
-                  textAlign: 'center',
-                }}
-                disabled={waiting}
-              >
-                <Icon
-                  name="arrow-up"
-                  size={5}
-                  style={{transform: 'rotate(-90deg)', marginTop: -3}}
-                ></Icon>
-                Back
-              </FlatButton>
+              <Icon
+                name="arrow-up"
+                size={5}
+                style={{transform: 'rotate(-90deg)', marginTop: -3}}
+              ></Icon>
+              Back
+            </FlatButton>
 
-              <Flex>
+            <Flex>
+              {onSkip && (
                 <SecondaryButton
                   type="button"
                   mr={rem(10)}
@@ -176,35 +181,36 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
                 >
                   Skip for now
                 </SecondaryButton>
-                <PrimaryButton
-                  isLoading={waiting}
-                  loadingText="Mining..."
-                  type="submit"
-                  ml="auto"
-                >
-                  Activate
-                </PrimaryButton>
-              </Flex>
-            </Flex>
-            {error && (
-              <Flex
-                style={{
-                  marginTop: rem(30, theme.fontSizes.base),
-                  backgroundColor: theme.colors.danger,
-                  borderRadius: rem(9, theme.fontSizes.base),
-                  fontSize: rem(14, theme.fontSizes.base),
-                  padding: `${rem(18, theme.fontSizes.base)} ${rem(
-                    24,
-                    theme.fontSizes.base
-                  )}`,
-                }}
+              )}
+              <PrimaryButton
+                isLoading={waiting}
+                loadingText="Mining..."
+                type="submit"
+                ml="auto"
               >
-                {error}
-              </Flex>
-            )}
-          </form>
-        </Flex>
-      </AuthLayout.Normal>
-    </AuthLayout>
+                Activate
+              </PrimaryButton>
+            </Flex>
+          </Flex>
+          {error && (
+            <Flex
+              style={{
+                marginTop: rem(30, theme.fontSizes.base),
+                backgroundColor: theme.colors.danger,
+                borderRadius: rem(9, theme.fontSizes.base),
+                fontSize: rem(14, theme.fontSizes.base),
+                padding: `${rem(18, theme.fontSizes.base)} ${rem(
+                  24,
+                  theme.fontSizes.base
+                )}`,
+                color: 'white',
+              }}
+            >
+              {error}
+            </Flex>
+          )}
+        </form>
+      </Flex>
+    </>
   )
 }

@@ -30,7 +30,9 @@ export default function Rent() {
     initialData: [],
   })
 
-  const availableProviders = providers.filter(x => x.slots)
+  const availableProviders = providers
+    .filter(x => x.slots)
+    .sort((a, b) => b.slots - a.slots)
 
   const selectedProvider =
     availableProviders.length && availableProviders[state]
@@ -49,6 +51,7 @@ export default function Rent() {
                 <TableHeaderCol width={rem(40)}></TableHeaderCol>
                 <TableHeaderCol>Node URL</TableHeaderCol>
                 <TableHeaderCol>Owner</TableHeaderCol>
+                <TableHeaderCol>Location</TableHeaderCol>
                 <TableHeaderCol className="text-right">
                   Slots available
                 </TableHeaderCol>
@@ -69,6 +72,7 @@ export default function Rent() {
                   </TableCol>
                   <TableCol>{p.data.url}</TableCol>
                   <TableCol>{p.data.ownerName}</TableCol>
+                  <TableCol>{p.data.location}</TableCol>
                   <TableCol className="text-right">{p.slots}</TableCol>
                   <TableCol className="text-right">
                     {p.data.price} iDNA
