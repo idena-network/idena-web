@@ -90,7 +90,7 @@ function IdentityProvider({children}) {
 
   useInterval(
     () => callRpc('dna_getBalance', identity.address),
-    identity && identity.address ? 1000 * 10 : null,
+    identity && identity.address ? 1000 * 100 : null,
     true
   )
 

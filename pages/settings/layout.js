@@ -12,7 +12,7 @@ function SettingsLayout({children}) {
   const {t} = useTranslation()
 
   return (
-    <Layout skipHardForkScreen>
+    <Layout canRedirect={false}>
       <Box px={theme.spacings.xxxlarge} py={theme.spacings.large}>
         <Box>
           <PageTitle>{t('Settings')}</PageTitle>
@@ -20,6 +20,9 @@ function SettingsLayout({children}) {
           <FlipFilter value={router.pathname} onChange={router.push}>
             <FlipFilterOption value="/settings">
               {t('General')}
+            </FlipFilterOption>
+            <FlipFilterOption value="/settings/node">
+              {t('Node')}
             </FlipFilterOption>
           </FlipFilter>
         </Box>

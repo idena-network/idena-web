@@ -17,11 +17,7 @@ function Notifications() {
   return (
     <Snackbar>
       {notifications.map((notification, idx) => (
-        <Notification
-          key={`notification-${idx}`}
-          wrap="break-all"
-          {...notification}
-        />
+        <Notification key={`notification-${idx}`} {...notification} />
       ))}
     </Snackbar>
   )
@@ -49,6 +45,7 @@ export function Notification({
       <div
         style={{
           ...margin(0, 0, rem(20)),
+          zIndex: 100,
         }}
       >
         <Flex
@@ -62,7 +59,7 @@ export function Notification({
             ...padding(rem(6), rem(8), rem(6), rem(16)),
             position: 'relative',
             width: rem(480),
-            zIndex: 9,
+            zIndex: 10000,
           }}
         >
           {icon || (

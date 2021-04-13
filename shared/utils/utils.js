@@ -37,7 +37,7 @@ export const toLocaleDna = locale => {
   const formatter = new Intl.NumberFormat(locale, {
     maximumFractionDigits: 18,
   })
-  return value => `${formatter.format(value)} DNA`
+  return value => `${formatter.format(value)} iDNA`
 }
 
 export const eitherState = (current, ...states) => states.some(current.matches)

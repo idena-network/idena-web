@@ -42,7 +42,6 @@ export function EpochProvider({children}) {
         }
       } catch (error) {
         setInterval(1000 * 5)
-        console.error('An error occured while fetching epoch', error.message)
       }
     }
 

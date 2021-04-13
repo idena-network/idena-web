@@ -19,7 +19,7 @@ import api from '../api/api-client'
  * @param  {...any} initialParams Params passed as args
  * @returns {[UseRpcResult, *]} Result
  */
-export default function useRpc(initialMethod, ...initialParams) {
+export default function useRpc(initialMethod, useProxy, ...initialParams) {
   const [rpcBody, dispatchRpc] = useReducer(
     (state, [method, ...params]) => ({
       ...state,
@@ -75,7 +75,10 @@ export default function useRpc(initialMethod, ...initialParams) {
 
     async function fetchData() {
       try {
-        const {data} = await api().post('/', rpcBody)
+        const {data} = await api(useProxy).post(
+          useProxy ? '/api/node/proxy' : '/',
+          rpcBody
+        )
         if (!ignore) {
           dataDispatch({type: 'done', ...data})
         }

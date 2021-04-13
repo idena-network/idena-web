@@ -8,6 +8,7 @@ import {
   DrawerCloseButton,
   DrawerHeader as ChakraDrawerHeader,
   DrawerBody as ChakraDrawerBody,
+  DrawerFooter as ChakraDrawerFooter,
   Input as ChakraInput,
   FormLabel as ChakraFormLabel,
   Image,
@@ -27,6 +28,7 @@ import {
   Stack,
   Box,
   Button,
+  PseudoBox,
 } from '@chakra-ui/core'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
@@ -48,12 +50,12 @@ export function Debug({children}) {
   )
 }
 
-export function Drawer({children, ...props}) {
+export function Drawer({isCloseable = true, children, ...props}) {
   return (
     <ChakraDrawer {...props}>
       <DrawerOverlay bg="xblack.080" />
-      <DrawerContent px={8} py={12} maxW={360}>
-        <DrawerCloseButton />
+      <DrawerContent px={8} pt={12} pb={4} maxW={360}>
+        {isCloseable && <DrawerCloseButton />}
         {children}
       </DrawerContent>
     </ChakraDrawer>
@@ -65,6 +67,10 @@ export function DrawerHeader(props) {
 
 export function DrawerBody(props) {
   return <ChakraDrawerBody p={0} {...props} />
+}
+
+export function DrawerFooter(props) {
+  return <ChakraDrawerFooter p={0} {...props} />
 }
 
 export function FormLabel(props) {
@@ -81,6 +87,10 @@ export function Input(props) {
       px={3}
       h={8}
       _placeholder={{
+        color: 'muted',
+      }}
+      _disabled={{
+        bg: 'gray.50',
         color: 'muted',
       }}
       {...props}
@@ -123,7 +133,7 @@ export function PasswordInput({width, ...props}) {
 }
 
 export function Avatar({address, ...props}) {
-  return (
+  return address ? (
     <Image
       size={rem(80)}
       src={`https://robohash.idena.io/${address}`}
@@ -132,6 +142,8 @@ export function Avatar({address, ...props}) {
       ignoreFallback
       {...props}
     />
+  ) : (
+    <PseudoBox size={rem(80)} bg="gray.50" rounded="lg"></PseudoBox>
   )
 }
 

@@ -6,12 +6,14 @@ import {Button, Label, SubHeading} from '../../shared/components'
 import {Input, PasswordInput} from '../../shared/components/components'
 import {useAuthDispatch} from '../../shared/providers/auth-context'
 import theme from '../../shared/theme'
-import NodeConnectionSetup from '../../screens/key/components'
+import {ActivateInvite} from '../../screens/key/components'
 import {AuthLayout} from '../../shared/components/auth'
+import {fetchIdentity} from '../../shared/api'
+import {privateKeyToAddress} from '../../shared/utils/crypto'
 
 const steps = {
   KEY: 0,
-  NODE: 1,
+  INVITATION: 1,
 }
 
 export default function ImportKey() {
@@ -20,14 +22,26 @@ export default function ImportKey() {
     password: '',
     saveKey: true,
   })
-  const {setNewKey, checkKey} = useAuthDispatch()
+  const {setNewKey, decryptKey} = useAuthDispatch()
   const [error, setError] = useState()
   const [step, setStep] = useState(steps.KEY)
 
-  const addKey = () => {
-    if (checkKey(state.key, state.password)) {
+  const addKey = async () => {
+    const key = decryptKey(state.key, state.password)
+    if (key) {
       setError(null)
-      setStep(steps.NODE)
+      try {
+        const identity = await fetchIdentity(privateKeyToAddress(key), true)
+        if (identity.state === 'Undefined') {
+          setStep(steps.INVITATION)
+        } else {
+          setNewKey(state.key, state.password, state.saveKey)
+          Router.push('/')
+        }
+      } catch {
+        setNewKey(state.key, state.password, state.saveKey)
+        Router.push('/')
+      }
     } else {
       setError('Key or password is invalid. Try again.')
     }
@@ -68,9 +82,9 @@ export default function ImportKey() {
               }}
             >
               <form
-                onSubmit={e => {
+                onSubmit={async e => {
                   e.preventDefault()
-                  addKey()
+                  await addKey()
                 }}
                 style={{width: '100%'}}
               >
@@ -164,11 +178,23 @@ export default function ImportKey() {
           </AuthLayout.Normal>
         </AuthLayout>
       )}
-      {step === steps.NODE && (
-        <NodeConnectionSetup
-          onBack={() => setStep(steps.KEY)}
-          onSave={() => setNewKey(state.key, state.password, state.saveKey)}
-        ></NodeConnectionSetup>
+      {step === steps.INVITATION && (
+        <AuthLayout>
+          <AuthLayout.Normal>
+            <ActivateInvite
+              privateKey={decryptKey(state.key, state.password)}
+              onBack={() => setStep(steps.KEY)}
+              onSkip={() => {
+                setNewKey(state.key, state.password, state.saveKey)
+                Router.push('/')
+              }}
+              onNext={() => {
+                setNewKey(state.key, state.password, state.saveKey)
+                Router.push('/')
+              }}
+            ></ActivateInvite>
+          </AuthLayout.Normal>
+        </AuthLayout>
       )}
     </>
   )

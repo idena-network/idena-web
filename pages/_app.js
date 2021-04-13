@@ -5,6 +5,7 @@ import Head from 'next/head'
 import {ThemeProvider, CSSReset} from '@chakra-ui/core'
 import NProgress from 'nprogress'
 import GoogleFonts from 'next-google-fonts'
+import {QueryClient, QueryClientProvider} from 'react-query'
 
 import '../i18n'
 
@@ -81,20 +82,25 @@ export default class MyApp extends App {
   }
 }
 
+// Create a client
+const queryClient = new QueryClient()
+
 function AppProviders(props) {
   return (
-    <SettingsProvider>
-      <AuthProvider>
-        <TimingProvider>
-          <EpochProvider>
-            <IdentityProvider>
-              <Flips />
-              <NotificationProvider {...props} />
-            </IdentityProvider>
-          </EpochProvider>
-        </TimingProvider>
-      </AuthProvider>
-    </SettingsProvider>
+    <QueryClientProvider client={queryClient}>
+      <SettingsProvider>
+        <AuthProvider>
+          <TimingProvider>
+            <EpochProvider>
+              <IdentityProvider>
+                <Flips />
+                <NotificationProvider {...props} />
+              </IdentityProvider>
+            </EpochProvider>
+          </TimingProvider>
+        </AuthProvider>
+      </SettingsProvider>
+    </QueryClientProvider>
   )
 }
 

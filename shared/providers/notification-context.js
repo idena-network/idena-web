@@ -1,7 +1,7 @@
 import React from 'react'
 import {useInterval} from '../hooks/use-interval'
 
-export const NOTIFICATION_DELAY = 3000
+export const NOTIFICATION_DELAY = 5000
 
 export const NotificationType = {
   Info: 'info',

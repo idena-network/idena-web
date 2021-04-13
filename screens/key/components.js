@@ -1,192 +1,216 @@
-import {Flex, Icon, Link, Text} from '@chakra-ui/core'
+import {Flex, Icon, Text} from '@chakra-ui/core'
 import {margin, rem} from 'polished'
-import Router from 'next/router'
-import axios from 'axios'
 import {useEffect, useState} from 'react'
-import {FiChevronRight} from 'react-icons/fi'
+import {useQuery} from 'react-query'
 import {Label, SubHeading} from '../../shared/components'
-import {AuthLayout} from '../../shared/components/auth'
 import {
   useSettingsDispatch,
   useSettingsState,
 } from '../../shared/providers/settings-context'
 import theme from '../../shared/theme'
-import {Input, PasswordInput} from '../../shared/components/components'
-import Button, {FlatButton} from '../../shared/components/button'
+import {Avatar, Input} from '../../shared/components/components'
+import {
+  FlatButton,
+  PrimaryButton,
+  SecondaryButton,
+} from '../../shared/components/button'
+import {
+  privateKeyToAddress,
+  privateKeyToPublicKey,
+} from '../../shared/utils/crypto'
+import {buyKey, getKeyById, getProvider, getRawTx} from '../../shared/api'
+import {Transaction} from '../../shared/models/transaction'
 
 // eslint-disable-next-line react/prop-types
-export default function NodeConnectionSetup({onBack, onSave}) {
-  const settings = useSettingsState()
+export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
+  const [submitting, setSubmitting] = useState(false)
+
   const [state, setState] = useState({
-    url: '',
-    apiKey: '',
+    code: '',
   })
   const [error, setError] = useState('')
-  const {saveConnection} = useSettingsDispatch()
+
+  const coinbase = privateKeyToAddress(privateKey)
+
+  const {apiKeyId} = useSettingsState()
+  const {addPurchase, addPurchasedKey} = useSettingsDispatch()
+
+  const {isLoading, data} = useQuery(
+    ['get-key-by-id', apiKeyId],
+    () => getKeyById(apiKeyId),
+    {
+      enabled: !!apiKeyId,
+      retry: true,
+      retryDelay: 5000,
+    }
+  )
+
+  const {data: provider} = useQuery(
+    ['get-provider-by-id', process.env.NEXT_PUBLIC_IDENA_PROVIDER],
+    () => getProvider(process.env.NEXT_PUBLIC_IDENA_PROVIDER),
+    {
+      retry: false,
+    }
+  )
 
   useEffect(() => {
-    setState(prevState => ({
-      ...prevState,
-      url: settings.url,
-      apiKey: settings.apiKey,
-    }))
-  }, [settings.apiKey, settings.url])
+    if (provider && data) {
+      addPurchasedKey(provider.data.url, data.key, data.epoch)
+      if (onNext) onNext()
+    }
+  }, [addPurchasedKey, data, onNext, provider])
 
-  const save = async () => {
+  const activateInvite = async () => {
+    setError('')
+    setSubmitting(true)
+
     try {
-      const {data} = await axios.post(state.url, {
-        key: state.apiKey,
-        method: 'dna_epoch',
-        params: [],
-        id: 1,
-      })
-      if (data.error) {
-        setError('API key is invalid.')
-      } else {
-        saveConnection(state.url, state.apiKey)
-        if (onSave) onSave()
-        Router.push('/')
-      }
+      const trimmedCode = state.code.trim()
+      const from = privateKeyToAddress(trimmedCode)
+
+      const rawTx = await getRawTx(
+        1,
+        from,
+        coinbase,
+        0,
+        0,
+        privateKeyToPublicKey(privateKey),
+        0,
+        true
+      )
+
+      const tx = new Transaction().fromHex(rawTx)
+      tx.sign(trimmedCode)
+      const result = await buyKey(
+        coinbase,
+        `0x${tx.toHex()}`,
+        process.env.NEXT_PUBLIC_IDENA_PROVIDER
+      )
+      addPurchase(result.id, process.env.NEXT_PUBLIC_IDENA_PROVIDER)
     } catch (e) {
-      setError('Node is unreachable.')
+      setError(
+        `Failed to activate invite: ${
+          e.response ? e.response.data : 'invitation is invalid'
+        }`
+      )
+    } finally {
+      setSubmitting(false)
     }
   }
 
+  const waiting = submitting || isLoading
+
   return (
-    <AuthLayout>
-      <AuthLayout.Normal>
-        <Flex width="100%">
-          <img
-            src="/static/idena_white.svg"
-            alt="logo"
-            style={{width: rem(80), height: rem(80)}}
-          />
-          <Flex
-            direction="column"
-            justify="center"
-            flex="1"
-            style={{marginLeft: rem(20)}}
-          >
-            <SubHeading color="white">Connect to Idena node</SubHeading>
-            <Flex justify="space-between">
-              <Text color="xwhite.050" fontSize={rem(14)}>
-                Enter an Idena shared node URL and API key
-              </Text>
-            </Flex>
-            <Flex>
-              <Link
-                href="https://t.me/IdenaSharedNodes"
-                target="_blank"
-                color={theme.colors.primary}
-                fontSize={rem(13)}
-              >
-                Ask idena community members to share their node for you
-                <FiChevronRight
-                  style={{
-                    display: 'inline-block',
-                  }}
-                  fontSize={rem(12)}
-                />
-              </Link>
-            </Flex>
+    <>
+      <Flex width="100%">
+        <Avatar address={coinbase} borderRadius={rem(20)} />
+        <Flex
+          direction="column"
+          justify="center"
+          flex="1"
+          style={{marginLeft: rem(20)}}
+        >
+          <SubHeading color="white">Enter invitation code</SubHeading>
+          <Flex justify="space-between">
+            <Text color="xwhite.050" fontSize={rem(14)}>
+              Enter an invitation code to get a free shared node connection
+              {onSkip ? ' or skip it to enter the invitation code later' : ''}.
+            </Text>
           </Flex>
         </Flex>
-        <Flex
-          width="100%"
-          style={{
-            ...margin(theme.spacings.medium24, 0, 0, 0),
+      </Flex>
+      <Flex
+        width="100%"
+        style={{
+          ...margin(theme.spacings.medium24, 0, 0, 0),
+        }}
+      >
+        <form
+          onSubmit={async e => {
+            e.preventDefault()
+            await activateInvite()
           }}
+          style={{width: '100%'}}
         >
-          <form
-            onSubmit={e => {
-              e.preventDefault()
-              save()
+          <Label htmlFor="code" style={{color: 'white', fontSize: rem(13)}}>
+            Invitation code
+          </Label>
+          <Flex width="100%" style={{marginBottom: rem(20)}}>
+            <Input
+              id="code"
+              value={state.code}
+              borderColor="xblack.008"
+              backgroundColor="xblack.016"
+              onChange={e => setState({...state, code: e.target.value})}
+              placeholder="Your invitation code"
+              color="white"
+            />
+          </Flex>
+
+          <Flex
+            style={{
+              ...margin(theme.spacings.xlarge, 0, 0, 0),
             }}
-            style={{width: '100%'}}
+            justify="space-between"
           >
-            <Label
-              htmlFor="nodeUrl"
-              style={{color: 'white', fontSize: rem(13)}}
-            >
-              Shared node URL
-            </Label>
-            <Flex width="100%" style={{marginBottom: rem(20)}}>
-              <Input
-                id="nodeUrl"
-                value={state.url}
-                borderColor="xblack.008"
-                backgroundColor="xblack.016"
-                onChange={e => setState({...state, url: e.target.value})}
-                placeholder="Enter your node address"
-              />
-            </Flex>
-            <Label
-              htmlFor="nodeKey"
+            <FlatButton
+              color="white"
+              onClick={onBack}
               style={{
-                color: 'white',
                 fontSize: rem(13),
+                textAlign: 'center',
               }}
+              disabled={waiting}
             >
-              Shared node api key
-            </Label>
-            <Flex width="100%" style={{position: 'relative'}}>
-              <PasswordInput
-                id="nodeKey"
-                value={state.apiKey}
-                width="100%"
-                borderColor="xblack.008"
-                backgroundColor="xblack.016"
-                onChange={e =>
-                  setState({
-                    ...state,
-                    apiKey: e.target.value,
-                  })
-                }
-                placeholder="Enter apiKey"
-              />
+              <Icon
+                name="arrow-up"
+                size={5}
+                style={{transform: 'rotate(-90deg)', marginTop: -3}}
+              ></Icon>
+              Back
+            </FlatButton>
+
+            <Flex>
+              {onSkip && (
+                <SecondaryButton
+                  type="button"
+                  mr={rem(10)}
+                  fontSize={rem(13)}
+                  onClick={onSkip}
+                  isDisabled={waiting}
+                >
+                  Skip for now
+                </SecondaryButton>
+              )}
+              <PrimaryButton
+                isLoading={waiting}
+                loadingText="Mining..."
+                type="submit"
+                ml="auto"
+              >
+                Activate
+              </PrimaryButton>
             </Flex>
+          </Flex>
+          {error && (
             <Flex
               style={{
-                ...margin(theme.spacings.medium32, 0, 0, 0),
+                marginTop: rem(30, theme.fontSizes.base),
+                backgroundColor: theme.colors.danger,
+                borderRadius: rem(9, theme.fontSizes.base),
+                fontSize: rem(14, theme.fontSizes.base),
+                padding: `${rem(18, theme.fontSizes.base)} ${rem(
+                  24,
+                  theme.fontSizes.base
+                )}`,
+                color: 'white',
               }}
-              justify="space-between"
             >
-              <FlatButton
-                color="white"
-                onClick={() => onBack()}
-                style={{
-                  fontSize: rem(13),
-                  textAlign: 'center',
-                }}
-              >
-                <Icon
-                  name="arrow-up"
-                  size={5}
-                  style={{transform: 'rotate(-90deg)', marginTop: -3}}
-                ></Icon>
-                Back
-              </FlatButton>
-              <Button type="submit">Next</Button>
+              {error}
             </Flex>
-            {error && (
-              <Flex
-                style={{
-                  marginTop: rem(30, theme.fontSizes.base),
-                  backgroundColor: theme.colors.danger,
-                  borderRadius: rem(9, theme.fontSizes.base),
-                  fontSize: rem(14, theme.fontSizes.base),
-                  padding: `${rem(18, theme.fontSizes.base)} ${rem(
-                    24,
-                    theme.fontSizes.base
-                  )}`,
-                }}
-              >
-                {error}
-              </Flex>
-            )}
-          </form>
-        </Flex>
-      </AuthLayout.Normal>
-    </AuthLayout>
+          )}
+        </form>
+      </Flex>
+    </>
   )
 }

@@ -1,9 +1,11 @@
+/* eslint-disable no-nested-ternary */
 import React from 'react'
 import PropTypes from 'prop-types'
 import {useRouter} from 'next/router'
 import {margin, borderRadius, darken, transparentize, padding} from 'polished'
 import {useTranslation} from 'react-i18next'
-import {Box, Link, Text} from '.'
+import {Text} from '@chakra-ui/core'
+import {Box, Link} from '.'
 import Flex from './flex'
 import theme, {rem} from '../theme'
 import {useIdentityState, IdentityStatus} from '../providers/identity-context'
@@ -11,11 +13,14 @@ import {useEpochState, EpochPeriod} from '../providers/epoch-context'
 import {pluralize} from '../utils/string'
 import {parsePersistedValidationState} from '../../screens/validation/utils'
 import {useAuthDispatch} from '../providers/auth-context'
+import {apiKeyStates, useSettingsState} from '../providers/settings-context'
+import {Tooltip} from './components'
 
 function Sidebar() {
   return (
     <section>
       <Flex direction="column" align="flex-start">
+        <ApiStatus />
         <Logo />
         <Nav />
         <ActionPanel />
@@ -36,6 +41,71 @@ function Sidebar() {
         }
       `}</style>
     </section>
+  )
+}
+
+function ApiStatus() {
+  const settings = useSettingsState()
+  const epoch = useEpochState()
+
+  let bg = theme.colors.white01
+  let color = theme.colors.muted
+  let text = 'Loading...'
+
+  if (settings.apiKeyState === apiKeyStates.OFFLINE) {
+    bg = theme.colors.danger02
+    color = theme.colors.danger
+    text = 'Offline'
+  } else if (settings.apiKeyState === apiKeyStates.EXPIRED) {
+    bg = theme.colors.warning02
+    color = theme.colors.warning
+    text = 'Expired'
+  } else if (
+    settings.apiKeyState === apiKeyStates.ONLINE ||
+    settings.apiKeyState === apiKeyStates.EXTERNAL
+  ) {
+    bg = theme.colors.success02
+    color = theme.colors.success
+    text = 'Online'
+  }
+
+  return (
+    <Box
+      bg={bg}
+      css={{
+        borderRadius: rem(12),
+        ...margin(0, 0, 0, rem(-8)),
+        ...padding(rem(2), rem(12), rem(4), rem(12)),
+      }}
+    >
+      <Flex align="baseline">
+        {settings.apiKeyState === apiKeyStates.EXPIRED ? (
+          <Link href="/node/expired">
+            <Text color={color} fontWeight={500} lineHeight={rem(18)}>
+              {text}
+            </Text>
+          </Link>
+        ) : settings.apiKeyState === apiKeyStates.ONLINE ? (
+          <Tooltip
+            label={`Access to the shared node will be expired after the validation ceremony ${
+              epoch ? new Date(epoch.nextValidation).toLocaleString() : ''
+            }`}
+            placement="right"
+            zIndex={1000}
+            bg="#45484d"
+            width={200}
+          >
+            <Text color={color} fontWeight={500} lineHeight={rem(18)}>
+              {text}
+            </Text>
+          </Tooltip>
+        ) : (
+          <Text color={color} fontWeight={500} lineHeight={rem(18)}>
+            {text}
+          </Text>
+        )}
+      </Flex>
+    </Box>
   )
 }
 

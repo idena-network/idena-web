@@ -21,70 +21,11 @@ import {
 } from '../../shared/components/components'
 import {FlatButton, SecondaryButton} from '../../shared/components/button'
 import {useAuthDispatch} from '../../shared/providers/auth-context'
+import {Section} from '../../screens/settings/components'
 
 function Settings() {
-  const {t} = useTranslation()
-  const {addNotification} = useNotificationDispatch()
-  const settingsState = useSettingsState()
-  const {saveConnection} = useSettingsDispatch()
-  const [state, setState] = useState({
-    url: settingsState.url || '',
-    apiKey: settingsState.apiKey || '',
-  })
-
-  useEffect(() => {
-    setState({url: settingsState.url, apiKey: settingsState.apiKey})
-  }, [settingsState])
-
-  const notify = () =>
-    addNotification({
-      title: 'Settings updated',
-      body: `Connected to url ${state.url}`,
-    })
-
   return (
     <SettingsLayout>
-      <Section title={t('Node')}>
-        <Box py={theme.spacings.xlarge}>
-          <Flex align="center">
-            <Label htmlFor="url" style={{width: 120}}>
-              {t('Shared node URL')}
-            </Label>
-            <Input
-              id="url"
-              value={state.url}
-              onChange={e => setState({...state, url: e.target.value})}
-              style={{
-                width: rem(300),
-              }}
-            />
-          </Flex>
-          <Flex align="center" css={{marginTop: 10}}>
-            <Label htmlFor="key" style={{width: 120}}>
-              {`${t('Shared node api key')} `}
-            </Label>
-            <Box style={{position: 'relative'}}>
-              <PasswordInput
-                id="key"
-                value={state.apiKey}
-                width={rem(300)}
-                onChange={e => setState({...state, apiKey: e.target.value})}
-              ></PasswordInput>
-            </Box>
-          </Flex>
-          <Flex css={{marginTop: 10}}>
-            <Button
-              css={{marginLeft: 120, width: 100}}
-              onClick={() => {
-                saveConnection(state.url, state.apiKey)
-                notify()
-              }}
-            >
-              {t('Save')}
-            </Button>
-          </Flex>
-        </Box>
-      </Section>
       <ExportPK />
     </SettingsLayout>
   )
@@ -183,18 +124,6 @@ function ExportPK() {
         </DialogFooter>
       </Dialog>
     </Section>
-  )
-}
-
-// eslint-disable-next-line react/prop-types
-function Section({title, children}) {
-  return (
-    <Box my={rem(theme.spacings.medium32)}>
-      <SubHeading css={margin(0, 0, theme.spacings.small, 0)}>
-        {title}
-      </SubHeading>
-      <Box my={rem(theme.spacings.small8)}>{children}</Box>
-    </Box>
   )
 }
 
