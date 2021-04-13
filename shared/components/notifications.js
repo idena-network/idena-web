@@ -17,11 +17,7 @@ function Notifications() {
   return (
     <Snackbar>
       {notifications.map((notification, idx) => (
-        <Notification
-          key={`notification-${idx}`}
-          wrap="break-all"
-          {...notification}
-        />
+        <Notification key={`notification-${idx}`} {...notification} />
       ))}
     </Snackbar>
   )

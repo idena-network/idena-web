@@ -1,4 +1,4 @@
-import {Box, CloseButton, Flex, Radio, Stack} from '@chakra-ui/core'
+import {Box, CloseButton, Flex, Link, Radio, Stack} from '@chakra-ui/core'
 import {useRouter} from 'next/router'
 import {rem} from 'polished'
 import {useState} from 'react'
@@ -71,7 +71,16 @@ export default function Rent() {
                     ></Radio>
                   </TableCol>
                   <TableCol>{p.data.url}</TableCol>
-                  <TableCol>{p.data.ownerName}</TableCol>
+                  <TableCol>
+                    <Link
+                      target="_blank"
+                      rel="noreferrer"
+                      color="brandBlue.100"
+                      href={`https://t.me/${p.data.ownerName}`}
+                    >
+                      {p.data.ownerName}
+                    </Link>
+                  </TableCol>
                   <TableCol>{p.data.location}</TableCol>
                   <TableCol className="text-right">{p.slots}</TableCol>
                   <TableCol className="text-right">

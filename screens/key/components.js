@@ -113,8 +113,8 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
           <SubHeading color="white">Enter invitation code</SubHeading>
           <Flex justify="space-between">
             <Text color="xwhite.050" fontSize={rem(14)}>
-              Enter an invitation code to get a free shared node connection or
-              skip it to enter the invitation code later.
+              Enter an invitation code to get a free shared node connection
+              {onSkip ? ' or skip it to enter the invitation code later' : ''}.
             </Text>
           </Flex>
         </Flex>
