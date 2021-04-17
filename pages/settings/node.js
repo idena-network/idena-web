@@ -142,11 +142,11 @@ function Settings() {
           <FormLabel color="brandGray.500" mb={2}>
             {t('Node API key')}
           </FormLabel>
-          <PasswordInput
+          <PasswordInput>
             id="key"
             value={state.apiKey}
             onChange={e => setState({...state, apiKey: e.target.value})}
-          ></PasswordInput>
+          </PasswordInput>
         </FormControl>
 
         <Flex justify="space-between">
