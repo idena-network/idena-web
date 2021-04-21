@@ -76,6 +76,7 @@
     "qrcode.react": "^0.9.3",
     "react": "^16.8.4",
     "react-beautiful-dnd": "^10.0.4",
+    "react-ga": "^3.3.0",
     "react-i18next": "^11.2.5",
     "react-icons": "^3.7.0",
     "react-indexed-db": "^1.0.12",

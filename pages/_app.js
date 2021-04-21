@@ -1,11 +1,12 @@
-import React from 'react'
+import React, {useEffect} from 'react'
 import App from 'next/app'
-import Router from 'next/router'
+import Router, {useRouter} from 'next/router'
 import Head from 'next/head'
 import {ThemeProvider, CSSReset} from '@chakra-ui/core'
 import NProgress from 'nprogress'
 import GoogleFonts from 'next-google-fonts'
 import {QueryClient, QueryClientProvider} from 'react-query'
+import ReactGA from 'react-ga'
 
 import '../i18n'
 
@@ -86,6 +87,23 @@ export default class MyApp extends App {
 const queryClient = new QueryClient()
 
 function AppProviders(props) {
+  const router = useRouter()
+
+  useEffect(() => {
+    ReactGA.initialize('G-4JK8YMZGK7')
+    ReactGA.pageview(window.location.pathname + window.location.search)
+  }, [])
+
+  useEffect(() => {
+    const handleRouteChange = url => {
+      ReactGA.pageview(url)
+    }
+    router.events.on('routeChangeComplete', handleRouteChange)
+    return () => {
+      router.events.off('routeChangeComplete', handleRouteChange)
+    }
+  }, [router.events])
+
   return (
     <QueryClientProvider client={queryClient}>
       <SettingsProvider>
