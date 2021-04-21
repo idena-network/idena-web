@@ -90,7 +90,7 @@ function AppProviders(props) {
   const router = useRouter()
 
   useEffect(() => {
-    ReactGA.initialize('G-4JK8YMZGK7')
+    ReactGA.initialize('UA-139651161-3')
     ReactGA.pageview(window.location.pathname + window.location.search)
   }, [])
 
