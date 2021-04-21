@@ -1,10 +1,12 @@
 import {useToast} from '@chakra-ui/core'
-import React from 'react'
+import React, {useEffect} from 'react'
 import {useTranslation} from 'react-i18next'
+import {useQuery} from 'react-query'
 import {fetchCeremonyIntervals} from '../api/dna'
 import {Toast} from '../components/components'
 import {useInterval} from '../hooks/use-interval'
 import {ntp} from '../utils/utils'
+import {useSettingsState} from './settings-context'
 
 const TIME_DRIFT_THRESHOLD = 10 * 1000
 
@@ -15,43 +17,34 @@ export function TimingProvider(props) {
 
   const toast = useToast()
 
-  const [timing, setTiming] = React.useState({
-    validation: null,
-    flipLottery: null,
-    shortSession: null,
-    longSession: null,
-    none: null,
-  })
+  const {apiKey, url} = useSettingsState()
 
-  const [interval, setInterval] = React.useState(1000 * 60)
-
-  useInterval(
-    async () => {
-      try {
-        const {
-          ValidationInterval: validation,
-          FlipLotteryDuration: flipLottery,
-          ShortSessionDuration: shortSession,
-          LongSessionDuration: longSession,
-        } = await fetchCeremonyIntervals()
-
-        setTiming({
-          validation,
-          flipLottery,
-          shortSession,
-          longSession,
+  const {data: timing} = useQuery(
+    ['get-timing', apiKey, url],
+    () =>
+      fetchCeremonyIntervals().then(
+        ({
+          ValidationInterval,
+          FlipLotteryDuration,
+          ShortSessionDuration,
+          LongSessionDuration,
+        }) => ({
+          validation: ValidationInterval,
+          flipLottery: FlipLotteryDuration,
+          shortSession: ShortSessionDuration,
+          longSession: LongSessionDuration,
         })
-        setInterval(1000 * 60 * 1)
-      } catch (error) {
-        setInterval(1000 * 5 * 1)
-        console.error(
-          'An error occured while fetching ceremony intervals',
-          error.message
-        )
-      }
-    },
-    interval,
-    true
+      ),
+    {
+      refetchOnWindowFocus: false,
+      initialData: {
+        validation: null,
+        flipLottery: null,
+        shortSession: null,
+        longSession: null,
+        none: null,
+      },
+    }
   )
 
   const [wrongClientTime, setWrongClientTime] = React.useState()
