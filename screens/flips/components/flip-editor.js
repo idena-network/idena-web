@@ -1,8 +1,7 @@
-import React, {createRef, useRef, useCallback, useEffect, useState} from 'react'
-import PropTypes from 'prop-types'
+/* eslint-disable react/prop-types */
+import React, {createRef, useRef, useCallback, useState} from 'react'
 import {rem, position} from 'polished'
 import Jimp from 'jimp'
-
 import {useTranslation} from 'react-i18next'
 import mousetrap from 'mousetrap'
 import {
@@ -17,7 +16,6 @@ import {
 import {useNotificationDispatch} from '../../../shared/providers/notification-context'
 import useClickOutside from '../../../shared/hooks/use-click-outside'
 import {Menu, MenuItem} from '../../../shared/components/menu'
-
 import {useInterval} from '../../../shared/hooks/use-interval'
 import {Box, Absolute} from '../../../shared/components'
 import {Tooltip} from '../../../shared/components/tooltip'
@@ -26,7 +24,6 @@ import theme from '../../../shared/theme'
 import Flex from '../../../shared/components/flex'
 import {resizing, imageResize, imageResizeSoft} from '../../../shared/utils/img'
 import {writeImageURLToClipboard} from '../../../shared/utils/clipboard'
-
 import {
   Brushes,
   ColorPicker,
@@ -61,7 +58,13 @@ const INSERT_BACKGROUND_IMAGE = 2
 const BLANK_IMAGE_DATAURL =
   'data:image/png;base64,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'
 
-function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
+export default function FlipEditor({
+  idx = 0,
+  src,
+  visible,
+  onChange,
+  onChanging,
+}) {
   const {t} = useTranslation()
   const toast = useToast()
 
@@ -101,7 +104,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
     }
   }
 
-  const [isSelectionCreated, SetIsSelectionCreated] = useState(null)
+  const [isSelectionCreated, setIsSelectionCreated] = useState(null)
   const [activeObjectUrl, setActiveObjectUrl] = useState(null)
   const [activeObjectId, setActiveObjectId] = useState(null)
 
@@ -342,12 +345,6 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
   }
 
   if (visible) {
-    mousetrap.bind(['del'], function(e) {
-      handleOnDelete()
-      e.stopImmediatePropagation()
-      return false
-    })
-
     mousetrap.bind(['command+v', 'ctrl+v'], function(e) {
       handleOnPaste()
       e.stopImmediatePropagation()
@@ -381,7 +378,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
     return editor
   }
 
-  function getEditorActiveObjecId(editor) {
+  function getEditorActiveObjectId(editor) {
     const objId =
       editor &&
       editor._graphics &&
@@ -391,7 +388,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
     return objId
   }
 
-  function getEditorObjecUrl(editor, objId) {
+  function getEditorObjectUrl(editor, objId) {
     const obj =
       objId && editor && editor._graphics && editor._graphics._objects[objId]
     const url = obj && obj._element && obj._element.src
@@ -399,7 +396,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
     return url
   }
 
-  function getEditorObjecProps(editor, objId) {
+  function getEditorObjectProps(editor, objId) {
     const obj =
       objId && editor && editor._graphics && editor._graphics._objects[objId]
     if (obj) {
@@ -417,7 +414,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
   }
 
   // init editor
-  useEffect(() => {
+  React.useEffect(() => {
     const updateEvents = e => {
       if (!e) return
       e.on({
@@ -425,8 +422,8 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
           setShowContextMenu(false)
 
           const editor = getEditorInstance()
-          const objId = getEditorActiveObjecId(editor)
-          const url = getEditorObjecUrl(editor, objId)
+          const objId = getEditorActiveObjectId(editor)
+          const url = getEditorObjectUrl(editor, objId)
 
           setActiveObjectId(objId)
           setActiveObjectUrl(url)
@@ -455,8 +452,8 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
       e.on({
         undoStackChanged() {
           const editor = getEditorInstance()
-          const objId = getEditorActiveObjecId(editor)
-          const url = getEditorObjecUrl(editor, objId)
+          const objId = getEditorActiveObjectId(editor)
+          const url = getEditorObjectUrl(editor, objId)
 
           setActiveObjectId(objId)
           setActiveObjectUrl(url)
@@ -467,8 +464,8 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
       e.on({
         redoStackChanged() {
           const editor = getEditorInstance()
-          const objId = getEditorActiveObjecId(editor)
-          const url = getEditorObjecUrl(editor, objId)
+          const objId = getEditorActiveObjectId(editor)
+          const url = getEditorObjectUrl(editor, objId)
 
           setActiveObjectId(objId)
           setActiveObjectUrl(url)
@@ -484,13 +481,13 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
 
       e.on({
         selectionCreated() {
-          SetIsSelectionCreated(true)
+          setIsSelectionCreated(true)
         },
       })
 
       e.on({
         selectionCleared() {
-          SetIsSelectionCreated(false)
+          setIsSelectionCreated(false)
         },
       })
     }
@@ -562,6 +559,12 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editorRefs, src, idx])
 
+  React.useEffect(() => {
+    if (showImageSearch || !visible) {
+      editorRefs.current[idx].current.getInstance().discardSelection()
+    }
+  }, [idx, showImageSearch, visible])
+
   return (
     <div
       style={{
@@ -576,7 +579,7 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
               url={activeObjectUrl}
               isDone={bottomMenuPanel !== BottomMenu.Erase}
               brushWidth={brush}
-              imageObjectProps={getEditorObjecProps(
+              imageObjectProps={getEditorObjectProps(
                 editors[idx],
                 activeObjectId
               )}
@@ -956,15 +959,6 @@ function FlipEditor({idx = 0, src, visible, onChange, onChanging}) {
   )
 }
 
-FlipEditor.propTypes = {
-  idx: PropTypes.number,
-  src: PropTypes.string,
-  visible: PropTypes.bool,
-  onChange: PropTypes.func,
-  onChanging: PropTypes.func,
-}
-
-// eslint-disable-next-line react/prop-types
 function FlipEditorIcon({tooltip, isActive, isDisabled, mr, ...props}) {
   const icon = (
     <ChakraIconButton
@@ -1003,5 +997,3 @@ function FlipEditorToolbarDivider(props) {
     />
   )
 }
-
-export default FlipEditor
