@@ -176,15 +176,29 @@ export function encryptFlipData(publicHex, privateHex, privateKey, epoch) {
   const publicFlipKey = generateFlipKey(true, epoch, privateKey)
   const privateFlipKey = generateFlipKey(false, epoch, privateKey)
 
-  const encryptedPublicData = eciesjs.encrypt(
-    secp256k1.publicKeyCreate(new Uint8Array(publicFlipKey)),
-    publicHex
-  )
+  let encryptedPublicData
+  let encryptedPrivateData
+  try {
+    encryptedPublicData = eciesjs.encrypt(
+      secp256k1.publicKeyCreate(new Uint8Array(publicFlipKey)),
+      publicHex
+    )
+  } catch (e) {
+    throw new Error(
+      `Cannot encrypt public flip hex, keySize: [${publicFlipKey.length}], err: ${e.message}`
+    )
+  }
 
-  const encryptedPrivateData = eciesjs.encrypt(
-    secp256k1.publicKeyCreate(new Uint8Array(privateFlipKey)),
-    privateHex
-  )
+  try {
+    encryptedPrivateData = eciesjs.encrypt(
+      secp256k1.publicKeyCreate(new Uint8Array(privateFlipKey)),
+      privateHex
+    )
+  } catch (e) {
+    throw new Error(
+      `Cannot encrypt private flip hex, keySize: [${privateFlipKey.length}], err: ${e.message}`
+    )
+  }
 
   return {
     encryptedPublicData,

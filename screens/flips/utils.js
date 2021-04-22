@@ -225,7 +225,15 @@ export async function publishFlip({
     toHexString(attachment, true)
   )
   const tx = new Transaction().fromHex(rawTx)
-  tx.sign(privateKey)
+  try {
+    tx.sign(privateKey)
+  } catch (e) {
+    throw new Error(
+      `Cannot sign flip transaction, keySize: [${
+        privateKey.length
+      }], keyType: [${typeof privateKey}], err: [${e.message}]`
+    )
+  }
   const hex = tx.toHex()
 
   const {result, error} = await submitRawFlip(
