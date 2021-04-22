@@ -120,7 +120,11 @@ export default function Expired() {
                     isChecked={state === options.PROLONG}
                     onChange={() => setState(options.PROLONG)}
                     borderColor="white"
-                    isDisabled={provider && !provider.slots}
+                    isDisabled={
+                      provider &&
+                      (!provider.slots ||
+                        provider.id === process.env.NEXT_PUBLIC_IDENA_PROVIDER)
+                    }
                   >
                     <Text color={theme.colors.white} fontSize={rem(13)}>
                       Prolong node access{' '}
