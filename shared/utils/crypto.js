@@ -158,7 +158,7 @@ export function generateFlipKey(isPublic, epoch, key) {
   )
   const result = generateKeyFromSeed([...signature, recid])
 
-  return result
+  return [...Array(32 - result.length).fill(0), ...result]
 }
 
 function generateKeyFromSeed(seed) {
