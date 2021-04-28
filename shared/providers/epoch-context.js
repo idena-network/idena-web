@@ -31,37 +31,37 @@ export function EpochProvider({children}) {
   const [epoch, setEpoch] = useState(null)
   const [interval, setInterval] = useState(1000 * 3)
 
-  useEffect(() => {
-    let ignore = false
+  // useEffect(() => {
+  //   let ignore = false
 
-    async function fetchData() {
-      try {
-        const nextEpoch = await fetchEpoch()
-        if (!ignore) {
-          setEpoch(nextEpoch)
-        }
-      } catch (error) {
-        setInterval(1000 * 5)
-      }
-    }
+  //   async function fetchData() {
+  //     try {
+  //       const nextEpoch = await fetchEpoch()
+  //       if (!ignore) {
+  //         setEpoch(nextEpoch)
+  //       }
+  //     } catch (error) {
+  //       setInterval(1000 * 5)
+  //     }
+  //   }
 
-    fetchData()
+  //   fetchData()
 
-    return () => {
-      ignore = true
-    }
-  }, [])
+  //   return () => {
+  //     ignore = true
+  //   }
+  // }, [])
 
-  useInterval(async () => {
-    try {
-      const nextEpoch = await fetchEpoch()
-      if (!deepEqual(epoch, nextEpoch)) {
-        setEpoch(nextEpoch)
-      }
-    } catch (error) {
-      console.error('An error occured while fetching epoch', error.message)
-    }
-  }, interval)
+  // useInterval(async () => {
+  //   try {
+  //     const nextEpoch = await fetchEpoch()
+  //     if (!deepEqual(epoch, nextEpoch)) {
+  //       setEpoch(nextEpoch)
+  //     }
+  //   } catch (error) {
+  //     console.error('An error occured while fetching epoch', error.message)
+  //   }
+  // }, interval)
 
   useEffect(() => {
     if (epoch && didValidate(epoch.epoch) && !didArchiveFlips(epoch.epoch)) {
@@ -89,20 +89,4 @@ export function EpochProvider({children}) {
       </EpochDispatchContext.Provider>
     </EpochStateContext.Provider>
   )
-}
-
-export function useEpochState() {
-  const context = useContext(EpochStateContext)
-  if (context === undefined) {
-    throw new Error('EpochState must be used within a EpochProvider')
-  }
-  return context
-}
-
-export function useEpochDispatch() {
-  const context = useContext(EpochDispatchContext)
-  if (context === undefined) {
-    throw new Error('EpochDispatch must be used within a EpochProvider')
-  }
-  return context
 }

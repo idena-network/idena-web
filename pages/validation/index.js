@@ -53,8 +53,6 @@ import {
 } from '../../screens/validation/components'
 import theme, {rem} from '../../shared/theme'
 import {AnswerType} from '../../shared/types'
-import {useEpochState} from '../../shared/providers/epoch-context'
-import {useTimingState} from '../../shared/providers/timing-context'
 import {PrimaryButton} from '../../shared/components/button'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {info} from '../../shared/utils/logs'
@@ -63,16 +61,17 @@ import {
   DialogBody,
   DialogFooter,
   DialogHeader,
-  FloatDebug,
   Tooltip,
 } from '../../shared/components/components'
 import {Tooltip as TooltipLegacy} from '../../shared/components/tooltip'
 import {LayoutContainer} from '../../screens/app/components'
 import Auth from '../../shared/components/auth'
+import useNodeTiming from '../../shared/hooks/use-node-timing'
+import useNodeEpoch from '../../shared/hooks/use-node-epoch'
 
 export default function ValidationPage() {
-  const epoch = useEpochState()
-  const timing = useTimingState()
+  const epoch = useNodeEpoch()
+  const timing = useNodeTiming()
   const {auth, privateKey, coinbase} = useAuthState()
 
   if (!auth) {

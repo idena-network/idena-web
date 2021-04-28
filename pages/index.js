@@ -5,7 +5,6 @@ import {
   useIdentityState,
   mapToFriendlyStatus,
 } from '../shared/providers/identity-context'
-import {useEpochState} from '../shared/providers/epoch-context'
 import {Page, PageTitle} from '../screens/app/components'
 import {
   UserInlineCard,
@@ -27,6 +26,7 @@ import {
 } from '../screens/validation/utils'
 import {persistItem} from '../shared/utils/persist'
 import {IconLink} from '../shared/components/link'
+import useNodeEpoch from '../shared/hooks/use-node-epoch'
 
 export default function ProfilePage() {
   const {
@@ -45,7 +45,7 @@ export default function ProfilePage() {
     totalQualifiedFlips,
   } = useIdentityState()
 
-  const epoch = useEpochState()
+  const epoch = useNodeEpoch()
 
   const [showValidationResults, setShowValidationResults] = React.useState()
 

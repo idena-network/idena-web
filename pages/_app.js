@@ -22,6 +22,7 @@ import {SettingsProvider} from '../shared/providers/settings-context'
 import 'tui-image-editor/dist/tui-image-editor.css'
 import {AuthProvider} from '../shared/providers/auth-context'
 import Flips from '../shared/components/flips'
+import {GlobalProvider} from '../shared/providers/global-context'
 
 export default class MyApp extends App {
   render() {
@@ -108,14 +109,16 @@ function AppProviders(props) {
     <QueryClientProvider client={queryClient}>
       <SettingsProvider>
         <AuthProvider>
-          <TimingProvider>
-            <EpochProvider>
-              <IdentityProvider>
-                <Flips />
-                <NotificationProvider {...props} />
-              </IdentityProvider>
-            </EpochProvider>
-          </TimingProvider>
+          <GlobalProvider>
+            <TimingProvider>
+              <EpochProvider>
+                <IdentityProvider>
+                  <Flips />
+                  <NotificationProvider {...props} />
+                </IdentityProvider>
+              </EpochProvider>
+            </TimingProvider>
+          </GlobalProvider>
         </AuthProvider>
       </SettingsProvider>
     </QueryClientProvider>
