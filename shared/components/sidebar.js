@@ -9,13 +9,13 @@ import {Box, Link} from '.'
 import Flex from './flex'
 import theme, {rem} from '../theme'
 import {useIdentityState, IdentityStatus} from '../providers/identity-context'
-import {EpochPeriod} from '../providers/epoch-context'
 import {pluralize} from '../utils/string'
 import {parsePersistedValidationState} from '../../screens/validation/utils'
 import {useAuthDispatch} from '../providers/auth-context'
 import {apiKeyStates, useSettingsState} from '../providers/settings-context'
 import {Tooltip} from './components'
 import useNodeEpoch from '../hooks/use-node-epoch'
+import {EpochPeriod} from '../types'
 
 function Sidebar() {
   return (

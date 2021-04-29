@@ -12,7 +12,6 @@ import '../i18n'
 
 import {uiTheme} from '../shared/theme'
 
-import {EpochProvider} from '../shared/providers/epoch-context'
 import {IdentityProvider} from '../shared/providers/identity-context'
 import {NotificationProvider} from '../shared/providers/notification-context'
 import {TimingProvider} from '../shared/providers/timing-context'
@@ -111,12 +110,10 @@ function AppProviders(props) {
         <AuthProvider>
           <GlobalProvider>
             <TimingProvider>
-              <EpochProvider>
-                <IdentityProvider>
-                  <Flips />
-                  <NotificationProvider {...props} />
-                </IdentityProvider>
-              </EpochProvider>
+              <IdentityProvider>
+                <Flips />
+                <NotificationProvider {...props} />
+              </IdentityProvider>
             </TimingProvider>
           </GlobalProvider>
         </AuthProvider>

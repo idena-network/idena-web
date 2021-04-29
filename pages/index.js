@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useEffect} from 'react'
 import {Icon, Stack} from '@chakra-ui/core'
 import {useTranslation} from 'react-i18next'
 import {
@@ -20,11 +20,7 @@ import {
 import Layout from '../shared/components/layout'
 import {IdentityStatus} from '../shared/types'
 import {toPercent, toLocaleDna} from '../shared/utils/utils'
-import {
-  shouldExpectValidationResults,
-  hasPersistedValidationResults,
-} from '../screens/validation/utils'
-import {persistItem} from '../shared/utils/persist'
+import {hasPersistedValidationResults} from '../screens/validation/utils'
 import {IconLink} from '../shared/components/link'
 import useNodeEpoch from '../shared/hooks/use-node-epoch'
 
@@ -49,17 +45,25 @@ export default function ProfilePage() {
 
   const [showValidationResults, setShowValidationResults] = React.useState()
 
-  React.useEffect(() => {
-    if (epoch && shouldExpectValidationResults(epoch.epoch)) {
+  // React.useEffect(() => {
+  //   if (epoch && shouldExpectValidationResults(epoch.epoch)) {
+  //     const {epoch: epochNumber} = epoch
+  //     if (hasPersistedValidationResults(epochNumber)) {
+  //       setShowValidationResults(true)
+  //     } else {
+  //       persistItem('validationResults', epochNumber, {
+  //         epochStart: new Date().toISOString(),
+  //       })
+  //       setShowValidationResults(hasPersistedValidationResults(epochNumber))
+  //     }
+  //   }
+  // }, [epoch])
+
+  // TODO: check it
+  useEffect(() => {
+    if (epoch) {
       const {epoch: epochNumber} = epoch
-      if (hasPersistedValidationResults(epochNumber)) {
-        setShowValidationResults(true)
-      } else {
-        persistItem('validationResults', epochNumber, {
-          epochStart: new Date().toISOString(),
-        })
-        setShowValidationResults(hasPersistedValidationResults(epochNumber))
-      }
+      setShowValidationResults(hasPersistedValidationResults(epochNumber))
     }
   }, [epoch])
 
