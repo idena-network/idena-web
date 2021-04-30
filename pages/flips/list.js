@@ -32,7 +32,6 @@ import {
   FlipFilter as FlipFilterType,
 } from '../../shared/types'
 import {flipsMachine} from '../../screens/flips/machines'
-import {useIdentityState} from '../../shared/providers/identity-context'
 import Layout from '../../shared/components/layout'
 import {Notification} from '../../shared/components/notifications'
 import {NotificationType} from '../../shared/providers/notification-context'
@@ -40,6 +39,7 @@ import {loadPersistentState} from '../../shared/utils/persist'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {redact} from '../../shared/utils/logs'
 import useNodeEpoch from '../../shared/hooks/use-node-epoch'
+import useNodeIdentity from '../../shared/hooks/use-node-identity'
 
 export default function FlipListPage() {
   const {t} = useTranslation()
@@ -55,12 +55,14 @@ export default function FlipListPage() {
     onClose: onCloseDeleteForm,
   } = useDisclosure()
 
-  const {
-    flips: knownFlips,
-    requiredFlips: requiredFlipsNumber,
-    availableFlips: availableFlipsNumber,
-    state: status,
-  } = useIdentityState()
+  const [
+    {
+      flips: knownFlips,
+      requiredFlips: requiredFlipsNumber,
+      availableFlips: availableFlipsNumber,
+      state: status,
+    },
+  ] = useNodeIdentity()
 
   const [selectedFlip, setSelectedFlip] = React.useState()
 

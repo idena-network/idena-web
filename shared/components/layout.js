@@ -5,7 +5,6 @@ import {Flex} from '@chakra-ui/core'
 import Sidebar from './sidebar'
 import Notifications from './notifications'
 import {shouldStartValidation} from '../../screens/validation/utils'
-import {useIdentityState} from '../providers/identity-context'
 import {ValidationToast} from '../../screens/validation/components'
 import {LayoutContainer} from '../../screens/app/components'
 import {useAuthState} from '../providers/auth-context'
@@ -13,6 +12,7 @@ import Auth from './auth'
 
 import {apiKeyStates, useSettingsState} from '../providers/settings-context'
 import useNodeEpoch from '../hooks/use-node-epoch'
+import useNodeIdentity from '../hooks/use-node-identity'
 
 export default function Layout({...props}) {
   const {auth} = useAuthState()
@@ -35,7 +35,7 @@ function NormalApp({children, canRedirect = true}) {
   const router = useRouter()
 
   const epoch = useNodeEpoch()
-  const identity = useIdentityState()
+  const [identity] = useNodeIdentity()
   const settings = useSettingsState()
 
   React.useEffect(() => {

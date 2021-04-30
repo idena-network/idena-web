@@ -42,7 +42,6 @@ import {loadValidationState} from './utils'
 import {Notification, Snackbar} from '../../shared/components/notifications'
 import {NotificationType} from '../../shared/providers/notification-context'
 import {EpochPeriod} from '../../shared/types'
-import {useTimingState} from '../../shared/providers/timing-context'
 import {createTimerMachine} from '../../shared/machines'
 import {
   FlipKeywordPanel,
@@ -54,6 +53,7 @@ import {
   DialogFooter,
 } from '../../shared/components/components'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
+import useNodeTiming from '../../shared/hooks/use-node-timing'
 
 export function ValidationScene(props) {
   return (
@@ -844,7 +844,7 @@ export function ValidationSoonToast({validationStart}) {
 }
 
 export function ValidationRunningToast({currentPeriod, validationStart}) {
-  const {shortSession, longSession} = useTimingState()
+  const {shortSession, longSession} = useNodeTiming()
   const sessionDuration =
     currentPeriod === EpochPeriod.ShortSession
       ? shortSession

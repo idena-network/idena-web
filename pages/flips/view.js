@@ -28,11 +28,11 @@ import {
 import Layout from '../../shared/components/layout'
 import {createViewFlipMachine} from '../../screens/flips/machines'
 import {rem} from '../../shared/theme'
-import {useIdentityState} from '../../shared/providers/identity-context'
 import {Toast} from '../../shared/components/components'
 import {FlipType} from '../../shared/types'
 import db from '../../shared/utils/db'
 import {redact} from '../../shared/utils/logs'
+import useNodeIdentity from '../../shared/hooks/use-node-identity'
 
 export default function ViewFlipPage() {
   const {t, i18n} = useTranslation()
@@ -49,7 +49,7 @@ export default function ViewFlipPage() {
 
   const toast = useToast()
 
-  const {flips: knownFlips} = useIdentityState()
+  const [{flips: knownFlips}] = useNodeIdentity()
 
   const [current, send] = useMachine(createViewFlipMachine(), {
     context: {

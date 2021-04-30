@@ -2,8 +2,8 @@ import {State} from 'xstate'
 import dayjs, {isDayjs} from 'dayjs'
 import {loadPersistentStateValue} from '../../shared/utils/persist'
 import {EpochPeriod} from '../../shared/types'
-import {canValidate} from '../../shared/providers/identity-context'
 import db from '../../shared/utils/db'
+import {canValidate} from '../../shared/hooks/use-node-identity'
 
 export const decodedFlip = ({decoded}) => decoded
 

@@ -12,9 +12,7 @@ import '../i18n'
 
 import {uiTheme} from '../shared/theme'
 
-import {IdentityProvider} from '../shared/providers/identity-context'
 import {NotificationProvider} from '../shared/providers/notification-context'
-import {TimingProvider} from '../shared/providers/timing-context'
 import {SettingsProvider} from '../shared/providers/settings-context'
 
 // eslint-disable-next-line import/no-extraneous-dependencies
@@ -109,12 +107,8 @@ function AppProviders(props) {
       <SettingsProvider>
         <AuthProvider>
           <GlobalProvider>
-            <TimingProvider>
-              <IdentityProvider>
-                <Flips />
-                <NotificationProvider {...props} />
-              </IdentityProvider>
-            </TimingProvider>
+            <Flips />
+            <NotificationProvider {...props} />
           </GlobalProvider>
         </AuthProvider>
       </SettingsProvider>

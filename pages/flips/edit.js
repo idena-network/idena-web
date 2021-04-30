@@ -39,6 +39,7 @@ import db from '../../shared/utils/db'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {redact} from '../../shared/utils/logs'
 import useNodeEpoch from '../../shared/hooks/use-node-epoch'
+import useNodeIdentity from '../../shared/hooks/use-node-identity'
 
 export default function EditFlipPage() {
   const {t, i18n} = useTranslation()
@@ -51,6 +52,7 @@ export default function EditFlipPage() {
 
   const epochState = useNodeEpoch()
   const {privateKey} = useAuthState()
+  const [, {waitFlipsUpdate}] = useNodeIdentity()
 
   const [current, send] = useMachine(flipMasterMachine, {
     context: {
@@ -78,7 +80,11 @@ export default function EditFlipPage() {
 
         return {...flip, images, keywordPairId, availableKeywords}
       },
-      submitFlip: async context => publishFlip(context),
+      submitFlip: async context => {
+        const result = await publishFlip(context)
+        waitFlipsUpdate()
+        return result
+      },
     },
     actions: {
       onSubmitted: () => router.push('/flips/list'),

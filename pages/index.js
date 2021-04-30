@@ -1,10 +1,6 @@
 import React, {useEffect} from 'react'
 import {Icon, Stack} from '@chakra-ui/core'
 import {useTranslation} from 'react-i18next'
-import {
-  useIdentityState,
-  mapToFriendlyStatus,
-} from '../shared/providers/identity-context'
 import {Page, PageTitle} from '../screens/app/components'
 import {
   UserInlineCard,
@@ -19,10 +15,15 @@ import {
 } from '../screens/profile/components'
 import Layout from '../shared/components/layout'
 import {IdentityStatus} from '../shared/types'
-import {toPercent, toLocaleDna} from '../shared/utils/utils'
+import {
+  toPercent,
+  toLocaleDna,
+  mapIdentityToFriendlyStatus,
+} from '../shared/utils/utils'
 import {hasPersistedValidationResults} from '../screens/validation/utils'
 import {IconLink} from '../shared/components/link'
 import useNodeEpoch from '../shared/hooks/use-node-epoch'
+import useNodeIdentity from '../shared/hooks/use-node-identity'
 
 export default function ProfilePage() {
   const {
@@ -30,16 +31,18 @@ export default function ProfilePage() {
     i18n: {language},
   } = useTranslation()
 
-  const {
-    address,
-    state,
-    balance,
-    stake,
-    penalty,
-    age,
-    totalShortFlipPoints,
-    totalQualifiedFlips,
-  } = useIdentityState()
+  const [
+    {
+      address,
+      state,
+      balance,
+      stake,
+      penalty,
+      age,
+      totalShortFlipPoints,
+      totalQualifiedFlips,
+    },
+  ] = useNodeIdentity()
 
   const epoch = useNodeEpoch()
 
@@ -82,12 +85,12 @@ export default function ProfilePage() {
                 <AnnotatedUserStat
                   annotation={t('Solve more than 12 flips to become Verified')}
                   label={t('Status')}
-                  value={mapToFriendlyStatus(state)}
+                  value={mapIdentityToFriendlyStatus(state)}
                 />
               ) : (
                 <SimpleUserStat
                   label={t('Status')}
-                  value={mapToFriendlyStatus(state)}
+                  value={mapIdentityToFriendlyStatus(state)}
                 />
               )}
               <UserStat>

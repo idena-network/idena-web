@@ -1,5 +1,7 @@
 import React, {useState, useEffect} from 'react'
 import {useQueryClient} from 'react-query'
+import {useToast} from '@chakra-ui/core'
+import {useTranslation} from 'react-i18next'
 import useNodeEpoch from '../hooks/use-node-epoch'
 import {useInterval} from '../hooks/use-interval'
 import useNodeTiming from '../hooks/use-node-timing'
@@ -16,9 +18,12 @@ import {
 } from '../../screens/flips/utils'
 import {persistItem} from '../utils/persist'
 import {EpochPeriod} from '../types'
+import {ntp} from '../utils/utils'
+import {Toast} from '../components/components'
 
 const GlobalStateContext = React.createContext()
 
+const TIME_DRIFT_THRESHOLD = 10
 const REFETCH_EPOCH_MIN_INTERVAL = 15
 
 const shouldRefetchEpoch = (epochData, timing) => {
@@ -36,6 +41,7 @@ const shouldRefetchEpoch = (epochData, timing) => {
     (currentPeriod === EpochPeriod.LongSession ||
       currentPeriod === EpochPeriod.AfterLongSession)
   ) {
+    console.log('1')
     return true
   }
 
@@ -43,6 +49,7 @@ const shouldRefetchEpoch = (epochData, timing) => {
     currentDate > nextValidationTime + shortSession * 1000 &&
     currentPeriod === EpochPeriod.ShortSession
   ) {
+    console.log('2')
     return true
   }
 
@@ -50,6 +57,7 @@ const shouldRefetchEpoch = (epochData, timing) => {
     currentDate > nextValidationTime &&
     currentPeriod === EpochPeriod.FlipLottery
   ) {
+    console.log('3')
     return true
   }
 
@@ -57,6 +65,7 @@ const shouldRefetchEpoch = (epochData, timing) => {
     currentDate > nextValidation - flipLottery * 1000 &&
     currentPeriod === EpochPeriod.None
   ) {
+    console.log('4')
     return true
   }
 
@@ -64,18 +73,27 @@ const shouldRefetchEpoch = (epochData, timing) => {
 }
 
 export function GlobalProvider(props) {
+  const {t} = useTranslation()
+
   const queryClient = useQueryClient()
 
   const epoch = useNodeEpoch()
   const timing = useNodeTiming()
+  const toast = useToast()
+
+  const [wrongClientTime, setWrongClientTime] = useState()
 
   const [lastModifiedEpochTime, setLastModifiedEpochTime] = useState(0)
 
+  // epoch checking
   useInterval(() => {
     if (shouldRefetchEpoch(epoch, timing)) {
-      const t = new Date().getTime()
+      const currentTime = new Date().getTime()
       if (
-        Math.abs(t - lastModifiedEpochTime > REFETCH_EPOCH_MIN_INTERVAL * 1000)
+        Math.abs(
+          currentTime - lastModifiedEpochTime >
+            REFETCH_EPOCH_MIN_INTERVAL * 1000
+        )
       ) {
         console.log(`invalidate epoch, ${epoch.currentPeriod}`)
         queryClient.invalidateQueries('get-epoch')
@@ -102,6 +120,49 @@ export function GlobalProvider(props) {
       })
     }
   }, [epoch])
+
+  // time checking
+  useInterval(
+    async () => {
+      try {
+        const requestOriginTime = Date.now()
+
+        const {result} = await (
+          await fetch('https://api.idena.io/api/now')
+        ).json()
+        const serverTime = new Date(result)
+
+        setWrongClientTime(
+          ntp(requestOriginTime, serverTime, serverTime, Date.now()).offset >
+            TIME_DRIFT_THRESHOLD * 1000
+        )
+      } catch (error) {
+        console.error('An error occured while fetching time API')
+      }
+    },
+    1000 * 60 * 5,
+    true
+  )
+
+  useEffect(() => {
+    if (wrongClientTime)
+      toast({
+        duration: null,
+        // eslint-disable-next-line react/display-name
+        render: toastProps => (
+          <Toast
+            status="error"
+            title={t('Please check your local clock')}
+            description={t('The time must be synchronized with internet time')}
+            actionContent={t('Okay')}
+            onAction={() => {
+              toastProps.onClose()
+              window.open('https://time.is/', '_blank')
+            }}
+          />
+        ),
+      })
+  }, [t, toast, wrongClientTime])
 
   return <GlobalStateContext.Provider {...props} />
 }
