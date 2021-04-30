@@ -1,26 +1,51 @@
-import {useCallback, useState} from 'react'
-import {useQuery} from 'react-query'
+import React, {useState, useContext, useCallback} from 'react'
+import {useQuery, useQueryClient} from 'react-query'
 import deepEqual from 'dequal'
 import {fetchIdentity, killIdentity} from '../api'
-import {useSettingsState} from '../providers/settings-context'
+import {useInterval} from '../hooks/use-interval'
+import {useAuthState} from './auth-context'
+import {useSettingsState} from './settings-context'
 import {IdentityStatus} from '../types'
-import {useAuthState} from '../providers/auth-context'
-import {useGlobal} from '../providers/global-context'
 
-function useNodeIdentity() {
+const IdentityContext = React.createContext()
+
+const NOT_WAITING = {
+  until: null,
+  fields: [],
+}
+
+export function IdentityProvider(props) {
+  const queryClient = useQueryClient()
   const {apiKey, url} = useSettingsState()
   const {coinbase} = useAuthState()
-  const {
-    identityUpdate: {
-      data: waitForUpdate,
-      actions: {waitStateUpdate, waitFlipsUpdate, stopWaiting},
-    },
-  } = useGlobal()
+
+  const [waitForUpdate, setWaitForUpdate] = useState(NOT_WAITING)
 
   const [identity, setIdentity] = useState(null)
 
+  const waitStateUpdate = (seconds = 120) => {
+    console.log('start waiting state')
+    setWaitForUpdate({
+      until: new Date().getTime() + seconds * 1000,
+      fields: ['state'],
+    })
+  }
+
+  const waitFlipsUpdate = (seconds = 120) => {
+    console.log('start waiting flips')
+    setWaitForUpdate({
+      until: new Date().getTime() + seconds * 1000,
+      fields: ['flips'],
+    })
+  }
+
+  const stopWaiting = () => {
+    setWaitForUpdate(NOT_WAITING)
+  }
+
   useQuery(['get-identity', apiKey, url], () => fetchIdentity(coinbase), {
     retryDelay: 5 * 1000,
+    enabled: !!coinbase,
     onSuccess: nextIdentity => {
       if (!deepEqual(identity, nextIdentity)) {
         const state =
@@ -55,6 +80,13 @@ function useNodeIdentity() {
     },
   })
 
+  useInterval(
+    () => {
+      queryClient.invalidateQueries('get-identity')
+    },
+    waitForUpdate.until ? 10 * 1000 : null
+  )
+
   const killMe = useCallback(
     async ({to}) => {
       const resp = await killIdentity(identity.address, to)
@@ -69,7 +101,12 @@ function useNodeIdentity() {
     [identity]
   )
 
-  return [identity || {}, {killMe, waitStateUpdate, waitFlipsUpdate}]
+  return (
+    <IdentityContext.Provider
+      {...props}
+      value={[identity || {}, {killMe, waitStateUpdate, waitFlipsUpdate}]}
+    />
+  )
 }
 
 export function canActivateInvite(identity) {
@@ -79,4 +116,10 @@ export function canActivateInvite(identity) {
   )
 }
 
-export default useNodeIdentity
+export function useIdentity() {
+  const context = useContext(IdentityContext)
+  if (context === undefined) {
+    throw new Error('useIdentity must be used within a IdentityProvider')
+  }
+  return context
+}

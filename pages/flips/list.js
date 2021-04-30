@@ -38,15 +38,15 @@ import {NotificationType} from '../../shared/providers/notification-context'
 import {loadPersistentState} from '../../shared/utils/persist'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {redact} from '../../shared/utils/logs'
-import useNodeEpoch from '../../shared/hooks/use-node-epoch'
-import useNodeIdentity from '../../shared/hooks/use-node-identity'
+import {useIdentity} from '../../shared/providers/identity-context'
+import {useEpoch} from '../../shared/providers/epoch-context'
 
 export default function FlipListPage() {
   const {t} = useTranslation()
 
   const toast = useToast()
 
-  const epochState = useNodeEpoch()
+  const epochState = useEpoch()
   const {privateKey} = useAuthState()
 
   const {
@@ -62,7 +62,7 @@ export default function FlipListPage() {
       availableFlips: availableFlipsNumber,
       state: status,
     },
-  ] = useNodeIdentity()
+  ] = useIdentity()
 
   const [selectedFlip, setSelectedFlip] = React.useState()
 

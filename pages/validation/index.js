@@ -67,10 +67,10 @@ import {Tooltip as TooltipLegacy} from '../../shared/components/tooltip'
 import {LayoutContainer} from '../../screens/app/components'
 import Auth from '../../shared/components/auth'
 import useNodeTiming from '../../shared/hooks/use-node-timing'
-import useNodeEpoch from '../../shared/hooks/use-node-epoch'
+import {useEpoch} from '../../shared/providers/epoch-context'
 
 export default function ValidationPage() {
-  const epoch = useNodeEpoch()
+  const epoch = useEpoch()
   const timing = useNodeTiming()
   const {auth, privateKey, coinbase} = useAuthState()
 

@@ -32,7 +32,7 @@ import {Toast} from '../../shared/components/components'
 import {FlipType} from '../../shared/types'
 import db from '../../shared/utils/db'
 import {redact} from '../../shared/utils/logs'
-import useNodeIdentity from '../../shared/hooks/use-node-identity'
+import { useIdentity } from '../../shared/providers/identity-context'
 
 export default function ViewFlipPage() {
   const {t, i18n} = useTranslation()
@@ -49,7 +49,7 @@ export default function ViewFlipPage() {
 
   const toast = useToast()
 
-  const [{flips: knownFlips}] = useNodeIdentity()
+  const [{flips: knownFlips}] = useIdentity()
 
   const [current, send] = useMachine(createViewFlipMachine(), {
     context: {

@@ -38,8 +38,8 @@ import {Toast} from '../../shared/components/components'
 import db from '../../shared/utils/db'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {redact} from '../../shared/utils/logs'
-import useNodeEpoch from '../../shared/hooks/use-node-epoch'
-import useNodeIdentity from '../../shared/hooks/use-node-identity'
+import {useIdentity} from '../../shared/providers/identity-context'
+import {useEpoch} from '../../shared/providers/epoch-context'
 
 export default function EditFlipPage() {
   const {t, i18n} = useTranslation()
@@ -50,9 +50,9 @@ export default function EditFlipPage() {
 
   const toast = useToast()
 
-  const epochState = useNodeEpoch()
+  const epochState = useEpoch()
   const {privateKey} = useAuthState()
-  const [, {waitFlipsUpdate}] = useNodeIdentity()
+  const [, {waitFlipsUpdate}] = useIdentity()
 
   const [current, send] = useMachine(flipMasterMachine, {
     context: {

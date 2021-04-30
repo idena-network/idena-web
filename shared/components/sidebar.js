@@ -13,9 +13,9 @@ import {parsePersistedValidationState} from '../../screens/validation/utils'
 import {useAuthDispatch} from '../providers/auth-context'
 import {apiKeyStates, useSettingsState} from '../providers/settings-context'
 import {Tooltip} from './components'
-import useNodeEpoch from '../hooks/use-node-epoch'
 import {EpochPeriod, IdentityStatus} from '../types'
-import useNodeIdentity, {canActivateInvite} from '../hooks/use-node-identity'
+import {canActivateInvite, useIdentity} from '../providers/identity-context'
+import {useEpoch} from '../providers/epoch-context'
 
 function Sidebar() {
   return (
@@ -47,7 +47,7 @@ function Sidebar() {
 
 function ApiStatus() {
   const settings = useSettingsState()
-  const epoch = useNodeEpoch()
+  const epoch = useEpoch()
 
   let bg = theme.colors.white01
   let color = theme.colors.muted
@@ -130,7 +130,7 @@ export function Logo() {
 
 function Nav() {
   const {t} = useTranslation()
-  const [{nickname}] = useNodeIdentity()
+  const [{nickname}] = useIdentity()
   const {logout} = useAuthDispatch()
   return (
     <nav>
@@ -230,7 +230,7 @@ function NavItem({href, icon, children, onClick}) {
 }
 
 function ActionPanel() {
-  const epoch = useNodeEpoch()
+  const epoch = useEpoch()
   const {t} = useTranslation()
 
   if (!epoch) {
@@ -298,7 +298,7 @@ Block.propTypes = {
 function CurrentTask({epoch, period}) {
   const {t} = useTranslation()
 
-  const [identity] = useNodeIdentity()
+  const [identity] = useIdentity()
 
   if (!period || !identity || !identity.state) return null
 

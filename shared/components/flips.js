@@ -1,13 +1,13 @@
 import {useMachine} from '@xstate/react'
 import {useMemo, useEffect} from 'react'
 import {createValidationFlipsMachine} from '../../screens/validation/machine'
-import useNodeEpoch from '../hooks/use-node-epoch'
 import {useAuthState} from '../providers/auth-context'
+import {useEpoch} from '../providers/epoch-context'
 import {redact} from '../utils/logs'
 
 export default function Flips() {
   const {coinbase, privateKey} = useAuthState()
-  const epoch = useNodeEpoch()
+  const epoch = useEpoch()
 
   if (coinbase && privateKey && epoch) {
     return (

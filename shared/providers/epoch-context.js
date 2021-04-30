@@ -1,0 +1,101 @@
+import React, {useState, useContext} from 'react'
+import {useQuery, useQueryClient} from 'react-query'
+import {useInterval} from '../hooks/use-interval'
+import {EpochPeriod} from '../types'
+import useNodeTiming from '../hooks/use-node-timing'
+import {useSettingsState} from './settings-context'
+import {fetchEpoch} from '../api'
+
+const EpochContext = React.createContext()
+
+const REFETCH_EPOCH_MIN_INTERVAL = 15
+
+const shouldRefetchEpoch = (epochData, timing) => {
+  if (!epochData || !timing) return false
+
+  const {flipLottery, shortSession, longSession} = timing
+
+  const {currentPeriod, nextValidation} = epochData
+
+  const nextValidationTime = new Date(nextValidation).getTime()
+  const currentDate = new Date().getTime()
+
+  if (
+    currentDate > nextValidationTime + (shortSession + longSession) * 1000 &&
+    (currentPeriod === EpochPeriod.LongSession ||
+      currentPeriod === EpochPeriod.AfterLongSession)
+  ) {
+    console.log('1')
+    return true
+  }
+
+  if (
+    currentDate > nextValidationTime + shortSession * 1000 &&
+    currentPeriod === EpochPeriod.ShortSession
+  ) {
+    console.log('2')
+    return true
+  }
+
+  if (
+    currentDate > nextValidationTime &&
+    currentPeriod === EpochPeriod.FlipLottery
+  ) {
+    console.log('3')
+    return true
+  }
+
+  if (
+    currentDate > nextValidation - flipLottery * 1000 &&
+    currentPeriod === EpochPeriod.None
+  ) {
+    console.log('4')
+    return true
+  }
+
+  return false
+}
+
+export function EpochProvider(props) {
+  const queryClient = useQueryClient()
+  const {apiKey, url} = useSettingsState()
+
+  const timing = useNodeTiming()
+
+  const [lastModifiedEpochTime, setLastModifiedEpochTime] = useState(0)
+
+  const {data: epochData} = useQuery(
+    ['get-epoch', apiKey, url],
+    () => fetchEpoch(),
+    {
+      retryDelay: 5 * 1000,
+      initialData: null,
+    }
+  )
+
+  useInterval(() => {
+    if (shouldRefetchEpoch(epochData, timing)) {
+      const currentTime = new Date().getTime()
+      if (
+        Math.abs(
+          currentTime - lastModifiedEpochTime >
+            REFETCH_EPOCH_MIN_INTERVAL * 1000
+        )
+      ) {
+        console.log(`invalidate epoch, ${epochData.currentPeriod}`)
+        queryClient.invalidateQueries('get-epoch')
+        setLastModifiedEpochTime(new Date().getTime())
+      }
+    }
+  }, 3 * 1000)
+
+  return <EpochContext.Provider {...props} value={epochData} />
+}
+
+export function useEpoch() {
+  const context = useContext(EpochContext)
+  if (context === undefined) {
+    throw new Error('useEpoch must be used within a EpochProvider')
+  }
+  return context
+}

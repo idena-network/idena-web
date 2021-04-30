@@ -11,8 +11,8 @@ import {useAuthState} from '../providers/auth-context'
 import Auth from './auth'
 
 import {apiKeyStates, useSettingsState} from '../providers/settings-context'
-import useNodeEpoch from '../hooks/use-node-epoch'
-import useNodeIdentity from '../hooks/use-node-identity'
+import {useIdentity} from '../providers/identity-context'
+import {useEpoch} from '../providers/epoch-context'
 
 export default function Layout({...props}) {
   const {auth} = useAuthState()
@@ -34,8 +34,8 @@ export default function Layout({...props}) {
 function NormalApp({children, canRedirect = true}) {
   const router = useRouter()
 
-  const epoch = useNodeEpoch()
-  const [identity] = useNodeIdentity()
+  const epoch = useEpoch()
+  const [identity] = useIdentity()
   const settings = useSettingsState()
 
   React.useEffect(() => {

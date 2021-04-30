@@ -40,10 +40,11 @@ import {
   privateKeyToAddress,
   privateKeyToPublicKey,
 } from '../../shared/utils/crypto'
-import useNodeIdentity, {
-  canActivateInvite,
-} from '../../shared/hooks/use-node-identity'
 import {mapIdentityToFriendlyStatus} from '../../shared/utils/utils'
+import {
+  canActivateInvite,
+  useIdentity,
+} from '../../shared/providers/identity-context'
 
 export function UserInlineCard({address, state}) {
   return (
@@ -132,7 +133,7 @@ export function ActivateInviteForm() {
 
   const {addError} = useNotificationDispatch()
 
-  const [identity, {waitStateUpdate}] = useNodeIdentity()
+  const [identity, {waitStateUpdate}] = useIdentity()
   const {coinbase, privateKey} = useAuthState()
 
   const [code, setCode] = React.useState('')
@@ -273,7 +274,7 @@ export function ValidationResultToast({epoch}) {
     'validationResults'
   )
 
-  const [{address, state: identityStatus}] = useNodeIdentity()
+  const [{address, state: identityStatus}] = useIdentity()
 
   const isValidationSucceeded = [
     IdentityStatus.Newbie,

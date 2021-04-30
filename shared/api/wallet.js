@@ -26,6 +26,7 @@ export async function fetchAccountList(address) {
  * @returns {number} Balance
  */
 export async function fetchBalance(address) {
+  console.log('fetch balance')
   const {data} = await api().post('/', {
     method: `dna_getBalance`,
     params: [address],
