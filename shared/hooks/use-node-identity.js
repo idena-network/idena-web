@@ -1,23 +1,21 @@
 import {useCallback, useState} from 'react'
-import {useQuery, useQueryClient} from 'react-query'
+import {useQuery} from 'react-query'
 import deepEqual from 'dequal'
 import {fetchIdentity, killIdentity} from '../api'
 import {useSettingsState} from '../providers/settings-context'
 import {IdentityStatus} from '../types'
-import {useInterval} from './use-interval'
 import {useAuthState} from '../providers/auth-context'
-
-const NOT_WAITING = {
-  until: null,
-  fields: [],
-}
+import {useGlobal} from '../providers/global-context'
 
 function useNodeIdentity() {
-  const queryClient = useQueryClient()
   const {apiKey, url} = useSettingsState()
   const {coinbase} = useAuthState()
-
-  const [waitForUpdate, setWaitForUpdate] = useState(NOT_WAITING)
+  const {
+    identityUpdate: {
+      data: waitForUpdate,
+      actions: {waitStateUpdate, waitFlipsUpdate, stopWaiting},
+    },
+  } = useGlobal()
 
   const [identity, setIdentity] = useState(null)
 
@@ -35,6 +33,7 @@ function useNodeIdentity() {
 
         // we are waiting for some changes
         if (
+          identity &&
           waitForUpdate.until &&
           waitForUpdate.fields.some(
             field => !deepEqual(identity[field], nextIdentity[field])
@@ -46,22 +45,15 @@ function useNodeIdentity() {
             identity,
             nextIdentity
           )
-          setWaitForUpdate(NOT_WAITING)
+          stopWaiting()
         }
         setIdentity({...nextIdentity, state})
       }
       if (waitForUpdate.until && new Date().getTime() > waitForUpdate.until) {
-        setWaitForUpdate(NOT_WAITING)
+        stopWaiting()
       }
     },
   })
-
-  useInterval(
-    () => {
-      queryClient.invalidateQueries('get-identity')
-    },
-    waitForUpdate.until ? 10 * 1000 : null
-  )
 
   const killMe = useCallback(
     async ({to}) => {
@@ -77,22 +69,6 @@ function useNodeIdentity() {
     [identity]
   )
 
-  const waitStateUpdate = (seconds = 120) => {
-    console.log('start waiting state')
-    setWaitForUpdate({
-      until: new Date().getTime() + seconds * 1000,
-      fields: ['state'],
-    })
-  }
-
-  const waitFlipsUpdate = (seconds = 120) => {
-    console.log('start waiting flips')
-    setWaitForUpdate({
-      until: new Date().getTime() + seconds * 1000,
-      fields: ['flips'],
-    })
-  }
-
   return [identity || {}, {killMe, waitStateUpdate, waitFlipsUpdate}]
 }
 
@@ -100,31 +76,6 @@ export function canActivateInvite(identity) {
   return (
     identity &&
     [IdentityStatus.Undefined, IdentityStatus.Invite].includes(identity.state)
-  )
-}
-
-export function canValidate(identity) {
-  if (!identity) {
-    return false
-  }
-
-  const {requiredFlips, flips, state} = identity
-
-  const numOfFlipsToSubmit = requiredFlips - (flips || []).length
-  const shouldSendFlips = numOfFlipsToSubmit > 0
-
-  return (
-    ([
-      IdentityStatus.Human,
-      IdentityStatus.Verified,
-      IdentityStatus.Newbie,
-    ].includes(state) &&
-      !shouldSendFlips) ||
-    [
-      IdentityStatus.Candidate,
-      IdentityStatus.Suspended,
-      IdentityStatus.Zombie,
-    ].includes(state)
   )
 }
 
