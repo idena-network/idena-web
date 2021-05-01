@@ -24,7 +24,6 @@ export function IdentityProvider(props) {
   const [identity, setIdentity] = useState(null)
 
   const waitStateUpdate = (seconds = 120) => {
-    console.log('start waiting state')
     setWaitForUpdate({
       until: new Date().getTime() + seconds * 1000,
       fields: ['state'],
@@ -32,7 +31,6 @@ export function IdentityProvider(props) {
   }
 
   const waitFlipsUpdate = (seconds = 120) => {
-    console.log('start waiting flips')
     setWaitForUpdate({
       until: new Date().getTime() + seconds * 1000,
       fields: ['flips'],
@@ -64,12 +62,6 @@ export function IdentityProvider(props) {
             field => !deepEqual(identity[field], nextIdentity[field])
           )
         ) {
-          console.log(
-            'stop waiting',
-            waitForUpdate.fields,
-            identity,
-            nextIdentity
-          )
           stopWaiting()
         }
         setIdentity({...nextIdentity, state})

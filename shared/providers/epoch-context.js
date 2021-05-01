@@ -25,7 +25,6 @@ const shouldRefetchEpoch = (epochData, timing) => {
     (currentPeriod === EpochPeriod.LongSession ||
       currentPeriod === EpochPeriod.AfterLongSession)
   ) {
-    console.log('1')
     return true
   }
 
@@ -33,7 +32,6 @@ const shouldRefetchEpoch = (epochData, timing) => {
     currentDate > nextValidationTime + shortSession * 1000 &&
     currentPeriod === EpochPeriod.ShortSession
   ) {
-    console.log('2')
     return true
   }
 
@@ -41,7 +39,6 @@ const shouldRefetchEpoch = (epochData, timing) => {
     currentDate > nextValidationTime &&
     currentPeriod === EpochPeriod.FlipLottery
   ) {
-    console.log('3')
     return true
   }
 
@@ -49,7 +46,6 @@ const shouldRefetchEpoch = (epochData, timing) => {
     currentDate > nextValidation - flipLottery * 1000 &&
     currentPeriod === EpochPeriod.None
   ) {
-    console.log('4')
     return true
   }
 
@@ -82,7 +78,6 @@ export function EpochProvider(props) {
             REFETCH_EPOCH_MIN_INTERVAL * 1000
         )
       ) {
-        console.log(`invalidate epoch, ${epochData.currentPeriod}`)
         queryClient.invalidateQueries('get-epoch')
         setLastModifiedEpochTime(new Date().getTime())
       }

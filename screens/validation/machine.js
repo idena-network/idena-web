@@ -794,169 +794,116 @@ export const createValidationMachine = ({
           type: 'parallel',
           states: {
             fetch: {
-              type: 'parallel',
+              initial: 'fetchHashes',
+              entry: log('Start fetching long flips'),
               states: {
-                flips: {
-                  initial: 'fetchHashes',
-                  entry: log('Start fetching long flips'),
-                  states: {
-                    fetchHashes: {
-                      entry: log('Fetching long hashes'),
-                      invoke: {
-                        src: 'fetchLongHashes',
-                        onDone: {
-                          target: 'fetchFlips',
-                          actions: [
-                            assign({
-                              longFlips: ({longFlips}, {data}) =>
-                                mergeFlipsByHash(
-                                  ...(longFlips.length
-                                    ? [longFlips, data]
-                                    : [data, longFlips])
-                                ),
-                              longHashes: (ctx, {data}) =>
-                                data.map(x => x.hash),
-                            }),
-                          ],
-                        },
-                        onError: {
-                          target: 'fetchHashes',
-                          actions: log(),
-                        },
-                      },
-                    },
-                    fetchFlips: {
-                      invoke: {
-                        src: 'fetchLongFlips',
-                        onDone: [
-                          {
-                            target: 'check',
-                            actions: [
-                              assign({
-                                retries: ({retries}) => retries + 1,
-                              }),
-                            ],
-                          },
-                        ],
-                        onError: {
-                          target: 'check',
-                        },
-                      },
-                    },
-                    check: {
-                      after: {
-                        5000: [
-                          {
-                            target: 'fetchFlips',
-                            cond: ({longFlips}) =>
-                              longFlips.some(
-                                ({time}) =>
-                                  time &&
-                                  dayjs()
-                                    .subtract(3, 'minute')
-                                    .isBefore(time)
-                              ) && longFlips.some(({decoded}) => !decoded),
-                          },
-                          {
-                            target: 'done',
-                            actions: [
-                              assign({
-                                longFlips: ({longFlips}) =>
-                                  mergeFlipsByHash(
-                                    longFlips,
-                                    longFlips.filter(failedFlip).map(flip => ({
-                                      ...flip,
-                                      failed: true,
-                                    }))
-                                  ),
-                              }),
-                            ],
-                          },
-                        ],
-                      },
-                    },
-                    done: {
-                      type: 'final',
-                      entry: log('Fetching long flips done'),
-                    },
-                  },
-                  on: {
-                    FLIP: {
+                fetchHashes: {
+                  entry: log('Fetching long hashes'),
+                  invoke: {
+                    src: 'fetchLongHashes',
+                    onDone: {
+                      target: 'fetchFlips',
                       actions: [
                         assign({
-                          longFlips: ({longFlips, retries}, {flip}) =>
-                            mergeFlipsByHash(longFlips, [{...flip, retries}]),
+                          longFlips: ({longFlips}, {data}) =>
+                            mergeFlipsByHash(
+                              ...(longFlips.length
+                                ? [longFlips, data]
+                                : [data, longFlips])
+                            ),
+                          longHashes: (ctx, {data}) => data.map(x => x.hash),
                         }),
-                        choose([
-                          {
-                            actions: [log()],
-                            cond: (_, {flip}) => flip.fetched,
-                          },
-                        ]),
                       ],
                     },
-                    REFETCH_FLIPS: {
-                      target: '.fetchFlips',
-                      actions: [
-                        assign({
-                          longFlips: ({longFlips}) =>
-                            longFlips.map(flip => ({
-                              ...flip,
-                              fetched: false,
-                              decoded: false,
-                            })),
-                        }),
-                        log('Re-fetch long flips after rebooting the app'),
-                      ],
+                    onError: {
+                      target: 'fetchHashes',
+                      actions: log(),
                     },
                   },
                 },
-                keywords: {
-                  initial: 'fetching',
-                  states: {
-                    fetching: {
-                      invoke: {
-                        src: 'fetchWords',
-                        onDone: {
-                          target: 'check',
-                          actions: assign({
-                            longFlips: ({longFlips}, {data}) =>
+                fetchFlips: {
+                  invoke: {
+                    src: 'fetchLongFlips',
+                    onDone: [
+                      {
+                        target: 'check',
+                        actions: [
+                          assign({
+                            retries: ({retries}) => retries + 1,
+                          }),
+                        ],
+                      },
+                    ],
+                    onError: {
+                      target: 'check',
+                    },
+                  },
+                },
+                check: {
+                  after: {
+                    5000: [
+                      {
+                        target: 'fetchFlips',
+                        cond: ({longFlips}) =>
+                          longFlips.some(
+                            ({time}) =>
+                              time &&
+                              dayjs()
+                                .subtract(3, 'minute')
+                                .isBefore(time)
+                          ) && longFlips.some(({decoded}) => !decoded),
+                      },
+                      {
+                        target: 'done',
+                        actions: [
+                          assign({
+                            longFlips: ({longFlips}) =>
                               mergeFlipsByHash(
                                 longFlips,
-                                data.map(({hash, words = []}) => ({
-                                  hash,
-                                  words: words.map(id => ({
-                                    id,
-                                    ...keywords[id],
-                                  })),
+                                longFlips.filter(failedFlip).map(flip => ({
+                                  ...flip,
+                                  failed: true,
                                 }))
                               ),
                           }),
-                        },
-                        onError: {
-                          target: 'check',
-                        },
-                      },
-                    },
-                    check: {
-                      after: {
-                        10000: [
-                          {
-                            target: 'fetching',
-                            cond: ({longFlips}) =>
-                              longFlips.length === 0 ||
-                              longFlips.some(decodedWithoutKeywords),
-                          },
-                          {
-                            target: 'done',
-                          },
                         ],
                       },
-                    },
-                    done: {
-                      type: 'final',
-                    },
+                    ],
                   },
+                },
+                done: {
+                  type: 'final',
+                  entry: log('Fetching long flips done'),
+                },
+              },
+              on: {
+                FLIP: {
+                  actions: [
+                    assign({
+                      longFlips: ({longFlips, retries}, {flip}) =>
+                        mergeFlipsByHash(longFlips, [{...flip, retries}]),
+                    }),
+                    choose([
+                      {
+                        actions: [log()],
+                        cond: (_, {flip}) => flip.fetched,
+                      },
+                    ]),
+                  ],
+                },
+                REFETCH_FLIPS: {
+                  target: '.fetchFlips',
+                  actions: [
+                    assign({
+                      longFlips: ({longFlips}) =>
+                        longFlips.map(flip => ({
+                          ...flip,
+                          fetched: false,
+                          decoded: false,
+                        })),
+                    }),
+                    log('Re-fetch long flips after rebooting the app'),
+                  ],
                 },
               },
             },
@@ -1088,45 +1035,101 @@ export const createValidationMachine = ({
                     finishFlips: {
                       on: {
                         START_KEYWORDS_QUALIFICATION: {
-                          target: 'keywords',
+                          target: 'keywordsQualification',
                         },
                       },
                     },
-                    keywords: {
-                      invoke: {src: () => cb => cb({type: 'PICK', index: 0})},
-                      on: {
-                        ANSWER: {
-                          actions: [
-                            assign({
-                              longFlips: ({longFlips}, {hash, option}) =>
-                                mergeFlipsByHash(longFlips, [{hash, option}]),
-                            }),
-                            log(
-                              (_, {hash, option}) =>
-                                `Make answer, hash: ${hash}, option: ${option}`
-                            ),
-                          ],
+                    keywordsQualification: {
+                      type: 'parallel',
+                      states: {
+                        fetch: {
+                          initial: 'fetching',
+                          states: {
+                            fetching: {
+                              invoke: {
+                                src: 'fetchWords',
+                                onDone: {
+                                  target: 'check',
+                                  actions: assign({
+                                    longFlips: ({longFlips}, {data}) =>
+                                      mergeFlipsByHash(
+                                        longFlips,
+                                        data.map(({hash, words = []}) => ({
+                                          hash,
+                                          words: words.map(id => ({
+                                            id,
+                                            ...keywords[id],
+                                          })),
+                                        }))
+                                      ),
+                                  }),
+                                },
+                                onError: {
+                                  target: 'check',
+                                },
+                              },
+                            },
+                            check: {
+                              after: {
+                                10000: [
+                                  {
+                                    target: 'fetching',
+                                    cond: ({longFlips}) =>
+                                      longFlips.length === 0 ||
+                                      longFlips.some(decodedWithoutKeywords),
+                                  },
+                                  {
+                                    target: 'done',
+                                  },
+                                ],
+                              },
+                            },
+                            done: {
+                              type: 'final',
+                            },
+                          },
                         },
-                        TOGGLE_WORDS: {
-                          actions: ['toggleKeywords'],
-                        },
-                        SUBMIT: {
-                          target: 'review',
-                        },
-                        PICK_INDEX: {
-                          actions: [
-                            send((_, {index}) => ({
-                              type: 'PICK',
-                              index,
-                            })),
-                          ],
+                        check: {
+                          invoke: {
+                            src: () => cb => cb({type: 'PICK', index: 0}),
+                          },
+                          on: {
+                            ANSWER: {
+                              actions: [
+                                assign({
+                                  longFlips: ({longFlips}, {hash, option}) =>
+                                    mergeFlipsByHash(longFlips, [
+                                      {hash, option},
+                                    ]),
+                                }),
+                                log(
+                                  (_, {hash, option}) =>
+                                    `Make answer, hash: ${hash}, option: ${option}`
+                                ),
+                              ],
+                            },
+                            TOGGLE_WORDS: {
+                              actions: ['toggleKeywords'],
+                            },
+                            SUBMIT: {
+                              target: 'review',
+                            },
+                            PICK_INDEX: {
+                              actions: [
+                                send((_, {index}) => ({
+                                  type: 'PICK',
+                                  index,
+                                })),
+                              ],
+                            },
+                          },
                         },
                       },
                     },
                     review: {
                       on: {
                         CHECK_FLIPS: {
-                          target: 'keywords',
+                          target: 'keywordsQualification.check',
                           actions: [
                             send((_, {index}) => ({
                               type: 'PICK_INDEX',
@@ -1134,10 +1137,10 @@ export const createValidationMachine = ({
                             })),
                           ],
                         },
-                        CHECK_REPORTS: 'keywords',
+                        CHECK_REPORTS: 'keywordsQualification.check',
                         SUBMIT: 'submitAnswers',
                         CANCEL: {
-                          target: 'keywords',
+                          target: 'keywordsQualification.check',
                           actions: [
                             send(({currentIndex}) => ({
                               type: 'PICK_INDEX',

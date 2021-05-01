@@ -56,7 +56,6 @@ export async function fetchIdentities() {
  * @returns {Identity} Identity details
  */
 export async function fetchIdentity(address, useProxy) {
-  console.log('fetching identity')
   const {data} = await api(useProxy).post(useProxy ? '/api/node/proxy' : '/', {
     method: 'dna_identity',
     params: address ? [address] : [],
@@ -82,7 +81,6 @@ export async function fetchIdentity(address, useProxy) {
  * @returns {Epoch} Epoch details
  */
 export async function fetchEpoch(useProxy) {
-  console.log('fetching epoch')
   const {data} = await api(useProxy).post(useProxy ? '/api/node/proxy' : '/', {
     method: 'dna_epoch',
     params: [],
