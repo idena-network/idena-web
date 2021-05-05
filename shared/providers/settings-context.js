@@ -174,7 +174,11 @@ function SettingsProvider({children}) {
 
   useInterval(
     () => {
-      if (router.pathname !== '/node/expired') router.push('/node/expired')
+      if (
+        router.pathname !== '/node/expired' &&
+        router.pathname !== '/validation'
+      )
+        router.push('/node/expired')
     },
     state.apiKeyState === apiKeyStates.EXPIRED ? EXPIRED_INTERVAL : null
   )

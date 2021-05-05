@@ -133,9 +133,6 @@ describe('create answers attachment', () => {
 
     const result = serializeAnswers(hashes, answers)
 
-    console.log(result)
-    console.log(toHexString(result))
-
     // 0000 0001 0000 0101 1001 0001
     expect(result).toStrictEqual([1, 5, 145])
   })

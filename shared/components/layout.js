@@ -1,22 +1,18 @@
 /* eslint-disable react/prop-types */
-import React, {useState} from 'react'
+import React from 'react'
 import {useRouter} from 'next/router'
-import {Flex, Radio, RadioGroup, Stack} from '@chakra-ui/core'
-import {padding} from 'polished'
+import {Flex} from '@chakra-ui/core'
 import Sidebar from './sidebar'
 import Notifications from './notifications'
-import {useEpochState} from '../providers/epoch-context'
 import {shouldStartValidation} from '../../screens/validation/utils'
-import {useIdentityState} from '../providers/identity-context'
 import {ValidationToast} from '../../screens/validation/components'
 import {LayoutContainer} from '../../screens/app/components'
 import {useAuthState} from '../providers/auth-context'
 import Auth from './auth'
 
-import {Avatar} from './components'
-import {SubHeading, Text} from './typo'
 import {apiKeyStates, useSettingsState} from '../providers/settings-context'
-import {PrimaryButton} from './button'
+import {useIdentity} from '../providers/identity-context'
+import {useEpoch} from '../providers/epoch-context'
 
 export default function Layout({...props}) {
   const {auth} = useAuthState()
@@ -38,8 +34,8 @@ export default function Layout({...props}) {
 function NormalApp({children, canRedirect = true}) {
   const router = useRouter()
 
-  const epoch = useEpochState()
-  const identity = useIdentityState()
+  const epoch = useEpoch()
+  const [identity] = useIdentity()
   const settings = useSettingsState()
 
   React.useEffect(() => {

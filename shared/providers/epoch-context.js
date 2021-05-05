@@ -1,108 +1,96 @@
-import {useEffect, useContext, useState, createContext} from 'react'
-import deepEqual from 'dequal'
+import React, {useState, useContext} from 'react'
+import {useQuery, useQueryClient} from 'react-query'
 import {useInterval} from '../hooks/use-interval'
+import {EpochPeriod} from '../types'
+import useNodeTiming from '../hooks/use-node-timing'
+import {useSettingsState} from './settings-context'
 import {fetchEpoch} from '../api'
-import {
-  shouldExpectValidationResults,
-  hasPersistedValidationResults,
-  didValidate,
-} from '../../screens/validation/utils'
 
-import {persistItem} from '../utils/persist'
-import {
-  archiveFlips,
-  didArchiveFlips,
-  markFlipsArchived,
-} from '../../screens/flips/utils'
+const EpochContext = React.createContext()
 
-export const EpochPeriod = {
-  FlipLottery: 'FlipLottery',
-  ShortSession: 'ShortSession',
-  LongSession: 'LongSession',
-  AfterLongSession: 'AfterLongSession',
-  None: 'None',
-}
+const REFETCH_EPOCH_MIN_INTERVAL = 15
 
-const EpochStateContext = createContext()
-const EpochDispatchContext = createContext()
+const shouldRefetchEpoch = (epochData, timing) => {
+  if (!epochData || !timing) return false
 
-// eslint-disable-next-line react/prop-types
-export function EpochProvider({children}) {
-  const [epoch, setEpoch] = useState(null)
-  const [interval, setInterval] = useState(1000 * 3)
+  const {flipLottery, shortSession, longSession} = timing
 
-  useEffect(() => {
-    let ignore = false
+  const {currentPeriod, nextValidation} = epochData
 
-    async function fetchData() {
-      try {
-        const nextEpoch = await fetchEpoch()
-        if (!ignore) {
-          setEpoch(nextEpoch)
-        }
-      } catch (error) {
-        setInterval(1000 * 5)
-      }
-    }
+  const nextValidationTime = new Date(nextValidation).getTime()
+  const currentDate = new Date().getTime()
 
-    fetchData()
-
-    return () => {
-      ignore = true
-    }
-  }, [])
-
-  useInterval(async () => {
-    try {
-      const nextEpoch = await fetchEpoch()
-      if (!deepEqual(epoch, nextEpoch)) {
-        setEpoch(nextEpoch)
-      }
-    } catch (error) {
-      console.error('An error occured while fetching epoch', error.message)
-    }
-  }, interval)
-
-  useEffect(() => {
-    if (epoch && didValidate(epoch.epoch) && !didArchiveFlips(epoch.epoch)) {
-      archiveFlips()
-      markFlipsArchived(epoch.epoch)
-    }
-  }, [epoch])
-
-  useEffect(() => {
-    if (
-      epoch &&
-      shouldExpectValidationResults(epoch.epoch) &&
-      !hasPersistedValidationResults(epoch.epoch)
-    ) {
-      persistItem('validationResults', epoch.epoch, {
-        epochStart: new Date().toISOString(),
-      })
-    }
-  }, [epoch])
-
-  return (
-    <EpochStateContext.Provider value={epoch || null}>
-      <EpochDispatchContext.Provider value={null}>
-        {children}
-      </EpochDispatchContext.Provider>
-    </EpochStateContext.Provider>
-  )
-}
-
-export function useEpochState() {
-  const context = useContext(EpochStateContext)
-  if (context === undefined) {
-    throw new Error('EpochState must be used within a EpochProvider')
+  if (
+    currentDate > nextValidationTime + (shortSession + longSession) * 1000 &&
+    (currentPeriod === EpochPeriod.LongSession ||
+      currentPeriod === EpochPeriod.AfterLongSession)
+  ) {
+    return true
   }
-  return context
+
+  if (
+    currentDate > nextValidationTime + shortSession * 1000 &&
+    currentPeriod === EpochPeriod.ShortSession
+  ) {
+    return true
+  }
+
+  if (
+    currentDate > nextValidationTime &&
+    currentPeriod === EpochPeriod.FlipLottery
+  ) {
+    return true
+  }
+
+  if (
+    currentDate > nextValidationTime - flipLottery * 1000 &&
+    currentPeriod === EpochPeriod.None
+  ) {
+    return true
+  }
+
+  return false
 }
 
-export function useEpochDispatch() {
-  const context = useContext(EpochDispatchContext)
+export function EpochProvider(props) {
+  const queryClient = useQueryClient()
+  const {apiKey, url} = useSettingsState()
+
+  const timing = useNodeTiming()
+
+  const [lastModifiedEpochTime, setLastModifiedEpochTime] = useState(0)
+
+  const {data: epochData} = useQuery(
+    ['get-epoch', apiKey, url],
+    () => fetchEpoch(),
+    {
+      retryDelay: 5 * 1000,
+      initialData: null,
+    }
+  )
+
+  useInterval(() => {
+    if (shouldRefetchEpoch(epochData, timing)) {
+      const currentTime = new Date().getTime()
+      if (
+        Math.abs(
+          currentTime - lastModifiedEpochTime >
+            REFETCH_EPOCH_MIN_INTERVAL * 1000
+        )
+      ) {
+        queryClient.invalidateQueries('get-epoch')
+        setLastModifiedEpochTime(new Date().getTime())
+      }
+    }
+  }, 3 * 1000)
+
+  return <EpochContext.Provider {...props} value={epochData} />
+}
+
+export function useEpoch() {
+  const context = useContext(EpochContext)
   if (context === undefined) {
-    throw new Error('EpochDispatch must be used within a EpochProvider')
+    throw new Error('useEpoch must be used within a EpochProvider')
   }
   return context
 }

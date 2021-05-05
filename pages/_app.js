@@ -12,16 +12,16 @@ import '../i18n'
 
 import {uiTheme} from '../shared/theme'
 
-import {EpochProvider} from '../shared/providers/epoch-context'
-import {IdentityProvider} from '../shared/providers/identity-context'
 import {NotificationProvider} from '../shared/providers/notification-context'
-import {TimingProvider} from '../shared/providers/timing-context'
 import {SettingsProvider} from '../shared/providers/settings-context'
 
 // eslint-disable-next-line import/no-extraneous-dependencies
 import 'tui-image-editor/dist/tui-image-editor.css'
 import {AuthProvider} from '../shared/providers/auth-context'
 import Flips from '../shared/components/flips'
+import {AppProvider} from '../shared/providers/app-context'
+import {IdentityProvider} from '../shared/providers/identity-context'
+import {EpochProvider} from '../shared/providers/epoch-context'
 
 export default class MyApp extends App {
   render() {
@@ -108,14 +108,14 @@ function AppProviders(props) {
     <QueryClientProvider client={queryClient}>
       <SettingsProvider>
         <AuthProvider>
-          <TimingProvider>
-            <EpochProvider>
-              <IdentityProvider>
+          <EpochProvider>
+            <IdentityProvider>
+              <AppProvider>
                 <Flips />
                 <NotificationProvider {...props} />
-              </IdentityProvider>
-            </EpochProvider>
-          </TimingProvider>
+              </AppProvider>
+            </IdentityProvider>
+          </EpochProvider>
         </AuthProvider>
       </SettingsProvider>
     </QueryClientProvider>

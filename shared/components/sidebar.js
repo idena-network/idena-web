@@ -8,13 +8,14 @@ import {Text} from '@chakra-ui/core'
 import {Box, Link} from '.'
 import Flex from './flex'
 import theme, {rem} from '../theme'
-import {useIdentityState, IdentityStatus} from '../providers/identity-context'
-import {useEpochState, EpochPeriod} from '../providers/epoch-context'
 import {pluralize} from '../utils/string'
 import {parsePersistedValidationState} from '../../screens/validation/utils'
 import {useAuthDispatch} from '../providers/auth-context'
 import {apiKeyStates, useSettingsState} from '../providers/settings-context'
 import {Tooltip} from './components'
+import {EpochPeriod, IdentityStatus} from '../types'
+import {canActivateInvite, useIdentity} from '../providers/identity-context'
+import {useEpoch} from '../providers/epoch-context'
 
 function Sidebar() {
   return (
@@ -46,7 +47,7 @@ function Sidebar() {
 
 function ApiStatus() {
   const settings = useSettingsState()
-  const epoch = useEpochState()
+  const epoch = useEpoch()
 
   let bg = theme.colors.white01
   let color = theme.colors.muted
@@ -129,7 +130,7 @@ export function Logo() {
 
 function Nav() {
   const {t} = useTranslation()
-  const {nickname} = useIdentityState()
+  const [{nickname}] = useIdentity()
   const {logout} = useAuthDispatch()
   return (
     <nav>
@@ -229,8 +230,7 @@ function NavItem({href, icon, children, onClick}) {
 }
 
 function ActionPanel() {
-  const identity = useIdentityState()
-  const epoch = useEpochState()
+  const epoch = useEpoch()
   const {t} = useTranslation()
 
   if (!epoch) {
@@ -252,11 +252,7 @@ function ActionPanel() {
         <Block title={t('Current period')}>{currentPeriod}</Block>
       )}
       <Block title={t('My current task')}>
-        <CurrentTask
-          epoch={epoch.epoch}
-          period={currentPeriod}
-          identity={identity}
-        />
+        <CurrentTask epoch={epoch.epoch} period={currentPeriod} />
       </Block>
       {currentPeriod === EpochPeriod.None && (
         <Block title={t('Next validation')}>
@@ -299,10 +295,12 @@ Block.propTypes = {
   children: PropTypes.node,
 }
 
-function CurrentTask({epoch, period, identity}) {
+function CurrentTask({epoch, period}) {
   const {t} = useTranslation()
 
-  if (!period || !identity.state) return null
+  const [identity] = useIdentity()
+
+  if (!period || !identity || !identity.state) return null
 
   switch (period) {
     case EpochPeriod.None: {
@@ -311,11 +309,10 @@ function CurrentTask({epoch, period, identity}) {
         requiredFlips: requiredFlipsNumber,
         availableFlips: availableFlipsNumber,
         state: status,
-        canActivateInvite,
       } = identity
 
       switch (true) {
-        case canActivateInvite:
+        case canActivateInvite(identity):
           return (
             <Link href="/" color={theme.colors.white}>
               {t('Activate invite')}

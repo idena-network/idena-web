@@ -1,11 +1,7 @@
-import React from 'react'
+import React, {useEffect} from 'react'
 import {Icon, Stack} from '@chakra-ui/core'
 import {useTranslation} from 'react-i18next'
-import {
-  useIdentityState,
-  mapToFriendlyStatus,
-} from '../shared/providers/identity-context'
-import {useEpochState} from '../shared/providers/epoch-context'
+import {useQuery, useQueryClient} from 'react-query'
 import {Page, PageTitle} from '../screens/app/components'
 import {
   UserInlineCard,
@@ -20,48 +16,50 @@ import {
 } from '../screens/profile/components'
 import Layout from '../shared/components/layout'
 import {IdentityStatus} from '../shared/types'
-import {toPercent, toLocaleDna} from '../shared/utils/utils'
 import {
-  shouldExpectValidationResults,
-  hasPersistedValidationResults,
-} from '../screens/validation/utils'
-import {persistItem} from '../shared/utils/persist'
+  toPercent,
+  toLocaleDna,
+  mapIdentityToFriendlyStatus,
+} from '../shared/utils/utils'
+import {hasPersistedValidationResults} from '../screens/validation/utils'
 import {IconLink} from '../shared/components/link'
+import {useIdentity} from '../shared/providers/identity-context'
+import {useEpoch} from '../shared/providers/epoch-context'
+import {fetchBalance} from '../shared/api/wallet'
 
 export default function ProfilePage() {
+  const queryClient = useQueryClient()
+
   const {
     t,
     i18n: {language},
   } = useTranslation()
 
-  const {
-    address,
-    state,
-    balance,
-    stake,
-    penalty,
-    age,
-    totalShortFlipPoints,
-    totalQualifiedFlips,
-  } = useIdentityState()
+  const [
+    {address, state, penalty, age, totalShortFlipPoints, totalQualifiedFlips},
+  ] = useIdentity()
 
-  const epoch = useEpochState()
+  const epoch = useEpoch()
 
   const [showValidationResults, setShowValidationResults] = React.useState()
 
-  React.useEffect(() => {
-    if (epoch && shouldExpectValidationResults(epoch.epoch)) {
+  const {
+    data: {balance, stake},
+  } = useQuery(['get-balance', address], () => fetchBalance(address), {
+    initialData: {balance: 0, stake: 0},
+    enabled: !!address,
+    refetchInterval: 30 * 1000,
+  })
+
+  useEffect(() => {
+    if (epoch) {
       const {epoch: epochNumber} = epoch
-      if (hasPersistedValidationResults(epochNumber)) {
-        setShowValidationResults(true)
-      } else {
-        persistItem('validationResults', epochNumber, {
-          epochStart: new Date().toISOString(),
-        })
+      if (epochNumber) {
+        queryClient.invalidateQueries('get-balance')
         setShowValidationResults(hasPersistedValidationResults(epochNumber))
       }
     }
-  }, [epoch])
+  }, [epoch, queryClient])
 
   const toDna = toLocaleDna(language)
 
@@ -78,12 +76,12 @@ export default function ProfilePage() {
                 <AnnotatedUserStat
                   annotation={t('Solve more than 12 flips to become Verified')}
                   label={t('Status')}
-                  value={mapToFriendlyStatus(state)}
+                  value={mapIdentityToFriendlyStatus(state)}
                 />
               ) : (
                 <SimpleUserStat
                   label={t('Status')}
-                  value={mapToFriendlyStatus(state)}
+                  value={mapIdentityToFriendlyStatus(state)}
                 />
               )}
               <UserStat>

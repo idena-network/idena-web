@@ -11,10 +11,7 @@ import {
   Input,
   Toast,
 } from '../../../shared/components/components'
-import {
-  useIdentityDispatch,
-  useIdentityState,
-} from '../../../shared/providers/identity-context'
+import {useIdentity} from '../../../shared/providers/identity-context'
 
 // eslint-disable-next-line react/prop-types
 export function KillIdentityDrawer({address, children, ...props}) {
@@ -51,8 +48,7 @@ function KillForm({onSuccess, onFail}) {
 
   const toast = useToast()
 
-  const {address, stake} = useIdentityState()
-  const {killMe} = useIdentityDispatch()
+  const [{address, stake}, {killMe}] = useIdentity()
 
   const [submitting, setSubmitting] = React.useState(false)
 

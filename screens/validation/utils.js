@@ -1,8 +1,7 @@
 import {State} from 'xstate'
 import dayjs, {isDayjs} from 'dayjs'
 import {loadPersistentStateValue} from '../../shared/utils/persist'
-import {EpochPeriod} from '../../shared/types'
-import {canValidate} from '../../shared/providers/identity-context'
+import {EpochPeriod, IdentityStatus} from '../../shared/types'
 import db from '../../shared/utils/db'
 
 export const decodedFlip = ({decoded}) => decoded
@@ -85,6 +84,31 @@ export function parsePersistedValidationState() {
 
 export function clearValidationState() {
   localStorage.removeItem('validation')
+}
+
+export function canValidate(identity) {
+  if (!identity) {
+    return false
+  }
+
+  const {requiredFlips, flips, state} = identity
+
+  const numOfFlipsToSubmit = requiredFlips - (flips || []).length
+  const shouldSendFlips = numOfFlipsToSubmit > 0
+
+  return (
+    ([
+      IdentityStatus.Human,
+      IdentityStatus.Verified,
+      IdentityStatus.Newbie,
+    ].includes(state) &&
+      !shouldSendFlips) ||
+    [
+      IdentityStatus.Candidate,
+      IdentityStatus.Suspended,
+      IdentityStatus.Zombie,
+    ].includes(state)
+  )
 }
 
 // Here below some guides that just make sense

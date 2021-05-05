@@ -1,141 +1,89 @@
-import React, {useCallback} from 'react'
+import React, {useState, useContext, useCallback, useEffect} from 'react'
+import {useQuery, useQueryClient} from 'react-query'
 import deepEqual from 'dequal'
-import {useInterval} from '../hooks/use-interval'
 import {fetchIdentity, killIdentity} from '../api'
-import useRpc from '../hooks/use-rpc'
+import {useInterval} from '../hooks/use-interval'
 import {useAuthState} from './auth-context'
+import {useSettingsState} from './settings-context'
+import {IdentityStatus} from '../types'
+import {useEpoch} from './epoch-context'
 
-export const IdentityStatus = {
-  Undefined: 'Undefined',
-  Invite: 'Invite',
-  Candidate: 'Candidate',
-  Newbie: 'Newbie',
-  Verified: 'Verified',
-  Suspended: 'Suspended',
-  Zombie: 'Zombie',
-  Terminating: 'Terminating',
-  Human: 'Human',
+const IdentityContext = React.createContext()
+
+const NOT_WAITING = {
+  until: null,
+  fields: [],
 }
 
-export function mapToFriendlyStatus(status) {
-  switch (status) {
-    case IdentityStatus.Undefined:
-      return 'Not validated'
-    default:
-      return status
-  }
-}
-
-const IdentityStateContext = React.createContext()
-const IdentityDispatchContext = React.createContext()
-
-// eslint-disable-next-line react/prop-types
-function IdentityProvider({children}) {
+export function IdentityProvider(props) {
+  const queryClient = useQueryClient()
+  const {apiKey, url} = useSettingsState()
   const {coinbase} = useAuthState()
-  const [identity, setIdentity] = React.useState(null)
-  const [{result: balanceResult}, callRpc] = useRpc()
+  const epoch = useEpoch()
 
-  React.useEffect(() => {
-    let ignore = false
+  const [waitForUpdate, setWaitForUpdate] = useState(NOT_WAITING)
 
-    async function fetchData() {
-      try {
-        const fetchedIdentity = await fetchIdentity(coinbase)
-        if (!ignore) {
-          setIdentity(fetchedIdentity)
-        }
-      } catch (error) {
-        console.error('An error occured while fetching identity', error.message)
-      }
-    }
+  const [identity, setIdentity] = useState(null)
 
-    if (coinbase) {
-      fetchData()
-    }
+  const waitStateUpdate = (seconds = 120) => {
+    setWaitForUpdate({
+      until: new Date().getTime() + seconds * 1000,
+      fields: ['state'],
+    })
+  }
 
-    return () => {
-      ignore = true
-    }
-  }, [callRpc, coinbase])
+  const waitFlipsUpdate = (seconds = 120) => {
+    setWaitForUpdate({
+      until: new Date().getTime() + seconds * 1000,
+      fields: ['flips'],
+    })
+  }
 
-  useInterval(
-    async () => {
-      async function fetchData() {
-        try {
-          const nextIdentity = await fetchIdentity(coinbase)
-          if (!deepEqual(identity, nextIdentity)) {
-            const state =
-              identity &&
-              identity.state === IdentityStatus.Terminating &&
-              nextIdentity &&
-              nextIdentity.state !== IdentityStatus.Undefined // still mining
-                ? identity.state
-                : nextIdentity.state
-            setIdentity({...nextIdentity, state})
-          }
-        } catch (error) {
-          console.error(
-            'An error occured while fetching identity',
-            error.message
+  const stopWaiting = () => {
+    setWaitForUpdate(NOT_WAITING)
+  }
+
+  useEffect(() => {
+    if (epoch) queryClient.invalidateQueries('get-identity')
+  }, [epoch, queryClient])
+
+  useQuery(['get-identity', apiKey, url], () => fetchIdentity(coinbase), {
+    retryDelay: 5 * 1000,
+    enabled: !!coinbase,
+    onSuccess: nextIdentity => {
+      if (!deepEqual(identity, nextIdentity)) {
+        const state =
+          identity &&
+          identity.state === IdentityStatus.Terminating &&
+          nextIdentity &&
+          nextIdentity.state !== IdentityStatus.Undefined // still mining
+            ? identity.state
+            : nextIdentity.state
+
+        // we are waiting for some changes
+        if (
+          identity &&
+          waitForUpdate.until &&
+          waitForUpdate.fields.some(
+            field => !deepEqual(identity[field], nextIdentity[field])
           )
+        ) {
+          stopWaiting()
         }
+        setIdentity({...nextIdentity, state})
       }
-
-      if (coinbase) {
-        await fetchData()
+      if (waitForUpdate.until && new Date().getTime() > waitForUpdate.until) {
+        stopWaiting()
       }
     },
-    identity ? 1000 * 5 : 1000 * 10
-  )
+  })
 
   useInterval(
-    () => callRpc('dna_getBalance', identity.address),
-    identity && identity.address ? 1000 * 100 : null,
-    true
+    () => {
+      queryClient.invalidateQueries('get-identity')
+    },
+    waitForUpdate.until ? 10 * 1000 : null
   )
-
-  const canActivateInvite =
-    identity &&
-    [IdentityStatus.Undefined, IdentityStatus.Invite].includes(identity.state)
-
-  const canSubmitFlip =
-    identity &&
-    [
-      IdentityStatus.Newbie,
-      IdentityStatus.Verified,
-      IdentityStatus.Human,
-    ].includes(identity.state) &&
-    identity.requiredFlips > 0 &&
-    (identity.flips || []).length < identity.availableFlips
-
-  // eslint-disable-next-line no-shadow
-  const canValidate =
-    identity &&
-    [
-      IdentityStatus.Candidate,
-      IdentityStatus.Newbie,
-      IdentityStatus.Verified,
-      IdentityStatus.Suspended,
-      IdentityStatus.Zombie,
-      IdentityStatus.Human,
-    ].includes(identity.state)
-
-  const canTerminate =
-    identity &&
-    [
-      IdentityStatus.Verified,
-      IdentityStatus.Suspended,
-      IdentityStatus.Zombie,
-      IdentityStatus.Human,
-    ].includes(identity.state)
-
-  const canMine =
-    identity &&
-    [
-      IdentityStatus.Newbie,
-      IdentityStatus.Verified,
-      IdentityStatus.Human,
-    ].includes(identity.state)
 
   const killMe = useCallback(
     async ({to}) => {
@@ -152,65 +100,24 @@ function IdentityProvider({children}) {
   )
 
   return (
-    <IdentityStateContext.Provider
-      value={{
-        ...identity,
-        balance: balanceResult && balanceResult.balance,
-        canActivateInvite,
-        canSubmitFlip,
-        canValidate,
-        canMine,
-        canTerminate,
-      }}
-    >
-      <IdentityDispatchContext.Provider value={{killMe}}>
-        {children}
-      </IdentityDispatchContext.Provider>
-    </IdentityStateContext.Provider>
+    <IdentityContext.Provider
+      {...props}
+      value={[identity || {}, {killMe, waitStateUpdate, waitFlipsUpdate}]}
+    />
   )
 }
 
-function useIdentityState() {
-  const context = React.useContext(IdentityStateContext)
-  if (context === undefined) {
-    throw new Error('useIdentityState must be used within a IdentityProvider')
-  }
-  return context
-}
-
-function useIdentityDispatch() {
-  const context = React.useContext(IdentityDispatchContext)
-  if (context === undefined) {
-    throw new Error(
-      'useIdentityDispatch must be used within a IdentityProvider'
-    )
-  }
-  return context
-}
-
-export function canValidate(identity) {
-  if (!identity) {
-    return false
-  }
-
-  const {requiredFlips, flips, state} = identity
-
-  const numOfFlipsToSubmit = requiredFlips - (flips || []).length
-  const shouldSendFlips = numOfFlipsToSubmit > 0
-
+export function canActivateInvite(identity) {
   return (
-    ([
-      IdentityStatus.Human,
-      IdentityStatus.Verified,
-      IdentityStatus.Newbie,
-    ].includes(state) &&
-      !shouldSendFlips) ||
-    [
-      IdentityStatus.Candidate,
-      IdentityStatus.Suspended,
-      IdentityStatus.Zombie,
-    ].includes(state)
+    identity &&
+    [IdentityStatus.Undefined, IdentityStatus.Invite].includes(identity.state)
   )
 }
 
-export {IdentityProvider, useIdentityState, useIdentityDispatch}
+export function useIdentity() {
+  const context = useContext(IdentityContext)
+  if (context === undefined) {
+    throw new Error('useIdentity must be used within a IdentityProvider')
+  }
+  return context
+}

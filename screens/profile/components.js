@@ -19,10 +19,6 @@ import {useMachine} from '@xstate/react'
 import {Avatar, Tooltip, FormLabel} from '../../shared/components/components'
 import {rem} from '../../shared/theme'
 import {PrimaryButton} from '../../shared/components/button'
-import {
-  mapToFriendlyStatus,
-  useIdentityState,
-} from '../../shared/providers/identity-context'
 import {IdentityStatus} from '../../shared/types'
 import {
   useNotificationDispatch,
@@ -44,6 +40,11 @@ import {
   privateKeyToAddress,
   privateKeyToPublicKey,
 } from '../../shared/utils/crypto'
+import {mapIdentityToFriendlyStatus} from '../../shared/utils/utils'
+import {
+  canActivateInvite,
+  useIdentity,
+} from '../../shared/providers/identity-context'
 
 export function UserInlineCard({address, state}) {
   return (
@@ -51,7 +52,7 @@ export function UserInlineCard({address, state}) {
       <Avatar address={address} />
       <Stack spacing={1}>
         <Heading as="h2" fontSize="lg" fontWeight={500} lineHeight="short">
-          {mapToFriendlyStatus(state)}
+          {mapIdentityToFriendlyStatus(state)}
         </Heading>
         <Heading
           as="h3"
@@ -132,14 +133,14 @@ export function ActivateInviteForm() {
 
   const {addError} = useNotificationDispatch()
 
-  const {canActivateInvite, state: status} = useIdentityState()
+  const [identity, {waitStateUpdate}] = useIdentity()
   const {coinbase, privateKey} = useAuthState()
 
   const [code, setCode] = React.useState('')
 
   const [{mining}, setHash] = useTx()
 
-  if (!canActivateInvite) {
+  if (!canActivateInvite(identity)) {
     return null
   }
 
@@ -166,6 +167,7 @@ export function ActivateInviteForm() {
 
       const result = await sendRawTx(`0x${hex}`)
       setHash(result)
+      waitStateUpdate()
     } catch (e) {
       addError({title: `Failed to activate invite: ${e.message}`})
     }
@@ -194,7 +196,7 @@ export function ActivateInviteForm() {
               </FormLabel>
               <Button
                 variant="ghost"
-                isDisabled={mining || status === IdentityStatus.Invite}
+                isDisabled={mining || identity.state === IdentityStatus.Invite}
                 bg="unset"
                 color="muted"
                 h="unset"
@@ -216,10 +218,10 @@ export function ActivateInviteForm() {
               px={3}
               pt="3/2"
               pb={2}
-              isDisabled={mining || status === IdentityStatus.Invite}
+              isDisabled={mining || identity.state === IdentityStatus.Invite}
               minH={rem(50)}
               placeholder={
-                status === IdentityStatus.Invite
+                identity.state === IdentityStatus.Invite
                   ? 'Click the button to activate invitation'
                   : undefined
               }
@@ -272,7 +274,7 @@ export function ValidationResultToast({epoch}) {
     'validationResults'
   )
 
-  const {address, state: identityStatus} = useIdentityState()
+  const [{address, state: identityStatus}] = useIdentity()
 
   const isValidationSucceeded = [
     IdentityStatus.Newbie,

@@ -31,23 +31,22 @@ import {
   IdentityStatus,
   FlipFilter as FlipFilterType,
 } from '../../shared/types'
-import {Debug} from '../../shared/components/components'
 import {flipsMachine} from '../../screens/flips/machines'
-import {useIdentityState} from '../../shared/providers/identity-context'
 import Layout from '../../shared/components/layout'
 import {Notification} from '../../shared/components/notifications'
 import {NotificationType} from '../../shared/providers/notification-context'
 import {loadPersistentState} from '../../shared/utils/persist'
 import {useAuthState} from '../../shared/providers/auth-context'
-import {useEpochState} from '../../shared/providers/epoch-context'
 import {redact} from '../../shared/utils/logs'
+import {useIdentity} from '../../shared/providers/identity-context'
+import {useEpoch} from '../../shared/providers/epoch-context'
 
 export default function FlipListPage() {
   const {t} = useTranslation()
 
   const toast = useToast()
 
-  const epochState = useEpochState()
+  const epochState = useEpoch()
   const {privateKey} = useAuthState()
 
   const {
@@ -56,12 +55,14 @@ export default function FlipListPage() {
     onClose: onCloseDeleteForm,
   } = useDisclosure()
 
-  const {
-    flips: knownFlips,
-    requiredFlips: requiredFlipsNumber,
-    availableFlips: availableFlipsNumber,
-    state: status,
-  } = useIdentityState()
+  const [
+    {
+      flips: knownFlips,
+      requiredFlips: requiredFlipsNumber,
+      availableFlips: availableFlipsNumber,
+      state: status,
+    },
+  ] = useIdentity()
 
   const [selectedFlip, setSelectedFlip] = React.useState()
 

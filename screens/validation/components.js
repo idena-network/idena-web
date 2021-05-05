@@ -42,7 +42,6 @@ import {loadValidationState} from './utils'
 import {Notification, Snackbar} from '../../shared/components/notifications'
 import {NotificationType} from '../../shared/providers/notification-context'
 import {EpochPeriod} from '../../shared/types'
-import {useTimingState} from '../../shared/providers/timing-context'
 import {createTimerMachine} from '../../shared/machines'
 import {
   FlipKeywordPanel,
@@ -54,6 +53,7 @@ import {
   DialogFooter,
 } from '../../shared/components/components'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
+import useNodeTiming from '../../shared/hooks/use-node-timing'
 
 export function ValidationScene(props) {
   return (
@@ -141,8 +141,6 @@ export function Flip({
                 opacity: 0.3,
                 transform: 'scale(0.98)',
                 transition: 'all .3s cubic-bezier(.5, 0, .5, 1)',
-                transitionProperty: 'opacity, transform',
-                willChange: 'opacity, transform',
               }
           : {}
       }
@@ -198,8 +196,6 @@ function FlipHolder({css, ...props}) {
         ...margin(0, rem(10)),
         ...padding(rem(4)),
         position: 'relative',
-        transitionProperty: 'opacity, transform',
-        willChange: 'opacity, transform',
         height: 'calc(100vh - 260px)',
         width: 'calc((100vh - 240px) / 3)',
         ...css,
@@ -844,7 +840,7 @@ export function ValidationSoonToast({validationStart}) {
 }
 
 export function ValidationRunningToast({currentPeriod, validationStart}) {
-  const {shortSession, longSession} = useTimingState()
+  const {shortSession, longSession} = useNodeTiming()
   const sessionDuration =
     currentPeriod === EpochPeriod.ShortSession
       ? shortSession

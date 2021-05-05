@@ -2,13 +2,13 @@ import {useEffect, useCallback, useReducer} from 'react'
 import * as api from '../api/dna'
 import {useInterval} from './use-interval'
 import {HASH_IN_MEMPOOL} from './use-tx'
-import {useIdentityState} from '../providers/identity-context'
 import {
   fetchAccountList,
   fetchBalance,
   fetchTransactions,
   fetchPendingTransactions,
 } from '../api/wallet'
+import {useAuthState} from '../providers/auth-context'
 
 function isAddress(address) {
   return address.length === 42 && address.substr(0, 2) === '0x'
@@ -99,7 +99,7 @@ function totalBalance(wallets) {
 }
 
 export function useWallets() {
-  const {address} = useIdentityState()
+  const {coinbase: address} = useAuthState()
 
   const [state, dispatch] = useReducer(
     // eslint-disable-next-line no-shadow

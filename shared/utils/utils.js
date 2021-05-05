@@ -1,4 +1,5 @@
 import {getRpcParams} from '../api/api-client'
+import {IdentityStatus} from '../types'
 
 export function createRpcCaller({url, key}) {
   return async function(method, ...params) {
@@ -51,5 +52,14 @@ export function ntp(t0, t1, t2, t3) {
   return {
     roundTripDelay: t3 - t0 - (t2 - t1),
     offset: (t1 - t0 + (t2 - t3)) / 2,
+  }
+}
+
+export function mapIdentityToFriendlyStatus(status) {
+  switch (status) {
+    case IdentityStatus.Undefined:
+      return 'Not validated'
+    default:
+      return status
   }
 }

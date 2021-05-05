@@ -40,9 +40,10 @@ import {
 } from '../../shared/components/button'
 import {Toast} from '../../shared/components/components'
 import db from '../../shared/utils/db'
-import {useEpochState} from '../../shared/providers/epoch-context'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {redact} from '../../shared/utils/logs'
+import {useIdentity} from '../../shared/providers/identity-context'
+import {useEpoch} from '../../shared/providers/epoch-context'
 
 export default function NewFlipPage() {
   const {t, i18n} = useTranslation()
@@ -50,8 +51,9 @@ export default function NewFlipPage() {
 
   const toast = useToast()
 
-  const epochState = useEpochState()
+  const epochState = useEpoch()
   const {privateKey} = useAuthState()
+  const [, {waitFlipsUpdate}] = useIdentity()
 
   const [current, send] = useMachine(flipMasterMachine, {
     context: {
@@ -77,7 +79,11 @@ export default function NewFlipPage() {
 
         return {keywordPairId, availableKeywords}
       },
-      submitFlip: async context => publishFlip(context),
+      submitFlip: async context => {
+        const result = await publishFlip(context)
+        waitFlipsUpdate()
+        return result
+      },
     },
     actions: {
       onSubmitted: () => router.push('/flips/list'),
