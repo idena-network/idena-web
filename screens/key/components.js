@@ -46,8 +46,8 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
   )
 
   const {data: provider} = useQuery(
-    ['get-provider-by-id', process.env.NEXT_PUBLIC_IDENA_PROVIDER],
-    () => getProvider(process.env.NEXT_PUBLIC_IDENA_PROVIDER),
+    ['get-provider-by-id', process.env.NEXT_PUBLIC_IDENA_MAIN_PROVIDER],
+    () => getProvider(process.env.NEXT_PUBLIC_IDENA_MAIN_PROVIDER),
     {
       retry: false,
     }
@@ -84,9 +84,9 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
       const result = await buyKey(
         coinbase,
         `0x${tx.toHex()}`,
-        process.env.NEXT_PUBLIC_IDENA_PROVIDER
+        process.env.NEXT_PUBLIC_IDENA_MAIN_PROVIDER
       )
-      addPurchase(result.id, process.env.NEXT_PUBLIC_IDENA_PROVIDER)
+      addPurchase(result.id, process.env.NEXT_PUBLIC_IDENA_MAIN_PROVIDER)
     } catch (e) {
       setError(
         `Failed to activate invite: ${
