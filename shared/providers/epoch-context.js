@@ -43,7 +43,7 @@ const shouldRefetchEpoch = (epochData, timing) => {
   }
 
   if (
-    currentDate > nextValidation - flipLottery * 1000 &&
+    currentDate > nextValidationTime - flipLottery * 1000 &&
     currentPeriod === EpochPeriod.None
   ) {
     return true

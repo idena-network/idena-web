@@ -357,7 +357,6 @@ export const createValidationMachine = ({
       context: {
         coinbase,
         privateKey,
-        validationReady: false,
         shortFlips: [],
         longFlips: [],
         currentIndex: 0,
@@ -369,7 +368,6 @@ export const createValidationMachine = ({
         retries: 0,
         locale,
         translations: {},
-        publicKeySent: false,
         reportedFlipsCount: 0,
       },
       states: {
@@ -408,7 +406,7 @@ export const createValidationMachine = ({
                     onDone: {
                       actions: [
                         assign({
-                          publicKeySent: true,
+                          publicKeySent: new Date().getTime(),
                         }),
                       ],
                     },
@@ -751,7 +749,7 @@ export const createValidationMachine = ({
                               target: '#validation.longSession',
                               actions: [
                                 assign({
-                                  shortHashSubmitted: true,
+                                  shortHashSubmitted: new Date().getTime(),
                                 }),
                                 log('Short answers hash sent'),
                               ],
@@ -1311,7 +1309,7 @@ export const createValidationMachine = ({
                         onDone: {
                           target: 'done',
                           actions: assign({
-                            shortAnswersSubmitted: true,
+                            shortAnswersSubmitted: new Date().getTime(),
                           }),
                         },
                         onError: {
@@ -1512,7 +1510,6 @@ export const createValidationMachine = ({
         }),
       },
       guards: {
-        isValidationReady: ({validationReady}) => validationReady,
         didFetchShortFlips: ({shortFlips}) => {
           const regularFlips = filterRegularFlips(shortFlips)
           return (

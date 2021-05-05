@@ -1,4 +1,4 @@
-import React, {useState, useContext, useCallback} from 'react'
+import React, {useState, useContext, useCallback, useEffect} from 'react'
 import {useQuery, useQueryClient} from 'react-query'
 import deepEqual from 'dequal'
 import {fetchIdentity, killIdentity} from '../api'
@@ -6,6 +6,7 @@ import {useInterval} from '../hooks/use-interval'
 import {useAuthState} from './auth-context'
 import {useSettingsState} from './settings-context'
 import {IdentityStatus} from '../types'
+import {useEpoch} from './epoch-context'
 
 const IdentityContext = React.createContext()
 
@@ -18,6 +19,7 @@ export function IdentityProvider(props) {
   const queryClient = useQueryClient()
   const {apiKey, url} = useSettingsState()
   const {coinbase} = useAuthState()
+  const epoch = useEpoch()
 
   const [waitForUpdate, setWaitForUpdate] = useState(NOT_WAITING)
 
@@ -40,6 +42,10 @@ export function IdentityProvider(props) {
   const stopWaiting = () => {
     setWaitForUpdate(NOT_WAITING)
   }
+
+  useEffect(() => {
+    if (epoch) queryClient.invalidateQueries('get-identity')
+  }, [epoch, queryClient])
 
   useQuery(['get-identity', apiKey, url], () => fetchIdentity(coinbase), {
     retryDelay: 5 * 1000,
