@@ -23,6 +23,10 @@ const options = {
   ENTER_KEY: 2,
 }
 
+const IDENA_PROVIDERS = JSON.parse(
+  process.env.NEXT_PUBLIC_IDENA_PROVIDERS || '[]'
+)
+
 export default function Expired() {
   const {apiKeyState, apiKeyData} = useSettingsState()
   const {coinbase} = useAuthState()
@@ -59,7 +63,10 @@ export default function Expired() {
   }, [apiKeyState, router])
 
   useEffect(() => {
-    if (provider && !provider.slots) {
+    if (
+      provider &&
+      (!provider.slots || IDENA_PROVIDERS.includes(provider.id))
+    ) {
       setState(options.BUY)
     }
   }, [provider])
@@ -120,7 +127,10 @@ export default function Expired() {
                     isChecked={state === options.PROLONG}
                     onChange={() => setState(options.PROLONG)}
                     borderColor="white"
-                    isDisabled={provider && !provider.slots}
+                    isDisabled={
+                      provider &&
+                      (!provider.slots || IDENA_PROVIDERS.includes(provider.id))
+                    }
                   >
                     <Text color={theme.colors.white} fontSize={rem(13)}>
                       Prolong node access{' '}
