@@ -1112,7 +1112,8 @@ export const createValidationMachine = ({
                               actions: ['toggleKeywords'],
                             },
                             SUBMIT: {
-                              target: 'review',
+                              target:
+                                '#validation.longSession.solve.answer.review',
                             },
                             PICK_INDEX: {
                               actions: [

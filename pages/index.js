@@ -1,7 +1,7 @@
 import React, {useEffect} from 'react'
 import {Icon, Stack} from '@chakra-ui/core'
 import {useTranslation} from 'react-i18next'
-import {useQuery} from 'react-query'
+import {useQuery, useQueryClient} from 'react-query'
 import {Page, PageTitle} from '../screens/app/components'
 import {
   UserInlineCard,
@@ -25,11 +25,11 @@ import {hasPersistedValidationResults} from '../screens/validation/utils'
 import {IconLink} from '../shared/components/link'
 import {useIdentity} from '../shared/providers/identity-context'
 import {useEpoch} from '../shared/providers/epoch-context'
-import useRpc from '../shared/hooks/use-rpc'
-import {useInterval} from '../shared/hooks/use-interval'
 import {fetchBalance} from '../shared/api/wallet'
 
 export default function ProfilePage() {
+  const queryClient = useQueryClient()
+
   const {
     t,
     i18n: {language},
@@ -54,9 +54,12 @@ export default function ProfilePage() {
   useEffect(() => {
     if (epoch) {
       const {epoch: epochNumber} = epoch
-      setShowValidationResults(hasPersistedValidationResults(epochNumber))
+      if (epochNumber) {
+        queryClient.invalidateQueries('get-balance')
+        setShowValidationResults(hasPersistedValidationResults(epochNumber))
+      }
     }
-  }, [epoch])
+  }, [epoch, queryClient])
 
   const toDna = toLocaleDna(language)
 

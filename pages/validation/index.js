@@ -510,7 +510,7 @@ function isLongSessionFlips(state) {
 }
 
 function isLongSessionKeywords(state) {
-  return ['keywords', 'submitAnswers']
+  return ['keywordsQualification', 'submitAnswers']
     .map(substate => `longSession.solve.answer.${substate}`)
     .some(state.matches)
 }
