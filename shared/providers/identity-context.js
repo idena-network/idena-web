@@ -99,18 +99,27 @@ export function IdentityProvider(props) {
     [identity]
   )
 
+  const canMine =
+    identity &&
+    ([
+      IdentityStatus.Newbie,
+      IdentityStatus.Verified,
+      IdentityStatus.Human,
+    ].includes(identity.state) ||
+      identity.isPool)
+
+  const canActivateInvite =
+    identity &&
+    [IdentityStatus.Undefined, IdentityStatus.Invite].includes(identity.state)
+
   return (
     <IdentityContext.Provider
       {...props}
-      value={[identity || {}, {killMe, waitStateUpdate, waitFlipsUpdate}]}
+      value={[
+        {...identity, canMine, canActivateInvite},
+        {killMe, waitStateUpdate, waitFlipsUpdate},
+      ]}
     />
-  )
-}
-
-export function canActivateInvite(identity) {
-  return (
-    identity &&
-    [IdentityStatus.Undefined, IdentityStatus.Invite].includes(identity.state)
   )
 }
 

@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react'
-import {Icon, Stack} from '@chakra-ui/core'
+import {Box, Icon, Stack} from '@chakra-ui/core'
 import {useTranslation} from 'react-i18next'
 import {useQuery, useQueryClient} from 'react-query'
 import {Page, PageTitle} from '../screens/app/components'
@@ -13,6 +13,7 @@ import {
   AnnotatedUserStat,
   ActivateInviteForm,
   ValidationResultToast,
+  ActivateMiningForm,
 } from '../screens/profile/components'
 import Layout from '../shared/components/layout'
 import {IdentityStatus} from '../shared/types'
@@ -26,6 +27,7 @@ import {IconLink} from '../shared/components/link'
 import {useIdentity} from '../shared/providers/identity-context'
 import {useEpoch} from '../shared/providers/epoch-context'
 import {fetchBalance} from '../shared/api/wallet'
+import {useAuthState} from '../shared/providers/auth-context'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -36,10 +38,22 @@ export default function ProfilePage() {
   } = useTranslation()
 
   const [
-    {address, state, penalty, age, totalShortFlipPoints, totalQualifiedFlips},
+    {
+      address,
+      state,
+      penalty,
+      age,
+      totalShortFlipPoints,
+      totalQualifiedFlips,
+      online,
+      delegatee,
+      delegationEpoch,
+      canMine,
+    },
   ] = useIdentity()
 
   const epoch = useEpoch()
+  const {privateKey} = useAuthState()
 
   const [showValidationResults, setShowValidationResults] = React.useState()
 
@@ -151,7 +165,17 @@ export default function ProfilePage() {
             <ActivateInviteForm />
           </Stack>
           <Stack spacing={10} w={48}>
-            <Stack spacing={1} align="flex-start" mt={104}>
+            <Box mt={2} minH={62}>
+              {address && privateKey && canMine && (
+                <ActivateMiningForm
+                  privateKey={privateKey}
+                  isOnline={online}
+                  delegatee={delegatee}
+                  delegationEpoch={delegationEpoch}
+                />
+              )}
+            </Box>
+            <Stack spacing={1} align="flex-start">
               <IconLink href="/flips/new" icon={<Icon name="photo" size={5} />}>
                 {t('New flip')}
               </IconLink>
