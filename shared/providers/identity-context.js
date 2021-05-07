@@ -39,6 +39,13 @@ export function IdentityProvider(props) {
     })
   }
 
+  const waitOnlineUpdate = (seconds = 120) => {
+    setWaitForUpdate({
+      until: new Date().getTime() + seconds * 1000,
+      fields: ['online', 'delegatee'],
+    })
+  }
+
   const stopWaiting = () => {
     setWaitForUpdate(NOT_WAITING)
   }
@@ -77,6 +84,10 @@ export function IdentityProvider(props) {
       }
     },
   })
+
+  const forceUpdate = () => {
+    queryClient.invalidateQueries('get-identity')
+  }
 
   useInterval(
     () => {
@@ -117,7 +128,13 @@ export function IdentityProvider(props) {
       {...props}
       value={[
         {...identity, canMine, canActivateInvite},
-        {killMe, waitStateUpdate, waitFlipsUpdate},
+        {
+          killMe,
+          waitStateUpdate,
+          waitFlipsUpdate,
+          waitOnlineUpdate,
+          forceUpdate,
+        },
       ]}
     />
   )

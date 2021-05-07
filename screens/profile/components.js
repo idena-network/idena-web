@@ -370,6 +370,7 @@ export function ActivateMiningForm({
   const toast = useToast()
 
   const epoch = useEpoch()
+  const [, {waitOnlineUpdate, forceUpdate}] = useIdentity()
 
   const [current, send] = useMachine(activateMiningMachine, {
     context: {
@@ -386,6 +387,8 @@ export function ActivateMiningForm({
           render: () => <Toast title={message} status="error" />,
         })
       },
+      waitIdentityUpdate: () => waitOnlineUpdate(),
+      forceIdentityUpdate: () => forceUpdate(),
     },
   })
   const {mode} = current.context

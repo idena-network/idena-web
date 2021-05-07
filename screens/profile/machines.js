@@ -28,14 +28,14 @@ export const activateMiningMachine = createMachine({
         },
         activating: {
           invoke: {
-            src: (_, {privateKey, delegatee}) =>
-              delegate(delegatee, privateKey),
+            src: ({privateKey}, {delegatee}) => delegate(delegatee, privateKey),
             onDone: {
               target: 'mining',
               actions: [
                 assign({
                   hash: (_, {data}) => data,
                 }),
+                'waitIdentityUpdate',
               ],
             },
             onError: {actions: ['onError']},
@@ -43,7 +43,7 @@ export const activateMiningMachine = createMachine({
         },
         deactivating: {
           invoke: {
-            src: (_, {privateKey, mode}) =>
+            src: ({privateKey}, {mode}) =>
               mode === NodeType.Delegator
                 ? undelegate(privateKey)
                 : becomeOffline(privateKey),
@@ -53,6 +53,7 @@ export const activateMiningMachine = createMachine({
                 assign({
                   hash: (_, {data}) => data,
                 }),
+                'waitIdentityUpdate',
               ],
             },
             onError: {actions: ['onError']},
@@ -86,11 +87,7 @@ export const activateMiningMachine = createMachine({
           on: {
             MINED: {
               target: '#mining.idle',
-              actions: [
-                assign({
-                  isOnline: true,
-                }),
-              ],
+              actions: ['forceIdentityUpdate'],
             },
           },
         },
