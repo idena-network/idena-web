@@ -14,7 +14,7 @@ import {useAuthDispatch} from '../providers/auth-context'
 import {apiKeyStates, useSettingsState} from '../providers/settings-context'
 import {Tooltip} from './components'
 import {EpochPeriod, IdentityStatus} from '../types'
-import {canActivateInvite, useIdentity} from '../providers/identity-context'
+import {useIdentity} from '../providers/identity-context'
 import {useEpoch} from '../providers/epoch-context'
 
 function Sidebar() {
@@ -312,7 +312,7 @@ function CurrentTask({epoch, period}) {
       } = identity
 
       switch (true) {
-        case canActivateInvite(identity):
+        case identity.canActivateInvite:
           return (
             <Link href="/" color={theme.colors.white}>
               {t('Activate invite')}

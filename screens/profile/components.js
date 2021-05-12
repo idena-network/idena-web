@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React from 'react'
+import React, {useEffect, useState} from 'react'
 import {
   Stack,
   Heading,
@@ -12,14 +12,33 @@ import {
   Flex,
   Textarea,
   Button,
+  Text,
+  Switch,
+  Icon,
+  RadioButtonGroup,
+  Radio,
+  Alert,
+  AlertIcon,
+  AlertDescription,
+  useToast,
 } from '@chakra-ui/core'
 import {useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
 import {useMachine} from '@xstate/react'
-import {Avatar, Tooltip, FormLabel} from '../../shared/components/components'
+import {
+  Avatar,
+  Tooltip,
+  FormLabel,
+  Drawer,
+  DrawerHeader,
+  DrawerBody,
+  Input,
+  DrawerFooter,
+  Toast,
+} from '../../shared/components/components'
 import {rem} from '../../shared/theme'
-import {PrimaryButton} from '../../shared/components/button'
-import {IdentityStatus} from '../../shared/types'
+import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
+import {IdentityStatus, NodeType} from '../../shared/types'
 import {
   useNotificationDispatch,
   NotificationType,
@@ -40,11 +59,13 @@ import {
   privateKeyToAddress,
   privateKeyToPublicKey,
 } from '../../shared/utils/crypto'
-import {mapIdentityToFriendlyStatus} from '../../shared/utils/utils'
 import {
-  canActivateInvite,
-  useIdentity,
-} from '../../shared/providers/identity-context'
+  eitherState,
+  mapIdentityToFriendlyStatus,
+} from '../../shared/utils/utils'
+import {useIdentity} from '../../shared/providers/identity-context'
+import {useEpoch} from '../../shared/providers/epoch-context'
+import {activateMiningMachine} from './machines'
 
 export function UserInlineCard({address, state}) {
   return (
@@ -140,7 +161,7 @@ export function ActivateInviteForm() {
 
   const [{mining}, setHash] = useTx()
 
-  if (!canActivateInvite(identity)) {
+  if (!identity.canActivateInvite) {
     return null
   }
 
@@ -338,4 +359,340 @@ export function ValidationResultToast({epoch}) {
       )}
     </Snackbar>
   ) : null
+}
+
+export function ActivateMiningForm({
+  privateKey,
+  isOnline,
+  delegatee,
+  delegationEpoch,
+}) {
+  const toast = useToast()
+
+  const epoch = useEpoch()
+  const [, {waitOnlineUpdate, forceUpdate}] = useIdentity()
+
+  const [current, send] = useMachine(activateMiningMachine, {
+    context: {
+      isOnline,
+      delegatee,
+      delegationEpoch,
+      privateKey,
+    },
+    actions: {
+      onError: (_, {data: {message}}) => {
+        toast({
+          status: 'error',
+          // eslint-disable-next-line react/display-name
+          render: () => <Toast title={message} status="error" />,
+        })
+      },
+      waitIdentityUpdate: () => waitOnlineUpdate(),
+      forceIdentityUpdate: () => forceUpdate(),
+    },
+  })
+  const {mode} = current.context
+
+  useEffect(() => {
+    send('CANCEL')
+  }, [isOnline, delegatee, send])
+
+  const isDelegator = typeof delegatee === 'string'
+
+  return (
+    <>
+      <ActivateMiningSwitch
+        isOnline={isOnline || isDelegator}
+        isDelegator={isDelegator}
+        onShow={() => {
+          send('SHOW')
+        }}
+      />
+      {isOnline || isDelegator ? (
+        <DeactivateMiningDrawer
+          delegatee={delegatee}
+          canUndelegate={epoch?.epoch > delegationEpoch}
+          isOpen={eitherState(current, 'showing')}
+          isCloseable={false}
+          isLoading={eitherState(current, 'showing.mining')}
+          onDeactivate={() => {
+            send('DEACTIVATE', {
+              mode: isDelegator ? NodeType.Delegator : NodeType.Miner,
+            })
+          }}
+          onClose={() => {
+            send('CANCEL')
+          }}
+        />
+      ) : (
+        <ActivateMiningDrawer
+          mode={mode}
+          isOpen={eitherState(current, 'showing')}
+          isCloseable={false}
+          isLoading={eitherState(current, 'showing.mining')}
+          onChangeMode={value => {
+            send({type: 'CHANGE_MODE', mode: value})
+          }}
+          // eslint-disable-next-line no-shadow
+          onActivate={({delegatee}) => {
+            send('ACTIVATE', {delegatee})
+          }}
+          onClose={() => {
+            send('CANCEL')
+          }}
+        />
+      )}
+    </>
+  )
+}
+
+export function ActivateMiningSwitch({isOnline, isDelegator, onShow}) {
+  const {t} = useTranslation()
+
+  const {colors} = useTheme()
+
+  const accentColor = isOnline ? 'blue' : 'red'
+
+  return (
+    <Stack spacing={3}>
+      <Text fontWeight={500} h={18}>
+        {t('Status')}
+      </Text>
+      <Flex
+        align="center"
+        justify="space-between"
+        borderColor="gray.300"
+        borderWidth={1}
+        rounded="md"
+        h={8}
+        px={3}
+      >
+        <FormLabel htmlFor="mining" fontWeight="normal" pb={0}>
+          {isDelegator ? t('Delegation') : t('Mining')}
+        </FormLabel>
+        <Stack isInline align="center">
+          <Text color={`${accentColor}.500`} fontWeight={500}>
+            {isOnline ? t('On') : t('Off')}
+          </Text>
+          <Switch
+            id="mining"
+            size="sm"
+            isChecked={isOnline}
+            color={accentColor}
+            h={4}
+            className="toggle"
+            onChange={onShow}
+          />
+          <style jsx global>{`
+            .toggle > input[type='checkbox']:not(:checked) + div {
+              background: ${colors.red[500]};
+            }
+          `}</style>
+        </Stack>
+      </Flex>
+    </Stack>
+  )
+}
+
+export function ActivateMiningDrawer({
+  isLoading,
+  onChangeMode,
+  onActivate,
+  onClose,
+  ...props
+}) {
+  const {t} = useTranslation()
+
+  const [delegatee, setDelegatee] = useState()
+
+  return (
+    <Drawer onClose={onClose} {...props}>
+      <DrawerHeader>
+        <Flex
+          align="center"
+          justify="center"
+          bg="blue.012"
+          h={12}
+          w={12}
+          rounded="xl"
+        >
+          <Icon name="user" w={6} h={6} color="blue.500" />
+        </Flex>
+        <Heading
+          color="brandGray.500"
+          fontSize="lg"
+          fontWeight={500}
+          lineHeight="base"
+          mt={4}
+        >
+          {t('Miner status')}
+        </Heading>
+      </DrawerHeader>
+      <DrawerBody>
+        <Stack spacing={6} mt={30}>
+          <FormControl as={Stack} spacing={3}>
+            <FormLabel p={0}>{t('Type')}</FormLabel>
+            <RadioButtonGroup
+              spacing={2}
+              isInline
+              d="flex"
+              value={1}
+              onChange={onChangeMode}
+            >
+              <Radio
+                value={1}
+                flex={1}
+                borderColor="gray.300"
+                borderWidth={1}
+                borderRadius="md"
+                p={2}
+                px={3}
+              >
+                {t('Delegation')}
+              </Radio>
+            </RadioButtonGroup>
+          </FormControl>
+          <Stack spacing={5}>
+            <FormControl as={Stack} spacing={3}>
+              <FormLabel>{t('Delegation address')}</FormLabel>
+              <Input
+                value={delegatee}
+                onChange={e => setDelegatee(e.target.value)}
+              />
+            </FormControl>
+            <Alert
+              status="error"
+              rounded="md"
+              bg="red.010"
+              borderColor="red.050"
+              borderWidth={1}
+            >
+              <AlertIcon name="info" alignSelf="flex-start" color="red.500" />
+              <AlertDescription
+                as={Stack}
+                spacing={3}
+                color="brandGray.500"
+                fontSize="md"
+                fontWeight={500}
+              >
+                <Text>
+                  {t(
+                    'You can lose your stake, all your mining and validation rewards if you delegate your mining status.'
+                  )}
+                </Text>
+                <Text>
+                  {t('You can disable delegation at the next epoch only.')}
+                </Text>
+              </AlertDescription>
+            </Alert>
+          </Stack>
+        </Stack>
+      </DrawerBody>
+      <DrawerFooter px={0}>
+        <Stack isInline>
+          <SecondaryButton type="button" onClick={onClose}>
+            {t('Cancel')}
+          </SecondaryButton>
+          <PrimaryButton
+            isLoading={isLoading}
+            onClick={() => {
+              onActivate({delegatee})
+            }}
+            loadingText={t('Waiting...')}
+          >
+            {t('Submit')}
+          </PrimaryButton>
+        </Stack>
+      </DrawerFooter>
+    </Drawer>
+  )
+}
+
+export function DeactivateMiningDrawer({
+  isLoading,
+  delegatee,
+  canUndelegate,
+  onDeactivate,
+  onClose,
+  ...props
+}) {
+  const {t} = useTranslation()
+
+  const isDelegator = typeof delegatee === 'string'
+
+  return (
+    <Drawer onClose={onClose} {...props}>
+      <DrawerHeader>
+        <Flex
+          align="center"
+          justify="center"
+          bg="blue.012"
+          h={12}
+          w={12}
+          rounded="xl"
+        >
+          <Icon name="user" w={6} h={6} color="blue.500" />
+        </Flex>
+        <Heading
+          color="brandGray.500"
+          fontSize="lg"
+          fontWeight={500}
+          lineHeight="base"
+          mt={4}
+        >
+          {isDelegator
+            ? t('Deactivate delegation status')
+            : t('Deactivate mining status')}
+        </Heading>
+      </DrawerHeader>
+      <DrawerBody>
+        <Stack spacing={6} mt={30}>
+          <Text fontSize="md">
+            {isDelegator
+              ? t(`Submit the form to deactivate your delegation status.`)
+              : t(
+                  `Submit the form to deactivate your mining status. You can activate it again afterwards.`
+                )}
+          </Text>
+          {isDelegator && (
+            <FormControl as={Stack} spacing={3}>
+              <FormLabel>{t('Delegation address')}</FormLabel>
+              <Input defaultValue={delegatee} isDisabled />
+            </FormControl>
+          )}
+          {isDelegator && !canUndelegate && (
+            <Alert
+              status="error"
+              rounded="md"
+              bg="red.010"
+              borderColor="red.050"
+              borderWidth={1}
+            >
+              <AlertIcon name="info" alignSelf="flex-start" color="red.500" />
+              <AlertDescription
+                color="brandGray.500"
+                fontSize="md"
+                fontWeight={500}
+              >
+                {t('You can disable delegation at the next epoch only')}
+              </AlertDescription>
+            </Alert>
+          )}
+        </Stack>
+      </DrawerBody>
+      <DrawerFooter px={0}>
+        <Stack isInline>
+          <SecondaryButton onClick={onClose}>{t('Cancel')}</SecondaryButton>
+          <PrimaryButton
+            isDisabled={isDelegator && !canUndelegate}
+            isLoading={isLoading}
+            onClick={onDeactivate}
+            loadingText={t('Waiting...')}
+          >
+            {t('Submit')}
+          </PrimaryButton>
+        </Stack>
+      </DrawerFooter>
+    </Drawer>
+  )
 }

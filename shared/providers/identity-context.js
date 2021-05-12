@@ -39,6 +39,13 @@ export function IdentityProvider(props) {
     })
   }
 
+  const waitOnlineUpdate = (seconds = 120) => {
+    setWaitForUpdate({
+      until: new Date().getTime() + seconds * 1000,
+      fields: ['online', 'delegatee'],
+    })
+  }
+
   const stopWaiting = () => {
     setWaitForUpdate(NOT_WAITING)
   }
@@ -78,6 +85,10 @@ export function IdentityProvider(props) {
     },
   })
 
+  const forceUpdate = () => {
+    queryClient.invalidateQueries('get-identity')
+  }
+
   useInterval(
     () => {
       queryClient.invalidateQueries('get-identity')
@@ -99,18 +110,33 @@ export function IdentityProvider(props) {
     [identity]
   )
 
+  const canMine =
+    identity &&
+    ([
+      IdentityStatus.Newbie,
+      IdentityStatus.Verified,
+      IdentityStatus.Human,
+    ].includes(identity.state) ||
+      identity.isPool)
+
+  const canActivateInvite =
+    identity &&
+    [IdentityStatus.Undefined, IdentityStatus.Invite].includes(identity.state)
+
   return (
     <IdentityContext.Provider
       {...props}
-      value={[identity || {}, {killMe, waitStateUpdate, waitFlipsUpdate}]}
+      value={[
+        {...identity, canMine, canActivateInvite},
+        {
+          killMe,
+          waitStateUpdate,
+          waitFlipsUpdate,
+          waitOnlineUpdate,
+          forceUpdate,
+        },
+      ]}
     />
-  )
-}
-
-export function canActivateInvite(identity) {
-  return (
-    identity &&
-    [IdentityStatus.Undefined, IdentityStatus.Invite].includes(identity.state)
   )
 }
 
