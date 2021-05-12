@@ -9,6 +9,9 @@ import {
   fetchPendingTransactions,
 } from '../api/wallet'
 import {useAuthState} from '../providers/auth-context'
+import {getRawTx, sendRawTx} from '../api'
+import {privateKeyToAddress} from '../utils/crypto'
+import {Transaction} from '../models/transaction'
 
 function isAddress(address) {
   return address.length === 42 && address.substr(0, 2) === '0x'
@@ -165,31 +168,20 @@ export function useWallets() {
     address ? 1000 * 5 : null
   )
 
-  const sendTransaction = useCallback(async ({from, to, amount}) => {
-    if (!isAddress(from)) {
-      return {
-        error: {message: `Incorrect 'From' address: ${from}`},
-      }
-    }
+  const sendTransaction = useCallback(async (privateKey, {to, amount}) => {
     if (!isAddress(to)) {
-      return {
-        error: {message: `Incorrect 'To' address: ${to}`},
-      }
+      throw new Error(`Incorrect 'To' address: ${to}`)
     }
     if (amount <= 0) {
-      return {
-        error: {message: `Incorrect Amount: ${amount}`},
-      }
+      throw new Error(`Incorrect Amount: ${amount}`)
     }
 
-    const resp = await api.sendTransaction(from, to, amount)
-    const {result} = resp
+    const rawTx = await getRawTx(0, privateKeyToAddress(privateKey), to, amount)
 
-    if (!result) {
-      const {error} = resp
-      throw new Error(error.message)
-    }
-    return resp
+    const tx = new Transaction().fromHex(rawTx)
+    tx.sign(privateKey)
+
+    return sendRawTx(`0x${tx.toHex()}`)
   }, [])
 
   return {

@@ -117,7 +117,7 @@ function WalletCard({wallet, main, onSend, onReceive, onWithdrawStake}) {
         <Flex justify="space-between" align="center">
           <Box css={position('fixed')}>
             {isMenuOpen && (
-              <Absolute top="-1.5em" right="-16em" zIndex={2}>
+              <Absolute top="-1.5em" right="-22em" zIndex={2}>
                 <WalletMenu ref={menuRef}>
                   <WalletMenuItem
                     onClick={async () => {
