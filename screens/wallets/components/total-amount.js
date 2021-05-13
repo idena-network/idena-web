@@ -3,8 +3,9 @@ import PropTypes from 'prop-types'
 import {useTranslation} from 'react-i18next'
 import {Box, Text, SubHeading} from '../../../shared/components'
 import theme, {rem} from '../../../shared/theme'
+import {Skeleton} from '../../../shared/components/components'
 
-function TotalAmount({amount, percentChanges, amountChanges}) {
+function TotalAmount({amount, percentChanges, isLoading}) {
   const {t} = useTranslation()
   return (
     <Box>
@@ -13,12 +14,12 @@ function TotalAmount({amount, percentChanges, amountChanges}) {
       </Box>
       <Box>
         <SubHeading>
-          <div className="value">{amount} iDNA</div>
-          {false && ( // TODO: show wallet changes
-            <div className="changes">
-              {percentChanges}% <span>({amountChanges} USD)</span>
-            </div>
+          {isLoading ? (
+            <Skeleton height="20px" />
+          ) : (
+            <div className="value">{amount} iDNA</div>
           )}
+
           <style jsx>{`
             .value {
               font-weight: 500;
@@ -43,7 +44,7 @@ function TotalAmount({amount, percentChanges, amountChanges}) {
 TotalAmount.propTypes = {
   amount: PropTypes.number,
   percentChanges: PropTypes.number,
-  amountChanges: PropTypes.number,
+  isLoading: PropTypes.bool,
 }
 
 export default TotalAmount

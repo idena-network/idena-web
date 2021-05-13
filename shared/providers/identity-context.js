@@ -1,12 +1,14 @@
 import React, {useState, useContext, useCallback, useEffect} from 'react'
 import {useQuery, useQueryClient} from 'react-query'
 import deepEqual from 'dequal'
-import {fetchIdentity, killIdentity} from '../api'
+import {fetchIdentity, getRawTx, sendRawTx} from '../api'
 import {useInterval} from '../hooks/use-interval'
 import {useAuthState} from './auth-context'
 import {useSettingsState} from './settings-context'
-import {IdentityStatus} from '../types'
+import {IdentityStatus, TxType} from '../types'
 import {useEpoch} from './epoch-context'
+import {privateKeyToAddress} from '../utils/crypto'
+import {Transaction} from '../models/transaction'
 
 const IdentityContext = React.createContext()
 
@@ -97,15 +99,19 @@ export function IdentityProvider(props) {
   )
 
   const killMe = useCallback(
-    async ({to}) => {
-      const resp = await killIdentity(identity.address, to)
-      const {result} = resp
+    async (privateKey, to) => {
+      const rawTx = await getRawTx(
+        TxType.KillTx,
+        privateKeyToAddress(privateKey),
+        to
+      )
 
-      if (result) {
-        setIdentity({...identity, state: IdentityStatus.Terminating})
-        return result
-      }
-      return resp
+      const tx = new Transaction().fromHex(rawTx)
+      tx.sign(privateKey)
+
+      const result = await sendRawTx(`0x${tx.toHex()}`)
+      setIdentity({...identity, state: IdentityStatus.Terminating})
+      return result
     },
     [identity]
   )

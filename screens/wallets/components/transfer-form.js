@@ -1,10 +1,8 @@
-import React, {useEffect} from 'react'
+import React, {useState} from 'react'
 import PropTypes from 'prop-types'
 import {useTranslation} from 'react-i18next'
-import {Flex, Heading, Icon, Stack} from '@chakra-ui/core'
-import {Box} from '../../../shared/components'
+import {Box, Flex, Heading, Icon, Stack} from '@chakra-ui/core'
 import {useNotificationDispatch} from '../../../shared/providers/notification-context'
-import {useWallets} from '../../../shared/hooks/use-wallets'
 import {
   Drawer,
   DrawerBody,
@@ -12,33 +10,24 @@ import {
   DrawerHeader,
   FormControlWithLabel,
   Input,
-  Select,
 } from '../../../shared/components/components'
 import {PrimaryButton} from '../../../shared/components/button'
 import {useAuthState} from '../../../shared/providers/auth-context'
+import {getRawTx, sendRawTx} from '../../../shared/api'
+import {privateKeyToAddress} from '../../../shared/utils/crypto'
+import {Transaction} from '../../../shared/models/transaction'
 
-function TransferForm({onSuccess, onFail, isOpen, onClose}) {
-  const {wallets, sendTransaction} = useWallets()
-  const {privateKey} = useAuthState()
+function isAddress(address) {
+  return address.length === 42 && address.substr(0, 2) === '0x'
+}
 
-  const selectWallets =
-    wallets &&
-    wallets.filter(wallet => !wallet.isStake).map(wallet => wallet.address)
+function TransferForm({isOpen, onClose}) {
+  const {coinbase, privateKey} = useAuthState()
 
-  const [from, setFrom] = React.useState(
-    selectWallets.length > 0 ? selectWallets[0] : null
-  )
+  const [to, setTo] = useState()
+  const [amount, setAmount] = useState()
 
-  useEffect(() => {
-    if (!from) {
-      setFrom(selectWallets.length > 0 ? selectWallets[0] : null)
-    }
-  }, [from, selectWallets])
-
-  const [to, setTo] = React.useState()
-  const [amount, setAmount] = React.useState()
-
-  const [submitting, setSubmitting] = React.useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   const {addNotification, addError} = useNotificationDispatch()
 
@@ -48,25 +37,35 @@ function TransferForm({onSuccess, onFail, isOpen, onClose}) {
     try {
       setSubmitting(true)
 
-      const result = await sendTransaction(privateKey, {
-        from,
+      if (!isAddress(to)) {
+        throw new Error(`Incorrect 'To' address: ${to}`)
+      }
+      if (amount <= 0) {
+        throw new Error(`Incorrect Amount: ${amount}`)
+      }
+
+      const rawTx = await getRawTx(
+        0,
+        privateKeyToAddress(privateKey),
         to,
-        amount,
-      })
+        amount
+      )
+
+      const tx = new Transaction().fromHex(rawTx)
+      tx.sign(privateKey)
+
+      const result = await sendRawTx(`0x${tx.toHex()}`)
 
       addNotification({
         title: t('Transaction sent'),
         body: result,
       })
-      if (onSuccess) onSuccess(result)
+      if (onClose) onClose()
     } catch (error) {
       addError({
         title: t('error:Error while sending transaction'),
         body: error.message,
       })
-      if (onFail) {
-        onFail(error)
-      }
     } finally {
       setSubmitting(false)
     }
@@ -98,23 +97,7 @@ function TransferForm({onSuccess, onFail, isOpen, onClose}) {
       <DrawerBody>
         <Stack spacing={5}>
           <FormControlWithLabel label={t('From')}>
-            <Select
-              size="md"
-              value={selectWallets[0]}
-              onChange={e => setFrom(e.target.value)}
-            >
-              {selectWallets.map(wallet => (
-                <option value={wallet}>{wallet}</option>
-              ))}
-            </Select>
-            {/* <Select
-              name="select"
-              id=""
-              options={selectWallets}
-              value={selectWallets[0]}
-              onChange={e => setFrom(e.target.value)}
-              border="0"
-            /> */}
+            <Input value={coinbase} isDisabled />
           </FormControlWithLabel>
           <FormControlWithLabel label={t('To')}>
             <Input value={to} onChange={e => setTo(e.target.value)} />
@@ -153,8 +136,6 @@ function TransferForm({onSuccess, onFail, isOpen, onClose}) {
 }
 
 TransferForm.propTypes = {
-  onSuccess: PropTypes.func,
-  onFail: PropTypes.func,
   isOpen: PropTypes.bool,
   onClose: PropTypes.func,
 }

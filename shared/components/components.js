@@ -12,6 +12,7 @@ import {
   Input as ChakraInput,
   FormLabel as ChakraFormLabel,
   Select as ChakraSelect,
+  Skeleton as ChakraSkeleton,
   Image,
   Tooltip as ChakraTooltip,
   Flex,
@@ -31,6 +32,7 @@ import {
   Button,
   PseudoBox,
   FormControl,
+  useTheme,
 } from '@chakra-ui/core'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
@@ -290,5 +292,17 @@ export function DialogFooter({children, ...props}) {
         {children}
       </Stack>
     </ModalFooter>
+  )
+}
+
+export function Skeleton(props) {
+  const {colors} = useTheme()
+  return (
+    <ChakraSkeleton
+      colorStart={colors.gray[100]}
+      colorEnd={colors.gray[300]}
+      w="full"
+      {...props}
+    />
   )
 }
