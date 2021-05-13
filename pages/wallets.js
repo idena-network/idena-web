@@ -56,9 +56,7 @@ export default function Index() {
           <Flex css={{justifyContent: 'space-between', marginBottom: 20}}>
             <div>
               <TotalAmount
-                amount={balance + stake}
-                percentChanges={0}
-                amountChanges={0}
+                amount={parseFloat(balance) + parseFloat(stake)}
                 isLoading={isLoading}
               />
             </div>

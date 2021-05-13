@@ -189,7 +189,7 @@ function WalletTransactions({address}) {
                             <div>
                               {tx.direction === 'Sent' ? t('To') : t('From')}{' '}
                               {tx.counterPartyWallet
-                                ? `${t('wallet')} ${tx.counterPartyWallet.name}`
+                                ? `${t('wallet')} Main`
                                 : t('address')}
                             </div>
                             <TableHint style={{...ellipsis(rem(130))}}>
