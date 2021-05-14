@@ -216,7 +216,7 @@ function WalletTransactions({address}) {
 
                     <TableCol className="text-right">
                       {((!tx.isMining || tx.maxFee === '0') &&
-                        (tx.usedFee === '0' ? '\u2013' : tx.usedFee)) || (
+                        (tx.fee === '0' ? '\u2013' : tx.fee)) || (
                         <div>
                           <div> {tx.maxFee} </div>
                           <TableHint>{t('Fee limit')}</TableHint>
