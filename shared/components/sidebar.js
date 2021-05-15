@@ -4,7 +4,7 @@ import PropTypes from 'prop-types'
 import {useRouter} from 'next/router'
 import {margin, borderRadius, darken, transparentize, padding} from 'polished'
 import {useTranslation} from 'react-i18next'
-import {Text} from '@chakra-ui/core'
+import {Icon, Text} from '@chakra-ui/core'
 import {Box, Link} from '.'
 import Flex from './flex'
 import theme, {rem} from '../theme'
@@ -142,21 +142,21 @@ function Nav() {
           textAlign: 'left',
         }}
       >
-        <NavItem href="/" icon={<i className="icon icon--user" />}>
+        <NavItem href="/" icon={<Icon name="profile" size={5} />}>
           {t('My Idena') || nickname}
         </NavItem>
-        <NavItem
-          href="/flips/list"
-          icon={<i className="icon icon--menu_gallery" />}
-        >
+        <NavItem href="/wallets" icon={<Icon name="wallet" size={5} />}>
+          {t('Wallets')}
+        </NavItem>
+        <NavItem href="/flips/list" icon={<Icon name="gallery" size={5} />}>
           {t('Flips')}
         </NavItem>
-        <NavItem href="/settings" icon={<i className="icon icon--settings" />}>
+        <NavItem href="/settings" icon={<Icon name="settings" size={5} />}>
           {t('Settings')}
         </NavItem>
         <NavItem
           href=""
-          icon={<i className="icon icon--delete" />}
+          icon={<Icon name="delete" size={5} />}
           onClick={logout}
         >
           {t('Logout')}

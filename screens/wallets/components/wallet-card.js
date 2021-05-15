@@ -12,6 +12,7 @@ import {FlatButton} from '../../../shared/components/button'
 
 import Divider from '../../../shared/components/divider'
 import useHover from '../../../shared/hooks/use-hover'
+import {Skeleton} from '../../../shared/components/components'
 
 // eslint-disable-next-line react/display-name
 const WalletMenu = forwardRef((props, ref) => (
@@ -70,7 +71,14 @@ WalletMenuItem.propTypes = {
   disabled: PropTypes.bool,
 }
 
-function WalletCard({wallet, main, onSend, onReceive, onWithdrawStake}) {
+function WalletCard({
+  wallet,
+  isSelected,
+  onSend,
+  onReceive,
+  isLoading,
+  ...props
+}) {
   const {name, balance, isStake} = wallet
 
   const [isMenuOpen, setIsMenuOpen] = useState(false)
@@ -84,8 +92,8 @@ function WalletCard({wallet, main, onSend, onReceive, onWithdrawStake}) {
 
   return (
     <Box
-      bg={main ? theme.colors.primary : theme.colors.gray}
-      color={main ? theme.colors.white : theme.colors.primary2}
+      bg={isSelected ? theme.colors.primary : theme.colors.gray}
+      color={isSelected ? theme.colors.white : theme.colors.primary2}
       padding={rem(theme.spacings.medium16)}
       style={{
         borderRadius: rem(8),
@@ -94,6 +102,7 @@ function WalletCard({wallet, main, onSend, onReceive, onWithdrawStake}) {
         ...margin(0, theme.spacings.medium24, 0, 0),
       }}
       w={rem(315)}
+      {...props}
     >
       <div className="title">
         <div className="icn">
@@ -106,68 +115,62 @@ function WalletCard({wallet, main, onSend, onReceive, onWithdrawStake}) {
         {name.length > 20 ? `${name.substr(0, 20)}...` : name}
       </div>
 
-      <div className="action">
-        <MdMoreVert
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          style={{cursor: 'pointer'}}
-        />
-      </div>
+      {!isStake && (
+        <>
+          <div className="action">
+            <MdMoreVert
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              style={{cursor: 'pointer'}}
+            />
+          </div>
 
-      <Box my={theme.spacings.normal} css={{marginBottom: 0}} w="150px">
-        <Flex justify="space-between" align="center">
-          <Box css={position('fixed')}>
-            {isMenuOpen && (
-              <Absolute top="-1.5em" right="-16em" zIndex={2}>
-                <WalletMenu ref={menuRef}>
-                  <WalletMenuItem
-                    onClick={async () => {
-                      setIsMenuOpen(false)
-                      onSend(wallet)
-                    }}
-                    disabled={isStake}
-                    icon={<i className="icon icon--withdraw" />}
-                  >
-                    {t('Send')}
-                  </WalletMenuItem>
-                  <WalletMenuItem
-                    onClick={async () => {
-                      setIsMenuOpen(false)
-                      onReceive(wallet)
-                    }}
-                    disabled={isStake}
-                    icon={<i className="icon icon--deposit" />}
-                  >
-                    {t('Receive')}
-                  </WalletMenuItem>
-                  {isStake && <Divider m={theme.spacings.small} />}
-
-                  {isStake && (
-                    <WalletMenuItem
-                      onClick={async () => {
-                        setIsMenuOpen(false)
-                        onWithdrawStake(wallet)
-                      }}
-                      disabled={!isStake}
-                      danger
-                      icon={<i className="icon icon--delete" />}
-                    >
-                      {t('Terminate')}
-                    </WalletMenuItem>
-                  )}
-                </WalletMenu>
-              </Absolute>
-            )}
+          <Box my={theme.spacings.normal} css={{marginBottom: 0}} w="150px">
+            <Flex justify="space-between" align="center">
+              <Box css={position('fixed')}>
+                {isMenuOpen && (
+                  <Absolute top="-1.5em" right="-22em" zIndex={2}>
+                    <WalletMenu ref={menuRef}>
+                      <WalletMenuItem
+                        onClick={async () => {
+                          setIsMenuOpen(false)
+                          onSend(wallet)
+                        }}
+                        disabled={isStake}
+                        icon={<i className="icon icon--withdraw" />}
+                      >
+                        {t('Send')}
+                      </WalletMenuItem>
+                      <WalletMenuItem
+                        onClick={async () => {
+                          setIsMenuOpen(false)
+                          onReceive(wallet)
+                        }}
+                        disabled={isStake}
+                        icon={<i className="icon icon--deposit" />}
+                      >
+                        {t('Receive')}
+                      </WalletMenuItem>
+                    </WalletMenu>
+                  </Absolute>
+                )}
+              </Box>
+            </Flex>
           </Box>
-        </Flex>
-      </Box>
+        </>
+      )}
 
       <div
         className="balance"
-        style={{color: main ? theme.colors.white : theme.colors.muted}}
+        style={{color: isSelected ? theme.colors.white : theme.colors.muted}}
       >
         {t('Balance')}
       </div>
-      <div className="value">{balance} iDNA</div>
+      {isLoading ? (
+        <Skeleton height={rem(24)} />
+      ) : (
+        <div className="value">{balance} iDNA</div>
+      )}
+
       <style jsx>{`
         .title {
           margin-bottom: ${rem(17)};
@@ -199,11 +202,11 @@ function WalletCard({wallet, main, onSend, onReceive, onWithdrawStake}) {
 
 WalletCard.propTypes = {
   wallet: PropTypes.object,
-  main: PropTypes.bool,
+  isSelected: PropTypes.bool,
+  isLoading: PropTypes.bool,
 
   onSend: PropTypes.func,
   onReceive: PropTypes.func,
-  onWithdrawStake: PropTypes.func,
 }
 
 export default WalletCard

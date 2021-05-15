@@ -11,6 +11,8 @@ import {
   DrawerFooter as ChakraDrawerFooter,
   Input as ChakraInput,
   FormLabel as ChakraFormLabel,
+  Select as ChakraSelect,
+  Skeleton as ChakraSkeleton,
   Image,
   Tooltip as ChakraTooltip,
   Flex,
@@ -29,6 +31,8 @@ import {
   Box,
   Button,
   PseudoBox,
+  FormControl,
+  useTheme,
 } from '@chakra-ui/core'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
@@ -77,6 +81,17 @@ export function FormLabel(props) {
   return <ChakraFormLabel fontWeight={500} color="brandGray.500" {...props} />
 }
 
+export function FormControlWithLabel({label, children, ...props}) {
+  return (
+    <FormControl {...props}>
+      <FormLabel color="brandGray.500" mb={2}>
+        {label}
+      </FormLabel>
+      {children}
+    </FormControl>
+  )
+}
+
 export function Input(props) {
   return (
     <ChakraInput
@@ -85,6 +100,25 @@ export function Input(props) {
       fontSize="md"
       lineHeight="short"
       px={3}
+      h={8}
+      _placeholder={{
+        color: 'muted',
+      }}
+      _disabled={{
+        bg: 'gray.50',
+        color: 'muted',
+      }}
+      {...props}
+    />
+  )
+}
+
+export function Select(props) {
+  return (
+    <ChakraSelect
+      borderColor="gray.300"
+      fontSize="md"
+      lineHeight="short"
       h={8}
       _placeholder={{
         color: 'muted',
@@ -258,5 +292,17 @@ export function DialogFooter({children, ...props}) {
         {children}
       </Stack>
     </ModalFooter>
+  )
+}
+
+export function Skeleton(props) {
+  const {colors} = useTheme()
+  return (
+    <ChakraSkeleton
+      colorStart={colors.gray[100]}
+      colorEnd={colors.gray[300]}
+      w="full"
+      {...props}
+    />
   )
 }

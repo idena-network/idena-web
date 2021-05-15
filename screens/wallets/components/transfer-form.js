@@ -1,138 +1,143 @@
-import React, {useEffect} from 'react'
-import {margin, padding, wordWrap} from 'polished'
+import React, {useState} from 'react'
 import PropTypes from 'prop-types'
-import {FiLoader} from 'react-icons/fi'
 import {useTranslation} from 'react-i18next'
-import theme, {rem} from '../../../shared/theme'
-import {
-  Box,
-  SubHeading,
-  FormGroup,
-  Field,
-  Button,
-  Select,
-} from '../../../shared/components'
+import {Box, Flex, Heading, Icon, Stack} from '@chakra-ui/core'
 import {useNotificationDispatch} from '../../../shared/providers/notification-context'
-import {useWallets} from '../../../shared/hooks/use-wallets'
+import {
+  Drawer,
+  DrawerBody,
+  DrawerFooter,
+  DrawerHeader,
+  FormControlWithLabel,
+  Input,
+} from '../../../shared/components/components'
+import {PrimaryButton} from '../../../shared/components/button'
+import {useAuthState} from '../../../shared/providers/auth-context'
+import {getRawTx, sendRawTx} from '../../../shared/api'
+import {privateKeyToAddress} from '../../../shared/utils/crypto'
+import {Transaction} from '../../../shared/models/transaction'
 
-function TransferForm({onSuccess, onFail}) {
-  const {wallets, sendTransaction} = useWallets()
+function isAddress(address) {
+  return address.length === 42 && address.substr(0, 2) === '0x'
+}
 
-  const selectWallets =
-    wallets &&
-    wallets.filter(wallet => !wallet.isStake).map(wallet => wallet.address)
+function TransferForm({isOpen, onClose}) {
+  const {coinbase, privateKey} = useAuthState()
 
-  const [from, setFrom] = React.useState(
-    selectWallets.length > 0 ? selectWallets[0] : null
-  )
+  const [to, setTo] = useState()
+  const [amount, setAmount] = useState()
 
-  useEffect(() => {
-    if (!from) {
-      setFrom(selectWallets.length > 0 ? selectWallets[0] : null)
-    }
-  }, [from, selectWallets])
-
-  const [to, setTo] = React.useState()
-  const [amount, setAmount] = React.useState()
-
-  const [submitting, setSubmitting] = React.useState(false)
+  const [submitting, setSubmitting] = useState(false)
 
   const {addNotification, addError} = useNotificationDispatch()
 
-  const {t} = useTranslation('error')
+  const {t} = useTranslation()
+
+  const send = async () => {
+    try {
+      setSubmitting(true)
+
+      if (!isAddress(to)) {
+        throw new Error(`Incorrect 'To' address: ${to}`)
+      }
+      if (amount <= 0) {
+        throw new Error(`Incorrect Amount: ${amount}`)
+      }
+
+      const rawTx = await getRawTx(
+        0,
+        privateKeyToAddress(privateKey),
+        to,
+        amount
+      )
+
+      const tx = new Transaction().fromHex(rawTx)
+      tx.sign(privateKey)
+
+      const result = await sendRawTx(`0x${tx.toHex()}`)
+
+      addNotification({
+        title: t('Transaction sent'),
+        body: result,
+      })
+      if (onClose) onClose()
+    } catch (error) {
+      addError({
+        title: t('error:Error while sending transaction'),
+        body: error.message,
+      })
+    } finally {
+      setSubmitting(false)
+    }
+  }
 
   return (
-    <Box
-      css={padding(rem(theme.spacings.large48), rem(theme.spacings.medium32))}
-    >
-      <Box
-        css={{
-          ...margin(theme.spacings.medium16, 0, theme.spacings.medium32),
-        }}
-      >
-        <SubHeading
-          css={{...margin(0, 0, theme.spacings.small8), ...wordWrap()}}
+    <Drawer isOpen={isOpen} onClose={onClose}>
+      <DrawerHeader mb={8}>
+        <Flex
+          align="center"
+          justify="center"
+          h={12}
+          w={12}
+          rounded="xl"
+          bg="blue.012"
         >
-          {t(`translation:Send iDNA`)}
-        </SubHeading>
-
-        <FormGroup>
-          <Field label={t('translation:From')} select>
-            <Select
-              name="select"
-              id=""
-              options={selectWallets}
-              value={selectWallets[0]}
-              onChange={e => setFrom(e.target.value)}
-              border="0"
+          <Icon name="send-out" w={6} h={6} color="blue.500" />
+        </Flex>
+        <Heading
+          color="brandGray.500"
+          fontSize="lg"
+          fontWeight={500}
+          lineHeight="base"
+          mt={4}
+        >
+          Send iDNA
+        </Heading>
+      </DrawerHeader>
+      <DrawerBody>
+        <Stack spacing={5}>
+          <FormControlWithLabel label={t('From')}>
+            <Input value={coinbase} isDisabled />
+          </FormControlWithLabel>
+          <FormControlWithLabel label={t('To')}>
+            <Input value={to} onChange={e => setTo(e.target.value)} />
+          </FormControlWithLabel>
+          <FormControlWithLabel label={t('Amount')}>
+            <Input
+              value={amount}
+              type="number"
+              onChange={e => setAmount(e.target.value)}
             />
-          </Field>
-        </FormGroup>
-        <FormGroup>
-          <Field
-            label={t('translation:To')}
-            onChange={e => setTo(e.target.value)}
-          />
-        </FormGroup>
-        <FormGroup>
-          <Field
-            label={t('translation:Amount, iDNA')}
-            type="number"
-            onChange={e => setAmount(e.target.value)}
-          />
-        </FormGroup>
-        <FormGroup
-          css={margin(rem(theme.spacings.medium24), 0, 0)}
-          className="text-right"
+          </FormControlWithLabel>
+        </Stack>
+      </DrawerBody>
+      <DrawerFooter>
+        <Box
+          alignSelf="stretch"
+          borderTop="1px"
+          borderTopColor="gray.300"
+          mt="auto"
+          pt={5}
+          width="100%"
         >
-          <Button
-            disabled={submitting || !to || !from || !amount}
-            onClick={async () => {
-              try {
-                setSubmitting(true)
-
-                const {result, error} = await sendTransaction({
-                  from,
-                  to,
-                  amount,
-                })
-                setSubmitting(false)
-
-                if (error) {
-                  addError({
-                    title: t('error:Error while sending transaction'),
-                    body: error.message,
-                  })
-                } else {
-                  addNotification({
-                    title: t('translation:Transaction sent'),
-                    body: result,
-                  })
-                  if (onSuccess) onSuccess(result)
-                }
-              } catch (error) {
-                setSubmitting(false)
-                if (onFail) {
-                  addError({
-                    title: t('error:Something went wrong'),
-                    body: error.message,
-                  })
-                  onFail(error)
-                }
-              }
-            }}
-          >
-            {submitting ? <FiLoader /> : t('translation:Transfer')}
-          </Button>
-        </FormGroup>
-      </Box>
-    </Box>
+          <Stack isInline spacing={2} justify="flex-end">
+            <PrimaryButton
+              onClick={send}
+              isLoading={submitting}
+              loadingText={t('Mining...')}
+            >
+              {t('Transfer')}
+            </PrimaryButton>
+          </Stack>
+        </Box>
+      </DrawerFooter>
+    </Drawer>
   )
 }
 
 TransferForm.propTypes = {
-  onSuccess: PropTypes.func,
-  onFail: PropTypes.func,
+  isOpen: PropTypes.bool,
+  onClose: PropTypes.func,
 }
 
 export default TransferForm

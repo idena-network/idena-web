@@ -1,54 +1,87 @@
 import React from 'react'
-import {margin, padding, wordWrap} from 'polished'
+import {margin} from 'polished'
 import PropTypes from 'prop-types'
 import QRCode from 'qrcode.react'
 import {useTranslation} from 'react-i18next'
+import {
+  Flex,
+  FormControl,
+  Heading,
+  Icon,
+  Stack,
+  useClipboard,
+} from '@chakra-ui/core'
 import theme, {rem} from '../../../shared/theme'
-import {Box, SubHeading, FormGroup, Field} from '../../../shared/components'
+import {Label} from '../../../shared/components'
+import {
+  Drawer,
+  DrawerBody,
+  DrawerHeader,
+  FormLabel,
+  Input,
+} from '../../../shared/components/components'
+import {FlatButton} from '../../../shared/components/button'
 
-function ReceiveForm({address}) {
+function ReceiveForm({isOpen, onClose, address}) {
   const {t} = useTranslation()
+  const {onCopy, hasCopied} = useClipboard(address)
   return (
-    <Box
-      css={padding(rem(theme.spacings.large48), rem(theme.spacings.medium32))}
-    >
-      <Box
-        css={{
-          ...margin(theme.spacings.medium16, 0, theme.spacings.medium32),
-        }}
-      >
-        <SubHeading
-          css={{...margin(0, 0, theme.spacings.small8), ...wordWrap()}}
+    <Drawer isOpen={isOpen} onClose={onClose}>
+      <DrawerHeader mb={8}>
+        <Flex
+          align="center"
+          justify="center"
+          h={12}
+          w={12}
+          rounded="xl"
+          bg="blue.012"
+        >
+          <Icon name="send-out" w={6} h={6} color="blue.500" />
+        </Flex>
+        <Heading
+          color="brandGray.500"
+          fontSize="lg"
+          fontWeight={500}
+          lineHeight="base"
+          mt={4}
         >
           {t(`Receive iDNA`)}
-        </SubHeading>
-
-        <Box
-          css={{
-            ...margin(rem(theme.spacings.medium24)),
-            textAlign: 'center',
-          }}
-        >
+        </Heading>
+      </DrawerHeader>
+      <DrawerBody>
+        <Stack spacing={5}>
           <QRCode value={address} style={{...margin(0, 'auto')}} />
-        </Box>
-
-        <FormGroup>
-          <WideField
-            label={t('Address')}
-            defaultValue={address}
-            disabled
-            allowCopy
-          />
-        </FormGroup>
-      </Box>
-    </Box>
+          <FormControl>
+            <Flex justify="space-between">
+              <FormLabel style={{fontSize: rem(13)}}>{t('Address')}</FormLabel>
+              {hasCopied ? (
+                <Label style={{fontSize: rem(13)}}>{t('Copied!')}</Label>
+              ) : (
+                <FlatButton
+                  color={theme.colors.primary}
+                  onClick={onCopy}
+                  style={{
+                    fontSize: rem(13),
+                    marginBottom: rem(10),
+                    textAlign: 'center',
+                  }}
+                >
+                  {t('Copy')}
+                </FlatButton>
+              )}
+            </Flex>
+            <Input value={address} isDisabled></Input>
+          </FormControl>
+        </Stack>
+      </DrawerBody>
+    </Drawer>
   )
 }
 
-const WideField = props => <Field {...props} style={{width: rem(296)}} />
-
 ReceiveForm.propTypes = {
   address: PropTypes.string,
+  isOpen: PropTypes.bool,
+  onClose: PropTypes.func,
 }
 
 export default ReceiveForm

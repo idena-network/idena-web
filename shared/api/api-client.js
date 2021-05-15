@@ -3,6 +3,7 @@ import {loadPersistentState} from '../utils/persist'
 
 export const BASE_INTERNAL_API_PORT = 9119
 export const BASE_API_URL = 'http://localhost:7979'
+export const INDEXER_API_URL = 'https://api.idena.io'
 
 export function getRpcParams() {
   const state = loadPersistentState('settings')
@@ -30,4 +31,10 @@ export default function api(useProxy = false) {
     return config
   })
   return instance
+}
+
+export function indexerApi() {
+  return axios.create({
+    baseURL: INDEXER_API_URL,
+  })
 }
