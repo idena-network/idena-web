@@ -14,17 +14,11 @@ import TotalAmount from '../screens/wallets/components/total-amount'
 import WalletTransactions from '../screens/wallets/components/wallet-transactions'
 import TransferForm from '../screens/wallets/components/transfer-form'
 import ReceiveForm from '../screens/wallets/components/receive-form'
-import KillForm from '../screens/wallets/components/kill-form'
 import {Page, PageTitle} from '../screens/app/components'
 import Layout from '../shared/components/layout'
 import {useAuthState} from '../shared/providers/auth-context'
 import {fetchBalance} from '../shared/api/wallet'
 import WalletCard from '../screens/wallets/components/wallet-card'
-
-const walletType = {
-  Balance: 0,
-  Stake: 1,
-}
 
 export default function Index() {
   const {t} = useTranslation()
@@ -44,9 +38,6 @@ export default function Index() {
 
   const [isReceiveFormOpen, setIsReceiveFormOpen] = useState(false)
   const [isTransferFormOpen, setIsTransferFormOpen] = useState(false)
-  const [isWithdrawStakeFormOpen, setIsWithdrawStakeFormOpen] = useState(false)
-
-  const [activeWallet, setActiveWallet] = useState(walletType.Balance)
 
   return (
     <Layout>
@@ -63,7 +54,6 @@ export default function Index() {
             <div>
               <Actions>
                 <IconLink
-                  disabled={activeWallet === walletType.Stake}
                   icon={<i className="icon icon--withdraw" />}
                   onClick={() => {
                     setIsTransferFormOpen(!isTransferFormOpen)
@@ -72,7 +62,6 @@ export default function Index() {
                   {t('Send')}
                 </IconLink>
                 <IconLink
-                  disabled={activeWallet === walletType.Stake}
                   icon={<i className="icon icon--deposit" />}
                   onClick={() => {
                     setIsReceiveFormOpen(!isReceiveFormOpen)
@@ -87,17 +76,13 @@ export default function Index() {
             <Flex>
               <WalletCard
                 wallet={{name: 'Main', balance, isStake: false}}
-                isSelected={activeWallet === walletType.Balance}
+                isSelected
                 onSend={() => setIsTransferFormOpen(true)}
                 onReceive={() => setIsReceiveFormOpen(true)}
-                onClick={() => setActiveWallet(walletType.Balance)}
                 isLoading={isLoading}
               />
               <WalletCard
                 wallet={{name: 'Stake', balance: stake, isStake: true}}
-                isSelected={activeWallet === walletType.Stake}
-                onWithdrawStake={() => setIsWithdrawStakeFormOpen(true)}
-                onClick={() => setActiveWallet(walletType.Stake)}
                 isLoading={isLoading}
               />
             </Flex>
@@ -137,11 +122,6 @@ export default function Index() {
           address={coinbase}
           isOpen={isReceiveFormOpen}
           onClose={() => setIsReceiveFormOpen(false)}
-        />
-
-        <KillForm
-          isOpen={isWithdrawStakeFormOpen}
-          onClose={() => setIsWithdrawStakeFormOpen(false)}
         />
       </Page>
     </Layout>
