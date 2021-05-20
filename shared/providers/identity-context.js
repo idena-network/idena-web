@@ -59,7 +59,7 @@ export function IdentityProvider(props) {
   useQuery(['get-identity', apiKey, url], () => fetchIdentity(coinbase), {
     retryDelay: 5 * 1000,
     enabled: !!coinbase,
-    onSuccess: nextIdentity => {
+    onSuccess: (nextIdentity = {}) => {
       if (!deepEqual(identity, nextIdentity)) {
         const state =
           identity &&

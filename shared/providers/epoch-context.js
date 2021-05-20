@@ -84,7 +84,7 @@ export function EpochProvider(props) {
     }
   }, 3 * 1000)
 
-  return <EpochContext.Provider {...props} value={epochData} />
+  return <EpochContext.Provider {...props} value={epochData ?? null} />
 }
 
 export function useEpoch() {
