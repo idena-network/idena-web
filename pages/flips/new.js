@@ -45,7 +45,6 @@ import {redact} from '../../shared/utils/logs'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {BadFlipDialog} from '../../screens/validation/components'
-import {loadPersistentState, persistState} from '../../shared/utils/persist'
 
 export default function NewFlipPage() {
   const {t, i18n} = useTranslation()
@@ -66,7 +65,7 @@ export default function NewFlipPage() {
         // eslint-disable-next-line no-shadow
         const didShowBadFlip = (() => {
           try {
-            localStorage.getItem('didShowBadFlip')
+            return localStorage.getItem('didShowBadFlip')
           } catch {
             return false
           }
