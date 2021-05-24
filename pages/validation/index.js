@@ -10,10 +10,6 @@ import {
   Heading,
   Stack,
   useDisclosure,
-  List,
-  ListItem,
-  Alert,
-  AlertIcon,
 } from '@chakra-ui/core'
 import {
   createValidationMachine,
@@ -50,19 +46,14 @@ import {
   SubmitFailedDialog,
   FailedFlipAnnotation,
   ReviewValidationDialog,
+  BadFlipDialog,
 } from '../../screens/validation/components'
 import theme, {rem} from '../../shared/theme'
 import {AnswerType} from '../../shared/types'
 import {PrimaryButton} from '../../shared/components/button'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {info} from '../../shared/utils/logs'
-import {
-  Dialog,
-  DialogBody,
-  DialogFooter,
-  DialogHeader,
-  Tooltip,
-} from '../../shared/components/components'
+import {Tooltip} from '../../shared/components/components'
 import {Tooltip as TooltipLegacy} from '../../shared/components/tooltip'
 import {LayoutContainer} from '../../screens/app/components'
 import Auth from '../../shared/components/auth'
@@ -426,55 +417,22 @@ function ValidationSession({
         <ValidationFailedDialog isOpen onSubmit={() => router.push('/')} />
       )}
 
-      <Dialog isOpen={isReportDialogOpen} onClose={onCloseReportDialog}>
-        <DialogHeader>
-          {t('Please report the flip when you see one of the following:', {
-            nsSeparator: '!',
-          })}
-        </DialogHeader>
-        <DialogBody>
-          <Stack spacing={4} mt={2}>
-            <List as="ol" styleType="decimal" spacing={2}>
-              <ListItem>
-                {t('One of the keywords is not relevant to the flip')}
-              </ListItem>
-              <ListItem>
-                {t('You need to read the text in the flip to solve it')}
-              </ListItem>
-              <ListItem>{t('You see inappropriate content')}</ListItem>
-              <ListItem>
-                {t(
-                  'You see numbers or letters or other labels on top of the images showing their order'
-                )}
-              </ListItem>
-            </List>
-            <Text color="muted">
-              {t('Skip the flip if the keywords are not loaded')}
-            </Text>
-            <Alert
-              alignItems="flex-start"
-              status="success"
-              bg="green.010"
-              borderWidth="1px"
-              borderColor="green.050"
-              fontWeight={500}
-              rounded="md"
-              px={3}
-              py={2}
-            >
-              <AlertIcon name="info" color="green.500" size={5} mr={3} />
-              {t(
-                "You'll get a reward for the reported flip if the flip is also reported by other participants"
-              )}
-            </Alert>
-          </Stack>
-        </DialogBody>
-        <DialogFooter>
-          <PrimaryButton onClick={onCloseReportDialog}>
-            {t('Ok, I understand')}
-          </PrimaryButton>
-        </DialogFooter>
-      </Dialog>
+      <BadFlipDialog
+        isOpen={
+          isReportDialogOpen ||
+          state.matches('longSession.solve.answer.finishFlips')
+        }
+        title={t('The flip is to be reported')}
+        subtitle={t(
+          `You'll get rewards for reported flips if these flip are also reported by other participants (more than 50% of qualification committee).`
+        )}
+        onClose={() => {
+          if (state.matches('longSession.solve.answer.finishFlips'))
+            send('START_KEYWORDS_QUALIFICATION')
+          else onCloseReportDialog()
+        }}
+      />
+
       <ReviewValidationDialog
         flips={filterSolvableFlips(flips)}
         reportedFlipsCount={reportedFlipsCount}
