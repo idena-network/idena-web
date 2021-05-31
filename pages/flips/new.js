@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react'
 import {useRouter} from 'next/router'
-import {Box, Flex, useToast, Code, Divider} from '@chakra-ui/core'
+import {Box, Flex, useToast, Divider, useDisclosure} from '@chakra-ui/core'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
 import {Page} from '../../screens/app/components'
@@ -44,6 +44,7 @@ import {useAuthState} from '../../shared/providers/auth-context'
 import {redact} from '../../shared/utils/logs'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
+import {BadFlipDialog} from '../../screens/validation/components'
 
 export default function NewFlipPage() {
   const {t, i18n} = useTranslation()
@@ -61,10 +62,20 @@ export default function NewFlipPage() {
     },
     services: {
       prepareFlip: async ({wordPairs}) => {
+        // eslint-disable-next-line no-shadow
+        const didShowBadFlip = (() => {
+          try {
+            return localStorage.getItem('didShowBadFlip')
+          } catch {
+            return false
+          }
+        })()
+
         if (!wordPairs || wordPairs.every(({used}) => used))
           return {
             keywordPairId: 0,
             availableKeywords: [getRandomKeywordPair()],
+            didShowBadFlip,
           }
 
         const persistedFlips = await db.table('ownFlips').toArray()
@@ -77,7 +88,7 @@ export default function NewFlipPage() {
         // eslint-disable-next-line no-shadow
         const [{id: keywordPairId}] = availableKeywords
 
-        return {keywordPairId, availableKeywords}
+        return {keywordPairId, availableKeywords, didShowBadFlip}
       },
       submitFlip: async context => {
         const result = await publishFlip(context)
@@ -126,12 +137,19 @@ export default function NewFlipPage() {
     order,
     showTranslation,
     isCommunityTranslationsExpanded,
+    didShowBadFlip,
   } = current.context
 
   const not = state => !current.matches({editing: state})
   const is = state => current.matches({editing: state})
 
   const isOffline = is('keywords.loaded.fetchTranslationsFailed')
+
+  const {
+    isOpen: isOpenBadFlipDialog,
+    onOpen: onOpenBadFlipDialog,
+    onClose: onCloseBadFlipDialog,
+  } = useDisclosure()
 
   return (
     <Layout>
@@ -256,6 +274,9 @@ export default function NewFlipPage() {
                           ? `(#${keywordPairId + 1})`
                           : null}
                       </IconButton2>
+                      <IconButton2 icon="info" onClick={onOpenBadFlipDialog}>
+                        {t('What is a bad flip')}
+                      </IconButton2>
                     </FlipStoryAside>
                   </FlipStepBody>
                 </FlipStoryStep>
@@ -330,6 +351,19 @@ export default function NewFlipPage() {
             </PrimaryButton>
           )}
         </FlipMasterFooter>
+
+        <BadFlipDialog
+          isOpen={isOpenBadFlipDialog || !didShowBadFlip}
+          title={t('What is a bad flip?')}
+          subtitle={t(
+            'Please read the rules carefully. You can lose all your validation rewards if any of your flips is reported.'
+          )}
+          onClose={async () => {
+            localStorage.setItem('didShowBadFlip', true)
+            send('SKIP_BAD_FLIP')
+            onCloseBadFlipDialog()
+          }}
+        />
       </Page>
     </Layout>
   )

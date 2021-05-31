@@ -545,6 +545,7 @@ export const flipMasterMachine = Machine(
       originalOrder: DEFAULT_FLIP_ORDER,
       order: DEFAULT_FLIP_ORDER,
       orderPermutations: DEFAULT_FLIP_ORDER,
+      didShowBadFlip: true,
     },
     on: {
       SWITCH_LOCALE: {
@@ -873,6 +874,7 @@ export const flipMasterMachine = Machine(
           PICK_KEYWORDS: '.keywords',
           PICK_SHUFFLE: '.shuffle',
           PICK_SUBMIT: '.submit',
+          SKIP_BAD_FLIP: {actions: [assign({didShowBadFlip: () => true})]},
         },
       },
     },
