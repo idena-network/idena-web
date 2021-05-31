@@ -119,10 +119,17 @@ function SettingsProvider({children}) {
   }, [dispatch])
 
   const performCheck = useCallback(() => {
+    async function softCheckKey(key) {
+      try {
+        return await checkKey(key)
+      } catch (e) {
+        return null
+      }
+    }
     async function loadData() {
       try {
         const {epoch} = await fetchEpoch()
-        const result = await checkKey(state.apiKey)
+        const result = await softCheckKey(state.apiKey)
         if (result) {
           if (result.epoch < epoch - 1) {
             dispatch({
