@@ -80,10 +80,13 @@ export default function Offline() {
 
   useEffect(() => {
     async function load() {
-      const identity = await fetchIdentity(auth.coinbase, true)
-      if (identity.state === 'Undefined') {
-        setActivateActive(true)
-      }
+      try {
+        const identity = await fetchIdentity(auth.coinbase, true)
+        if (identity.state === 'Undefined') {
+          setActivateActive(true)
+        }
+        // eslint-disable-next-line no-empty
+      } catch (e) {}
     }
     load()
   }, [auth.coinbase])
