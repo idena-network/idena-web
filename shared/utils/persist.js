@@ -11,7 +11,7 @@ export function loadPersistentState(dbName) {
 }
 
 export function loadPersistentStateValue(dbName, key) {
-  if (!key) {
+  if (typeof key === 'undefined') {
     throw new Error('loadItem requires key to be passed')
   }
   const state = loadPersistentState(dbName)

@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react'
-import {Box, Icon, Stack} from '@chakra-ui/core'
+import {Box, Icon, Stack, useDisclosure} from '@chakra-ui/core'
 import {useTranslation} from 'react-i18next'
 import {useQuery, useQueryClient} from 'react-query'
 import {Page, PageTitle} from '../screens/app/components'
@@ -14,6 +14,7 @@ import {
   ActivateInviteForm,
   ValidationResultToast,
   ActivateMiningForm,
+  KillForm,
 } from '../screens/profile/components'
 import Layout from '../shared/components/layout'
 import {IdentityStatus} from '../shared/types'
@@ -28,6 +29,7 @@ import {useIdentity} from '../shared/providers/identity-context'
 import {useEpoch} from '../shared/providers/epoch-context'
 import {fetchBalance} from '../shared/api/wallet'
 import {useAuthState} from '../shared/providers/auth-context'
+import {IconButton2} from '../shared/components/button'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -49,6 +51,7 @@ export default function ProfilePage() {
       delegatee,
       delegationEpoch,
       canMine,
+      canTerminate,
     },
   ] = useIdentity()
 
@@ -56,6 +59,12 @@ export default function ProfilePage() {
   const {privateKey} = useAuthState()
 
   const [showValidationResults, setShowValidationResults] = React.useState()
+
+  const {
+    isOpen: isOpenKillForm,
+    onOpen: onOpenKillForm,
+    onClose: onCloseKillForm,
+  } = useDisclosure()
 
   const {
     data: {balance, stake},
@@ -179,9 +188,18 @@ export default function ProfilePage() {
               <IconLink href="/flips/new" icon={<Icon name="photo" size={5} />}>
                 {t('New flip')}
               </IconLink>
+              <IconButton2
+                isDisabled={!true}
+                icon="delete"
+                onClick={onOpenKillForm}
+              >
+                {t('Terminate')}
+              </IconButton2>
             </Stack>
           </Stack>
         </Stack>
+
+        <KillForm isOpen={isOpenKillForm} onClose={onCloseKillForm}></KillForm>
 
         {showValidationResults && <ValidationResultToast epoch={epoch.epoch} />}
       </Page>

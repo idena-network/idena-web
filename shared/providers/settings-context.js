@@ -163,7 +163,12 @@ function SettingsProvider({children}) {
         })
       }
     }
-    if (state.url && state.apiKey) {
+    if (!state.initialized) {
+      dispatch({
+        type: SET_API_KEY_STATE,
+        data: {apiKeyState: apiKeyStates.ONLINE},
+      })
+    } else if (state.url && state.apiKey) {
       loadData()
     } else {
       dispatch({
@@ -171,11 +176,11 @@ function SettingsProvider({children}) {
         data: {apiKeyState: apiKeyStates.OFFLINE},
       })
     }
-  }, [dispatch, state.apiKey, state.url])
+  }, [dispatch, state.apiKey, state.initialized, state.url])
 
   useEffect(() => {
     performCheck()
-  }, [performCheck])
+  }, [performCheck, state.apiKey, state.url])
 
   useInterval(performCheck, API_KEY_CHECK_INTERVAL)
 

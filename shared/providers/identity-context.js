@@ -72,6 +72,7 @@ export function IdentityProvider(props) {
         // we are waiting for some changes
         if (
           identity &&
+          state !== IdentityStatus.Terminating &&
           waitForUpdate.until &&
           waitForUpdate.fields.some(
             field => !deepEqual(identity[field], nextIdentity[field])
@@ -99,11 +100,10 @@ export function IdentityProvider(props) {
   )
 
   const killMe = useCallback(
-    async (privateKey, to) => {
+    async privateKey => {
       const rawTx = await getRawTx(
         TxType.KillTx,
-        privateKeyToAddress(privateKey),
-        to
+        privateKeyToAddress(privateKey)
       )
 
       const tx = new Transaction().fromHex(rawTx)
@@ -111,6 +111,7 @@ export function IdentityProvider(props) {
 
       const result = await sendRawTx(`0x${tx.toHex()}`)
       setIdentity({...identity, state: IdentityStatus.Terminating})
+      waitStateUpdate()
       return result
     },
     [identity]
