@@ -2,6 +2,7 @@ import {Flex, Checkbox, Text} from '@chakra-ui/core'
 import {rem, margin} from 'polished'
 import {useState} from 'react'
 import Router from 'next/router'
+import {useTranslation} from 'react-i18next'
 import {Button, Label, SubHeading} from '../../shared/components'
 import {Input, PasswordInput} from '../../shared/components/components'
 import {useAuthDispatch} from '../../shared/providers/auth-context'
@@ -17,6 +18,7 @@ const steps = {
 }
 
 export default function ImportKey() {
+  const {t} = useTranslation()
   const [state, setState] = useState({
     key: '',
     password: '',
@@ -43,7 +45,7 @@ export default function ImportKey() {
         Router.push('/')
       }
     } else {
-      setError('Key or password is invalid. Try again.')
+      setError(t('Key or password is invalid. Try again.'))
     }
   }
 
@@ -65,12 +67,13 @@ export default function ImportKey() {
                 style={{marginLeft: rem(20)}}
               >
                 <SubHeading color="white">
-                  Import your private key backup to sign in
+                  {t('Import your private key backup to sign in')}
                 </SubHeading>
                 <Flex justify="space-between">
                   <Text color="xwhite.050" fontSize={rem(14)}>
-                    Enter your private key backup. You can export your private
-                    key from Idena app (see Settings page).
+                    {t(
+                      'Enter your private key backup. You can export your private key from Idena app (see Settings page).'
+                    )}
                   </Text>
                 </Flex>
               </Flex>
@@ -92,7 +95,7 @@ export default function ImportKey() {
                   htmlFor="key"
                   style={{color: 'white', fontSize: rem(13)}}
                 >
-                  Encrypted private key
+                  {t('Encrypted private key')}
                 </Label>
                 <Flex width="100%" style={{marginBottom: rem(20)}}>
                   <Input
@@ -101,7 +104,7 @@ export default function ImportKey() {
                     borderColor="xblack.008"
                     backgroundColor="xblack.016"
                     onChange={e => setState({...state, key: e.target.value})}
-                    placeholder="Enter your private key backup"
+                    placeholder={t('Enter your private key backup')}
                   />
                 </Flex>
                 <Label
@@ -111,7 +114,7 @@ export default function ImportKey() {
                     fontSize: rem(13),
                   }}
                 >
-                  Password
+                  {t('Password')}
                 </Label>
                 <Flex width="100%">
                   <PasswordInput
@@ -125,7 +128,7 @@ export default function ImportKey() {
                         password: e.target.value,
                       })
                     }
-                    placeholder="Enter your password"
+                    placeholder={t('Enter your password')}
                   />
                 </Flex>
                 <Flex
@@ -142,7 +145,7 @@ export default function ImportKey() {
                     }
                     style={{fontWeight: 300}}
                   >
-                    Save the encrypted key on this computer
+                    {t('Save the encrypted key on this computer')}
                   </Checkbox>
                   <Flex>
                     <Button
@@ -150,10 +153,10 @@ export default function ImportKey() {
                       css={{marginRight: rem(10)}}
                       onClick={() => Router.push('/')}
                     >
-                      Cancel
+                      {t('Cancel')}
                     </Button>
                     <Button type="submit" disabled={!state.key}>
-                      Import
+                      {t('Import')}
                     </Button>
                   </Flex>
                 </Flex>

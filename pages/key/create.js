@@ -6,6 +6,7 @@ import {useState, useEffect} from 'react'
 import {useRouter} from 'next/router'
 import QRCode from 'qrcode.react'
 import {saveAs} from 'file-saver'
+import {useTranslation} from 'react-i18next'
 import {Button, Label} from '../../shared/components'
 import {
   Avatar,
@@ -38,6 +39,8 @@ const steps = {
 }
 
 export default function CreateKey() {
+  const {t} = useTranslation()
+
   const router = useRouter()
   const [state, setState] = useState({
     step: steps.AVATAR,
@@ -58,7 +61,7 @@ export default function CreateKey() {
 
   const setPassword = () => {
     if (state.password !== state.passwordConfirm) {
-      setError("Passwords don't match. Try again.")
+      setError(t("Passwords don't match. Try again."))
     } else {
       const encryptedKey = encryptPrivateKey(state.privateKey, state.password)
       setState(prevState => ({
@@ -102,7 +105,7 @@ export default function CreateKey() {
               </Flex>
 
               <Flex textAlign="center">
-                <SubHeading color="white">Your address</SubHeading>
+                <SubHeading color="white">{t('Your address')}</SubHeading>
               </Flex>
 
               <Flex
@@ -116,7 +119,9 @@ export default function CreateKey() {
               >
                 {state.address}
               </Flex>
-              <Button onClick={() => setStep(steps.PASSWORD)}>Proceed</Button>
+              <Button onClick={() => setStep(steps.PASSWORD)}>
+                {t('Proceed')}
+              </Button>
 
               <Flex justifyContent="center">
                 <FlatButton
@@ -128,7 +133,7 @@ export default function CreateKey() {
                     textAlign: 'center',
                   }}
                 >
-                  Cancel
+                  {t('Cancel')}
                 </FlatButton>
               </Flex>
             </Flex>
@@ -162,7 +167,7 @@ export default function CreateKey() {
                 style={{marginLeft: rem(20)}}
               >
                 <SubHeading color="white">
-                  Create password to encrypt your account
+                  {t('Create password to encrypt your account')}
                 </SubHeading>
 
                 <Flex justify="space-between">
@@ -189,7 +194,7 @@ export default function CreateKey() {
                   htmlFor="key"
                   style={{color: 'white', fontSize: rem(13)}}
                 >
-                  Password
+                  {t('Password')}
                 </Label>
                 <Flex
                   width="100%"
@@ -207,7 +212,7 @@ export default function CreateKey() {
                         password: e.target.value,
                       })
                     }
-                    placeholder="Enter password"
+                    placeholder={t('Enter password')}
                   />
                 </Flex>
                 <Label
@@ -217,7 +222,7 @@ export default function CreateKey() {
                     fontSize: rem(13),
                   }}
                 >
-                  Confirm password
+                  {t('Confirm password')}
                 </Label>
                 <Flex width="100%" style={{position: 'relative'}}>
                   <PasswordInput
@@ -232,7 +237,7 @@ export default function CreateKey() {
                         passwordConfirm: e.target.value,
                       })
                     }
-                    placeholder="Enter password again"
+                    placeholder={t('Enter password again')}
                   />
                 </Flex>
                 <Flex
@@ -254,9 +259,9 @@ export default function CreateKey() {
                       size={5}
                       style={{transform: 'rotate(-90deg)', marginTop: -3}}
                     ></Icon>
-                    Back
+                    {t('Back')}
                   </FlatButton>
-                  <Button type="submit">Next</Button>
+                  <Button type="submit">{t('Next')}</Button>
                 </Flex>
                 {error && (
                   <Flex
@@ -290,11 +295,15 @@ export default function CreateKey() {
                 flex="1"
                 style={{marginLeft: rem(20)}}
               >
-                <SubHeading color="white">Backup your private key</SubHeading>
+                <SubHeading color="white">
+                  {t('Backup your private key')}
+                </SubHeading>
 
                 <Flex justify="space-between">
                   <Text color="xwhite.050" fontSize={rem(14)}>
-                    Make a photo of QR code or save your encrypted private key.
+                    {t(
+                      'Make a photo of QR code or save your encrypted private key.'
+                    )}
                   </Text>
                 </Flex>
               </Flex>
@@ -308,17 +317,22 @@ export default function CreateKey() {
               <form
                 onSubmit={e => {
                   e.preventDefault()
-                  setStep(steps.SUCCESS)
+                  if (!state.understand1 || !state.understand2) {
+                    setError(t('Please confirm you understand risks'))
+                  } else {
+                    setError('')
+                    setStep(steps.SUCCESS)
+                  }
                 }}
                 style={{width: '100%'}}
               >
                 <Flex justify="space-between">
                   <Label style={{color: 'white', fontSize: rem(13)}}>
-                    Your encrypted private key
+                    {t('Your encrypted private key')}
                   </Label>
                   {hasCopied ? (
                     <Label style={{color: 'white', fontSize: rem(13)}}>
-                      Copied!
+                      {t('Copied!')}
                     </Label>
                   ) : (
                     <FlatButton
@@ -330,7 +344,7 @@ export default function CreateKey() {
                         textAlign: 'center',
                       }}
                     >
-                      Copy
+                      {t('Copy')}
                     </FlatButton>
                   )}
                 </Flex>
@@ -355,8 +369,9 @@ export default function CreateKey() {
                     }
                     style={{fontWeight: 300}}
                   >
-                    I understand that Idena cannot recover the private key for
-                    me.
+                    {t(
+                      'I understand that Idena cannot recover the private key for me.'
+                    )}
                   </Checkbox>
                 </Flex>
                 <Flex
@@ -372,7 +387,9 @@ export default function CreateKey() {
                     }
                     style={{fontWeight: 300}}
                   >
-                    I understand the risk of compromising my private key backup.
+                    {t(
+                      'I understand the risk of compromising my private key backup.'
+                    )}
                   </Checkbox>
                 </Flex>
                 <Flex
@@ -383,7 +400,10 @@ export default function CreateKey() {
                 >
                   <FlatButton
                     color="white"
-                    onClick={() => setStep(steps.PASSWORD)}
+                    onClick={() => {
+                      setError('')
+                      setStep(steps.PASSWORD)
+                    }}
                     style={{
                       fontSize: rem(13),
                       textAlign: 'center',
@@ -394,7 +414,7 @@ export default function CreateKey() {
                       size={5}
                       style={{transform: 'rotate(-90deg)', marginTop: -3}}
                     ></Icon>
-                    Back
+                    {t('Back')}
                   </FlatButton>
                   <Flex>
                     <SecondaryButton
@@ -403,14 +423,9 @@ export default function CreateKey() {
                       fontSize={rem(13)}
                       onClick={() => setState({...state, showQrDialog: true})}
                     >
-                      Show QR code
+                      {t('Show QR code')}
                     </SecondaryButton>
-                    <PrimaryButton
-                      type="submit"
-                      disabled={!state.understand1 || !state.understand2}
-                    >
-                      Next
-                    </PrimaryButton>
+                    <PrimaryButton type="submit">{t('Next')}</PrimaryButton>
                   </Flex>
                 </Flex>
                 {error && (
@@ -437,9 +452,9 @@ export default function CreateKey() {
             isOpen={state.showQrDialog}
             onClose={() => setState({...state, showQrDialog: false})}
           >
-            <DialogHeader>Encrypted private key</DialogHeader>
+            <DialogHeader>{t('Encrypted private key')}</DialogHeader>
             <DialogBody>
-              Scan QR by your mobile phone.
+              {t('Scan QR by your mobile phone.')}
               <Flex justify="center" mx="auto" my={8}>
                 <QRCode value={state.encryptedPrivateKey} />
               </Flex>
@@ -448,7 +463,7 @@ export default function CreateKey() {
               <SecondaryButton
                 onClick={() => setState({...state, showQrDialog: false})}
               >
-                Close
+                {t('Close')}
               </SecondaryButton>
               <PrimaryButton
                 onClick={() => {
@@ -458,7 +473,7 @@ export default function CreateKey() {
                   saveAs(blob, 'idena-encrypted-key.txt')
                 }}
               >
-                Save to file
+                {t('Save to file')}
               </PrimaryButton>
             </DialogFooter>
           </Dialog>
@@ -474,7 +489,9 @@ export default function CreateKey() {
                 </div>
               </Flex>
               <Flex textAlign="center" marginTop={rem(30)}>
-                <SubHeading color="white">Successfully created!</SubHeading>
+                <SubHeading color="white">
+                  {t('Successfully created!')}
+                </SubHeading>
               </Flex>
 
               <Flex
@@ -489,7 +506,7 @@ export default function CreateKey() {
                 {state.address}
               </Flex>
               <Button onClick={() => router.push('/key/import')}>
-                Sign in
+                {t('Sign in')}
               </Button>
               <Flex justifyContent="center">
                 <FlatButton
@@ -501,7 +518,7 @@ export default function CreateKey() {
                     textAlign: 'center',
                   }}
                 >
-                  Back
+                  {t('Back')}
                 </FlatButton>
               </Flex>
             </Flex>
