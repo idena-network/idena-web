@@ -2,6 +2,7 @@ import {Flex, Icon, Text} from '@chakra-ui/core'
 import {margin, rem} from 'polished'
 import {useEffect, useState} from 'react'
 import {useQuery} from 'react-query'
+import {useTranslation} from 'react-i18next'
 import {Label, SubHeading} from '../../shared/components'
 import {
   useSettingsDispatch,
@@ -23,6 +24,7 @@ import {Transaction} from '../../shared/models/transaction'
 
 // eslint-disable-next-line react/prop-types
 export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
+  const {t} = useTranslation()
   const [submitting, setSubmitting] = useState(false)
 
   const [state, setState] = useState({
@@ -110,11 +112,16 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
           flex="1"
           style={{marginLeft: rem(20)}}
         >
-          <SubHeading color="white">Enter invitation code</SubHeading>
+          <SubHeading color="white">{t('Enter invitation code')}</SubHeading>
           <Flex justify="space-between">
             <Text color="xwhite.050" fontSize={rem(14)}>
-              Enter an invitation code to get a free shared node connection
-              {onSkip ? ' or skip it to enter the invitation code later' : ''}.
+              {onSkip
+                ? t(
+                    'Enter an invitation code to get a free shared node connection or skip it to enter the invitation code later'
+                  )
+                : t(
+                    'Enter an invitation code to get a free shared node connection'
+                  )}
             </Text>
           </Flex>
         </Flex>
@@ -133,7 +140,7 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
           style={{width: '100%'}}
         >
           <Label htmlFor="code" style={{color: 'white', fontSize: rem(13)}}>
-            Invitation code
+            {t('Invitation code')}
           </Label>
           <Flex width="100%" style={{marginBottom: rem(20)}}>
             <Input
@@ -142,7 +149,7 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
               borderColor="xblack.008"
               backgroundColor="xblack.016"
               onChange={e => setState({...state, code: e.target.value})}
-              placeholder="Your invitation code"
+              placeholder={t('Your invitation code')}
               color="white"
             />
           </Flex>
@@ -167,7 +174,7 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
                 size={5}
                 style={{transform: 'rotate(-90deg)', marginTop: -3}}
               ></Icon>
-              Back
+              {t('Back')}
             </FlatButton>
 
             <Flex>
@@ -179,16 +186,16 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
                   onClick={onSkip}
                   isDisabled={waiting}
                 >
-                  Skip for now
+                  {t('Skip for now')}
                 </SecondaryButton>
               )}
               <PrimaryButton
                 isLoading={waiting}
-                loadingText="Mining..."
+                loadingText={t('Mining...')}
                 type="submit"
                 ml="auto"
               >
-                Activate
+                {t('Activate')}
               </PrimaryButton>
             </Flex>
           </Flex>
