@@ -1,7 +1,7 @@
 import {
   Alert,
-  AlertIcon,
   Flex,
+  Icon,
   Link,
   Radio,
   RadioGroup,
@@ -10,6 +10,7 @@ import {
 import {useRouter} from 'next/router'
 import {padding} from 'polished'
 import {useEffect, useState} from 'react'
+import {useTranslation} from 'react-i18next'
 import {
   checkKey,
   fetchEpoch,
@@ -18,7 +19,7 @@ import {
 } from '../../shared/api'
 
 import {SubHeading, Text} from '../../shared/components'
-import {PrimaryButton} from '../../shared/components/button'
+import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {Avatar} from '../../shared/components/components'
 import Layout from '../../shared/components/layout'
 import {useAuthState} from '../../shared/providers/auth-context'
@@ -35,11 +36,12 @@ const options = {
 }
 
 export default function Offline() {
+  const {t} = useTranslation()
   const {apiKeyState, apiKey} = useSettingsState()
   const auth = useAuthState()
   const router = useRouter()
 
-  const [error, setError] = useState('')
+  const [unavailableProvider, setUnavailableProvider] = useState()
   const [state, setState] = useState(options.BUY)
   const [activateActive, setActivateActive] = useState(false)
 
@@ -66,12 +68,10 @@ export default function Offline() {
         const result = await checkKey(apiKey)
         if (result.epoch >= epoch - 1) {
           const provider = await getProvider(result.provider)
-          setError(
-            `The node is unavailable. Please contact the node owner: ${provider.data.ownerName}`
-          )
+          setUnavailableProvider(provider.data.ownerName)
         }
       } catch (e) {
-        setError('')
+        setUnavailableProvider('')
       }
     }
 
@@ -127,7 +127,7 @@ export default function Offline() {
           >
             <Flex>
               <Text color={theme.colors.white} fontSize={rem(18)}>
-                Connect to Idena node
+                {t('Connect to Idena node')}
               </Text>
             </Flex>
 
@@ -137,38 +137,38 @@ export default function Offline() {
                 fontSize={rem(11)}
                 css={{opacity: 0.5}}
               >
-                Choose an option
+                {t('Choose an option')}
               </Text>
             </Flex>
             <Flex marginTop={rem(15)}>
               <RadioGroup>
-                <Stack direction="column">
+                <Stack direction="column" spacing={3}>
                   <Radio
                     isChecked={state === options.BUY}
-                    onClick={() => setState(options.BUY)}
+                    onChange={() => setState(options.BUY)}
                     borderColor="white"
                   >
                     <Text color={theme.colors.white} fontSize={rem(13)}>
-                      Rent a shared node
+                      {t('Rent a shared node')}
                     </Text>
                   </Radio>
                   <Radio
                     isChecked={state === options.ENTER_KEY}
-                    onClick={() => setState(options.ENTER_KEY)}
+                    onChange={() => setState(options.ENTER_KEY)}
                     borderColor="white"
                   >
                     <Text color={theme.colors.white} fontSize={rem(13)}>
-                      Enter shared node API key
+                      {t('Enter shared node API key')}
                     </Text>
                   </Radio>
                   <Radio
                     isChecked={state === options.ACTIVATE}
-                    onClick={() => setState(options.ACTIVATE)}
+                    onChange={() => setState(options.ACTIVATE)}
                     borderColor="white"
                     isDisabled={!activateActive}
                   >
                     <Text color={theme.colors.white} fontSize={rem(13)}>
-                      Activate invite
+                      {t('Activate invite')}
                     </Text>
                   </Radio>
                 </Stack>
@@ -180,29 +180,28 @@ export default function Offline() {
                 fontSize={rem(14)}
                 css={{marginTop: rem(theme.spacings.small12)}}
               >
-                <span style={{opacity: 0.5}}>
-                  You can run your own node for free at your desktop computer.
-                  Download it{' '}
-                </span>{' '}
-                <Link
-                  href="https://idena.io/download"
-                  target="_blank"
-                  rel="noreferrer"
-                  color="brandBlue.100"
-                >
-                  here
-                </Link>
-                .
+                <Flex style={{opacity: 0.5}} alignItems="center">
+                  <Icon name="info-outline" size={4} mr={3}></Icon>
+                  <Flex>
+                    {t('You can run your own node at your desktop computer.')}
+                  </Flex>
+                </Flex>
               </Text>
             </Flex>
             <Flex marginTop={rem(30)}>
-              <PrimaryButton onClick={process} ml="auto">
-                Continue
-              </PrimaryButton>
+              <Link
+                href="https://idena.io/download"
+                target="_blank"
+                ml="auto"
+                mr={2}
+              >
+                <SecondaryButton>{t('Download desktop app')}</SecondaryButton>
+              </Link>
+              <PrimaryButton onClick={process}>{t('Continue')}</PrimaryButton>
             </Flex>
           </Flex>
         </Flex>
-        {error && (
+        {unavailableProvider && (
           <Alert
             status="error"
             bg="red.500"
@@ -211,13 +210,25 @@ export default function Offline() {
             fontWeight={500}
             color="white"
             rounded="md"
-            px={3}
-            py={2}
+            px={6}
+            py={4}
             maxWidth={rem(480)}
             mt={2}
           >
-            <AlertIcon name="info" color="white" size={5} mr={3}></AlertIcon>
-            {error}
+            <Flex direction="column" w={rem(480)}>
+              <Flex fontSize={rem(14)}>
+                {t('The node is unavailable. Please contact the node owner:', {
+                  nsSeparator: '|',
+                })}
+              </Flex>
+              <Link
+                href={`https://t.me/${unavailableProvider}`}
+                target="_blank"
+              >
+                {unavailableProvider}
+                {' >'}
+              </Link>
+            </Flex>
           </Alert>
         )}
       </Flex>

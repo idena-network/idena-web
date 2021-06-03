@@ -122,7 +122,7 @@ export default function Expired() {
             </Flex>
             <Flex marginTop={rem(15)}>
               <RadioGroup>
-                <Stack direction="column">
+                <Stack direction="column" spacing={3}>
                   <Radio
                     isChecked={state === options.PROLONG}
                     onChange={() => setState(options.PROLONG)}
