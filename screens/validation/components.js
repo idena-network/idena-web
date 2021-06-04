@@ -739,7 +739,7 @@ export function TimerClock({duration, color}) {
 
 export function SubmitFailedDialog({onSubmit, ...props}) {
   const {t} = useTranslation()
-  const [sec, setSec] = useState(3)
+  const [sec, setSec] = useState(5)
 
   useEffect(() => {
     if (sec === 0) {
