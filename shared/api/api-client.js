@@ -1,15 +1,14 @@
 import axios from 'axios'
 import {loadPersistentState} from '../utils/persist'
 
-export const BASE_INTERNAL_API_PORT = 9119
-export const BASE_API_URL = 'http://localhost:7979'
+export const BASE_NODE_URL = 'http://localhost:9009'
 export const INDEXER_API_URL = 'https://api.idena.io'
 
 export function getRpcParams() {
   const state = loadPersistentState('settings')
   if (!state) {
     return {
-      url: '',
+      url: BASE_NODE_URL,
       key: '',
     }
   }
