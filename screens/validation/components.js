@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React, {useMemo} from 'react'
+import React, {useEffect, useMemo, useState} from 'react'
 import {
   margin,
   padding,
@@ -61,6 +61,7 @@ import {
 } from '../../shared/components/components'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import useNodeTiming from '../../shared/hooks/use-node-timing'
+import {useInterval} from '../../shared/hooks/use-interval'
 
 export function ValidationScene(props) {
   return (
@@ -736,12 +737,23 @@ export function TimerClock({duration, color}) {
   )
 }
 
-export function SubmitFailedDialog(props) {
+export function SubmitFailedDialog({onSubmit, ...props}) {
   const {t} = useTranslation()
+  const [sec, setSec] = useState(5)
+
+  useEffect(() => {
+    if (sec === 0) {
+      onSubmit()
+    }
+  }, [onSubmit, sec])
+
+  useInterval(() => setSec(sec - 1), sec ? 1000 : null)
+
   return (
     <ValidationDialog
       title={t('Submit failed')}
-      submitText={t('Retry')}
+      submitText={`${t('Retry')} (${sec})`}
+      onSubmit={onSubmit}
       {...props}
     >
       <DialogBody>
