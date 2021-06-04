@@ -184,7 +184,10 @@ function WalletTransactions({address}) {
                     <TableCol>
                       {(!tx.to && '\u2013') || (
                         <Flex align="center">
-                          <Avatar username={tx.counterParty} size={32} />
+                          <Avatar
+                            username={lowerCase(tx.counterParty)}
+                            size={32}
+                          />
                           <div>
                             <div>
                               {tx.direction === 'Sent' ? t('To') : t('From')}{' '}
