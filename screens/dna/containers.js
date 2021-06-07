@@ -1,4 +1,5 @@
 /* eslint-disable react/prop-types */
+import * as React from 'react'
 import {Box, Icon, Image, Stack, Text} from '@chakra-ui/core'
 import {useTranslation} from 'react-i18next'
 import {FiGlobe} from 'react-icons/fi'
@@ -14,14 +15,24 @@ import {
   authenticate,
   isValidUrl,
   parseCallbackUrl,
+  signNonceOffline,
   startSession,
 } from '../../shared/utils/dna-link'
 import {DnaDialogStat} from './components'
+import {useAuthState} from '../../shared/providers/auth-context'
 
-export function DnaSignInDialog({query = {}, ...props}) {
+export function DnaSignInDialog({
+  query = {},
+  onDone,
+  onError = console.error,
+  ...props
+}) {
   const {t} = useTranslation()
 
   const [{address}] = useIdentity()
+  const {privateKey} = useAuthState()
+
+  const [isAuthenticating, setIsAuthenticating] = React.useState()
 
   const {
     callback_url: callbackUrl,
@@ -68,18 +79,20 @@ export function DnaSignInDialog({query = {}, ...props}) {
         </Stack>
       </DialogBody>
       <DialogFooter>
-        <SecondaryButton>{t('Cancel')}</SecondaryButton>
+        <SecondaryButton onClick={onDone}>{t('Cancel')}</SecondaryButton>
         <PrimaryButton
           maxH={8}
           maxW={48}
           overflow="hidden"
           wordBreak="break-all"
+          isLoading={isAuthenticating}
           onClick={() => {
+            setIsAuthenticating(true)
             startSession(nonceEndpoint, {
               token,
               address,
             })
-              // .then(signNonce)
+              .then(nonce => signNonceOffline(nonce, privateKey))
               .then(signature =>
                 authenticate(authenticationEndpoint, {
                   token,
@@ -87,14 +100,17 @@ export function DnaSignInDialog({query = {}, ...props}) {
                 })
               )
               .then(() => {
-                if (isValidUrl(callbackUrl)) global.openExternal(callbackUrl)
-                // else onSigninError('Invalid callback URL')
+                if (isValidUrl(callbackUrl)) {
+                  window.open(callbackUrl, '_blank')
+                  onDone()
+                } else onError('Invalid callback URL')
               })
               .catch(({message}) => {
-                console.error(message)
-                // if (onSigninError) onSigninError(message)
+                onError(message)
               })
-            // .finally(onHide)
+              .finally(() => {
+                setIsAuthenticating(false)
+              })
           }}
         >
           {t('Confirm')}

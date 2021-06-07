@@ -1,10 +1,13 @@
 import axios from 'axios'
 import {margin} from 'polished'
+import sha3 from 'js-sha3'
+import secp256k1 from 'secp256k1'
 import apiClient from '../api/api-client'
 import {sendTransaction} from '../api'
 import {bufferToHex} from './string'
 import {Box} from '../components'
 import theme, {rem} from '../theme'
+import {hexToUint8Array} from './buffers'
 
 export const DNA_LINK_VERSION = `v1`
 export const DNA_NONCE_PREFIX = 'signin-'
@@ -89,6 +92,20 @@ export async function signNonce(nonce) {
   })
   if (error) throw new Error(error.message)
   return result
+}
+
+export function signNonceOffline(nonce, privateKey) {
+  const firstIteration = sha3.keccak_256.array(nonce)
+  const secondIteration = sha3.keccak_256.array(firstIteration)
+
+  const {signature, recid} = secp256k1.ecdsaSign(
+    new Uint8Array(secondIteration),
+    typeof key === 'string'
+      ? hexToUint8Array(privateKey)
+      : new Uint8Array(privateKey)
+  )
+
+  return [...signature, recid]
 }
 
 export async function authenticate(authenticationEndpoint, {token, signature}) {

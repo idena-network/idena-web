@@ -10,7 +10,8 @@ import {DnaSignInDialog} from '../../screens/dna/containers'
 const validDnaUrl = url => typeof url === 'string' && url.startsWith('/dna')
 
 export default function SigninPage() {
-  const {route, query} = useRouter()
+  const router = useRouter()
+  const {route, query} = router
 
   const {t} = useTranslation()
 
@@ -41,7 +42,18 @@ export default function SigninPage() {
         <PageTitle>{t('Sign in with Idena')}</PageTitle>
         <Box>
           <Spinner />
-          <DnaSignInDialog isOpen={Boolean(dnaUrl)} query={query} />
+          <DnaSignInDialog
+            isOpen={Boolean(dnaUrl)}
+            query={query}
+            onDone={() => router.push('/')}
+            onError={error =>
+              toast({
+                status: 'error',
+                // eslint-disable-next-line react/display-name
+                render: () => <Toast status="error" title={error} />,
+              })
+            }
+          />
         </Box>
       </Page>
     </Layout>
