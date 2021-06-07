@@ -42,6 +42,24 @@ export function parseQuery(url) {
   )
 }
 
+export function parseCallbackUrl({callbackUrl, faviconUrl}) {
+  if (isValidUrl(callbackUrl)) {
+    try {
+      const {hostname, origin} = new URL(callbackUrl)
+      return {
+        hostname: hostname || callbackUrl,
+        faviconUrl: faviconUrl || new URL('favicon.ico', origin),
+      }
+    } catch {
+      console.error(
+        'Failed to construct favicon url from callback url',
+        callbackUrl
+      )
+      return {hostname: callbackUrl, faviconUrl: ''}
+    }
+  }
+}
+
 export async function startSession(nonceEndpoint, {token, address}) {
   const {data} = await axios.post(nonceEndpoint, {
     token,

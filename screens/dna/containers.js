@@ -13,6 +13,7 @@ import {useIdentity} from '../../shared/providers/identity-context'
 import {
   authenticate,
   isValidUrl,
+  parseCallbackUrl,
   startSession,
 } from '../../shared/utils/dna-link'
 import {DnaDialogStat} from './components'
@@ -20,7 +21,7 @@ import {DnaDialogStat} from './components'
 export function DnaSignInDialog({query = {}, ...props}) {
   const {t} = useTranslation()
 
-  const {address} = useIdentity()
+  const [{address}] = useIdentity()
 
   const {
     callback_url: callbackUrl,
@@ -30,23 +31,13 @@ export function DnaSignInDialog({query = {}, ...props}) {
     favicon_url: faviconUrl,
   } = query
 
-  let callbackHostname = callbackUrl
-  let callbackFaviconUrl
-
-  if (isValidUrl(callbackUrl)) {
-    const parsedCallbackUrl = new URL(callbackUrl)
-    callbackHostname = parsedCallbackUrl.hostname || callbackUrl
-    try {
-      callbackFaviconUrl =
-        faviconUrl || new URL('favicon.ico', parsedCallbackUrl.origin)
-    } catch {
-      console.error(
-        'Failed to construct favicon url from callback url',
-        callbackUrl,
-        parsedCallbackUrl
-      )
-    }
-  }
+  const {
+    hostname: callbackHostname,
+    faviconUrl: callbackFaviconUrl,
+  } = parseCallbackUrl({
+    callbackUrl,
+    faviconUrl,
+  })
 
   return (
     <Dialog title={t('Login confirmation')} {...props}>
