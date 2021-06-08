@@ -100,7 +100,7 @@ export function signNonceOffline(nonce, privateKey) {
 
   const {signature, recid} = secp256k1.ecdsaSign(
     new Uint8Array(secondIteration),
-    typeof key === 'string'
+    typeof privateKey === 'string'
       ? hexToUint8Array(privateKey)
       : new Uint8Array(privateKey)
   )

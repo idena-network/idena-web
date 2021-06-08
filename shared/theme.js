@@ -687,5 +687,14 @@ export const uiTheme = {
       ),
       viewBox: '0 0 18 18',
     },
+    laptop: {
+      path: (
+        <path
+          fill="currentColor"
+          d="M17 14h2c0 1.105-.895 2-2 2H3c-1.105 0-2-.895-2-2h2V6c0-1.105.895-2 2-2h10c1.105 0 2 .895 2 2v8zM5 6v7h10V6H5z"
+        />
+      ),
+      viewBox: '0 0 20 20',
+    },
   },
 }

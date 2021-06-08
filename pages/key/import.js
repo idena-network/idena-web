@@ -56,7 +56,7 @@ export default function ImportKey() {
           <AuthLayout.Normal>
             <Flex width="100%">
               <img
-                src="/static/idena_white.svg"
+                src="/static/idena-logo-round-white.svg"
                 alt="logo"
                 style={{width: rem(80), height: rem(80)}}
               />

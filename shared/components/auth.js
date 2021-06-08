@@ -1,9 +1,9 @@
 /* eslint-disable react/prop-types */
-import {Flex, Text} from '@chakra-ui/core'
+import {Flex, Icon, Link, Stack, Text} from '@chakra-ui/core'
 import {margin} from 'polished'
 import {useState} from 'react'
 import {FiChevronRight} from 'react-icons/fi'
-import Router from 'next/router'
+import Router, {useRouter} from 'next/router'
 import theme, {rem} from '../theme'
 import {Label, Button} from '.'
 import {
@@ -162,15 +162,16 @@ function RestoreKey() {
 }
 
 function Init() {
+  const {route, query} = useRouter()
   return (
     <AuthLayout>
       <AuthLayout.Small>
         <Flex width="100%" direction="column">
           <Flex justifyContent="center" marginBottom={rem(35)}>
             <img
-              src="/static/idena_white.svg"
+              src="/static/idena-logo-round-white.svg"
               alt="logo"
-              style={{width: rem(80), height: rem(80)}}
+              style={{width: rem(80), height: rem(80), color: 'red'}}
             />
           </Flex>
 
@@ -206,6 +207,28 @@ function Init() {
           </Flex>
         </Flex>
       </AuthLayout.Small>
+      {route.startsWith('/dna/') && (
+        <Stack
+          isInline
+          align="center"
+          spacing={3}
+          color="muted"
+          px={2}
+          py="3/2"
+          mt={16}
+        >
+          <Icon name="laptop" size={5} />
+          <Link
+            href={`dna://${route.substring(
+              route.indexOf('/dna/') + 5
+            )}?${Object.entries(query)
+              .map(([k, v]) => `${k}=${v}`)
+              .join('&')}`}
+          >
+            Open in Idena app
+          </Link>
+        </Stack>
+      )}
     </AuthLayout>
   )
 }
