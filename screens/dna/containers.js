@@ -29,6 +29,8 @@ export function DnaSignInDialog({
 }) {
   const {t} = useTranslation()
 
+  const confirmButtonRef = React.useRef()
+
   const [{address}] = useIdentity()
   const {privateKey} = useAuthState()
 
@@ -51,7 +53,11 @@ export function DnaSignInDialog({
   })
 
   return (
-    <Dialog title={t('Login confirmation')} {...props}>
+    <Dialog
+      title={t('Login confirmation')}
+      initialFocusRef={confirmButtonRef}
+      {...props}
+    >
       <DialogBody>
         <Stack spacing={5}>
           <Text>
@@ -81,6 +87,7 @@ export function DnaSignInDialog({
       <DialogFooter>
         <SecondaryButton onClick={onDone}>{t('Cancel')}</SecondaryButton>
         <PrimaryButton
+          ref={confirmButtonRef}
           maxH={8}
           maxW={48}
           overflow="hidden"
@@ -103,13 +110,14 @@ export function DnaSignInDialog({
                 if (isValidUrl(callbackUrl)) {
                   window.open(callbackUrl, '_blank')
                   onDone()
-                } else onError('Invalid callback URL')
+                } else {
+                  setIsAuthenticating(false)
+                  onError('Invalid callback URL')
+                }
               })
               .catch(({message}) => {
-                onError(message)
-              })
-              .finally(() => {
                 setIsAuthenticating(false)
+                onError(message)
               })
           }}
         >
