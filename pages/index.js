@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react'
-import {Box, Icon, Stack, useDisclosure} from '@chakra-ui/core'
+import {Box, Icon, Stack, useDisclosure, useToast} from '@chakra-ui/core'
 import {useTranslation} from 'react-i18next'
 import {useQuery, useQueryClient} from 'react-query'
 import {Page, PageTitle} from '../screens/app/components'
@@ -30,6 +30,9 @@ import {useEpoch} from '../shared/providers/epoch-context'
 import {fetchBalance} from '../shared/api/wallet'
 import {useAuthState} from '../shared/providers/auth-context'
 import {IconButton2} from '../shared/components/button'
+import {validDnaUrl} from '../shared/utils/dna-link'
+import {DnaSignInDialog} from '../screens/dna/containers'
+import {Toast} from '../shared/components/components'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -51,7 +54,6 @@ export default function ProfilePage() {
       delegatee,
       delegationEpoch,
       canMine,
-      canTerminate,
     },
   ] = useIdentity()
 
@@ -83,6 +85,24 @@ export default function ProfilePage() {
       }
     }
   }, [epoch, queryClient])
+
+  const {
+    isOpen: isOpenDnaSignInDialog,
+    onOpen: onOpenDnaSignInDialog,
+    onClose: onCloseDnaSignInDialog,
+  } = useDisclosure()
+
+  const [dnaUrl, setDnaUrl] = React.useState()
+
+  React.useEffect(() => {
+    const persistedDnaUrl = JSON.parse(sessionStorage.getItem('dnaUrl'))
+    if (persistedDnaUrl && validDnaUrl(persistedDnaUrl?.route)) {
+      setDnaUrl(persistedDnaUrl)
+      onOpenDnaSignInDialog()
+    }
+  }, [onOpenDnaSignInDialog])
+
+  const toast = useToast()
 
   const toDna = toLocaleDna(language)
 
@@ -198,10 +218,25 @@ export default function ProfilePage() {
             </Stack>
           </Stack>
         </Stack>
-
         <KillForm isOpen={isOpenKillForm} onClose={onCloseKillForm}></KillForm>
 
         {showValidationResults && <ValidationResultToast epoch={epoch.epoch} />}
+
+        <DnaSignInDialog
+          isOpen={isOpenDnaSignInDialog}
+          query={dnaUrl?.query}
+          onDone={() => {
+            sessionStorage.removeItem('dnaUrl')
+            onCloseDnaSignInDialog()
+          }}
+          onError={error =>
+            toast({
+              status: 'error',
+              // eslint-disable-next-line react/display-name
+              render: () => <Toast status="error" title={error} />,
+            })
+          }
+        />
       </Page>
     </Layout>
   )

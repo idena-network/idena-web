@@ -18,19 +18,16 @@ export function isValidUrl(string) {
   try {
     // eslint-disable-next-line no-new
     new URL(string)
+    return true
   } catch (_) {
     console.error('Invalid URL', string)
     return false
   }
-
-  return true
 }
 
-export function validDnaUrl(url) {
+export const validDnaUrl = url => {
   try {
-    const parsedUrl = new URL(url)
-    const endsWithVersion = /v\d{1,3}$/.test(parsedUrl.pathname)
-    return endsWithVersion
+    return url.startsWith('/dna') || new URL(url).pathname.startsWith('/dna')
   } catch {
     return false
   }
@@ -58,9 +55,9 @@ export function parseCallbackUrl({callbackUrl, faviconUrl}) {
         'Failed to construct favicon url from callback url',
         callbackUrl
       )
-      return {hostname: callbackUrl, faviconUrl: ''}
     }
   }
+  return {hostname: callbackUrl, faviconUrl: ''}
 }
 
 export async function startSession(nonceEndpoint, {token, address}) {

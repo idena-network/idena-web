@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import {Flex, Icon, Link, Stack, Text} from '@chakra-ui/core'
 import {margin} from 'polished'
-import {useState} from 'react'
+import React, {useState} from 'react'
 import {FiChevronRight} from 'react-icons/fi'
 import Router, {useRouter} from 'next/router'
 import theme, {rem} from '../theme'
@@ -163,6 +163,15 @@ function RestoreKey() {
 
 function Init() {
   const {route, query} = useRouter()
+
+  const isDnaLink = route.startsWith('/dna/')
+
+  React.useEffect(() => {
+    if (isDnaLink) {
+      sessionStorage.setItem('dnaUrl', JSON.stringify({route, query}))
+    }
+  }, [isDnaLink, query, route])
+
   return (
     <AuthLayout>
       <AuthLayout.Small>
@@ -207,7 +216,7 @@ function Init() {
           </Flex>
         </Flex>
       </AuthLayout.Small>
-      {route.startsWith('/dna/') && (
+      {isDnaLink && (
         <Stack
           isInline
           align="center"

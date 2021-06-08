@@ -6,8 +6,7 @@ import {Page, PageTitle} from '../../screens/app/components'
 import Layout from '../../shared/components/layout'
 import {Toast} from '../../shared/components/components'
 import {DnaSignInDialog} from '../../screens/dna/containers'
-
-const validDnaUrl = url => typeof url === 'string' && url.startsWith('/dna')
+import {validDnaUrl} from '../../shared/utils/dna-link'
 
 export default function SigninPage() {
   const router = useRouter()
