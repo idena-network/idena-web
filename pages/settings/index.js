@@ -1,17 +1,12 @@
-import React, {useEffect, useState} from 'react'
+import React, {useState} from 'react'
 import {margin} from 'polished'
 import {useTranslation} from 'react-i18next'
 import {Flex as ChakraFlex, Text, useClipboard} from '@chakra-ui/core'
 import QRCode from 'qrcode.react'
-import {Box, SubHeading, Input, Label, Button} from '../../shared/components'
+import {Input, Label, Button} from '../../shared/components'
 import theme, {rem} from '../../shared/theme'
 import Flex from '../../shared/components/flex'
 import SettingsLayout from './layout'
-import {
-  useSettingsState,
-  useSettingsDispatch,
-} from '../../shared/providers/settings-context'
-import {useNotificationDispatch} from '../../shared/providers/notification-context'
 import {
   Dialog,
   DialogBody,

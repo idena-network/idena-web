@@ -10,7 +10,6 @@ import {
   DialogBody,
   DialogFooter,
 } from '../../shared/components/components'
-import {useIdentity} from '../../shared/providers/identity-context'
 import {
   authenticate,
   isValidUrl,
@@ -20,6 +19,7 @@ import {
 } from '../../shared/utils/dna-link'
 import {DnaDialogStat} from './components'
 import {useAuthState} from '../../shared/providers/auth-context'
+import {toHexString} from '../../shared/utils/buffers'
 
 export function DnaSignInDialog({
   query = {},
@@ -31,8 +31,7 @@ export function DnaSignInDialog({
 
   const confirmButtonRef = React.useRef()
 
-  const [{address}] = useIdentity()
-  const {privateKey} = useAuthState()
+  const {coinbase, privateKey} = useAuthState()
 
   const [isAuthenticating, setIsAuthenticating] = React.useState()
 
@@ -77,8 +76,8 @@ export function DnaSignInDialog({
                 <Icon as={FiGlobe} size={10} color="blue.500" />
               )}
             </DnaDialogStat>
-            <DnaDialogStat label={t('My address')} value={address} mb="px">
-              <Avatar address={address} size={10} />
+            <DnaDialogStat label={t('My address')} value={coinbase} mb="px">
+              <Avatar address={coinbase} size={10} />
             </DnaDialogStat>
             <DnaDialogStat label={t('Token')} value={token} />
           </Box>
@@ -97,13 +96,13 @@ export function DnaSignInDialog({
             setIsAuthenticating(true)
             startSession(nonceEndpoint, {
               token,
-              address,
+              coinbase,
             })
               .then(nonce => signNonceOffline(nonce, privateKey))
-              .then(signature =>
+              .then(bytes =>
                 authenticate(authenticationEndpoint, {
                   token,
-                  signature,
+                  signature: toHexString(bytes, true),
                 })
               )
               .then(() => {

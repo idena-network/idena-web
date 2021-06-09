@@ -60,13 +60,15 @@ export function parseCallbackUrl({callbackUrl, faviconUrl}) {
   return {hostname: callbackUrl, faviconUrl: ''}
 }
 
-export async function startSession(nonceEndpoint, {token, address}) {
-  const {data} = await axios.post(nonceEndpoint, {
+export async function startSession(
+  nonceEndpoint,
+  {token, coinbase, address = coinbase}
+) {
+  const {data, error} = await axios.post('/api/dna/session', {
+    nonceEndpoint,
     token,
     address,
   })
-
-  const {error} = data
 
   if (error) throw new Error(error)
 
@@ -106,12 +108,11 @@ export function signNonceOffline(nonce, privateKey) {
 }
 
 export async function authenticate(authenticationEndpoint, {token, signature}) {
-  const {data} = await axios.post(authenticationEndpoint, {
+  const {data, error} = await axios.post('/api/dna/authenticate', {
+    authenticationEndpoint,
     token,
     signature,
   })
-
-  const {error} = {data}
 
   if (error) throw new Error(error)
 

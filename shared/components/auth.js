@@ -230,7 +230,7 @@ function Init() {
           <Link
             href={`dna://${route.substring(
               route.indexOf('/dna/') + 5
-            )}?${Object.entries(query)
+            )}/v1?${Object.entries(query)
               .map(([k, v]) => `${k}=${v}`)
               .join('&')}`}
           >

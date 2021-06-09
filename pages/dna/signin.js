@@ -36,7 +36,7 @@ export default function SigninPage() {
   }, [route, t, toast])
 
   return (
-    <Layout>
+    <Layout canRedirect={false}>
       <Page>
         <PageTitle>{t('Sign in with Idena')}</PageTitle>
         <Box>
