@@ -1,10 +1,13 @@
 import axios from 'axios'
 import {margin} from 'polished'
+import sha3 from 'js-sha3'
+import secp256k1 from 'secp256k1'
 import apiClient from '../api/api-client'
 import {sendTransaction} from '../api'
 import {bufferToHex} from './string'
 import {Box} from '../components'
 import theme, {rem} from '../theme'
+import {hexToUint8Array} from './buffers'
 
 export const DNA_LINK_VERSION = `v1`
 export const DNA_NONCE_PREFIX = 'signin-'
@@ -15,19 +18,16 @@ export function isValidUrl(string) {
   try {
     // eslint-disable-next-line no-new
     new URL(string)
+    return true
   } catch (_) {
     console.error('Invalid URL', string)
     return false
   }
-
-  return true
 }
 
-export function validDnaUrl(url) {
+export const validDnaUrl = url => {
   try {
-    const parsedUrl = new URL(url)
-    const endsWithVersion = /v\d{1,3}$/.test(parsedUrl.pathname)
-    return endsWithVersion
+    return url.startsWith('/dna') || new URL(url).pathname.startsWith('/dna')
   } catch {
     return false
   }
@@ -42,13 +42,33 @@ export function parseQuery(url) {
   )
 }
 
-export async function startSession(nonceEndpoint, {token, address}) {
-  const {data} = await axios.post(nonceEndpoint, {
+export function parseCallbackUrl({callbackUrl, faviconUrl}) {
+  if (isValidUrl(callbackUrl)) {
+    try {
+      const {hostname, origin} = new URL(callbackUrl)
+      return {
+        hostname: hostname || callbackUrl,
+        faviconUrl: faviconUrl || new URL('favicon.ico', origin),
+      }
+    } catch {
+      console.error(
+        'Failed to construct favicon url from callback url',
+        callbackUrl
+      )
+    }
+  }
+  return {hostname: callbackUrl, faviconUrl: ''}
+}
+
+export async function startSession(
+  nonceEndpoint,
+  {token, coinbase, address = coinbase}
+) {
+  const {data, error} = await axios.post('/api/dna/session', {
+    nonceEndpoint,
     token,
     address,
   })
-
-  const {error} = data
 
   if (error) throw new Error(error)
 
@@ -73,13 +93,26 @@ export async function signNonce(nonce) {
   return result
 }
 
+export function signNonceOffline(nonce, privateKey) {
+  const firstIteration = sha3.keccak_256.array(nonce)
+  const secondIteration = sha3.keccak_256.array(firstIteration)
+
+  const {signature, recid} = secp256k1.ecdsaSign(
+    new Uint8Array(secondIteration),
+    typeof privateKey === 'string'
+      ? hexToUint8Array(privateKey)
+      : new Uint8Array(privateKey)
+  )
+
+  return [...signature, recid]
+}
+
 export async function authenticate(authenticationEndpoint, {token, signature}) {
-  const {data} = await axios.post(authenticationEndpoint, {
+  const {data, error} = await axios.post('/api/dna/authenticate', {
+    authenticationEndpoint,
     token,
     signature,
   })
-
-  const {error} = {data}
 
   if (error) throw new Error(error)
 

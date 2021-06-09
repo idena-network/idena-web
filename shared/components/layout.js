@@ -14,7 +14,7 @@ import {apiKeyStates, useSettingsState} from '../providers/settings-context'
 import {useIdentity} from '../providers/identity-context'
 import {useEpoch} from '../providers/epoch-context'
 
-export default function Layout({...props}) {
+export default function Layout(props) {
   const {auth} = useAuthState()
 
   return (

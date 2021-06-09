@@ -1,5 +1,5 @@
 import React, {useEffect} from 'react'
-import {Box, Icon, Stack, useDisclosure} from '@chakra-ui/core'
+import {Box, Icon, Stack, useDisclosure, useToast} from '@chakra-ui/core'
 import {useTranslation} from 'react-i18next'
 import {useQuery, useQueryClient} from 'react-query'
 import {Page, PageTitle} from '../screens/app/components'
@@ -30,6 +30,9 @@ import {useEpoch} from '../shared/providers/epoch-context'
 import {fetchBalance} from '../shared/api/wallet'
 import {useAuthState} from '../shared/providers/auth-context'
 import {IconButton2} from '../shared/components/button'
+import {validDnaUrl} from '../shared/utils/dna-link'
+import {DnaSignInDialog} from '../screens/dna/containers'
+import {Toast} from '../shared/components/components'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -51,12 +54,11 @@ export default function ProfilePage() {
       delegatee,
       delegationEpoch,
       canMine,
-      canTerminate,
     },
   ] = useIdentity()
 
   const epoch = useEpoch()
-  const {privateKey} = useAuthState()
+  const {coinbase, privateKey} = useAuthState()
 
   const [showValidationResults, setShowValidationResults] = React.useState()
 
@@ -84,17 +86,40 @@ export default function ProfilePage() {
     }
   }, [epoch, queryClient])
 
+  const {
+    isOpen: isOpenDnaSignInDialog,
+    onOpen: onOpenDnaSignInDialog,
+    onClose: onCloseDnaSignInDialog,
+  } = useDisclosure()
+
+  const [dnaUrl, setDnaUrl] = React.useState(() =>
+    typeof window !== 'undefined'
+      ? JSON.parse(sessionStorage.getItem('dnaUrl'))
+      : null
+  )
+
+  React.useEffect(() => {
+    if (dnaUrl && validDnaUrl(dnaUrl.route)) {
+      onOpenDnaSignInDialog()
+    } else {
+      sessionStorage.removeItem('dnaUrl')
+      onCloseDnaSignInDialog()
+    }
+  }, [dnaUrl, onCloseDnaSignInDialog, onOpenDnaSignInDialog])
+
+  const toast = useToast()
+
   const toDna = toLocaleDna(language)
 
   return (
-    <Layout>
+    <Layout canRedirect={!dnaUrl}>
       <Page>
         <PageTitle mb={8}>{t('Profile')}</PageTitle>
         <Stack isInline spacing={10}>
           <Stack spacing={6}>
-            <UserInlineCard address={address} state={state} />
+            <UserInlineCard address={coinbase} state={state} />
             <UserStatList>
-              <SimpleUserStat label={t('Address')} value={address} />
+              <SimpleUserStat label={t('Address')} value={coinbase} />
               {state === IdentityStatus.Newbie ? (
                 <AnnotatedUserStat
                   annotation={t('Solve more than 12 flips to become Verified')}
@@ -198,10 +223,22 @@ export default function ProfilePage() {
             </Stack>
           </Stack>
         </Stack>
-
         <KillForm isOpen={isOpenKillForm} onClose={onCloseKillForm}></KillForm>
 
         {showValidationResults && <ValidationResultToast epoch={epoch.epoch} />}
+
+        <DnaSignInDialog
+          isOpen={isOpenDnaSignInDialog}
+          query={dnaUrl?.query}
+          onDone={() => setDnaUrl('')}
+          onError={error =>
+            toast({
+              status: 'error',
+              // eslint-disable-next-line react/display-name
+              render: () => <Toast status="error" title={error} />,
+            })
+          }
+        />
       </Page>
     </Layout>
   )
