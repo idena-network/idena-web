@@ -52,7 +52,7 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
     ['get-provider-by-id', apiKeyData?.provider],
     () => getProvider(apiKeyData?.provider),
     {
-      enabled: !!data && apiKeyData?.provider,
+      enabled: !!data && !!apiKeyData?.provider,
       retry: true,
     }
   )
