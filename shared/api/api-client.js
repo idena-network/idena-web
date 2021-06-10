@@ -13,7 +13,7 @@ export function getRpcParams() {
     }
   }
   return {
-    url: state.url,
+    url: state.url || BASE_NODE_URL,
     key: state.apiKey,
   }
 }
