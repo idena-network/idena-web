@@ -34,10 +34,8 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
 
   const coinbase = privateKeyToAddress(privateKey)
 
-  const {
-    apiKeyId,
-    apiKeyData: {provider: providerId},
-  } = useSettingsState()
+  const {apiKeyId, apiKeyData} = useSettingsState()
+
   const {addPurchase, addPurchasedKey} = useSettingsDispatch()
 
   const {isLoading, data} = useQuery(
@@ -51,10 +49,10 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
   )
 
   const {data: provider} = useQuery(
-    ['get-provider-by-id', providerId],
-    () => getProvider(providerId),
+    ['get-provider-by-id', apiKeyData?.provider],
+    () => getProvider(apiKeyData?.provider),
     {
-      enabled: !!data,
+      enabled: !!data && apiKeyData?.provider,
       retry: true,
     }
   )
