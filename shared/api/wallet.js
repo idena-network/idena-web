@@ -31,7 +31,9 @@ export async function fetchBalance(address) {
     params: [address],
     id: 1,
   })
-  return data.result
+  const {result, error} = data
+  if (error) throw new Error(error.message)
+  return result
 }
 
 export async function fetchTransactions(address, count) {
