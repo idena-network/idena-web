@@ -227,18 +227,20 @@ export default function ProfilePage() {
 
         {showValidationResults && <ValidationResultToast epoch={epoch.epoch} />}
 
-        <DnaSignInDialog
-          isOpen={isOpenDnaSignInDialog}
-          query={dnaUrl?.query}
-          onDone={() => setDnaUrl('')}
-          onError={error =>
-            toast({
-              status: 'error',
-              // eslint-disable-next-line react/display-name
-              render: () => <Toast status="error" title={error} />,
-            })
-          }
-        />
+        {dnaUrl && (
+          <DnaSignInDialog
+            isOpen={isOpenDnaSignInDialog}
+            query={dnaUrl?.query}
+            onDone={() => setDnaUrl('')}
+            onError={error =>
+              toast({
+                status: 'error',
+                // eslint-disable-next-line react/display-name
+                render: () => <Toast status="error" title={error} />,
+              })
+            }
+          />
+        )}
       </Page>
     </Layout>
   )
