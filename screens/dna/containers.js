@@ -114,9 +114,9 @@ export function DnaSignInDialog({
                   onError('Invalid callback URL')
                 }
               })
-              .catch(({message}) => {
+              .catch(error => {
                 setIsAuthenticating(false)
-                onError(message)
+                onError(error?.response?.data?.error)
               })
           }}
         >
