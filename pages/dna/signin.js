@@ -43,8 +43,12 @@ export default function SigninPage() {
           <Spinner />
           <DnaSignInDialog
             isOpen={Boolean(dnaUrl)}
+            closeOnOverlayClick={false}
             query={query}
-            onDone={() => router.push('/')}
+            onDone={() => {
+              sessionStorage.removeItem('dnaUrl')
+              router.push('/')
+            }}
             onError={error =>
               toast({
                 status: 'error',

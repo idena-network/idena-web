@@ -239,6 +239,7 @@ export default function ProfilePage() {
                 render: () => <Toast status="error" title={error} />,
               })
             }
+            onClose={onCloseDnaSignInDialog}
           />
         )}
       </Page>

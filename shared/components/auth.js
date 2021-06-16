@@ -1,9 +1,9 @@
 /* eslint-disable react/prop-types */
-import {Flex, Icon, Link, Stack, Text} from '@chakra-ui/core'
+import {Flex, Text} from '@chakra-ui/core'
 import {margin} from 'polished'
 import React, {useState} from 'react'
 import {FiChevronRight} from 'react-icons/fi'
-import Router, {useRouter} from 'next/router'
+import Router from 'next/router'
 import theme, {rem} from '../theme'
 import {Label, Button} from '.'
 import {
@@ -18,6 +18,8 @@ import {useAuthDispatch} from '../providers/auth-context'
 import {useSettingsState} from '../providers/settings-context'
 import {FlatButton, PrimaryButton, SecondaryButton} from './button'
 import {SubHeading} from './typo'
+import {useDnaUrl} from '../hooks/use-dna-link'
+import {DnaAppUrl} from '../../screens/dna/components'
 
 function RestoreKey() {
   const [warning, showWarning] = useState(false)
@@ -25,6 +27,8 @@ function RestoreKey() {
   const {login, removeKey} = useAuthDispatch()
   const {coinbase} = useSettingsState()
   const [error, setError] = useState()
+
+  const dnaAppUrl = useDnaUrl()
 
   return (
     <AuthLayout>
@@ -131,6 +135,9 @@ function RestoreKey() {
             )}
           </form>
         </Flex>
+
+        {dnaAppUrl && <DnaAppUrl url={dnaAppUrl} />}
+
         <Dialog
           key="warning"
           isOpen={warning}
@@ -162,15 +169,7 @@ function RestoreKey() {
 }
 
 function Init() {
-  const {route, query} = useRouter()
-
-  const isDnaLink = route.startsWith('/dna/')
-
-  React.useEffect(() => {
-    if (isDnaLink) {
-      sessionStorage.setItem('dnaUrl', JSON.stringify({route, query}))
-    }
-  }, [isDnaLink, query, route])
+  const dnaAppUrl = useDnaUrl()
 
   return (
     <AuthLayout>
@@ -216,28 +215,7 @@ function Init() {
           </Flex>
         </Flex>
       </AuthLayout.Small>
-      {isDnaLink && (
-        <Stack
-          isInline
-          align="center"
-          spacing={3}
-          color="muted"
-          px={2}
-          py="3/2"
-          mt={16}
-        >
-          <Icon name="laptop" size={5} />
-          <Link
-            href={`dna://${route.substring(
-              route.indexOf('/dna/') + 5
-            )}/v1?${Object.entries(query)
-              .map(([k, v]) => `${k}=${v}`)
-              .join('&')}`}
-          >
-            Open in Idena app
-          </Link>
-        </Stack>
-      )}
+      {dnaAppUrl && <DnaAppUrl url={dnaAppUrl} />}
     </AuthLayout>
   )
 }
