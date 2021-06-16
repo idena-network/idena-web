@@ -56,6 +56,7 @@ export default function SigninPage() {
                 render: () => <Toast status="error" title={error} />,
               })
             }
+            onClose={() => null}
           />
         </Box>
       </Page>
