@@ -35,7 +35,7 @@ export function Notification({
   iconColor = theme.colors.primary,
   actionColor = theme.colors.primary,
   icon,
-  wrap = 'break-word',
+  wrap = 'normal',
   delay = NOTIFICATION_DELAY,
 }) {
   const [hidden, setHidden] = useState(false)
