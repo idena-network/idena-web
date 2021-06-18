@@ -16,6 +16,6 @@ export default async (req, res) => {
   } catch (error) {
     return res
       .status(error?.response?.status ?? 400)
-      .json({error: error?.response?.data ?? error?.request ?? error?.message})
+      .json({error: error?.response?.data || error?.message})
   }
 }
