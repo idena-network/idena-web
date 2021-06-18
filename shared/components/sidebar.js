@@ -60,7 +60,7 @@ function ApiStatus() {
   } else if (settings.apiKeyState === apiKeyStates.EXPIRED) {
     bg = theme.colors.warning02
     color = theme.colors.warning
-    text = 'Expired'
+    text = 'Expiring'
   } else if (
     settings.apiKeyState === apiKeyStates.ONLINE ||
     settings.apiKeyState === apiKeyStates.EXTERNAL
