@@ -38,6 +38,7 @@ export function BuySharedNodeForm({
   providerId,
   url,
   from,
+  to,
   amount,
 }) {
   const router = useRouter()
@@ -77,7 +78,7 @@ export function BuySharedNodeForm({
       const rawTx = await getRawTx(
         0,
         coinbase,
-        process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS,
+        to,
         amount,
         0,
         privateKeyToPublicKey(privateKey),
@@ -141,10 +142,7 @@ export function BuySharedNodeForm({
             </Flex>
           </CustomFormControl>
           <CustomFormControl label="To">
-            <Input
-              isDisabled
-              value={process.env.NEXT_PUBLIC_MARKETPLACE_ADDRESS}
-            />
+            <Input isDisabled value={to} />
           </CustomFormControl>
           <CustomFormControl label="Amount, iDNA">
             <Input isDisabled value={amount} />
