@@ -114,6 +114,7 @@ export default function Rent() {
           url={selectedProvider && selectedProvider.data.url}
           from={coinbase}
           amount={selectedProvider && selectedProvider.data.price}
+          to={selectedProvider && selectedProvider.data.address}
         />
       </Page>
     </Layout>
