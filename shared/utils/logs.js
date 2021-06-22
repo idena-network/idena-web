@@ -1,4 +1,6 @@
+/* eslint-disable import/no-named-default */
 // eslint-disable-next-line import/no-named-default
+import {useEffect, useState} from 'react'
 import {default as redactObj} from 'redact-object'
 
 const redactValues = [
@@ -18,26 +20,28 @@ export function redact(msg) {
   return msg
 }
 
-export function info(ctx, data) {
-  let resData = {...ctx}
-  if (typeof data === 'object') {
-    resData = {
-      ...resData,
-      ...redactObj(data, redactValues, undefined, {ignoreUnknown: true}),
-      message: `machine context`,
+export function useLocalStorageLogger(name) {
+  const [logs, setLogs] = useState([])
+
+  useEffect(() => {
+    try {
+      const data = localStorage.getItem(name)
+      if (data) {
+        const result = JSON.parse(data)
+        if (Array.isArray(result)) setLogs(result)
+      }
+    } catch (e) {
+      console.error('cannot initialize logs', e)
     }
-  } else {
-    resData = {
-      ...resData,
-      message: data.toString(),
+  }, [name])
+
+  const info = data => {
+    try {
+      logs.push(JSON.stringify(redact(data)))
+      localStorage.setItem(name, JSON.stringify(logs))
+    } catch {
+      console.error('cannot write logs to localStorage')
     }
   }
-
-  return fetch('/api/logs', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(resData),
-  })
+  return info
 }

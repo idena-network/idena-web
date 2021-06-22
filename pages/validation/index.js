@@ -52,7 +52,7 @@ import theme, {rem} from '../../shared/theme'
 import {AnswerType} from '../../shared/types'
 import {PrimaryButton} from '../../shared/components/button'
 import {useAuthState} from '../../shared/providers/auth-context'
-import {info} from '../../shared/utils/logs'
+import {useLocalStorageLogger} from '../../shared/utils/logs'
 import {Tooltip} from '../../shared/components/components'
 import {Tooltip as TooltipLegacy} from '../../shared/components/tooltip'
 import {LayoutContainer} from '../../screens/app/components'
@@ -100,6 +100,8 @@ function ValidationSession({
 
   const {t, i18n} = useTranslation()
 
+  const info = useLocalStorageLogger(`logs-validation-${epoch}`)
+
   const {
     isOpen: isExceededTooltipOpen,
     onOpen: onOpenExceededTooltip,
@@ -143,7 +145,7 @@ function ValidationSession({
       },
     },
     state: loadValidationState(),
-    logger: (msg, label) => info({coinbase}, msg, label),
+    logger: info,
   })
 
   const {
