@@ -21,6 +21,7 @@ import {
   AlertIcon,
   AlertDescription,
   useToast,
+  Link,
 } from '@chakra-ui/core'
 import {useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
@@ -499,6 +500,7 @@ export function ActivateMiningSwitch({isOnline, isDelegator, onShow}) {
 
 export function ActivateMiningDrawer({
   isLoading,
+  mode,
   onChangeMode,
   onActivate,
   onClose,
@@ -539,11 +541,22 @@ export function ActivateMiningDrawer({
               spacing={2}
               isInline
               d="flex"
-              value={1}
+              value={mode}
               onChange={onChangeMode}
             >
               <Radio
-                value={1}
+                value={NodeType.Miner}
+                flex={1}
+                borderColor="gray.300"
+                borderWidth={1}
+                borderRadius="md"
+                p={2}
+                px={3}
+              >
+                {t('Mining')}
+              </Radio>
+              <Radio
+                value={NodeType.Delegator}
                 flex={1}
                 borderColor="gray.300"
                 borderWidth={1}
@@ -555,40 +568,93 @@ export function ActivateMiningDrawer({
               </Radio>
             </RadioButtonGroup>
           </FormControl>
-          <Stack spacing={5}>
-            <FormControl as={Stack} spacing={3}>
-              <FormLabel>{t('Delegation address')}</FormLabel>
-              <Input
-                value={delegatee}
-                onChange={e => setDelegatee(e.target.value)}
-              />
-            </FormControl>
-            <Alert
-              status="error"
-              rounded="md"
-              bg="red.010"
-              borderColor="red.050"
-              borderWidth={1}
-            >
-              <AlertIcon name="info" alignSelf="flex-start" color="red.500" />
-              <AlertDescription
-                as={Stack}
-                spacing={3}
-                color="brandGray.500"
-                fontSize="md"
-                fontWeight={500}
+          {mode === NodeType.Delegator ? (
+            <Stack spacing={5}>
+              <FormControl as={Stack} spacing={3}>
+                <FormLabel>{t('Delegation address')}</FormLabel>
+                <Input
+                  value={delegatee}
+                  onChange={e => setDelegatee(e.target.value)}
+                />
+              </FormControl>
+              <Alert
+                status="error"
+                rounded="md"
+                bg="red.010"
+                borderColor="red.050"
+                borderWidth={1}
               >
-                <Text>
+                <AlertIcon name="info" alignSelf="flex-start" color="red.500" />
+                <AlertDescription
+                  as={Stack}
+                  spacing={3}
+                  color="brandGray.500"
+                  fontSize="md"
+                  fontWeight={500}
+                >
+                  <Text>
+                    {t(
+                      'You can lose your stake, all your mining and validation rewards if you delegate your mining status.'
+                    )}
+                  </Text>
+                  <Text>
+                    {t('You can disable delegation at the next epoch only.')}
+                  </Text>
+                </AlertDescription>
+              </Alert>
+            </Stack>
+          ) : (
+            <Stack spacing={5}>
+              <Text fontSize="md" mb={3}>
+                {t(
+                  'To activate mining status please download the desktop version of Idena app'
+                )}
+              </Text>
+              <Flex
+                borderTop="1px"
+                borderBottom="1px"
+                borderColor="gray.300"
+                h={16}
+                alignItems="center"
+                justifyContent="space-between"
+              >
+                <Flex>
+                  <Stack spacing={2} isInline align="center" color="brand.gray">
+                    <Icon name="laptop" size={5} />
+                    <Text as="span" fontSize={14} fontWeight={500}>
+                      {t('Desktop App')}
+                    </Text>
+                  </Stack>
+                </Flex>
+                <Flex>
+                  <Link
+                    href="https://www.idena.io/download"
+                    target="_blank"
+                    color="brandBlue.500"
+                    rounded="md"
+                    fontWeight={500}
+                    fontSize={13}
+                  >
+                    {t('Download')}
+                  </Link>
+                </Flex>
+              </Flex>
+              <Flex
+                rounded="md"
+                bg="gray.50"
+                borderColor="gray.50"
+                borderWidth={1}
+                px={6}
+                py={4}
+              >
+                <Text color="muted" fontSize="md" lineHeight="20px">
                   {t(
-                    'You can lose your stake, all your mining and validation rewards if you delegate your mining status.'
+                    'Use your private key backup to migrate your account. You can import your private key backup at the Settings page in Idena Desktop app.'
                   )}
                 </Text>
-                <Text>
-                  {t('You can disable delegation at the next epoch only.')}
-                </Text>
-              </AlertDescription>
-            </Alert>
-          </Stack>
+              </Flex>
+            </Stack>
+          )}
         </Stack>
       </DrawerBody>
       <DrawerFooter px={0}>
@@ -597,6 +663,7 @@ export function ActivateMiningDrawer({
             {t('Cancel')}
           </SecondaryButton>
           <PrimaryButton
+            isDisabled={mode === NodeType.Miner}
             isLoading={isLoading}
             onClick={() => {
               onActivate({delegatee})

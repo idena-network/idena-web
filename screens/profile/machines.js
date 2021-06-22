@@ -11,6 +11,9 @@ import {OnlineStatusAttachment} from '../../shared/models/onlineStatusAttachment
 export const activateMiningMachine = createMachine({
   id: 'mining',
   initial: 'idle',
+  context: {
+    mode: NodeType.Miner,
+  },
   states: {
     idle: {
       on: {
@@ -22,6 +25,13 @@ export const activateMiningMachine = createMachine({
       states: {
         idle: {
           on: {
+            CHANGE_MODE: {
+              actions: [
+                assign({
+                  mode: (_, {mode}) => mode,
+                }),
+              ],
+            },
             ACTIVATE: 'activating',
             DEACTIVATE: 'deactivating',
           },
