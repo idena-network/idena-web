@@ -62,7 +62,6 @@
     "idena-eciesjs": "^1.0.0",
     "jimp": "^0.9.6",
     "js-sha3": "^0.8.0",
-    "logzio-nodejs": "^2.0.2",
     "lowdb": "^1.0.0",
     "mousetrap": "^1.6.3",
     "nanoid": "^2.0.1",
