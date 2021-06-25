@@ -42,9 +42,9 @@ export function buyKey(coinbase, tx, provider) {
     .then(x => x.data)
 }
 
-export function activateKey(coinbase, tx) {
+export function activateKey(coinbase, tx, providers) {
   return api()
-    .post('/api/key/activate', {coinbase, tx})
+    .post('/api/key/activate', {coinbase, tx, providers})
     .then(x => x.data)
 }
 
