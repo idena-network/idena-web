@@ -65,7 +65,9 @@ export default function Rent() {
     initialData: [],
   })
 
-  const sortedProviders = providers.sort((a, b) => b.slots - a.slots)
+  const sortedProviders = providers
+    .filter(x => x.slots)
+    .sort((a, b) => b.slots - a.slots)
 
   const selectedProvider = sortedProviders.length && sortedProviders[state]
 
