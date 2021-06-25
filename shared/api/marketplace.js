@@ -47,3 +47,17 @@ export function activateKey(coinbase, tx) {
     .post('/api/key/activate', {coinbase, tx})
     .then(x => x.data)
 }
+
+const SHARED_NODE_CHECK_KEY = 'check-status-key'
+
+export async function checkProvider(url) {
+  const {data} = await axios.create({baseURL: url}).post('/', {
+    method: 'dna_epoch',
+    params: [],
+    id: 1,
+    key: SHARED_NODE_CHECK_KEY,
+  })
+  const {result, error} = data
+  if (error) throw new Error(error)
+  return result
+}

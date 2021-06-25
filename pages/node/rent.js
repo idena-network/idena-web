@@ -1,11 +1,11 @@
-import {Box, CloseButton, Flex, Link, Radio, Stack} from '@chakra-ui/core'
+import {Box, CloseButton, Flex, Link, Radio, Stack, Text} from '@chakra-ui/core'
 import {useRouter} from 'next/router'
 import {rem} from 'polished'
 import {useState} from 'react'
 import {useQuery} from 'react-query'
 import {Page, PageTitle} from '../../screens/app/components'
 import {BuySharedNodeForm} from '../../screens/node/components'
-import {getProviders} from '../../shared/api/marketplace'
+import {checkProvider, getProviders} from '../../shared/api/marketplace'
 import {
   Table,
   TableCol,
@@ -15,6 +15,41 @@ import {
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import Layout from '../../shared/components/layout'
 import {useAuthState} from '../../shared/providers/auth-context'
+
+// eslint-disable-next-line react/prop-types
+function ProviderStatus({url}) {
+  const {isLoading, isError, isSuccess} = useQuery(
+    ['provider-status', url],
+    () => checkProvider(url),
+    {retry: false, refetchOnWindowFocus: false}
+  )
+
+  return (
+    <>
+      {isLoading && (
+        <Flex>
+          <Text color="muted" fontSize="sm">
+            Connecting...
+          </Text>
+        </Flex>
+      )}
+      {isError && (
+        <Flex>
+          <Text color="muted" fontSize="sm">
+            Not available
+          </Text>
+        </Flex>
+      )}
+      {isSuccess && (
+        <Flex>
+          <Text color="success.400" fontSize="sm">
+            Online
+          </Text>
+        </Flex>
+      )}
+    </>
+  )
+}
 
 export default function Rent() {
   const router = useRouter()
@@ -30,12 +65,9 @@ export default function Rent() {
     initialData: [],
   })
 
-  const availableProviders = providers
-    .filter(x => x.slots)
-    .sort((a, b) => b.slots - a.slots)
+  const sortedProviders = providers.sort((a, b) => b.slots - a.slots)
 
-  const selectedProvider =
-    availableProviders.length && availableProviders[state]
+  const selectedProvider = sortedProviders.length && sortedProviders[state]
 
   return (
     <Layout canRedirect={false}>
@@ -61,7 +93,7 @@ export default function Rent() {
               </TableRow>
             </thead>
             <tbody>
-              {availableProviders.map((p, idx) => (
+              {sortedProviders.map((p, idx) => (
                 <TableRow>
                   <TableCol>
                     <Radio
@@ -70,7 +102,12 @@ export default function Rent() {
                       borderColor="#d2d4d9"
                     ></Radio>
                   </TableCol>
-                  <TableCol>{p.data.url}</TableCol>
+                  <TableCol>
+                    <Flex direction="column">
+                      <Flex>{p.data.url}</Flex>
+                      <ProviderStatus url={p.data.url}></ProviderStatus>
+                    </Flex>
+                  </TableCol>
                   <TableCol>
                     <Link
                       target="_blank"
