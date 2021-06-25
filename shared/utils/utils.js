@@ -63,3 +63,10 @@ export function mapIdentityToFriendlyStatus(status) {
       return status
   }
 }
+
+export function promiseTimeout(p, timeout) {
+  return Promise.race([
+    p,
+    new Promise((_, reject) => setTimeout(reject, timeout)),
+  ])
+}
