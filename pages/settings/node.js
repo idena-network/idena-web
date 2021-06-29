@@ -119,7 +119,7 @@ function Settings() {
         <FormControl>
           <Flex justify="space-between">
             <FormLabel color="brandGray.500" mb={2}>
-              {t('Node address')}
+              {t('Shared node URL')}
             </FormLabel>
             <Flex>
               <Link
