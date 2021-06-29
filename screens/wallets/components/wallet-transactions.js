@@ -80,7 +80,7 @@ const LIMIT = 10
 
 function transactionType(tx) {
   const {type} = tx
-  const {payload} = tx
+  const {data} = tx
   if (type === 'SendTx') return 'Transfer'
   if (type === 'ActivationTx') return 'Invitation activated'
   if (type === 'InviteTx') return 'Invitation issued'
@@ -90,7 +90,7 @@ function transactionType(tx) {
   if (type === 'DelegateTx') return 'Delegatee added'
   if (type === 'UndelegateTx') return 'Delegatee removed'
   if (type === 'OnlineStatusTx')
-    return `Mining status ${payload === '0x' ? 'Off' : 'On'}`
+    return `Mining status ${data && data.becomeOnline ? 'On' : 'Off'}`
   return type
 }
 
