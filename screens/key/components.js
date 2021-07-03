@@ -24,29 +24,9 @@ import {
   getProvider,
   getRawTx,
   activateKey,
-  getProviders,
+  getAvailableProviders,
 } from '../../shared/api'
 import {Transaction} from '../../shared/models/transaction'
-import {checkProvider} from '../../shared/api/marketplace'
-import {promiseTimeout} from '../../shared/utils/utils'
-
-async function safeCheckProvider(provider) {
-  try {
-    await promiseTimeout(checkProvider(provider.data.url), 3000)
-    return {id: provider.id, available: true}
-  } catch {
-    return {id: provider.id, available: false}
-  }
-}
-
-async function getAvailableProviders() {
-  const providers = await getProviders()
-  const inviteProviders = providers.filter(x => x.inviteSlots)
-
-  const result = await Promise.all(inviteProviders.map(safeCheckProvider))
-
-  return result.filter(x => x.available).map(x => x.id)
-}
 
 // eslint-disable-next-line react/prop-types
 export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {

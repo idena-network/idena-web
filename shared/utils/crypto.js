@@ -205,3 +205,14 @@ export function encryptFlipData(publicHex, privateHex, privateKey, epoch) {
     encryptedPrivateData,
   }
 }
+
+export function signMessage(data, key) {
+  const hash = sha3.keccak_256.array(data)
+
+  const {signature, recid} = secp256k1.ecdsaSign(
+    new Uint8Array(hash),
+    typeof key === 'string' ? hexToUint8Array(key) : new Uint8Array(key)
+  )
+
+  return Buffer.from([...signature, recid])
+}
