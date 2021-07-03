@@ -1,4 +1,5 @@
 import axios from 'axios'
+import {promiseTimeout} from '../utils/utils'
 
 function api() {
   return axios.create({
@@ -48,6 +49,12 @@ export function activateKey(coinbase, tx, providers) {
     .then(x => x.data)
 }
 
+export function getCandidateKey(coinbase, signature, providers) {
+  return api()
+    .post('/api/key/for-candidate', {coinbase, signature, providers})
+    .then(x => x.data)
+}
+
 const SHARED_NODE_CHECK_KEY = 'check-status-key'
 
 export async function checkProvider(url) {
@@ -60,4 +67,22 @@ export async function checkProvider(url) {
   const {result, error} = data
   if (error) throw new Error(error)
   return result
+}
+
+async function safeCheckProvider(provider) {
+  try {
+    await promiseTimeout(checkProvider(provider.data.url), 3000)
+    return {id: provider.id, available: true}
+  } catch {
+    return {id: provider.id, available: false}
+  }
+}
+
+export async function getAvailableProviders() {
+  const providers = await getProviders()
+  const inviteProviders = providers.filter(x => x.inviteSlots)
+
+  const result = await Promise.all(inviteProviders.map(safeCheckProvider))
+
+  return result.filter(x => x.available).map(x => x.id)
 }
