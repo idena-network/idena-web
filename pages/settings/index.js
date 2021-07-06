@@ -3,6 +3,7 @@ import {margin} from 'polished'
 import {useTranslation} from 'react-i18next'
 import {Flex as ChakraFlex, Text, useClipboard} from '@chakra-ui/core'
 import QRCode from 'qrcode.react'
+import {saveAs} from 'file-saver'
 import {Input, Label, Button} from '../../shared/components'
 import theme, {rem} from '../../shared/theme'
 import Flex from '../../shared/components/flex'
@@ -15,14 +16,48 @@ import {
   PasswordInput,
 } from '../../shared/components/components'
 import {FlatButton, SecondaryButton} from '../../shared/components/button'
-import {useAuthDispatch} from '../../shared/providers/auth-context'
+import {
+  useAuthDispatch,
+  useAuthState,
+} from '../../shared/providers/auth-context'
 import {Section} from '../../screens/settings/components'
+import {useEpoch} from '../../shared/providers/epoch-context'
+import {useNotificationDispatch} from '../../shared/providers/notification-context'
 
 function Settings() {
   return (
     <SettingsLayout>
       <ExportPK />
+      <ExportLogs />
     </SettingsLayout>
+  )
+}
+
+function ExportLogs() {
+  const epochData = useEpoch()
+  const {t} = useTranslation()
+  const {coinbase} = useAuthState()
+
+  const {addError} = useNotificationDispatch()
+
+  const getLogs = () => {
+    try {
+      const name = `logs-validation-${epochData.epoch - 1}`
+      const data = localStorage.getItem(name)
+
+      const blob = new Blob([data], {
+        type: 'text/plain;charset=utf-8',
+      })
+      saveAs(blob, `${name}-${coinbase}.txt`)
+    } catch (e) {
+      addError({title: 'Cannot export logs', body: e.message})
+    }
+  }
+
+  return (
+    <Section title={t('Validation logs')}>
+      <Button onClick={getLogs}>{t('Export')}</Button>
+    </Section>
   )
 }
 
