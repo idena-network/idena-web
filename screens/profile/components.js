@@ -71,9 +71,16 @@ import {useEpoch} from '../../shared/providers/epoch-context'
 import {activateMiningMachine} from './machines'
 import {fetchBalance} from '../../shared/api/wallet'
 
-export function UserInlineCard({address, state}) {
+export function UserInlineCard({address, state, ...props}) {
   return (
-    <Stack isInline spacing={6} align="center" mb={6} width={rem(480)}>
+    <Stack
+      isInline
+      spacing={6}
+      align="center"
+      mb={6}
+      width={rem(480)}
+      {...props}
+    >
       <Avatar address={address} />
       <Stack spacing={1}>
         <Heading as="h2" fontSize="lg" fontWeight={500} lineHeight="short">
@@ -153,7 +160,10 @@ export function UserStatLabelTooltip(props) {
   return <Tooltip placement="top" zIndex="tooltip" {...props} />
 }
 
-export function ActivateInviteForm() {
+export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
+  props,
+  ref
+) {
   const {t} = useTranslation()
 
   const {addError} = useNotificationDispatch()
@@ -200,6 +210,7 @@ export function ActivateInviteForm() {
 
   return (
     <Box
+      ref={ref}
       as="form"
       onSubmit={async e => {
         e.preventDefault()
@@ -211,6 +222,7 @@ export function ActivateInviteForm() {
           })
         }
       }}
+      {...props}
     >
       <Stack spacing={6}>
         <FormControl>
@@ -271,7 +283,7 @@ export function ActivateInviteForm() {
       </Stack>
     </Box>
   )
-}
+})
 
 export function ValidationResultToast({epoch}) {
   const timerMachine = React.useMemo(

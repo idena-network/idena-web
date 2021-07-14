@@ -134,7 +134,16 @@ export function IdentityProvider(props) {
     <IdentityContext.Provider
       {...props}
       value={[
-        {...identity, canMine, canActivateInvite},
+        {
+          ...identity,
+          canMine,
+          canActivateInvite,
+          isValidated: [
+            IdentityStatus.Newbie,
+            IdentityStatus.Verified,
+            IdentityStatus.Human,
+          ].includes(identity?.state),
+        },
         {
           killMe,
           waitStateUpdate,
