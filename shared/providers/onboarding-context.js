@@ -4,6 +4,7 @@ import {Machine} from 'xstate'
 import {log} from 'xstate/lib/actions'
 import {canValidate} from '../../screens/validation/utils'
 import {OnboardingStep} from '../types'
+import {wait} from '../utils/fn'
 import {
   doneOnboardingStep,
   onboardingStep,
@@ -48,8 +49,11 @@ export function OnboardingProvider(props) {
               invoke: {
                 src: () => cb => {
                   try {
-                    cb('DONE', {
-                      data: localStorage.getItem(doneOnboardingStep(current)),
+                    cb({
+                      type: 'DONE',
+                      didSalut: localStorage.getItem(
+                        doneOnboardingStep(current)
+                      ),
                     })
                   } catch {
                     cb('ERROR')
@@ -60,7 +64,7 @@ export function OnboardingProvider(props) {
                 DONE: [
                   {
                     target: 'done',
-                    cond: (_, {data: didSalut}) => Boolean(didSalut),
+                    cond: (_, {didSalut}) => Boolean(didSalut),
                   },
                   {target: 'salut'},
                 ],
@@ -72,7 +76,7 @@ export function OnboardingProvider(props) {
                 src: () => cb => {
                   try {
                     localStorage.setItem(doneOnboardingStep(current), 1)
-                    cb('DONE')
+                    wait(300).then(() => cb('DONE'))
                   } catch {
                     cb('ERROR')
                   }
