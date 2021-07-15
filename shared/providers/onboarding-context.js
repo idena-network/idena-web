@@ -21,7 +21,7 @@ export function OnboardingProvider(props) {
   const onboardingStepSelector = step => `#onboarding.${onboardingStep(step)}`
 
   // eslint-disable-next-line no-shadow
-  const createStep = ({current, next}) => ({
+  const createStep = ({current, next, on}) => ({
     [current]: {
       initial: 'active',
       states: {
@@ -63,6 +63,7 @@ export function OnboardingProvider(props) {
       on: {
         DONE: '.done',
         NEXT: next,
+        ...on,
       },
     },
   })
@@ -114,6 +115,9 @@ export function OnboardingProvider(props) {
             ...createStep({
               current: OnboardingStep.Validate,
               next: onboardingStepSelector(OnboardingStep.ActivateMining),
+              on: {
+                ROLLBACK: OnboardingStep.ActivateInvite,
+              },
             }),
             ...createStep({
               current: OnboardingStep.ActivateMining,
@@ -159,6 +163,9 @@ export function OnboardingProvider(props) {
           }, [send]),
           finish: React.useCallback(() => {
             send('FINISH')
+          }, [send]),
+          rollback: React.useCallback(() => {
+            send('ROLLBACK')
           }, [send]),
         }}
         {...props}

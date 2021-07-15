@@ -46,6 +46,7 @@ import {useOnboarding} from '../shared/providers/onboarding-context'
 import {
   activeShowingOnboardingStep,
   doneOnboardingStep,
+  onboardingStep,
   shouldCompleteOnboardingStep,
   shouldTransitionToCreateFlipsStep,
 } from '../shared/utils/onboarding'
@@ -138,7 +139,12 @@ export default function ProfilePage() {
 
   const [
     currentOnboarding,
-    {done: doneStep, dismiss: dismissStep, finish: finishOnboarding},
+    {
+      done: doneStep,
+      dismiss: dismissStep,
+      finish: finishOnboarding,
+      rollback: rollbackStep,
+    },
   ] = useOnboarding()
 
   React.useEffect(() => {
@@ -161,6 +167,16 @@ export default function ProfilePage() {
       doneStep()
     }
   }, [currentOnboarding, doneStep, isValidated])
+
+  React.useEffect(() => {
+    if (
+      !isValidated &&
+      age > 0 &&
+      eitherState(currentOnboarding, onboardingStep(OnboardingStep.Validate))
+    ) {
+      rollbackStep()
+    }
+  }, [age, currentOnboarding, isValidated, rollbackStep])
 
   React.useEffect(() => {
     if (
