@@ -311,7 +311,12 @@ function ActionPanel() {
         cursor={currentOnboarding.matches('done') ? 'default' : 'pointer'}
         onClick={() => {
           if (shouldActivateInvite) router.push('/')
-          if (shouldCreateFlips) router.push('/flips/list')
+          if (
+            currentOnboarding.matches(
+              onboardingStep(OnboardingStep.CreateFlips)
+            )
+          )
+            router.push('/flips/list')
           if (shouldActivateMining) router.push('/')
           showCurrentTask()
         }}
