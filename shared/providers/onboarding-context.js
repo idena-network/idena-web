@@ -1,9 +1,11 @@
 import {useMachine} from '@xstate/react'
 import React from 'react'
 import {Machine} from 'xstate'
+import {log} from 'xstate/lib/actions'
 import {canValidate} from '../../screens/validation/utils'
 import {OnboardingStep} from '../types'
 import {
+  doneOnboardingStep,
   onboardingStep,
   shouldTransitionToCreateFlipsStep,
 } from '../utils/onboarding'
@@ -40,11 +42,45 @@ export function OnboardingProvider(props) {
           },
         },
         done: {
-          initial: 'salut',
+          initial: 'unknown',
           states: {
+            unknown: {
+              invoke: {
+                src: () => cb => {
+                  try {
+                    cb('DONE', {
+                      data: localStorage.getItem(doneOnboardingStep(current)),
+                    })
+                  } catch {
+                    cb('ERROR')
+                  }
+                },
+              },
+              on: {
+                DONE: [
+                  {
+                    target: 'done',
+                    cond: (_, {data: didSalut}) => Boolean(didSalut),
+                  },
+                  {target: 'salut'},
+                ],
+                ERROR: 'fail',
+              },
+            },
             salut: {
-              after: {
-                300: 'done',
+              invoke: {
+                src: () => cb => {
+                  try {
+                    localStorage.setItem(doneOnboardingStep(current), 1)
+                    cb('DONE')
+                  } catch {
+                    cb('ERROR')
+                  }
+                },
+              },
+              on: {
+                DONE: 'done',
+                ERROR: 'fail',
               },
             },
             done: {
@@ -52,6 +88,7 @@ export function OnboardingProvider(props) {
                 300: next,
               },
             },
+            fail: {entry: [log()]},
           },
         },
         dismissed: {
@@ -81,10 +118,7 @@ export function OnboardingProvider(props) {
             START: [
               {
                 target: onboardingStepSelector(OnboardingStep.ActivateInvite),
-                cond: (_, {identity: {canActivateInvite}}) => {
-                  console.log({canActivateInvite, identity})
-                  return canActivateInvite
-                },
+                cond: (_, {identity: {canActivateInvite}}) => canActivateInvite,
               },
               {
                 target: onboardingStepSelector(OnboardingStep.Validate),
