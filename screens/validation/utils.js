@@ -14,6 +14,7 @@ export function filterRegularFlips(flips) {
   return flips.filter(({extra}) => !extra)
 }
 
+export const solvableFlips = ({decoded}) => decoded
 /**
  * Fully fetched and decoded flips
  * @param {*} flips
