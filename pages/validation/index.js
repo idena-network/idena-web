@@ -23,6 +23,7 @@ import {
   decodedWithKeywords,
   availableReportsNumber,
   filterSolvableFlips,
+  solvableFlips,
 } from '../../screens/validation/utils'
 import {
   ValidationScene,
@@ -47,6 +48,7 @@ import {
   FailedFlipAnnotation,
   ReviewValidationDialog,
   BadFlipDialog,
+  ReviewShortSessionDialog,
 } from '../../screens/validation/components'
 import theme, {rem} from '../../shared/theme'
 import {AnswerType} from '../../shared/types'
@@ -455,6 +457,22 @@ function ValidationSession({
           send('CANCEL')
         }}
       />
+
+      <ReviewShortSessionDialog
+        flips={flips.filter(solvableFlips)}
+        isOpen={[
+          'shortSession.solve.answer.submitShortSession.confirm',
+          'shortSession.solve.answer.submitShortSession.submitHash',
+        ].some(state.matches)}
+        isSubmitting={isSubmitting(state)}
+        onSubmit={() => send('SUBMIT')}
+        onClose={() => {
+          send('CANCEL')
+        }}
+        onCancel={() => {
+          send('CANCEL')
+        }}
+      />
     </ValidationScene>
   )
 }
@@ -481,7 +499,7 @@ function isSolving(state) {
 
 function isSubmitting(state) {
   return [
-    'shortSession.solve.answer.submitShortSession',
+    'shortSession.solve.answer.submitShortSession.submitHash',
     'longSession.solve.answer.finishFlips',
     'longSession.solve.answer.submitAnswers',
   ].some(state.matches)

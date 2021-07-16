@@ -710,7 +710,7 @@ export const createValidationMachine = ({
                       after: {
                         SHORT_SESSION_AUTO_SUBMIT: [
                           {
-                            target: 'submitShortSession',
+                            target: 'submitShortSession.submitHash',
                             cond: ({shortFlips}) =>
                               hasEnoughAnswers(shortFlips),
                           },
@@ -721,9 +721,16 @@ export const createValidationMachine = ({
                       },
                     },
                     submitShortSession: {
-                      initial: 'submitHash',
+                      initial: 'confirm',
                       entry: log('Submit short answers hash'),
                       states: {
+                        confirm: {
+                          on: {
+                            SUBMIT: 'submitHash',
+                            CANCEL:
+                              '#validation.shortSession.solve.answer.normal',
+                          },
+                        },
                         submitHash: {
                           invoke: {
                             // eslint-disable-next-line no-shadow
