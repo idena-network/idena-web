@@ -179,6 +179,9 @@ function Nav() {
         <NavItem href="/flips/list" icon={<Icon name="gallery" size={5} />}>
           {t('Flips')}
         </NavItem>
+        <NavItem href="/contacts" icon={<Icon name="contacts" size={5} />}>
+          {t('Contacts')}
+        </NavItem>
         <NavItem href="/settings" icon={<Icon name="settings" size={5} />}>
           {t('Settings')}
         </NavItem>

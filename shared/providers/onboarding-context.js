@@ -174,9 +174,7 @@ export function OnboardingProvider(props) {
       },
     }),
     {
-      logger: global.isDev
-        ? console.log
-        : (...args) => global.logger.debug(...args),
+      logger: msg => console.log(msg),
     }
   )
 

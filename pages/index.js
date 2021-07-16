@@ -80,6 +80,7 @@ export default function ProfilePage() {
       isValidated,
       requiredFlips,
       flips,
+      canInvite,
     },
   ] = useIdentity()
 
@@ -443,6 +444,13 @@ export default function ProfilePage() {
             <Stack spacing={1} align="flex-start">
               <IconLink href="/flips/new" icon={<Icon name="photo" size={5} />}>
                 {t('New flip')}
+              </IconLink>
+              <IconLink
+                href="/contacts?new"
+                isDisabled={!canInvite}
+                icon={<Icon name="add-user" size={5} />}
+              >
+                {t('Invite')}
               </IconLink>
               <IconButton2
                 isDisabled={!true}

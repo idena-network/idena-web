@@ -2,6 +2,11 @@ import dayjs from 'dayjs'
 import {getRpcParams} from '../api/api-client'
 import {IdentityStatus} from '../types'
 
+export const HASH_IN_MEMPOOL =
+  '0x0000000000000000000000000000000000000000000000000000000000000000'
+
+export const dummyAddress = `0x${'2'.repeat(64)}`
+
 export function createRpcCaller({url, key}) {
   return async function(method, ...params) {
     const {result, error} = await (
@@ -87,4 +92,28 @@ export function formatValidationDate(nextValidation) {
     dateStyle: 'short',
     timeStyle: 'short',
   })
+}
+
+export function mapToFriendlyStatus(status) {
+  switch (status) {
+    case IdentityStatus.Undefined:
+      return 'Not validated'
+    default:
+      return status
+  }
+}
+
+export const byId = ({id: givenId}) => ({id: currentId}) =>
+  currentId === givenId
+
+export function calculateInvitationRewardRatio(
+  {startBlock, nextValidation},
+  {highestBlock}
+) {
+  const endBlock =
+    highestBlock + dayjs(nextValidation).diff(dayjs(), 'minute') * 3
+
+  const t = (highestBlock - startBlock) / (endBlock - startBlock)
+
+  return Math.max(1 - t ** 4 * 0.5, 0)
 }
