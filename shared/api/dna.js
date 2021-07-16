@@ -20,16 +20,6 @@ export async function activateInvite(to, key) {
   return data
 }
 
-export async function fetchIdentities() {
-  const {data} = await api().post('/', {
-    method: 'dna_identities',
-    params: [],
-    id: 1,
-  })
-  const {result} = data
-  return result
-}
-
 /**
  * Identity
  * @typedef {Object} Identity
