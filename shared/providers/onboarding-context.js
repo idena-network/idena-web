@@ -172,12 +172,7 @@ export function OnboardingProvider(props) {
         },
         done: {},
       },
-    }),
-    {
-      logger: global.isDev
-        ? console.log
-        : (...args) => global.logger.debug(...args),
-    }
+    })
   )
 
   React.useEffect(() => {
