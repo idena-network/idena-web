@@ -172,10 +172,7 @@ export function OnboardingProvider(props) {
         },
         done: {},
       },
-    }),
-    {
-      logger: msg => console.log(msg),
-    }
+    })
   )
 
   React.useEffect(() => {
