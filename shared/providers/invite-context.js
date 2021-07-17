@@ -6,6 +6,10 @@ import {HASH_IN_MEMPOOL, callRpc} from '../utils/utils'
 import {useIdentity} from './identity-context'
 import {IdentityStatus} from '../types'
 import * as db from '../../screens/contacts/db'
+import {getRawTx, sendRawTx} from '../api'
+import {generatePrivateKey, privateKeyToAddress} from '../utils/crypto'
+import {Transaction} from '../models/transaction'
+import {toHexString} from '../utils/buffers'
 
 const killableIdentities = [IdentityStatus.Newbie, IdentityStatus.Candidate]
 
@@ -206,25 +210,43 @@ export function InviteProvider({children}) {
     invites.filter(({terminating}) => terminating).length ? 1000 * 10 : null
   )
 
-  const addInvite = async (to, amount, firstName = '', lastName = '') => {
-    const {result, error} = await api.sendInvite({to, amount})
-    if (result) {
-      const issuedInvite = {
-        amount,
-        firstName,
-        lastName,
-        ...result,
-        activated: false,
-        canKill: true,
-      }
+  const addInvite = async ({
+    from,
+    to,
+    privateKey,
+    firstName = '',
+    lastName = '',
+  }) => {
+    let invitePk
+    let inviteAddress = to
 
-      const id = await db.addInvite(issuedInvite)
-      const invite = {...issuedInvite, id, mining: true}
-      setInvites([...invites, invite])
-
-      return invite
+    if (!inviteAddress) {
+      invitePk = generatePrivateKey()
+      inviteAddress = privateKeyToAddress(invitePk)
     }
-    throw new Error(error.message)
+
+    const rawTx = await getRawTx(2, from, inviteAddress)
+
+    const tx = new Transaction().fromHex(rawTx)
+    tx.sign(privateKey)
+
+    const hash = await sendRawTx(`0x${tx.toHex()}`)
+
+    const issuedInvite = {
+      firstName,
+      lastName,
+      hash,
+      receiver: inviteAddress,
+      key: toHexString(invitePk ?? ''),
+      activated: false,
+      canKill: true,
+    }
+
+    const id = await db.addInvite(issuedInvite)
+    const invite = {...issuedInvite, id, mining: true}
+    setInvites([...invites, invite])
+
+    return invite
   }
 
   const updateInvite = async (id, firstName, lastName) => {
