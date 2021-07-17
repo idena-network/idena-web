@@ -50,6 +50,7 @@ import {
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {useSuccessToast} from '../../shared/hooks/use-toast'
 import {IdentityStatus} from '../../shared/types'
+import {useAuthState} from '../../shared/providers/auth-context'
 
 export function ContactListSidebar({
   selectedContactId,
@@ -427,6 +428,8 @@ export function IssueInviteDrawer({onIssue, onIssueFail, ...props}) {
 
   const {addInvite} = useInviteDispatch()
 
+  const {coinbase, privateKey} = useAuthState()
+
   const [isSubmitting, setIsSubmitting] = React.useState()
 
   return (
@@ -456,7 +459,14 @@ export function IssueInviteDrawer({onIssue, onIssueFail, ...props}) {
 
             try {
               setIsSubmitting(true)
-              const invite = await addInvite(address, null, firstName, lastName)
+
+              const invite = await addInvite({
+                from: coinbase,
+                to: address,
+                privateKey,
+                firstName,
+                lastName,
+              })
               setIsSubmitting(false)
 
               onIssue(invite)
