@@ -33,6 +33,8 @@ import {
   PseudoBox,
   FormControl,
   useTheme,
+  Divider,
+  Text,
 } from '@chakra-ui/core'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
@@ -305,4 +307,33 @@ export function Skeleton(props) {
       {...props}
     />
   )
+}
+
+export function FillCenter(props) {
+  return (
+    <Flex
+      direction="column"
+      flex={1}
+      align="center"
+      justify="center"
+      {...props}
+    />
+  )
+}
+
+export const VDivider = React.forwardRef(function VDivider(props, ref) {
+  return (
+    <Divider
+      ref={ref}
+      orientation="vertical"
+      borderColor="gray.300"
+      h={6}
+      mx={0}
+      {...props}
+    />
+  )
+})
+
+export function SmallText(props) {
+  return <Text color="muted" fontSize="sm" {...props} />
 }

@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React from 'react'
 import PropTypes from 'prop-types'
@@ -55,15 +56,18 @@ Link.propTypes = {
   children: PropTypes.node,
 }
 
-// eslint-disable-next-line react/prop-types
-export function IconLink({href, icon, children, ...props}) {
+export const IconLink = React.forwardRef(function IconLink(
+  {href, icon, children, ...props},
+  ref
+) {
   return (
-    <NextLink href={href} passHref>
+    <NextLink ref={ref} href={href} passHref>
       <ChakraLink
         href={href}
         color="brandBlue.500"
         rounded="md"
         fontWeight={500}
+        display="inline-block"
         h={8}
         px={2}
         py="3/2"
@@ -79,6 +83,6 @@ export function IconLink({href, icon, children, ...props}) {
       </ChakraLink>
     </NextLink>
   )
-}
+})
 
 export default Link

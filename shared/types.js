@@ -75,3 +75,12 @@ export const TxType = {
   KillDelegatorTx: 0x14,
   StoreToIpfsTx: 0x15,
 }
+
+export const OnboardingStep = {
+  ActivateInvite: 'activateInvite',
+  Validate: 'validate',
+  CreateFlips: 'createFlips',
+  FlipLottery: 'flipLottery',
+  WaitingValidationResults: 'waitingValidationResults',
+  ActivateMining: 'activateMining',
+}

@@ -22,6 +22,7 @@ import Flips from '../shared/components/flips'
 import {AppProvider} from '../shared/providers/app-context'
 import {IdentityProvider} from '../shared/providers/identity-context'
 import {EpochProvider} from '../shared/providers/epoch-context'
+import {OnboardingProvider} from '../shared/providers/onboarding-context'
 
 export default class MyApp extends App {
   render() {
@@ -112,7 +113,9 @@ function AppProviders(props) {
             <IdentityProvider>
               <AppProvider>
                 <Flips />
-                <NotificationProvider {...props} />
+                <OnboardingProvider>
+                  <NotificationProvider {...props} />
+                </OnboardingProvider>
               </AppProvider>
             </IdentityProvider>
           </EpochProvider>

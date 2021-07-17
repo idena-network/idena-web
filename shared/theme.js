@@ -197,6 +197,13 @@ export const uiTheme = {
     graphite: {
       500: 'rgb(69 72 77)',
     },
+    orange: {
+      ...chakraTheme.colors.orange,
+      '010': 'rgb(255 163 102 /0.1)',
+      '020': 'rgb(255 163 102 /0.2)',
+      '050': 'rgb(255 163 102 /0.5)',
+      500: 'rgb(255, 163, 102)',
+    },
   },
   fonts: {
     ...chakraTheme.fonts,
@@ -224,6 +231,7 @@ export const uiTheme = {
   },
   radii: {
     ...chakraTheme.radii,
+    sm: '0.25rem',
     md: rem(6),
     xl: '0.75rem',
   },

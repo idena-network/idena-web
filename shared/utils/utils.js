@@ -1,5 +1,11 @@
+import dayjs from 'dayjs'
 import {getRpcParams} from '../api/api-client'
 import {IdentityStatus} from '../types'
+
+export const HASH_IN_MEMPOOL =
+  '0x0000000000000000000000000000000000000000000000000000000000000000'
+
+export const dummyAddress = `0x${'2'.repeat(64)}`
 
 export function createRpcCaller({url, key}) {
   return async function(method, ...params) {
@@ -69,4 +75,45 @@ export function promiseTimeout(p, timeout) {
     p,
     new Promise((_, reject) => setTimeout(reject, timeout)),
   ])
+}
+
+export function buildNextValidationCalendarLink(nextValidation) {
+  return `https://calendar.google.com/calendar/render?action=TEMPLATE&dates=${dayjs(
+    nextValidation
+  ).format('YYYYMMDDTHHmmssZ')}%2F${dayjs(nextValidation)
+    .add(30, 'minute')
+    .format(
+      'YYYYMMDDTHHmmssZ'
+    )}&details=Plan%20your%20time%20in%20advance%20to%20take%20part%20in%20the%20validation%20ceremony%21%20Before%20the%20ceremony%2C%20read%20our%20explainer%20of%20how%20to%20get%20validated%3A%20https%3A%2F%2Fmedium.com%2Fidena%2Fhow-to-pass-a-validation-session-in-idena-1724a0203e81&text=Idena%20Validation%20Ceremony`
+}
+
+export function formatValidationDate(nextValidation) {
+  return new Date(nextValidation).toLocaleString([], {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  })
+}
+
+export function mapToFriendlyStatus(status) {
+  switch (status) {
+    case IdentityStatus.Undefined:
+      return 'Not validated'
+    default:
+      return status
+  }
+}
+
+export const byId = ({id: givenId}) => ({id: currentId}) =>
+  currentId === givenId
+
+export function calculateInvitationRewardRatio(
+  {startBlock, nextValidation},
+  {highestBlock}
+) {
+  const endBlock =
+    highestBlock + dayjs(nextValidation).diff(dayjs(), 'minute') * 3
+
+  const t = (highestBlock - startBlock) / (endBlock - startBlock)
+
+  return Math.max(1 - t ** 4 * 0.5, 0)
 }
