@@ -61,6 +61,7 @@ import {LayoutContainer} from '../../screens/app/components'
 import Auth from '../../shared/components/auth'
 import useNodeTiming from '../../shared/hooks/use-node-timing'
 import {useEpoch} from '../../shared/providers/epoch-context'
+import {eitherState} from '../../shared/utils/utils'
 
 export default function ValidationPage() {
   const epoch = useEpoch()
@@ -460,10 +461,11 @@ function ValidationSession({
 
       <ReviewShortSessionDialog
         flips={flips.filter(solvableFlips)}
-        isOpen={[
+        isOpen={eitherState(
+          state,
           'shortSession.solve.answer.submitShortSession.confirm',
-          'shortSession.solve.answer.submitShortSession.submitHash',
-        ].some(state.matches)}
+          'shortSession.solve.answer.submitShortSession.submitHash'
+        )}
         isSubmitting={isSubmitting(state)}
         onSubmit={() => send('SUBMIT')}
         onClose={() => {
