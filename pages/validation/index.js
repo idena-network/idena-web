@@ -47,6 +47,7 @@ import {
   FailedFlipAnnotation,
   ReviewValidationDialog,
   BadFlipDialog,
+  ReviewShortSessionDialog,
 } from '../../screens/validation/components'
 import theme, {rem} from '../../shared/theme'
 import {AnswerType} from '../../shared/types'
@@ -426,7 +427,7 @@ function ValidationSession({
         }
         title={t('The flip is to be reported')}
         subtitle={t(
-          `You'll get rewards for reported flips if these flip are also reported by other participants (more than 50% of qualification committee).`
+          `You'll get rewards for reported flips if they are are also reported by more than 50% of qualification committee.`
         )}
         onClose={() => {
           if (state.matches('longSession.solve.answer.finishFlips'))
@@ -450,6 +451,20 @@ function ValidationSession({
         }}
         onMisingReports={() => {
           send('CHECK_REPORTS')
+        }}
+        onCancel={() => {
+          send('CANCEL')
+        }}
+      />
+
+      <ReviewShortSessionDialog
+        flips={filterSolvableFlips(flips)}
+        isOpen={state.matches(
+          'shortSession.solve.answer.submitShortSession.confirm'
+        )}
+        onSubmit={() => send('SUBMIT')}
+        onClose={() => {
+          send('CANCEL')
         }}
         onCancel={() => {
           send('CANCEL')
@@ -481,7 +496,7 @@ function isSolving(state) {
 
 function isSubmitting(state) {
   return [
-    'shortSession.solve.answer.submitShortSession',
+    'shortSession.solve.answer.submitShortSession.submitHash',
     'longSession.solve.answer.finishFlips',
     'longSession.solve.answer.submitAnswers',
   ].some(state.matches)

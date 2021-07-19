@@ -14,12 +14,13 @@ export function filterRegularFlips(flips) {
   return flips.filter(({extra}) => !extra)
 }
 
+export const solvableFlips = ({decoded}) => decoded
 /**
  * Fully fetched and decoded flips
  * @param {*} flips
  */
 export function filterSolvableFlips(flips) {
-  return flips.filter(({decoded}) => decoded)
+  return flips.filter(solvableFlips)
 }
 
 export const failedFlip = ({decoded, missing, extra}) =>

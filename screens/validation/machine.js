@@ -710,7 +710,7 @@ export const createValidationMachine = ({
                       after: {
                         SHORT_SESSION_AUTO_SUBMIT: [
                           {
-                            target: 'submitShortSession',
+                            target: 'submitShortSession.submitHash',
                             cond: ({shortFlips}) =>
                               hasEnoughAnswers(shortFlips),
                           },
@@ -721,10 +721,38 @@ export const createValidationMachine = ({
                       },
                     },
                     submitShortSession: {
-                      initial: 'submitHash',
-                      entry: log('Submit short answers hash'),
+                      initial: 'checkAnswers',
                       states: {
+                        checkAnswers: {
+                          always: [
+                            {
+                              target: 'confirm',
+                              cond: ({shortFlips}) => {
+                                const solvableFlips = filterRegularFlips(
+                                  shortFlips
+                                )
+                                return (
+                                  solvableFlips.length === 0 ||
+                                  solvableFlips.some(
+                                    ({option = 0, decoded, ready, loading}) =>
+                                      (decoded && option === 0) ||
+                                      (ready && loading)
+                                  )
+                                )
+                              },
+                            },
+                            {target: 'submitHash'},
+                          ],
+                        },
+                        confirm: {
+                          on: {
+                            SUBMIT: 'submitHash',
+                            CANCEL:
+                              '#validation.shortSession.solve.answer.normal',
+                          },
+                        },
                         submitHash: {
+                          entry: log('Submit short answers hash'),
                           invoke: {
                             // eslint-disable-next-line no-shadow
                             src: ({

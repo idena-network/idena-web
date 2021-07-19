@@ -773,10 +773,13 @@ export function ValidationFailedDialog(props) {
     >
       <ValidationDialogBody>
         <Text>
-          {t(`Sorry your answers won’t be submitted since the validation session is
-          over.`)}
+          {t(
+            `You haven't submitted your answers in time. This validation session is over.`
+          )}
         </Text>
-        <Text>{t('Come back soon!')}</Text>
+        <Text>
+          {t('Come back again to participate in the next validation session.')}
+        </Text>
       </ValidationDialogBody>
     </ValidationDialog>
   )
@@ -923,7 +926,7 @@ export function AfterLongSessionToast() {
         pinned
         type={NotificationType.Info}
         title={t(
-          'Please wait. The network is reaching consensus about validated identities'
+          'Please wait. The network is reaching consensus on validated identities'
         )}
       />
     </Snackbar>
@@ -1335,5 +1338,55 @@ function BadFlipPartFrame({flipCase, ...props}) {
         <Icon name="block" size={5} />
       </ChakraFlex>
     </ChakraBox>
+  )
+}
+
+export function ReviewShortSessionDialog({
+  flips,
+  onSubmit,
+  onCancel,
+  ...props
+}) {
+  const {t} = useTranslation()
+
+  const answeredFlipsCount = flips.filter(({option}) => option > 0).length
+
+  const areFlipsUnanswered = answeredFlipsCount < flips.length
+
+  return (
+    <Dialog title={t('Submit the answers')} onClose={onCancel} {...props}>
+      <ValidationDialogBody>
+        <Stack spacing={6}>
+          <Stack spacing={4}>
+            <Stack spacing={2}>
+              <ReviewValidationDialogStat
+                label={t('Answered')}
+                value={t('{{answeredFlips}} out of {{totalFlips}}', {
+                  answeredFlips: answeredFlipsCount,
+                  totalFlips: flips.length,
+                })}
+              />
+            </Stack>
+            {areFlipsUnanswered && (
+              <Text color="muted">
+                {areFlipsUnanswered && (
+                  <Trans i18nKey="reviewMissingFlips" t={t}>
+                    You need to answer{' '}
+                    <ReviewValidationDialogLinkButton onClick={onCancel}>
+                      all flips
+                    </ReviewValidationDialogLinkButton>{' '}
+                    otherwise you may fail the validation.
+                  </Trans>
+                )}
+              </Text>
+            )}
+          </Stack>
+        </Stack>
+      </ValidationDialogBody>
+      <DialogFooter {...props}>
+        <SecondaryButton onClick={onCancel}>{t('Cancel')}</SecondaryButton>
+        <PrimaryButton onClick={onSubmit}>{t('Submit answers')}</PrimaryButton>
+      </DialogFooter>
+    </Dialog>
   )
 }
