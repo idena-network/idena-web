@@ -306,3 +306,15 @@ export function Skeleton(props) {
     />
   )
 }
+
+export function FillCenter(props) {
+  return (
+    <Flex
+      direction="column"
+      flex={1}
+      align="center"
+      justify="center"
+      {...props}
+    />
+  )
+}

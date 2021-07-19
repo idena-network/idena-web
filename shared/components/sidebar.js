@@ -3,8 +3,20 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import {useRouter} from 'next/router'
 import {margin, borderRadius, darken, transparentize, padding} from 'polished'
-import {useTranslation} from 'react-i18next'
-import {Icon, Text} from '@chakra-ui/core'
+import {Trans, useTranslation} from 'react-i18next'
+import {
+  Button,
+  Icon,
+  Stack,
+  Text,
+  Flex as ChakraFlex,
+  Box as ChakraBox,
+  PopoverTrigger,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Menu,
+} from '@chakra-ui/core'
 import {Box, Link} from '.'
 import Flex from './flex'
 import theme, {rem} from '../theme'
@@ -13,9 +25,25 @@ import {parsePersistedValidationState} from '../../screens/validation/utils'
 import {useAuthDispatch} from '../providers/auth-context'
 import {apiKeyStates, useSettingsState} from '../providers/settings-context'
 import {Tooltip} from './components'
-import {EpochPeriod, IdentityStatus} from '../types'
+import {EpochPeriod, IdentityStatus, OnboardingStep} from '../types'
 import {useIdentity} from '../providers/identity-context'
 import {useEpoch} from '../providers/epoch-context'
+import {useOnboarding} from '../providers/onboarding-context'
+import {
+  OnboardingPopover,
+  OnboardingPopoverContent,
+  OnboardingPopoverContentIconRow,
+  OnboardingLinkButton,
+} from './onboarding'
+import {
+  activeOnboardingStep,
+  activeShowingOnboardingStep,
+  onboardingStep,
+} from '../utils/onboarding'
+import {
+  buildNextValidationCalendarLink,
+  formatValidationDate,
+} from '../utils/utils'
 
 function Sidebar() {
   return (
@@ -230,14 +258,41 @@ function NavItem({href, icon, children, onClick}) {
 }
 
 function ActionPanel() {
-  const epoch = useEpoch()
   const {t} = useTranslation()
+
+  const router = useRouter()
+
+  const epoch = useEpoch()
+  const [identity] = useIdentity()
+
+  const [currentOnboarding, {showCurrentTask, dismiss}] = useOnboarding()
+
+  const shouldActivateInvite = currentOnboarding.matches(
+    activeOnboardingStep(OnboardingStep.ActivateInvite)
+  )
+
+  const shouldValidate = currentOnboarding.matches(
+    activeOnboardingStep(OnboardingStep.Validate)
+  )
+
+  const shouldCreateFlips = currentOnboarding.matches(
+    activeOnboardingStep(OnboardingStep.CreateFlips)
+  )
+
+  const isShowingValidateStep = currentOnboarding.matches(
+    activeShowingOnboardingStep(OnboardingStep.Validate)
+  )
+
+  const shouldActivateMining = currentOnboarding.matches(
+    activeOnboardingStep(OnboardingStep.ActivateMining)
+  )
 
   if (!epoch) {
     return null
   }
 
   const {currentPeriod, nextValidation} = epoch
+
   return (
     <Box
       bg={theme.colors.white01}
@@ -251,15 +306,201 @@ function ActionPanel() {
       {currentPeriod !== EpochPeriod.None && (
         <Block title={t('Current period')}>{currentPeriod}</Block>
       )}
-      <Block title={t('My current task')}>
-        <CurrentTask epoch={epoch.epoch} period={currentPeriod} />
-      </Block>
+      <ChakraBox
+        roundedTop="md"
+        cursor={currentOnboarding.matches('done') ? 'default' : 'pointer'}
+        onClick={() => {
+          if (shouldActivateInvite) router.push('/')
+          if (
+            currentOnboarding.matches(
+              onboardingStep(OnboardingStep.CreateFlips)
+            )
+          )
+            router.push('/flips/list')
+          if (shouldActivateMining) router.push('/')
+          showCurrentTask()
+        }}
+      >
+        <PulseFrame
+          isActive={
+            currentPeriod === EpochPeriod.None &&
+            (shouldActivateInvite ||
+              (shouldValidate &&
+                [IdentityStatus.Candidate, IdentityStatus.Newbie].includes(
+                  identity.state
+                )) ||
+              shouldActivateMining ||
+              (shouldCreateFlips &&
+                [IdentityStatus.Newbie].includes(identity.state)))
+          }
+        >
+          <Block title={t('My current task')}>
+            <CurrentTask
+              epoch={epoch.epoch}
+              period={currentPeriod}
+              identity={identity}
+            />
+          </Block>
+        </PulseFrame>
+      </ChakraBox>
+
       {currentPeriod === EpochPeriod.None && (
-        <Block title={t('Next validation')}>
-          {new Date(nextValidation).toLocaleString()}
-        </Block>
+        <>
+          <OnboardingPopover isOpen={isShowingValidateStep} placement="right">
+            <PopoverTrigger>
+              <ChakraBox
+                roundedBottom="md"
+                bg={
+                  isShowingValidateStep
+                    ? 'rgba(216, 216, 216, .1)'
+                    : 'transparent'
+                }
+                position="relative"
+                zIndex={9}
+              >
+                <ChakraFlex justify="space-between" align="baseline" pr={1}>
+                  <Block title={t('Next validation')}>
+                    {formatValidationDate(nextValidation)}
+                  </Block>
+                  <Menu autoSelect={false} mr={1}>
+                    <MenuButton
+                      rounded="md"
+                      py="3/2"
+                      px="2px"
+                      mt="-6px"
+                      _expanded={{bg: 'brandGray.500'}}
+                      _focus={{outline: 0}}
+                    >
+                      <Icon name="more" size={5} />
+                    </MenuButton>
+                    <MenuList
+                      placement="bottom-end"
+                      border="none"
+                      shadow="0 4px 6px 0 rgba(83, 86, 92, 0.24), 0 0 2px 0 rgba(83, 86, 92, 0.2)"
+                      rounded="lg"
+                      py={2}
+                      minWidth="145px"
+                    >
+                      <MenuItem
+                        color="brandGray.500"
+                        fontWeight={500}
+                        px={3}
+                        py={2}
+                        _hover={{bg: 'gray.50'}}
+                        _focus={{bg: 'gray.50'}}
+                        _selected={{bg: 'gray.50'}}
+                        _active={{bg: 'gray.50'}}
+                        onClick={() => {
+                          global.openExternal(
+                            buildNextValidationCalendarLink(nextValidation)
+                          )
+                        }}
+                      >
+                        <Icon
+                          name="plus-square"
+                          size={5}
+                          mr={3}
+                          color="brandBlue.500"
+                        />
+                        Add to calendar
+                      </MenuItem>
+                    </MenuList>
+                  </Menu>
+                </ChakraFlex>
+              </ChakraBox>
+            </PopoverTrigger>
+            <OnboardingPopoverContent
+              title={t('Schedule your next validation')}
+              maxW="sm"
+              additionFooterActions={
+                <Button
+                  variant="unstyled"
+                  onClick={() => {
+                    global.openExternal(
+                      'https://medium.com/idena/how-do-i-start-using-idena-c49418e01a06'
+                    )
+                  }}
+                >
+                  {t('Read more')}
+                </Button>
+              }
+              onDismiss={dismiss}
+            >
+              <Stack spacing={5}>
+                <OnboardingPopoverContentIconRow icon="telegram">
+                  <Trans i18nKey="onboardingValidateSubscribe" t={t}>
+                    <OnboardingLinkButton href="https://t.me/IdenaAnnouncements">
+                      Subscribe
+                    </OnboardingLinkButton>{' '}
+                    to the Idena Announcements (important updates only)
+                  </Trans>
+                </OnboardingPopoverContentIconRow>
+                <OnboardingPopoverContentIconRow icon="sync">
+                  {t(
+                    `Keep your node synchronized in 45-60 minutes before the validation starts.`
+                  )}
+                </OnboardingPopoverContentIconRow>
+                <OnboardingPopoverContentIconRow icon="timer">
+                  {t(
+                    `Solve the flips quickly when validation starts. The first 6 flips must be submitted in less than 2 minutes.`
+                  )}
+                </OnboardingPopoverContentIconRow>
+                <OnboardingPopoverContentIconRow icon="gallery">
+                  <Trans i18nKey="onboardingValidateTest" t={t}>
+                    <OnboardingLinkButton href="https://flips.idena.io/?pass=idena.io">
+                      Test yourself
+                    </OnboardingLinkButton>{' '}
+                    before the validation
+                  </Trans>
+                </OnboardingPopoverContentIconRow>
+              </Stack>
+            </OnboardingPopoverContent>
+          </OnboardingPopover>
+        </>
       )}
     </Box>
+  )
+}
+
+// eslint-disable-next-line react/prop-types
+function PulseFrame({isActive, children, ...props}) {
+  return (
+    <ChakraBox roundedTop="md" {...props}>
+      {isActive ? (
+        <ChakraBox
+          roundedTop="md"
+          shadow="inset 0 0 0 2px #578fff"
+          animation="pulseFrame 1.2s infinite"
+        >
+          {children}
+          <style jsx global>{`
+            @keyframes pulseFrame {
+              0% {
+                box-shadow: inset 0 0 0 2px rgba(87, 143, 255, 0),
+                  inset 0 0 0 6px rgba(87, 143, 255, 0);
+              }
+
+              40% {
+                box-shadow: inset 0 0 0 2px rgba(87, 143, 255, 1),
+                  inset 0 0 0 6px rgba(87, 143, 255, 0.3);
+              }
+
+              50% {
+                box-shadow: inset 0 0 0 2px rgba(87, 143, 255, 1),
+                  inset 0 0 0 6px rgba(87, 143, 255, 0.3);
+              }
+
+              100% {
+                box-shadow: inset 0 0 0 2px rgba(87, 143, 255, 0),
+                  inset 0 0 0 6px rgba(87, 143, 255, 0);
+              }
+            }
+          `}</style>
+        </ChakraBox>
+      ) : (
+        children
+      )}
+    </ChakraBox>
   )
 }
 
@@ -300,6 +541,8 @@ function CurrentTask({epoch, period}) {
 
   const [identity] = useIdentity()
 
+  const [onboardingState] = useOnboarding()
+
   if (!period || !identity || !identity.state) return null
 
   switch (period) {
@@ -309,6 +552,8 @@ function CurrentTask({epoch, period}) {
         requiredFlips: requiredFlipsNumber,
         availableFlips: availableFlipsNumber,
         state: status,
+        age,
+        online,
       } = identity
 
       switch (true) {
@@ -318,6 +563,14 @@ function CurrentTask({epoch, period}) {
               {t('Activate invite')}
             </Link>
           )
+
+        case age === 1 &&
+          !online &&
+          onboardingState.matches(
+            onboardingStep(OnboardingStep.ActivateMining)
+          ): {
+          return t('Activate mining status')
+        }
 
         case [
           IdentityStatus.Human,
