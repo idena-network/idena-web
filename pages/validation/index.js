@@ -460,7 +460,7 @@ function ValidationSession({
       />
 
       <ReviewShortSessionDialog
-        flips={flips.filter(solvableFlips)}
+        flips={filterSolvableFlips(flips)}
         isOpen={eitherState(
           state,
           'shortSession.solve.answer.submitShortSession.confirm',

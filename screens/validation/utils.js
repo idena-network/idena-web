@@ -20,7 +20,7 @@ export const solvableFlips = ({decoded}) => decoded
  * @param {*} flips
  */
 export function filterSolvableFlips(flips) {
-  return flips.filter(({decoded}) => decoded)
+  return flips.filter(solvableFlips)
 }
 
 export const failedFlip = ({decoded, missing, extra}) =>
