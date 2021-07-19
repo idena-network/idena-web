@@ -23,7 +23,6 @@ import {
   decodedWithKeywords,
   availableReportsNumber,
   filterSolvableFlips,
-  solvableFlips,
 } from '../../screens/validation/utils'
 import {
   ValidationScene,
@@ -61,7 +60,6 @@ import {LayoutContainer} from '../../screens/app/components'
 import Auth from '../../shared/components/auth'
 import useNodeTiming from '../../shared/hooks/use-node-timing'
 import {useEpoch} from '../../shared/providers/epoch-context'
-import {eitherState} from '../../shared/utils/utils'
 
 export default function ValidationPage() {
   const epoch = useEpoch()
@@ -461,12 +459,9 @@ function ValidationSession({
 
       <ReviewShortSessionDialog
         flips={filterSolvableFlips(flips)}
-        isOpen={eitherState(
-          state,
-          'shortSession.solve.answer.submitShortSession.confirm',
-          'shortSession.solve.answer.submitShortSession.submitHash'
+        isOpen={state.matches(
+          'shortSession.solve.answer.submitShortSession.confirm'
         )}
-        isSubmitting={isSubmitting(state)}
         onSubmit={() => send('SUBMIT')}
         onClose={() => {
           send('CANCEL')
