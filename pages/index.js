@@ -44,18 +44,12 @@ import {DnaSignInDialog} from '../screens/dna/containers'
 import {FillCenter, Toast} from '../shared/components/components'
 import {useOnboarding} from '../shared/providers/onboarding-context'
 import {
-  activeShowingOnboardingStep,
-  doneOnboardingStep,
-  onboardingStep,
-  shouldCompleteOnboardingStep,
-  shouldTransitionToCreateFlipsStep,
-} from '../shared/utils/onboarding'
-import {
   OnboardingPopover,
   OnboardingPopoverContent,
   OnboardingPopoverContentIconRow,
   TaskConfetti,
 } from '../shared/components/onboarding'
+import {showingOnboardingStep} from '../shared/utils/onboarding'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -77,9 +71,6 @@ export default function ProfilePage() {
       delegatee,
       delegationEpoch,
       canMine,
-      isValidated,
-      requiredFlips,
-      flips,
       canInvite,
     },
   ] = useIdentity()
@@ -138,78 +129,9 @@ export default function ProfilePage() {
 
   const toDna = toLocaleDna(language)
 
-  const [
-    currentOnboarding,
-    {
-      done: doneStep,
-      dismiss: dismissStep,
-      finish: finishOnboarding,
-      rollback: rollbackStep,
-    },
-  ] = useOnboarding()
+  const [{current}, {dismissCurrentStep, doneCurrentTask}] = useOnboarding()
 
-  React.useEffect(() => {
-    if (
-      state === IdentityStatus.Candidate &&
-      shouldCompleteOnboardingStep(
-        currentOnboarding,
-        OnboardingStep.ActivateInvite
-      )
-    ) {
-      doneStep()
-    }
-  }, [currentOnboarding, doneStep, state])
-
-  React.useEffect(() => {
-    if (
-      isValidated &&
-      shouldCompleteOnboardingStep(currentOnboarding, OnboardingStep.Validate)
-    ) {
-      doneStep()
-    }
-  }, [currentOnboarding, doneStep, isValidated])
-
-  React.useEffect(() => {
-    if (
-      !isValidated &&
-      age > 0 &&
-      eitherState(currentOnboarding, onboardingStep(OnboardingStep.Validate))
-    ) {
-      rollbackStep()
-    }
-  }, [age, currentOnboarding, isValidated, rollbackStep])
-
-  React.useEffect(() => {
-    if (
-      online &&
-      shouldCompleteOnboardingStep(
-        currentOnboarding,
-        OnboardingStep.ActivateMining
-      )
-    ) {
-      if (
-        shouldTransitionToCreateFlipsStep({isValidated, requiredFlips, flips})
-      )
-        doneStep()
-      else finishOnboarding()
-    }
-  }, [
-    currentOnboarding,
-    doneStep,
-    finishOnboarding,
-    flips,
-    isValidated,
-    online,
-    requiredFlips,
-  ])
-
-  const isShowingActivateMiningPopover = currentOnboarding.matches(
-    activeShowingOnboardingStep(OnboardingStep.ActivateMining)
-  )
-
-  const isShowingActivateInvitePopover = currentOnboarding.matches(
-    activeShowingOnboardingStep(OnboardingStep.ActivateInvite)
-  )
+  const eitherOnboardingState = (...states) => eitherState(current, ...states)
 
   const {
     isOpen: isOpenActivateInvitePopover,
@@ -218,7 +140,9 @@ export default function ProfilePage() {
   } = useDisclosure()
 
   React.useEffect(() => {
-    if (isShowingActivateInvitePopover) {
+    if (
+      eitherState(current, showingOnboardingStep(OnboardingStep.ActivateInvite))
+    ) {
       document
         .querySelectorAll('#__next section')[1]
         .querySelector('div')
@@ -228,11 +152,7 @@ export default function ProfilePage() {
         })
       onOpenActivateInvitePopover()
     } else onCloseActivateInvitePopover()
-  }, [
-    isShowingActivateInvitePopover,
-    onCloseActivateInvitePopover,
-    onOpenActivateInvitePopover,
-  ])
+  }, [current, onCloseActivateInvitePopover, onOpenActivateInvitePopover])
 
   return (
     <Layout canRedirect={!dnaUrl}>
@@ -331,7 +251,7 @@ export default function ProfilePage() {
                 title={t('Enter invitation code')}
                 zIndex={2}
                 onDismiss={() => {
-                  dismissStep()
+                  dismissCurrentStep()
                   onCloseActivateInvitePopover()
                 }}
               >
@@ -369,29 +289,25 @@ export default function ProfilePage() {
               </OnboardingPopoverContent>
             </OnboardingPopover>
             <FillCenter position="absolute" top="50%" left="50%" zIndex={9999}>
-              <TaskConfetti
-                active={
-                  eitherState(
-                    currentOnboarding,
-                    `${doneOnboardingStep(OnboardingStep.ActivateInvite)}.salut`
-                  ) ||
-                  (eitherState(
-                    currentOnboarding,
-                    `${doneOnboardingStep(OnboardingStep.Validate)}.salut`
-                  ) &&
-                    state === IdentityStatus.Newbie)
-                }
-              />
+              <TaskConfetti active={false} />
             </FillCenter>
           </Stack>
           <Stack spacing={10} w={48}>
             <Box minH={62} mt={4}>
-              <OnboardingPopover isOpen={isShowingActivateMiningPopover}>
+              <OnboardingPopover
+                isOpen={eitherOnboardingState(
+                  showingOnboardingStep(OnboardingStep.ActivateMining)
+                )}
+              >
                 <PopoverTrigger>
                   <Box
                     bg="white"
                     position={
-                      isShowingActivateMiningPopover ? 'relative' : 'initial'
+                      eitherOnboardingState(
+                        showingOnboardingStep(OnboardingStep.ActivateMining)
+                      )
+                        ? 'relative'
+                        : 'initial'
                     }
                     borderRadius="md"
                     p={2}
@@ -404,34 +320,14 @@ export default function ProfilePage() {
                         isOnline={online}
                         delegatee={delegatee}
                         delegationEpoch={delegationEpoch}
-                        onShow={() => {
-                          if (
-                            shouldTransitionToCreateFlipsStep({
-                              isValidated,
-                              requiredFlips,
-                              flips,
-                            })
-                          )
-                            doneStep()
-                          else finishOnboarding()
-                        }}
+                        onShow={doneCurrentTask}
                       />
                     )}
                   </Box>
                 </PopoverTrigger>
                 <OnboardingPopoverContent
                   title={t('Activate mining status')}
-                  onDismiss={() => {
-                    if (
-                      shouldTransitionToCreateFlipsStep({
-                        isValidated,
-                        requiredFlips,
-                        flips,
-                      })
-                    )
-                      doneStep()
-                    else finishOnboarding()
-                  }}
+                  onDismiss={doneCurrentTask}
                 >
                   <Text>
                     {t(

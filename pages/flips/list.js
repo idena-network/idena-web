@@ -45,15 +45,13 @@ import {redact} from '../../shared/utils/logs'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {useOnboarding} from '../../shared/providers/onboarding-context'
-import {
-  activeShowingOnboardingStep,
-  shouldCompleteOnboardingStep,
-} from '../../shared/utils/onboarding'
+import {showingOnboardingStep} from '../../shared/utils/onboarding'
 import {
   OnboardingPopover,
   OnboardingPopoverContent,
   OnboardingPopoverContentIconRow,
 } from '../../shared/components/onboarding'
+import {eitherState} from '../../shared/utils/utils'
 
 export default function FlipListPage() {
   const {t} = useTranslation()
@@ -145,26 +143,10 @@ export default function FlipListPage() {
   const remainingOptionalFlips =
     availableFlipsNumber - Math.max(requiredFlipsNumber, madeFlipsNumber)
 
-  const [
-    currentOnboarding,
-    {done: doneOnboarding, dismiss: dismissOnboarding},
-  ] = useOnboarding()
+  const [{current: currentOnboarding}, {dismissCurrentTask}] = useOnboarding()
 
-  const isShowingCreateFlipsPopover = currentOnboarding.matches(
-    activeShowingOnboardingStep(OnboardingStep.CreateFlips)
-  )
-
-  React.useEffect(() => {
-    if (
-      remainingRequiredFlips <= 0 &&
-      shouldCompleteOnboardingStep(
-        currentOnboarding,
-        OnboardingStep.CreateFlips
-      )
-    ) {
-      doneOnboarding()
-    }
-  }, [currentOnboarding, doneOnboarding, remainingRequiredFlips])
+  const eitherOnboardingState = (...states) =>
+    eitherState(currentOnboarding, ...states)
 
   return (
     <Layout>
@@ -186,7 +168,11 @@ export default function FlipListPage() {
             </FlipFilterOption>
           </FlipFilter>
           <Box alignSelf="end">
-            <OnboardingPopover isOpen={isShowingCreateFlipsPopover}>
+            <OnboardingPopover
+              isOpen={eitherOnboardingState(
+                showingOnboardingStep(OnboardingStep.CreateFlips)
+              )}
+            >
               <PopoverTrigger>
                 <Box>
                   <IconLink
@@ -194,7 +180,11 @@ export default function FlipListPage() {
                     icon="plus-solid"
                     bg="white"
                     position={
-                      isShowingCreateFlipsPopover ? 'relative' : 'initial'
+                      eitherOnboardingState(
+                        showingOnboardingStep(OnboardingStep.CreateFlips)
+                      )
+                        ? 'relative'
+                        : 'initial'
                     }
                     zIndex={2}
                   >
@@ -204,7 +194,7 @@ export default function FlipListPage() {
               </PopoverTrigger>
               <OnboardingPopoverContent
                 title={t('Create required flips')}
-                onDismiss={dismissOnboarding}
+                onDismiss={dismissCurrentTask}
               >
                 <Stack>
                   <Text>
