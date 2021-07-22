@@ -2,10 +2,10 @@
 import {useMachine} from '@xstate/react'
 import React from 'react'
 import {createMachine} from 'xstate'
-import {assign, log} from 'xstate/lib/actions'
+import {assign, choose} from 'xstate/lib/actions'
 import {canValidate} from '../../screens/validation/utils'
-import {OnboardingStep} from '../types'
-import {shouldCreateFlips} from '../utils/onboarding'
+import {IdentityStatus, OnboardingStep} from '../types'
+import {rewardWithConfetti, shouldCreateFlips} from '../utils/onboarding'
 import {loadPersistentState, persistState} from '../utils/persist'
 import {useEpoch} from './epoch-context'
 import {useIdentity} from './identity-context'
@@ -17,9 +17,9 @@ export function OnboardingProvider({children}) {
 
   const [identity] = useIdentity()
 
-  const createStep = (step, config) => ({
+  const createStep = (step, {on, ...config} = {}) => ({
     [step]: {
-      entry: ['setCurrentStep', 'setIdentity', log()],
+      entry: ['setCurrentStep', 'setIdentity'],
       initial: 'unknown',
       states: {
         unknown: {
@@ -33,11 +33,15 @@ export function OnboardingProvider({children}) {
             onError: 'promoting',
           },
         },
-        promoting: {on: {SHOW: 'showing'}},
+        promoting: {},
         showing: {on: {DISMISS: 'dismissed'}},
         dismissed: {
           entry: ['addDismissedStep', 'persistDismissedSteps'],
         },
+      },
+      on: {
+        SHOW: '.showing',
+        ...on,
       },
       ...config,
     },
@@ -60,11 +64,23 @@ export function OnboardingProvider({children}) {
           },
           ...createStep(OnboardingStep.ActivateInvite, {
             on: {[OnboardingStep.Validate]: OnboardingStep.Validate},
+            exit: ['reward'],
           }),
           ...createStep(OnboardingStep.Validate, {
             on: {
               [OnboardingStep.ActivateMining]: OnboardingStep.ActivateMining,
             },
+            exit: [
+              choose([
+                {
+                  actions: 'reward',
+                  // eslint-disable-next-line no-shadow
+                  cond: ({identity}) =>
+                    identity.isValidated &&
+                    identity.state === IdentityStatus.Newbie,
+                },
+              ]),
+            ],
           }),
           ...createStep(OnboardingStep.ActivateMining, {
             on: {
@@ -78,7 +94,7 @@ export function OnboardingProvider({children}) {
               ],
               [OnboardingStep.CreateFlips]: OnboardingStep.CreateFlips,
             },
-            exit: ['addDismissedStep', 'persistDismissedSteps', log()],
+            exit: ['addDismissedStep', 'persistDismissedSteps'],
           }),
           ...createStep(OnboardingStep.CreateFlips),
           done: {},
@@ -101,6 +117,7 @@ export function OnboardingProvider({children}) {
             // eslint-disable-next-line no-shadow
             identity: (_, {identity}) => identity,
           }),
+          reward: () => rewardWithConfetti(),
         },
         services: {
           restoreDismissedSteps: async () =>

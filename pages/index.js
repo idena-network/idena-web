@@ -41,13 +41,12 @@ import {useAuthState} from '../shared/providers/auth-context'
 import {IconButton2, PrimaryButton} from '../shared/components/button'
 import {validDnaUrl} from '../shared/utils/dna-link'
 import {DnaSignInDialog} from '../screens/dna/containers'
-import {FillCenter, Toast} from '../shared/components/components'
+import {Toast} from '../shared/components/components'
 import {useOnboarding} from '../shared/providers/onboarding-context'
 import {
   OnboardingPopover,
   OnboardingPopoverContent,
   OnboardingPopoverContentIconRow,
-  TaskConfetti,
 } from '../shared/components/onboarding'
 import {onboardingShowingStep} from '../shared/utils/onboarding'
 import {useScroll} from '../shared/hooks/use-scroll'
@@ -297,10 +296,6 @@ export default function ProfilePage() {
                 </Stack>
               </OnboardingPopoverContent>
             </OnboardingPopover>
-
-            <FillCenter position="absolute" top="50%" left="50%" zIndex={9999}>
-              <TaskConfetti active={false} />
-            </FillCenter>
           </Stack>
           <Stack spacing={10} w={48}>
             <Box minH={62} mt={4}>
