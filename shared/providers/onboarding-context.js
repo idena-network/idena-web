@@ -10,8 +10,7 @@ import {loadPersistentState, persistState} from '../utils/persist'
 import {useEpoch} from './epoch-context'
 import {useIdentity} from './identity-context'
 
-const OnboardingStateContext = React.createContext()
-const OnboardingDispatchContext = React.createContext()
+const OnboardingContext = React.createContext()
 
 export function OnboardingProvider({children}) {
   const epoch = useEpoch()
@@ -140,9 +139,10 @@ export function OnboardingProvider({children}) {
   }, [epoch, identity, send])
 
   return (
-    <OnboardingStateContext.Provider value={{current}}>
-      <OnboardingDispatchContext.Provider
-        value={{
+    <OnboardingContext.Provider
+      value={[
+        {current},
+        {
           showCurrentTask() {
             send('SHOW')
           },
@@ -153,34 +153,17 @@ export function OnboardingProvider({children}) {
           next({identity}) {
             send('NEXT', {identity})
           },
-        }}
-      >
-        {children}
-      </OnboardingDispatchContext.Provider>
-    </OnboardingStateContext.Provider>
+        },
+      ]}
+    >
+      {children}
+    </OnboardingContext.Provider>
   )
 }
 
-export function useOnboardingState() {
-  const context = React.useContext(OnboardingStateContext)
-  if (context === undefined) {
-    throw new Error(
-      'useOnboardingState must be used within a OnboardingProvider'
-    )
-  }
-  return context
-}
-
-export function useOnboardingDispatch() {
-  const context = React.useContext(OnboardingDispatchContext)
-  if (context === undefined) {
-    throw new Error(
-      'useOnboardingDispatch must be used within a OnboardingDispatchContext'
-    )
-  }
-  return context
-}
-
 export function useOnboarding() {
-  return [useOnboardingState(), useOnboardingDispatch()]
+  const context = React.useContext(OnboardingContext)
+  if (context === undefined)
+    throw new Error('useOnboarding must be used within a OnboardingProvider')
+  return context
 }
