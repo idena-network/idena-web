@@ -40,7 +40,7 @@ import {
   eitherState,
   formatValidationDate,
 } from '../utils/utils'
-import {promotingOnboardingStep} from '../utils/onboarding'
+import {onboardingPromotingStep} from '../utils/onboarding'
 
 function Sidebar() {
   return (
@@ -308,17 +308,17 @@ function ActionPanel() {
           isActive={
             currentPeriod === EpochPeriod.None &&
             (eitherOnboardingState(
-              promotingOnboardingStep(OnboardingStep.ActivateInvite),
-              promotingOnboardingStep(OnboardingStep.ActivateMining)
+              onboardingPromotingStep(OnboardingStep.ActivateInvite),
+              onboardingPromotingStep(OnboardingStep.ActivateMining)
             ) ||
               (eitherOnboardingState(
-                promotingOnboardingStep(OnboardingStep.Validate)
+                onboardingPromotingStep(OnboardingStep.Validate)
               ) &&
                 [IdentityStatus.Candidate, IdentityStatus.Newbie].includes(
                   identity.state
                 )) ||
               (eitherOnboardingState(
-                promotingOnboardingStep(OnboardingStep.CreateFlips)
+                onboardingPromotingStep(OnboardingStep.CreateFlips)
               ) &&
                 [IdentityStatus.Newbie].includes(identity.state)))
           }

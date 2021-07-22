@@ -49,7 +49,8 @@ import {
   OnboardingPopoverContentIconRow,
   TaskConfetti,
 } from '../shared/components/onboarding'
-import {showingOnboardingStep} from '../shared/utils/onboarding'
+import {onboardingShowingStep} from '../shared/utils/onboarding'
+import {useScroll} from '../shared/hooks/use-scroll'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -129,7 +130,10 @@ export default function ProfilePage() {
 
   const toDna = toLocaleDna(language)
 
-  const [{current}, {dismissCurrentStep, doneCurrentTask}] = useOnboarding()
+  const [
+    {current},
+    {dismissCurrentTask, next: nextOnboardingTask},
+  ] = useOnboarding()
 
   const eitherOnboardingState = (...states) => eitherState(current, ...states)
 
@@ -139,20 +143,23 @@ export default function ProfilePage() {
     onClose: onCloseActivateInvitePopover,
   } = useDisclosure()
 
+  const activateInviteRef = React.useRef()
+
+  const {scrollTo: scrollToActivateInvite} = useScroll(activateInviteRef)
+
   React.useEffect(() => {
     if (
-      eitherState(current, showingOnboardingStep(OnboardingStep.ActivateInvite))
+      eitherState(current, onboardingShowingStep(OnboardingStep.ActivateInvite))
     ) {
-      document
-        .querySelectorAll('#__next section')[1]
-        .querySelector('div')
-        .scroll({
-          left: 0,
-          top: 9999,
-        })
+      scrollToActivateInvite()
       onOpenActivateInvitePopover()
     } else onCloseActivateInvitePopover()
-  }, [current, onCloseActivateInvitePopover, onOpenActivateInvitePopover])
+  }, [
+    current,
+    onCloseActivateInvitePopover,
+    onOpenActivateInvitePopover,
+    scrollToActivateInvite,
+  ])
 
   return (
     <Layout canRedirect={!dnaUrl}>
@@ -245,13 +252,15 @@ export default function ProfilePage() {
               placement="top-start"
             >
               <PopoverTrigger>
-                <ActivateInviteForm zIndex={2} />
+                <Box zIndex={2}>
+                  <ActivateInviteForm ref={activateInviteRef} />
+                </Box>
               </PopoverTrigger>
               <OnboardingPopoverContent
                 title={t('Enter invitation code')}
                 zIndex={2}
                 onDismiss={() => {
-                  dismissCurrentStep()
+                  dismissCurrentTask()
                   onCloseActivateInvitePopover()
                 }}
               >
@@ -288,6 +297,7 @@ export default function ProfilePage() {
                 </Stack>
               </OnboardingPopoverContent>
             </OnboardingPopover>
+
             <FillCenter position="absolute" top="50%" left="50%" zIndex={9999}>
               <TaskConfetti active={false} />
             </FillCenter>
@@ -296,7 +306,7 @@ export default function ProfilePage() {
             <Box minH={62} mt={4}>
               <OnboardingPopover
                 isOpen={eitherOnboardingState(
-                  showingOnboardingStep(OnboardingStep.ActivateMining)
+                  onboardingShowingStep(OnboardingStep.ActivateMining)
                 )}
               >
                 <PopoverTrigger>
@@ -304,7 +314,7 @@ export default function ProfilePage() {
                     bg="white"
                     position={
                       eitherOnboardingState(
-                        showingOnboardingStep(OnboardingStep.ActivateMining)
+                        onboardingShowingStep(OnboardingStep.ActivateMining)
                       )
                         ? 'relative'
                         : 'initial'
@@ -320,14 +330,14 @@ export default function ProfilePage() {
                         isOnline={online}
                         delegatee={delegatee}
                         delegationEpoch={delegationEpoch}
-                        onShow={doneCurrentTask}
+                        onShow={nextOnboardingTask}
                       />
                     )}
                   </Box>
                 </PopoverTrigger>
                 <OnboardingPopoverContent
                   title={t('Activate mining status')}
-                  onDismiss={doneCurrentTask}
+                  onDismiss={nextOnboardingTask}
                 >
                   <Text>
                     {t(

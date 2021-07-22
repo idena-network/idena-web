@@ -2,10 +2,11 @@
 import {useMachine} from '@xstate/react'
 import React from 'react'
 import {createMachine} from 'xstate'
-import {assign} from 'xstate/lib/actions'
+import {assign, log} from 'xstate/lib/actions'
 import {canValidate} from '../../screens/validation/utils'
 import {OnboardingStep} from '../types'
-import {promotingOnboardingStep, shouldCreateFlips} from '../utils/onboarding'
+import {shouldCreateFlips} from '../utils/onboarding'
+import {loadPersistentState, persistState} from '../utils/persist'
 import {useEpoch} from './epoch-context'
 import {useIdentity} from './identity-context'
 
@@ -19,38 +20,24 @@ export function OnboardingProvider({children}) {
 
   const createStep = (step, config) => ({
     [step]: {
+      entry: ['setCurrentStep', 'setIdentity', log()],
       initial: 'unknown',
       states: {
         unknown: {
+          always: [
+            {target: 'dismissed', cond: 'didDismissStep'},
+            {target: 'promoting', cond: 'shouldPromoteStep'},
+          ],
           invoke: {
-            src: () => Promise.resolve(localStorage.getItem('onboardingStep')),
-            onDone: [
-              {
-                target: 'dismissed',
-                cond: (_, {data}) => data === `${step}.dismissed`,
-              },
-              {target: 'promoting'},
-            ],
+            src: 'restoreDismissedSteps',
+            onDone: {actions: ['setDismissedSteps']},
             onError: 'promoting',
           },
         },
-        promoting: {
-          entry: [assign({currentStep: promotingOnboardingStep(step)})],
-          on: {
-            SHOW: 'showing',
-          },
-        },
-        showing: {
-          entry: [assign({currentStep: `${step}.showing`})],
-          on: {
-            DISMISS: 'dismissed',
-          },
-        },
+        promoting: {on: {SHOW: 'showing'}},
+        showing: {on: {DISMISS: 'dismissed'}},
         dismissed: {
-          entry: [
-            assign({currentStep: `${step}.dismissed`}),
-            'persistCurrentStep',
-          ],
+          entry: ['addDismissedStep', 'persistDismissedSteps'],
         },
       },
       ...config,
@@ -60,62 +47,71 @@ export function OnboardingProvider({children}) {
   const [current, send] = useMachine(
     createMachine(
       {
-        context: {currentStep: null},
+        context: {currentStep: null, dismissedSteps: null},
         initial: 'unknown',
         states: {
           unknown: {
             on: {
-              ACTIVATE_INVITE: OnboardingStep.ActivateInvite,
-              VALIDATE: OnboardingStep.Validate,
-              ACTIVATE_MINING: {
-                target: OnboardingStep.ActivateMining,
-                actions: ['setIdentity'],
-              },
-              CREATE_FLIPS: OnboardingStep.CreateFlips,
+              [OnboardingStep.ActivateInvite]: OnboardingStep.ActivateInvite,
+              [OnboardingStep.Validate]: OnboardingStep.Validate,
+              [OnboardingStep.ActivateMining]: OnboardingStep.ActivateMining,
+              [OnboardingStep.CreateFlips]: OnboardingStep.CreateFlips,
+              UPDATE_IDENTITY: {actions: ['setIdentity']},
             },
           },
           ...createStep(OnboardingStep.ActivateInvite, {
-            on: {
-              VALIDATE: OnboardingStep.Validate,
-            },
+            on: {[OnboardingStep.Validate]: OnboardingStep.Validate},
           }),
           ...createStep(OnboardingStep.Validate, {
             on: {
-              ACTIVATE_MINING: {
-                target: OnboardingStep.ActivateMining,
-                actions: ['setIdentity'],
-              },
+              [OnboardingStep.ActivateMining]: OnboardingStep.ActivateMining,
             },
           }),
           ...createStep(OnboardingStep.ActivateMining, {
             on: {
-              DONE: [
+              NEXT: [
                 {
                   target: OnboardingStep.CreateFlips,
                   // eslint-disable-next-line no-shadow
                   cond: ({identity}) => shouldCreateFlips(identity),
                 },
-                {target: 'done'},
+                'done',
               ],
-              CREATE_FLIPS: OnboardingStep.CreateFlips,
+              [OnboardingStep.CreateFlips]: OnboardingStep.CreateFlips,
             },
+            exit: ['addDismissedStep', 'persistDismissedSteps', log()],
           }),
-          ...createStep(OnboardingStep.CreateFlips, {
-            on: {
-              DONE: 'done',
-            },
-          }),
+          ...createStep(OnboardingStep.CreateFlips),
           done: {},
         },
       },
       {
         actions: {
+          setCurrentStep: assign({currentStep: (_, {type}) => type}),
+          setDismissedSteps: assign({
+            dismissedSteps: (_, {data}) => new Set(data),
+          }),
+          addDismissedStep: assign({
+            dismissedSteps: ({dismissedSteps, currentStep}) =>
+              dismissedSteps.add(currentStep),
+          }),
+          persistDismissedSteps: ({dismissedSteps}) => {
+            persistState('onboardingDismissedSteps', [...dismissedSteps])
+          },
           setIdentity: assign({
             // eslint-disable-next-line no-shadow
             identity: (_, {identity}) => identity,
           }),
-          persistCurrentStep: ({currentStep}) =>
-            localStorage.setItem('onboardingStep', currentStep),
+        },
+        services: {
+          restoreDismissedSteps: async () =>
+            loadPersistentState('onboardingDismissedSteps'),
+        },
+        guards: {
+          didDismissStep: ({dismissedSteps, currentStep}) =>
+            dismissedSteps?.has(currentStep),
+          shouldPromoteStep: ({dismissedSteps, currentStep}) =>
+            Boolean(dismissedSteps) && !dismissedSteps.has(currentStep),
         },
       }
     )
@@ -123,30 +119,28 @@ export function OnboardingProvider({children}) {
 
   React.useEffect(() => {
     if (epoch?.epoch >= 0 && identity) {
-      switch (true) {
-        case identity.canActivateInvite:
-          send('ACTIVATE_INVITE')
-          break
-        case identity.age === 1 && !identity.online:
-          send('ACTIVATE_MINING', {identity})
-          break
-        case shouldCreateFlips(identity):
-          send('CREATE_FLIPS')
-          break
-        case canValidate(identity):
-          send('VALIDATE')
-          break
-
-        default:
-          break
-      }
+      send(
+        (() => {
+          switch (true) {
+            case identity.canActivateInvite:
+              return OnboardingStep.ActivateInvite
+            case identity.age === 1 && !identity.online:
+              return OnboardingStep.ActivateMining
+            case shouldCreateFlips(identity):
+              return OnboardingStep.CreateFlips
+            case canValidate(identity):
+              return OnboardingStep.Validate
+            default:
+              return 'UPDATE_IDENTITY'
+          }
+        })(),
+        {identity}
+      )
     }
   }, [epoch, identity, send])
 
   return (
-    <OnboardingStateContext.Provider
-      value={{currentStep: current.context.currentStep, current}}
-    >
+    <OnboardingStateContext.Provider value={{current}}>
       <OnboardingDispatchContext.Provider
         value={{
           showCurrentTask() {
@@ -155,8 +149,9 @@ export function OnboardingProvider({children}) {
           dismissCurrentTask() {
             send('DISMISS')
           },
-          doneCurrentTask() {
-            send('DONE')
+          // eslint-disable-next-line no-shadow
+          next({identity}) {
+            send('NEXT', {identity})
           },
         }}
       >

@@ -45,7 +45,7 @@ import {redact} from '../../shared/utils/logs'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {useOnboarding} from '../../shared/providers/onboarding-context'
-import {showingOnboardingStep} from '../../shared/utils/onboarding'
+import {onboardingShowingStep} from '../../shared/utils/onboarding'
 import {
   OnboardingPopover,
   OnboardingPopoverContent,
@@ -170,7 +170,7 @@ export default function FlipListPage() {
           <Box alignSelf="end">
             <OnboardingPopover
               isOpen={eitherOnboardingState(
-                showingOnboardingStep(OnboardingStep.CreateFlips)
+                onboardingShowingStep(OnboardingStep.CreateFlips)
               )}
             >
               <PopoverTrigger>
@@ -181,7 +181,7 @@ export default function FlipListPage() {
                     bg="white"
                     position={
                       eitherOnboardingState(
-                        showingOnboardingStep(OnboardingStep.CreateFlips)
+                        onboardingShowingStep(OnboardingStep.CreateFlips)
                       )
                         ? 'relative'
                         : 'initial'
