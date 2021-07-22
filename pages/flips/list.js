@@ -143,7 +143,7 @@ export default function FlipListPage() {
   const remainingOptionalFlips =
     availableFlipsNumber - Math.max(requiredFlipsNumber, madeFlipsNumber)
 
-  const [{current: currentOnboarding}, {dismissCurrentTask}] = useOnboarding()
+  const [currentOnboarding, {dismissCurrentTask}] = useOnboarding()
 
   const eitherOnboardingState = (...states) =>
     eitherState(currentOnboarding, ...states)

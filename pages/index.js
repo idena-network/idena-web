@@ -130,11 +130,12 @@ export default function ProfilePage() {
   const toDna = toLocaleDna(language)
 
   const [
-    {current},
+    currentOnboarding,
     {dismissCurrentTask, next: nextOnboardingTask},
   ] = useOnboarding()
 
-  const eitherOnboardingState = (...states) => eitherState(current, ...states)
+  const eitherOnboardingState = (...states) =>
+    eitherState(currentOnboarding, ...states)
 
   const {
     isOpen: isOpenActivateInvitePopover,
@@ -148,13 +149,16 @@ export default function ProfilePage() {
 
   React.useEffect(() => {
     if (
-      eitherState(current, onboardingShowingStep(OnboardingStep.ActivateInvite))
+      eitherState(
+        currentOnboarding,
+        onboardingShowingStep(OnboardingStep.ActivateInvite)
+      )
     ) {
       scrollToActivateInvite()
       onOpenActivateInvitePopover()
     } else onCloseActivateInvitePopover()
   }, [
-    current,
+    currentOnboarding,
     onCloseActivateInvitePopover,
     onOpenActivateInvitePopover,
     scrollToActivateInvite,

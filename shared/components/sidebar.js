@@ -40,7 +40,10 @@ import {
   eitherState,
   formatValidationDate,
 } from '../utils/utils'
-import {onboardingPromotingStep} from '../utils/onboarding'
+import {
+  onboardingPromotingStep,
+  onboardingShowingStep,
+} from '../utils/onboarding'
 
 function Sidebar() {
   return (
@@ -265,7 +268,10 @@ function ActionPanel() {
   const epoch = useEpoch()
   const [identity] = useIdentity()
 
-  const [{current}, {showCurrentTask, dismissCurrentTask}] = useOnboarding()
+  const [
+    currentOnboarding,
+    {showCurrentTask, dismissCurrentTask},
+  ] = useOnboarding()
 
   if (!epoch) {
     return null
@@ -273,7 +279,8 @@ function ActionPanel() {
 
   const {currentPeriod, nextValidation} = epoch
 
-  const eitherOnboardingState = (...states) => eitherState(current, ...states)
+  const eitherOnboardingState = (...states) =>
+    eitherState(currentOnboarding, ...states)
 
   return (
     <Box
@@ -301,6 +308,7 @@ function ActionPanel() {
             router.push('/')
           if (eitherOnboardingState(OnboardingStep.CreateFlips))
             router.push('/flips/list')
+
           showCurrentTask()
         }}
       >
@@ -336,14 +344,18 @@ function ActionPanel() {
       {currentPeriod === EpochPeriod.None && (
         <>
           <OnboardingPopover
-            isOpen={eitherOnboardingState(`${OnboardingStep.Validate}.showing`)}
+            isOpen={eitherOnboardingState(
+              onboardingShowingStep(OnboardingStep.Validate)
+            )}
             placement="right"
           >
             <PopoverTrigger>
               <ChakraBox
                 roundedBottom="md"
                 bg={
-                  eitherOnboardingState(`${OnboardingStep.Validate}.showing`)
+                  eitherOnboardingState(
+                    onboardingShowingStep(OnboardingStep.Validate)
+                  )
                     ? 'rgba(216, 216, 216, .1)'
                     : 'transparent'
                 }
@@ -533,7 +545,7 @@ function CurrentTask({epoch, period}) {
 
   const [identity] = useIdentity()
 
-  const [{current: currentOnboarding}] = useOnboarding()
+  const [currentOnboarding] = useOnboarding()
 
   if (!period || !identity || !identity.state) return null
 

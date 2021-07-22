@@ -158,7 +158,7 @@ export function OnboardingProvider({children}) {
   return (
     <OnboardingContext.Provider
       value={[
-        {current},
+        current,
         {
           showCurrentTask() {
             send('SHOW')
