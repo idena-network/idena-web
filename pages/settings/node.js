@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {Alert, AlertIcon, FormControl, Stack} from '@chakra-ui/core'
-import {Box, Label, Button, Link} from '../../shared/components'
+import {Link} from '../../shared/components'
 import theme, {rem} from '../../shared/theme'
 import Flex from '../../shared/components/flex'
 import SettingsLayout from './layout'
@@ -17,7 +17,7 @@ import {
   PasswordInput,
 } from '../../shared/components/components'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
-import {checkKey, fetchEpoch, getKeyById, getProvider} from '../../shared/api'
+import {checkKey, getKeyById, getProvider} from '../../shared/api'
 
 const BASIC_ERROR = 'Node is unavailable.'
 
@@ -57,21 +57,18 @@ function Settings() {
   useEffect(() => {
     async function check() {
       try {
-        const {epoch} = await fetchEpoch(true)
         const result = await checkKey(settingsState.apiKey)
-        if (result.epoch >= epoch - 1) {
-          const provider = await getProvider(result.provider)
-          setOfflineError(
-            `This node is unavailable. Please contact the node owner: ${provider.data.ownerName}`
-          )
-        }
+        const provider = await getProvider(result.provider)
+        setOfflineError(
+          `This node is unavailable. Please contact the node owner: ${provider.data.ownerName}`
+        )
       } catch (e) {
         setOfflineError(BASIC_ERROR)
       }
     }
 
     if (settingsState.apiKeyState === apiKeyStates.OFFLINE) check()
-    else setOfflineError(BASIC_ERROR)
+    else setOfflineError('')
   }, [settingsState.apiKeyState, settingsState.url, settingsState.apiKey])
 
   return (

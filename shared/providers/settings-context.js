@@ -129,14 +129,10 @@ function SettingsProvider({children}) {
     async function loadData() {
       try {
         const {epoch} = await fetchEpoch()
+
         const result = await softCheckKey(state.apiKey)
         if (result) {
-          if (result.epoch < epoch - 1) {
-            dispatch({
-              type: SET_API_KEY_STATE,
-              data: {apiKeyState: apiKeyStates.OFFLINE},
-            })
-          } else if (result.epoch < epoch) {
+          if (result.epoch < epoch) {
             dispatch({
               type: SET_API_KEY_STATE,
               data: {
