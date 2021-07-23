@@ -15,7 +15,6 @@ import {useQuery} from 'react-query'
 import {
   getCandidateKey,
   checkKey,
-  fetchEpoch,
   fetchIdentity,
   getAvailableProviders,
   getProvider,
@@ -132,12 +131,9 @@ export default function Offline() {
   useEffect(() => {
     async function check() {
       try {
-        const {epoch} = await fetchEpoch(true)
         const result = await checkKey(apiKey)
-        if (result.epoch >= epoch - 1) {
-          const res = await getProvider(result.provider)
-          setUnavailableProvider(res.data.ownerName)
-        }
+        const res = await getProvider(result.provider)
+        setUnavailableProvider(res.data.ownerName)
       } catch (e) {
         setUnavailableProvider('')
       }
