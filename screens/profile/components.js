@@ -65,6 +65,7 @@ import {
 import {
   eitherState,
   mapIdentityToFriendlyStatus,
+  openExternalUrl,
 } from '../../shared/utils/utils'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
@@ -367,7 +368,7 @@ export function ValidationResultToast({epoch}) {
           }
           action={() => {
             dispatch(true)
-            const win = window.open(url, '_blank')
+            const win = openExternalUrl(url)
             win.focus()
           }}
           actionName={t('Open')}

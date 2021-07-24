@@ -20,6 +20,7 @@ import {
 import {DnaDialogStat} from './components'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {toHexString} from '../../shared/utils/buffers'
+import {openExternalUrl} from '../../shared/utils/utils'
 
 export function DnaSignInDialog({
   query = {},
@@ -107,7 +108,7 @@ export function DnaSignInDialog({
               )
               .then(() => {
                 if (isValidUrl(callbackUrl)) {
-                  window.open(callbackUrl, '_blank')
+                  openExternalUrl(callbackUrl)
                   onDone()
                 } else {
                   setIsAuthenticating(false)

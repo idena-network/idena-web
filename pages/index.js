@@ -31,6 +31,7 @@ import {
   toLocaleDna,
   mapIdentityToFriendlyStatus,
   eitherState,
+  openExternalUrl,
 } from '../shared/utils/utils'
 import {hasPersistedValidationResults} from '../screens/validation/utils'
 import {IconLink} from '../shared/components/link'
@@ -284,9 +285,7 @@ export default function ProfilePage() {
                           variant="unstyled"
                           p={0}
                           onClick={() => {
-                            global.openExternal(
-                              'https://t.me/IdenaNetworkPublic'
-                            )
+                            openExternalUrl('https://t.me/IdenaNetworkPublic')
                           }}
                         >
                           https://t.me/IdenaNetworkPublic

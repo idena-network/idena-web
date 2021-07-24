@@ -39,6 +39,7 @@ import {
   buildNextValidationCalendarLink,
   eitherState,
   formatValidationDate,
+  openExternalUrl,
 } from '../utils/utils'
 import {
   onboardingPromotingStep,
@@ -395,7 +396,7 @@ function ActionPanel() {
                         _selected={{bg: 'gray.50'}}
                         _active={{bg: 'gray.50'}}
                         onClick={() => {
-                          global.openExternal(
+                          openExternalUrl(
                             buildNextValidationCalendarLink(nextValidation)
                           )
                         }}
@@ -420,7 +421,7 @@ function ActionPanel() {
                 <Button
                   variant="unstyled"
                   onClick={() => {
-                    global.openExternal(
+                    openExternalUrl(
                       'https://medium.com/idena/how-do-i-start-using-idena-c49418e01a06'
                     )
                   }}

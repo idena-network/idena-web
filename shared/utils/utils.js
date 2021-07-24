@@ -117,3 +117,7 @@ export function calculateInvitationRewardRatio(
 
   return Math.max(1 - t ** 4 * 0.5, 0)
 }
+
+export const openExternalUrl = href => {
+  if (typeof window !== 'undefined') return window.open(href, '_blank')
+}

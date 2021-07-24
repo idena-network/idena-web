@@ -51,6 +51,7 @@ import {
   DrawerBody,
   FormLabel,
 } from '../../shared/components/components'
+import {openExternalUrl} from '../../shared/utils/utils'
 
 export function FlipPageTitle({onClose, ...props}) {
   return (
@@ -518,13 +519,12 @@ export function FlipKeywordTranslationSwitch({
       .filter(Boolean)
       .map(language => language.substr(0, 2))
 
-    const win = window.open(
+    const win = openExternalUrl(
       `https://translate.google.com/#view=home&op=translate&sl=auto&tl=${
         langs.length ? langs[0] : 'en'
       }&text=${encodeURIComponent(
         keywords.words.map(({name, desc}) => `${name}\n${desc}`).join('\n')
-      )}`,
-      '_blank'
+      )}`
     )
     win.focus()
   }

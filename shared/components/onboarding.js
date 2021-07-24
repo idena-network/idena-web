@@ -14,6 +14,7 @@ import {
   useTheme,
 } from '@chakra-ui/core'
 import {useTranslation} from 'react-i18next'
+import {openExternalUrl} from '../utils/utils'
 
 export function OnboardingPopover({children, ...props}) {
   return (
@@ -112,9 +113,7 @@ export function OnboardingLinkButton({href, ...props}) {
       _hover={null}
       _active={null}
       _focus={null}
-      onClick={() => {
-        global.openExternal(href)
-      }}
+      onClick={() => openExternalUrl(href)}
       {...props}
     />
   )
