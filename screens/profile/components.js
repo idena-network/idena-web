@@ -383,6 +383,7 @@ export function ActivateMiningForm({
   isOnline,
   delegatee,
   delegationEpoch,
+  onShow,
 }) {
   const toast = useToast()
 
@@ -423,6 +424,7 @@ export function ActivateMiningForm({
         isDelegator={isDelegator}
         onShow={() => {
           send('SHOW')
+          if (onShow) onShow()
         }}
       />
       {isOnline || isDelegator ? (
