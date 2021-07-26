@@ -33,7 +33,17 @@ import {
   ApplyChangesBottomPanel,
 } from './flip-editor-tools'
 import {ImageSearchDialog} from './image-search'
-import {ClipboardIcon, FolderIcon} from '../../../shared/components/icons'
+import {
+  AddImageIcon,
+  ClipboardIcon,
+  CropIcon,
+  DrawIcon,
+  EraserIcon,
+  FlipEditorDeleteIcon,
+  FolderIcon,
+  RedoIcon,
+  UndoIcon,
+} from '../../../shared/components/icons'
 
 const ImageEditor =
   typeof window !== 'undefined'
@@ -664,7 +674,7 @@ export default function FlipEditor({
             <Stack isInline align="center" spacing={3} mt={6}>
               <FlipEditorIcon
                 tooltip={t('Search on web')}
-                icon="search"
+                icon={<SearchIcon />}
                 onClick={() => {
                   if (rightMenuPanel === RightMenu.Erase) {
                     setRightMenuPanel(RightMenu.None)
@@ -682,7 +692,7 @@ export default function FlipEditor({
 
               <FlipEditorIcon
                 tooltip={t('Select file')}
-                icon="folder"
+                icon={<FolderIcon />}
                 onClick={() => {
                   if (rightMenuPanel === RightMenu.Erase) {
                     setRightMenuPanel(RightMenu.None)
@@ -703,7 +713,7 @@ export default function FlipEditor({
 
               <FlipEditorIcon
                 tooltip={t('Add image')}
-                icon="add-image"
+                icon={<AddImageIcon />}
                 onClick={() => {
                   if (rightMenuPanel === RightMenu.Erase) {
                     setRightMenuPanel(RightMenu.None)
@@ -717,13 +727,13 @@ export default function FlipEditor({
               <FlipEditorToolbarDivider />
 
               <FlipEditorIcon
-                icon="undo"
+                icon={<UndoIcon />}
                 tooltip={`${t('Undo')} (Ctrl/Cmd+Z})`}
                 isDisabled={editors[idx] && editors[idx].isEmptyUndoStack()}
                 onClick={handleUndo}
               />
               <FlipEditorIcon
-                icon="redo"
+                icon={<RedoIcon />}
                 tooltip={`${t('Redo')} (Ctrl/Cmd+Shift+Z})`}
                 isDisabled={editors[idx] && editors[idx].isEmptyUndoStack()}
                 onClick={handleRedo}
@@ -733,7 +743,7 @@ export default function FlipEditor({
 
               <FlipEditorIcon
                 tooltip={t('Crop image')}
-                icon="crop"
+                icon={<CropIcon />}
                 isDisabled={src === null}
                 onClick={() => {
                   editors[idx].startDrawingMode('CROPPER')
@@ -749,7 +759,7 @@ export default function FlipEditor({
               <FlipEditorIcon
                 tooltip={t('Draw')}
                 isActive={rightMenuPanel === RightMenu.FreeDrawing}
-                icon="draw"
+                icon={<DrawIcon />}
                 onClick={() => {
                   setShowArrowHint(false)
                   const editor = editors[idx]
@@ -769,7 +779,7 @@ export default function FlipEditor({
                   activeObjectUrl ? t('Erase') : t('Select image to erase')
                 }
                 isActive={rightMenuPanel === RightMenu.Erase}
-                icon="eraser"
+                icon={<EraserIcon />}
                 onClick={() => {
                   if (rightMenuPanel === RightMenu.Erase) {
                     setRightMenuPanel(RightMenu.None)
@@ -785,7 +795,7 @@ export default function FlipEditor({
 
               <FlipEditorIcon
                 tooltip={t('Clear')}
-                icon="flip-editor-delete"
+                icon={<FlipEditorDeleteIcon />}
                 color="red.500"
                 _hover={{color: 'red.500'}}
                 onClick={handleOnClear}
@@ -918,7 +928,7 @@ export default function FlipEditor({
                   border="1px"
                   borderColor="brandGray.016"
                   rounded="full"
-                  size={4}
+                  boxSize={4}
                   onClick={() => setShowColorPicker(!showColorPicker)}
                 />
 

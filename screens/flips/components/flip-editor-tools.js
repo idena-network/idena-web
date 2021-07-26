@@ -11,7 +11,7 @@ import {CopyIcon, DeleteIcon} from '@chakra-ui/icons'
 import useClickOutside from '../../../shared/hooks/use-click-outside'
 import {Menu, MenuItem} from '../../../shared/components/menu'
 
-import {IconButton2, PrimaryButton} from '../../../shared/components/button'
+import {FlatButton2, IconButton2} from '../../../shared/components/button'
 import {Box, Absolute} from '../../../shared/components'
 import Divider from '../../../shared/components/divider'
 import theme from '../../../shared/theme'
@@ -32,14 +32,14 @@ export function Brushes({brush, onChange}) {
           justify="center"
           bg={brush === b ? 'gray.50' : 'unset'}
           rounded="md"
-          size={6}
+          boxSize={6}
           onClick={() => onChange(b)}
         >
           <ChakraBox
             key={b}
             bg="brandGray.500"
             rounded="full"
-            size={rem((i + 1) * 2)}
+            boxSize={rem((i + 1) * 2)}
           />
         </ChakraFlex>
       ))}
@@ -467,19 +467,19 @@ export function ApplyChangesBottomPanel({label, onDone, onCancel}) {
     >
       {label}
       <Flex align="center">
-        <PrimaryButton variant="ghost" onClick={() => onCancel()}>
+        <FlatButton2 onClick={() => onCancel()} mr={2}>
           {t('Cancel')}
-        </PrimaryButton>
+        </FlatButton2>
 
         <Divider vertical />
 
-        <PrimaryButton
-          variant="ghost"
+        <FlatButton2
           style={{fontWeight: theme.fontWeights.bold}}
           onClick={() => onDone()}
+          ml={2}
         >
           {t('Done')}
-        </PrimaryButton>
+        </FlatButton2>
       </Flex>
     </Flex>
   )
