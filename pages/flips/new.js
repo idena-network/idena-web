@@ -45,6 +45,7 @@ import {redact} from '../../shared/utils/logs'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {BadFlipDialog} from '../../screens/validation/components'
+import {InfoIcon, RefreshIcon} from '../../shared/components/icons'
 
 export default function NewFlipPage() {
   const {t, i18n} = useTranslation()
@@ -265,7 +266,7 @@ export default function NewFlipPage() {
                     </Box>
                     <FlipStoryAside>
                       <IconButton2
-                        icon="refresh"
+                        icon={<RefreshIcon boxSize={5} />}
                         isDisabled={availableKeywords.length < 2}
                         onClick={() => send('CHANGE_KEYWORDS')}
                       >
@@ -274,7 +275,10 @@ export default function NewFlipPage() {
                           ? `(#${keywordPairId + 1})`
                           : null}
                       </IconButton2>
-                      <IconButton2 icon="info" onClick={onOpenBadFlipDialog}>
+                      <IconButton2
+                        icon={<InfoIcon boxSize={5} />}
+                        onClick={onOpenBadFlipDialog}
+                      >
                         {t('What is a bad flip')}
                       </IconButton2>
                     </FlipStoryAside>

@@ -13,7 +13,6 @@ import {
   MenuItem,
   MenuList,
   Button,
-  RadioButtonGroup,
   Stack,
   useTheme,
   Heading,
@@ -29,6 +28,7 @@ import {
   MenuDivider,
   Alert,
   AlertIcon,
+  RadioGroup,
 } from '@chakra-ui/react'
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd'
 import {useTranslation} from 'react-i18next'
@@ -51,6 +51,20 @@ import {
   FormLabel,
 } from '../../shared/components/components'
 import {openExternalUrl} from '../../shared/utils/utils'
+import {
+  ChevronDownIcon,
+  CommunityIcon,
+  CycleIcon,
+  DeleteIcon,
+  GtranslateIcon,
+  MoreIcon,
+  MoveIcon,
+  OkIcon,
+  PicIcon,
+  PlusSolidIcon,
+  SwitchIcon,
+  UndoIcon,
+} from '../../shared/components/icons'
 
 export function FlipPageTitle({onClose, ...props}) {
   return (
@@ -219,7 +233,7 @@ export function FlipCardMenu(props) {
         _expanded={{bg: 'gray.50'}}
         _focus={{outline: 0}}
       >
-        <Icon name="more" size={5} />
+        <MoreIcon boxSize={5} />
       </MenuButton>
       <MenuList
         placement="bottom-end"
@@ -329,7 +343,7 @@ export function EmptyFlipBox(props) {
 }
 
 export function FlipPlaceholder(props) {
-  return <Icon name="plus-solid" size={8} {...props} />
+  return <PlusSolidIcon boxSize={8} {...props} />
 }
 
 export function FlipOverlay(props) {
@@ -372,7 +386,7 @@ export function FlipOverlayText(props) {
 }
 
 export function FlipFilter(props) {
-  return <RadioButtonGroup isInline spacing={2} {...props} />
+  return <RadioGroup isInline spacing={2} {...props} />
 }
 
 export const FlipFilterOption = React.forwardRef(
@@ -451,9 +465,8 @@ function FlipMasterNavbarItemIcon({step, ...props}) {
       transition="all 0.2s ease"
       {...props}
     >
-      <Icon
-        name="ok"
-        size={3}
+      <OkIcon
+        boxSize={3}
         opacity={step === Step.Completed ? 1 : 0}
         transition="all 0.2s ease"
       />
@@ -549,7 +562,7 @@ export function FlipKeywordTranslationSwitch({
       <Stack isInline spacing={1} align="center">
         {hasBothTranslations && (
           <IconButton2
-            icon="switch"
+            icon={<SwitchIcon boxSize={5} />}
             _hover={{background: 'transparent'}}
             onClick={onSwitchLocale}
           >
@@ -567,7 +580,7 @@ export function FlipKeywordTranslationSwitch({
               />
             ) : null}
             <IconButton2
-              icon="gtranslate"
+              icon={<GtranslateIcon boxSize={5} />}
               _hover={{background: 'transparent'}}
               onClick={translate}
             >
@@ -798,7 +811,7 @@ export function FlipShuffleStep({
                             right={1}
                             zIndex={1}
                           >
-                            <Icon name="move" size={5} color="white" />
+                            <MoveIcon boxSize={5} color="white" />
                           </Flex>
                           <FlipImageListItem
                             isFirst={idx === 0}
@@ -816,10 +829,10 @@ export function FlipShuffleStep({
           </FlipImageList>
         </Stack>
         <Stack spacing={1}>
-          <IconButton2 icon="cycle" onClick={onShuffle}>
+          <IconButton2 icon={<CycleIcon boxSize={5} />} onClick={onShuffle}>
             {t('Shuffle images')}
           </IconButton2>
-          <IconButton2 icon="undo" onClick={onReset}>
+          <IconButton2 icon={<UndoIcon boxSize={5} />} onClick={onReset}>
             {t('Reset to default')}
           </IconButton2>
         </Stack>
@@ -1018,7 +1031,7 @@ export function FlipImage({
 export function EmptyFlipImage(props) {
   return (
     <Flex align="center" justify="center" px={10} py={6} {...props}>
-      <Icon name="pic" size={10} color="gray.100" />
+      <PicIcon boxSize={10} color="gray.100" />
     </Flex>
   )
 }
@@ -1050,24 +1063,24 @@ export function CommunityTranslations({
   return (
     <Stack spacing={isOpen ? 8 : 0}>
       <IconButton2
-        icon="community"
+        icon={<CommunityIcon boxSize={5} />}
         color="brandGray.500"
         px={0}
         _hover={{background: 'transparent'}}
         onClick={onToggle}
       >
         {t('Community translation')}
-        <Icon size={5} name="chevron-down" color="muted" ml={2}></Icon>
+        <ChevronDownIcon boxSize={5} color="muted" ml={2} />
       </IconButton2>
       <Collapse isOpen={isOpen}>
         <Stack spacing={8}>
-          <RadioButtonGroup isInline value={wordIdx} onChange={setWordIdx}>
+          <RadioGroup isInline value={wordIdx} onChange={setWordIdx}>
             {keywords.words.map(({id, name}, i) => (
               <FlipKeywordRadio key={id} value={i}>
                 {name && capitalize(name)}
               </FlipKeywordRadio>
             ))}
-          </RadioButtonGroup>
+          </RadioGroup>
           {translations.map(({id, name, desc, score}) => (
             <Flex key={id} justify="space-between">
               <FlipKeyword>
@@ -1258,7 +1271,7 @@ export function DeleteFlipDrawer({hash, cover, onDelete, ...props}) {
           w={12}
           rounded="xl"
         >
-          <Icon name="delete" size={6} color="red.500" />
+          <DeleteIcon boxSize={6} color="red.500" />
         </Flex>
         <Heading fontSize="lg" fontWeight={500} color="brandGray.500" mt={4}>
           {t('Delete flip')}

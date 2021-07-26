@@ -22,7 +22,6 @@ import {
   Stack,
   Text,
   Heading,
-  Icon,
   Alert,
   AlertIcon,
   useTheme,
@@ -62,6 +61,7 @@ import {
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import useNodeTiming from '../../shared/hooks/use-node-timing'
 import {useInterval} from '../../shared/hooks/use-interval'
+import {BlockIcon, TickIcon} from '../../shared/components/icons'
 
 export function ValidationScene(props) {
   return (
@@ -579,7 +579,7 @@ export const QualificationButton = React.forwardRef(
     return (
       <ButtonVariant ref={ref} flex={1} maxW={40} {...props}>
         <Stack isInline spacing={2} align="center" justify="center">
-          {isSelected && <Icon name="tick" size={5} />}
+          {isSelected && <TickIcon boxSize={5} />}
           <Text>{children}</Text>
         </Stack>
       </ButtonVariant>
@@ -1335,7 +1335,7 @@ function BadFlipPartFrame({flipCase, ...props}) {
         right={-20}
         bottom={-20}
       >
-        <Icon name="block" size={5} />
+        <BlockIcon boxSize={5} />
       </ChakraFlex>
     </ChakraBox>
   )

@@ -3,14 +3,7 @@ import {margin} from 'polished'
 import PropTypes from 'prop-types'
 import QRCode from 'qrcode.react'
 import {useTranslation} from 'react-i18next'
-import {
-  Flex,
-  FormControl,
-  Heading,
-  Icon,
-  Stack,
-  useClipboard,
-} from '@chakra-ui/react'
+import {Flex, FormControl, Heading, Stack, useClipboard} from '@chakra-ui/react'
 import theme, {rem} from '../../../shared/theme'
 import {Label} from '../../../shared/components'
 import {
@@ -21,6 +14,7 @@ import {
   Input,
 } from '../../../shared/components/components'
 import {FlatButton} from '../../../shared/components/button'
+import {SendOutIcon} from '../../../shared/components/icons'
 
 function ReceiveForm({isOpen, onClose, address}) {
   const {t} = useTranslation()
@@ -36,7 +30,7 @@ function ReceiveForm({isOpen, onClose, address}) {
           rounded="xl"
           bg="blue.012"
         >
-          <Icon name="send-out" w={6} h={6} color="blue.500" />
+          <SendOutIcon boxSize={6} color="blue.500" />
         </Flex>
         <Heading
           color="brandGray.500"

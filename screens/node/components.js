@@ -5,10 +5,8 @@ import {
   FormControl,
   FormHelperText,
   Heading,
-  Icon,
   Stack,
 } from '@chakra-ui/react'
-import dayjs from 'dayjs'
 import {useRouter} from 'next/router'
 import {useEffect, useState} from 'react'
 import {useQuery} from 'react-query'
@@ -22,6 +20,7 @@ import {
   FormLabel,
   Input,
 } from '../../shared/components/components'
+import {SendOutIcon} from '../../shared/components/icons'
 import useRpc from '../../shared/hooks/use-rpc'
 import {Transaction} from '../../shared/models/transaction'
 import {useAuthState} from '../../shared/providers/auth-context'
@@ -116,7 +115,7 @@ export function BuySharedNodeForm({
           rounded="xl"
           bg="blue.012"
         >
-          <Icon name="send-out" w={6} h={6} color="blue.500" />
+          <SendOutIcon boxSize={6} color="blue.500" />
         </Flex>
         <Heading
           color="brandGray.500"

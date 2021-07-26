@@ -5,11 +5,11 @@ import {
   StatNumber,
   Stack,
   Badge,
-  Icon,
   Text,
   Heading,
 } from '@chakra-ui/react'
 import {Avatar, FillCenter} from '../../shared/components/components'
+import {ContactsIcon} from '../../shared/components/icons'
 import {dummyAddress} from '../../shared/utils/utils'
 
 export function ContactAvatar({address = dummyAddress, ...props}) {
@@ -59,7 +59,7 @@ export function ContactCardBadge(props) {
 export function NoContactDataPlaceholder({children}) {
   return (
     <FillCenter as={Stack} spacing={4}>
-      <Icon name="contacts" size={16} color="gray.300" />
+      <ContactsIcon boxSize={16} color="gray.300" />
       <Text fontWeight={500} color="muted">
         {children}
       </Text>

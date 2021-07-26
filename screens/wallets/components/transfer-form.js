@@ -1,7 +1,7 @@
 import React, {useState} from 'react'
 import PropTypes from 'prop-types'
 import {useTranslation} from 'react-i18next'
-import {Box, Flex, Heading, Icon, Stack} from '@chakra-ui/react'
+import {Box, Flex, Heading, Stack} from '@chakra-ui/react'
 import {useNotificationDispatch} from '../../../shared/providers/notification-context'
 import {
   Drawer,
@@ -16,6 +16,7 @@ import {useAuthState} from '../../../shared/providers/auth-context'
 import {getRawTx, sendRawTx} from '../../../shared/api'
 import {privateKeyToAddress} from '../../../shared/utils/crypto'
 import {Transaction} from '../../../shared/models/transaction'
+import {SendOutIcon} from '../../../shared/components/icons'
 
 function isAddress(address) {
   return address.length === 42 && address.substr(0, 2) === '0x'
@@ -82,7 +83,7 @@ function TransferForm({isOpen, onClose}) {
           rounded="xl"
           bg="blue.012"
         >
-          <Icon name="send-out" w={6} h={6} color="blue.500" />
+          <SendOutIcon boxSize={6} color="blue.500" />
         </Flex>
         <Heading
           color="brandGray.500"

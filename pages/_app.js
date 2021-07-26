@@ -9,7 +9,7 @@ import ReactGA from 'react-ga'
 
 import '../i18n'
 
-import {ChakraProvider} from '@chakra-ui/react'
+import {ChakraProvider, extendTheme} from '@chakra-ui/react'
 import {uiTheme} from '../shared/theme'
 
 import {NotificationProvider} from '../shared/providers/notification-context'
@@ -73,7 +73,7 @@ export default class MyApp extends App {
             src="https://apis.google.com/js/api.js"
           ></script>
         </Head>
-        <ChakraProvider theme={uiTheme}>
+        <ChakraProvider theme={extendTheme(uiTheme)}>
           <AppProviders>
             <Component {...{...pageProps, err}} />
           </AppProviders>

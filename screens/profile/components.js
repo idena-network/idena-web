@@ -1,3 +1,4 @@
+/* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/prop-types */
 import React, {useEffect, useState} from 'react'
 import {
@@ -15,13 +16,14 @@ import {
   Text,
   Switch,
   Icon,
-  RadioButtonGroup,
   Radio,
   Alert,
   AlertIcon,
   AlertDescription,
   useToast,
   Link,
+  RadioGroup,
+  Spacer,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
@@ -71,17 +73,11 @@ import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {activateMiningMachine} from './machines'
 import {fetchBalance} from '../../shared/api/wallet'
+import {LaptopIcon} from '../../shared/components/icons'
 
 export function UserInlineCard({address, state, ...props}) {
   return (
-    <Stack
-      isInline
-      spacing={6}
-      align="center"
-      mb={6}
-      width={rem(480)}
-      {...props}
-    >
+    <Stack isInline spacing={6} align="center" width={rem(480)} {...props}>
       <Avatar address={address} />
       <Stack spacing={1}>
         <Heading as="h2" fontSize="lg" fontWeight={500} lineHeight="short">
@@ -142,6 +138,7 @@ export function UserStat(props) {
 export function UserStatLabel(props) {
   return (
     <StatLabel
+      style={{display: 'inline-block'}}
       color="muted"
       alignSelf="flex-start"
       fontSize="md"
@@ -273,14 +270,16 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
             />
           </Stack>
         </FormControl>
-        <PrimaryButton
-          isLoading={mining}
-          loadingText={t('Mining...')}
-          type="submit"
-          ml="auto"
-        >
-          {t('Activate invite')}
-        </PrimaryButton>
+        <Flex>
+          <Spacer />
+          <PrimaryButton
+            isLoading={mining}
+            loadingText={t('Mining...')}
+            type="submit"
+          >
+            {t('Activate invite')}
+          </PrimaryButton>
+        </Flex>
       </Stack>
     </Box>
   )
@@ -486,7 +485,7 @@ export function ActivateMiningSwitch({isOnline, isDelegator, onShow}) {
         h={8}
         px={3}
       >
-        <FormLabel htmlFor="mining" fontWeight="normal" pb={0}>
+        <FormLabel htmlFor="mining" fontWeight="normal" m={0}>
           {isDelegator ? t('Delegation') : t('Mining')}
         </FormLabel>
         <Stack isInline align="center">
@@ -503,7 +502,7 @@ export function ActivateMiningSwitch({isOnline, isDelegator, onShow}) {
             onChange={onShow}
           />
           <style jsx global>{`
-            .toggle > input[type='checkbox']:not(:checked) + div {
+            .toggle > input[type='checkbox']:not(:checked) + span {
               background: ${colors.red[500]};
             }
           `}</style>
@@ -552,36 +551,25 @@ export function ActivateMiningDrawer({
         <Stack spacing={6} mt={30}>
           <FormControl as={Stack} spacing={3}>
             <FormLabel p={0}>{t('Type')}</FormLabel>
-            <RadioButtonGroup
+            <RadioGroup
               spacing={2}
               isInline
               d="flex"
               value={mode}
               onChange={onChangeMode}
             >
-              <Radio
-                value={NodeType.Miner}
-                flex={1}
-                borderColor="gray.300"
-                borderWidth={1}
-                borderRadius="md"
-                p={2}
-                px={3}
-              >
+              <Radio variant="bordered" value={NodeType.Miner} flex={1} p={2}>
                 {t('Mining')}
               </Radio>
               <Radio
+                variant="bordered"
                 value={NodeType.Delegator}
                 flex={1}
-                borderColor="gray.300"
-                borderWidth={1}
-                borderRadius="md"
                 p={2}
-                px={3}
               >
                 {t('Delegation')}
               </Radio>
-            </RadioButtonGroup>
+            </RadioGroup>
           </FormControl>
           {mode === NodeType.Delegator ? (
             <Stack spacing={5}>
@@ -635,7 +623,7 @@ export function ActivateMiningDrawer({
               >
                 <Flex>
                   <Stack spacing={2} isInline align="center" color="brand.gray">
-                    <Icon name="laptop" size={5} />
+                    <LaptopIcon boxSize={5} />
                     <Text as="span" fontSize={14} fontWeight={500}>
                       {t('Desktop App')}
                     </Text>

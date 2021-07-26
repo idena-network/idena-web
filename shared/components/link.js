@@ -3,7 +3,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import NextLink from 'next/link'
-import {Icon, Link as ChakraLink, Stack, Text} from '@chakra-ui/react'
+import {HStack, Icon, LinkBox, LinkOverlay} from '@chakra-ui/react'
 import theme from '../theme'
 
 function Link({
@@ -57,31 +57,33 @@ Link.propTypes = {
 }
 
 export const IconLink = React.forwardRef(function IconLink(
-  {href, icon, children, ...props},
+  {href, icon, iconViewBox = '0 0 20 20', isDisabled, children},
   ref
 ) {
   return (
-    <NextLink ref={ref} href={href} passHref>
-      <ChakraLink
-        href={href}
-        color="brandBlue.500"
-        rounded="md"
-        fontWeight={500}
-        display="inline-block"
-        h={8}
-        px={2}
-        py="3/2"
-        _hover={{
-          bg: 'blue.50',
-        }}
-        {...props}
-      >
-        <Stack spacing={2} isInline align="center">
-          {typeof icon === 'string' ? <Icon name={icon} size={4} /> : icon}
-          <Text as="span">{children}</Text>
-        </Stack>
-      </ChakraLink>
-    </NextLink>
+    <LinkBox
+      ref={ref}
+      d="inline-flex"
+      borderRadius="md"
+      color="blue.500"
+      fontSize="md"
+      fontWeight={500}
+      h={8}
+      px={3}
+      _hover={{
+        bg: 'blue.50',
+      }}
+      isDisabled={isDisabled}
+    >
+      <HStack>
+        <Icon boxSize={5} viewBox={iconViewBox}>
+          {icon}
+        </Icon>
+        <NextLink href={href} passHref isDisabled={isDisabled}>
+          <LinkOverlay>{children}</LinkOverlay>
+        </NextLink>
+      </HStack>
+    </LinkBox>
   )
 })
 

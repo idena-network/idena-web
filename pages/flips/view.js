@@ -32,7 +32,7 @@ import {Toast} from '../../shared/components/components'
 import {FlipType} from '../../shared/types'
 import db from '../../shared/utils/db'
 import {redact} from '../../shared/utils/logs'
-import { useIdentity } from '../../shared/providers/identity-context'
+import {useIdentity} from '../../shared/providers/identity-context'
 
 export default function ViewFlipPage() {
   const {t, i18n} = useTranslation()

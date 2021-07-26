@@ -2,9 +2,8 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {transparentize, darken} from 'polished'
-import {Button as ChakraButton, Icon, Box} from '@chakra-ui/react'
+import {Button as ChakraButton, Box} from '@chakra-ui/react'
 import theme, {rem} from '../theme'
-import {Tooltip} from './tooltip'
 
 function Button({size, disabled, danger, variant = 'primary', css, ...props}) {
   const isPrimary = variant === 'primary'
@@ -85,63 +84,6 @@ FlatButton.defaultProps = {
 }
 FlatButton.propTypes = Button.propTypes
 
-function IconButton(
-  // eslint-disable-next-line react/prop-types
-  {icon, children, disabled, active, tooltip, danger, ...props},
-  ref
-) {
-  const color = danger ? theme.colors.danger : theme.colors.primary
-  return (
-    <Tooltip content={tooltip}>
-      <button type="button" disabled={disabled} ref={ref} {...props}>
-        {icon}
-        <span>{children}</span>
-        <style jsx>{`
-          button {
-            background: ${active ? '#f5f6f7' : 'none'};
-            border: none;
-            cursor: ${disabled ? 'default' : 'pointer'};
-            font-size: 1em;
-            display: flex;
-            align-items: center;
-            text-decoration: none;
-            vertical-align: middle;
-            position: relative;
-            transition: color 0.5s ease;
-            ${disabled && `opacity: 0.5`};
-          }
-          span {
-            display: inline-block;
-          }
-        `}</style>
-        <style jsx>{`
-          button {
-            color: ${color};
-            font-weight: 500;
-            padding: ${rem(theme.spacings.small8)};
-          }
-          button:hover {
-            color: ${darken(0.1, color)};
-          }
-          span {
-            margin-left: ${children ? theme.spacings.small : '0'};
-          }
-        `}</style>
-      </button>
-    </Tooltip>
-  )
-}
-
-const IconButtonRef = React.forwardRef(IconButton)
-
-IconButtonRef.propTypes = {
-  icon: PropTypes.node,
-  children: PropTypes.node,
-  disabled: PropTypes.bool,
-  tooltip: PropTypes.node,
-  danger: PropTypes.bool,
-}
-
 const BaseButton = React.forwardRef((props, ref) => (
   <ChakraButton
     ref={ref}
@@ -150,10 +92,6 @@ const BaseButton = React.forwardRef((props, ref) => (
     px={4}
     py="3/2"
     rounded="md"
-    _disabled={{
-      bg: 'gray.300',
-      color: 'rgb(150 153 158)',
-    }}
     {...props}
   />
 ))
@@ -163,6 +101,7 @@ export const PrimaryButton = React.forwardRef((props, ref) => (
   <BaseButton ref={ref} colorScheme="brandBlue" color="white" {...props} />
 ))
 PrimaryButton.displayName = 'PrimaryButton'
+
 // eslint-disable-next-line react/display-name
 export const SecondaryButton = React.forwardRef((props, ref) => (
   <Box
@@ -196,23 +135,45 @@ export const SecondaryButton = React.forwardRef((props, ref) => (
   />
 ))
 
-export function IconButton2({icon, children, ...props}) {
+export const IconButton2 = React.forwardRef((props, ref) => (
+  <ChakraButton
+    ref={ref}
+    size="sm"
+    fontSize="md"
+    variant="outline"
+    colorScheme="blue"
+    leftIcon={props.icon}
+    color="blue.500"
+    border="none"
+    borderColor="transparent"
+    borderRadius="md"
+    justifyContent="flex-start"
+    _hover={{
+      bg: 'blue.50',
+    }}
+    {...props}
+  ></ChakraButton>
+))
+IconButton2.displayName = 'IconButton2'
+
+export function FlatButton2({children, ...props}) {
   return (
     <ChakraButton
-      variant="ghost"
+      size="sm"
+      fontSize="md"
+      variant="link"
       colorScheme="blue"
-      fontWeight={500}
-      h={8}
-      px={2}
-      py="3/2"
+      color="blue.500"
+      fontWeight={400}
+      border="none"
+      borderColor="transparent"
+      borderRadius="md"
       justifyContent="flex-start"
       {...props}
     >
-      <Icon name={icon} size={5} mr={2} />
       {children}
     </ChakraButton>
   )
 }
 
-export {FlatButton, IconButtonRef as IconButton}
-export default Button
+export {FlatButton}

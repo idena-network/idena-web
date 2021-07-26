@@ -3,7 +3,7 @@ import {rem, margin} from 'polished'
 import {useState} from 'react'
 import Router from 'next/router'
 import {useTranslation} from 'react-i18next'
-import {Button, Label, SubHeading} from '../../shared/components'
+import {Label, SubHeading} from '../../shared/components'
 import {Input, PasswordInput} from '../../shared/components/components'
 import {useAuthDispatch} from '../../shared/providers/auth-context'
 import theme from '../../shared/theme'
@@ -11,6 +11,7 @@ import {ActivateInvite} from '../../screens/key/components'
 import {AuthLayout} from '../../shared/components/auth'
 import {fetchIdentity} from '../../shared/api'
 import {privateKeyToAddress} from '../../shared/utils/crypto'
+import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 
 const steps = {
   KEY: 0,
@@ -148,16 +149,16 @@ export default function ImportKey() {
                     {t('Save the encrypted key on this computer')}
                   </Checkbox>
                   <Flex>
-                    <Button
+                    <SecondaryButton
                       variant="secondary"
                       css={{marginRight: rem(10)}}
                       onClick={() => Router.push('/')}
                     >
                       {t('Cancel')}
-                    </Button>
-                    <Button type="submit" disabled={!state.key}>
+                    </SecondaryButton>
+                    <PrimaryButton type="submit" disabled={!state.key}>
                       {t('Import')}
-                    </Button>
+                    </PrimaryButton>
                   </Flex>
                 </Flex>
                 {error && (

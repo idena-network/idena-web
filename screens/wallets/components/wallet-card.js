@@ -10,7 +10,6 @@ import Flex from '../../../shared/components/flex'
 import theme, {rem} from '../../../shared/theme'
 import {FlatButton} from '../../../shared/components/button'
 
-import Divider from '../../../shared/components/divider'
 import useHover from '../../../shared/hooks/use-hover'
 import {Skeleton} from '../../../shared/components/components'
 

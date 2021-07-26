@@ -4,7 +4,6 @@ import {
   AspectRatio,
   Box,
   Flex,
-  Icon,
   Image,
   InputGroup,
   InputLeftElement,
@@ -18,6 +17,7 @@ import {useMachine} from '@xstate/react'
 import {Machine} from 'xstate'
 import {assign, log} from 'xstate/lib/actions'
 import axios from 'axios'
+import {SearchIcon} from '@chakra-ui/icons'
 import {PrimaryButton, SecondaryButton} from '../../../shared/components/button'
 import {
   Dialog,
@@ -104,7 +104,7 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
           >
             <InputGroup w="full">
               <InputLeftElement w={5} h={5} top="3/2" left={3}>
-                <Icon name="search" size={3} color="gray.100" />
+                <SearchIcon boxSize={3} color="gray.100" />
               </InputLeftElement>
               <Input
                 ref={searchInputRef}
@@ -123,7 +123,7 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
             <Flex direction="column" flex={1} align="center" justify="center">
               <Stack spacing={4} align="center" w="3xs">
                 <Box p={3}>
-                  <Icon name="search" size="56px" color="gray.300" />
+                  <SearchIcon boxSize="56px" color="gray.300" />
                 </Box>
                 <Text color="muted" textAlign="center" w="full">
                   {t(

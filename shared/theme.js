@@ -116,9 +116,9 @@ export function rem(value) {
 const breakpoints = ['40em', '52em', '64em']
 
 export const uiTheme = {
-  ...chakraTheme,
+  // ...chakraTheme,
   colors: {
-    ...chakraTheme.colors,
+    // ...chakraTheme.colors,
     black: '#16161D',
     blue: {
       ...chakraTheme.colors.blue,
@@ -758,6 +758,19 @@ export const uiTheme = {
         />
       ),
       viewBox: '0 0 20 20',
+    },
+  },
+  components: {
+    Radio: {
+      variants: {
+        bordered: {
+          container: {
+            borderColor: 'gray.300',
+            borderWidth: 1,
+            borderRadius: 'md',
+          },
+        },
+      },
     },
   },
 }

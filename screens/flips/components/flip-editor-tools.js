@@ -6,20 +6,20 @@ import {FaCircle} from 'react-icons/fa'
 import {FiCircle} from 'react-icons/fi'
 
 import {useTranslation} from 'react-i18next'
-import {
-  Stack,
-  Flex as ChakraFlex,
-  Box as ChakraBox,
-  Icon,
-} from '@chakra-ui/react'
+import {Stack, Flex as ChakraFlex, Box as ChakraBox} from '@chakra-ui/react'
+import {CopyIcon, DeleteIcon} from '@chakra-ui/icons'
 import useClickOutside from '../../../shared/hooks/use-click-outside'
 import {Menu, MenuItem} from '../../../shared/components/menu'
 
-import {IconButton} from '../../../shared/components/button'
+import {IconButton2, PrimaryButton} from '../../../shared/components/button'
 import {Box, Absolute} from '../../../shared/components'
 import Divider from '../../../shared/components/divider'
 import theme from '../../../shared/theme'
 import Flex from '../../../shared/components/flex'
+import {
+  ClipboardIcon,
+  FlipEditorDeleteIcon,
+} from '../../../shared/components/icons'
 
 export function Brushes({brush, onChange}) {
   const brushes = [4, 12, 20, 28, 36]
@@ -84,7 +84,7 @@ export function ColorPicker({visible, color, onChange}) {
                     fontSize: theme.fontSizes.large,
                   }
                   return (
-                    <IconButton
+                    <IconButton2
                       key={`${j}${j}`}
                       icon={
                         c === 'ffffff' ? (
@@ -98,7 +98,7 @@ export function ColorPicker({visible, color, onChange}) {
                           onChange(c)
                         }
                       }}
-                    ></IconButton>
+                    ></IconButton2>
                   )
                 })}
               </Flex>
@@ -253,7 +253,7 @@ export function EditorContextMenu({
                     onCopy()
                     onClose()
                   }}
-                  icon={<Icon name="copy" size={5} />}
+                  icon={<CopyIcon boxSize={5} />}
                 >
                   {`${t('Copy')} (Ctrl/Cmd+C)`}
                 </MenuItem>
@@ -264,7 +264,7 @@ export function EditorContextMenu({
                     onPaste()
                     onClose()
                   }}
-                  icon={<Icon name="clipboard" size={5} />}
+                  icon={<ClipboardIcon boxSize={5} />}
                 >
                   {`${t('Paste image')} (Ctrl/Cmd+V)`}
                 </MenuItem>
@@ -287,7 +287,7 @@ export function EditorContextMenu({
                     onClose()
                   }}
                   danger
-                  icon={<Icon name="delete" size={5} color="red.500" />}
+                  icon={<DeleteIcon boxSize={5} color="red.500" />}
                 >
                   {`${t('Delete')} `}
                 </MenuItem>
@@ -298,13 +298,7 @@ export function EditorContextMenu({
                       onClear()
                       onClose()
                     }}
-                    icon={
-                      <Icon
-                        name="flip-editor-delete"
-                        size={5}
-                        color="red.500"
-                      />
-                    }
+                    icon={<FlipEditorDeleteIcon boxSize={5} color="red.500" />}
                   >
                     {`${t('Clear')} `}
                   </MenuItem>
@@ -473,16 +467,19 @@ export function ApplyChangesBottomPanel({label, onDone, onCancel}) {
     >
       {label}
       <Flex align="center">
-        <IconButton onClick={() => onCancel()}>{t('Cancel')}</IconButton>
+        <PrimaryButton variant="ghost" onClick={() => onCancel()}>
+          {t('Cancel')}
+        </PrimaryButton>
 
         <Divider vertical />
 
-        <IconButton
+        <PrimaryButton
+          variant="ghost"
           style={{fontWeight: theme.fontWeights.bold}}
           onClick={() => onDone()}
         >
           {t('Done')}
-        </IconButton>
+        </PrimaryButton>
       </Flex>
     </Flex>
   )

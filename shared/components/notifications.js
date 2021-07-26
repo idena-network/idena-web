@@ -9,7 +9,7 @@ import {
   NotificationType,
   NOTIFICATION_DELAY,
 } from '../providers/notification-context'
-import {IconButton} from './button'
+import {PrimaryButton} from './button'
 import {Text} from './typo'
 
 function Notifications() {
@@ -86,7 +86,7 @@ export function Notification({
             }}
           >
             {action && (
-              <IconButton
+              <PrimaryButton
                 style={{
                   color:
                     type === NotificationType.Error
@@ -101,7 +101,7 @@ export function Notification({
                 }}
               >
                 {actionName}
-              </IconButton>
+              </PrimaryButton>
             )}
           </Box>
           {!pinned && (

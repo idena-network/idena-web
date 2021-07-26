@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
-import {Box, Stack, Text, Icon, Link} from '@chakra-ui/react'
+import {Box, Stack, Text, Link} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
+import {LaptopIcon} from '../../shared/components/icons'
 
 export function DnaDialogStat({label, value, children, ...props}) {
   return (
@@ -35,7 +36,7 @@ export function DnaAppUrl({url}) {
       py="3/2"
       mt={16}
     >
-      <Icon name="laptop" size={5} />
+      <LaptopIcon name="laptop" boxSize={5} />
       <Link href={url}>{t('Open in Idena app')}</Link>
     </Stack>
   )

@@ -1,11 +1,11 @@
 /* eslint-disable react/prop-types */
-import {Flex, Text} from '@chakra-ui/react'
+import {Button, Flex, Text} from '@chakra-ui/react'
 import {margin} from 'polished'
 import React, {useState} from 'react'
 import {FiChevronRight} from 'react-icons/fi'
 import Router from 'next/router'
 import theme, {rem} from '../theme'
-import {Label, Button} from '.'
+import {Label} from '.'
 import {
   Avatar,
   Dialog,
@@ -16,7 +16,7 @@ import {
 } from './components'
 import {useAuthDispatch} from '../providers/auth-context'
 import {useSettingsState} from '../providers/settings-context'
-import {FlatButton, PrimaryButton, SecondaryButton} from './button'
+import {FlatButton, FlatButton2, PrimaryButton, SecondaryButton} from './button'
 import {SubHeading} from './typo'
 import {useDnaUrl} from '../hooks/use-dna-link'
 import {DnaAppUrl} from '../../screens/dna/components'
@@ -52,7 +52,7 @@ function RestoreKey() {
             </Flex>
 
             <Flex justify="space-between">
-              <FlatButton
+              <FlatButton2
                 color={theme.colors.primary}
                 onClick={() => showWarning(true)}
                 style={{
@@ -68,7 +68,7 @@ function RestoreKey() {
                   }}
                   fontSize={rem(19)}
                 />
-              </FlatButton>
+              </FlatButton2>
             </Flex>
           </Flex>
         </Flex>
@@ -109,13 +109,13 @@ function RestoreKey() {
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Enter your password"
               />
-              <Button
+              <PrimaryButton
                 type="submit"
-                disabled={!password}
+                isDisabled={!password}
                 style={{marginLeft: rem(10)}}
               >
                 Proceed
-              </Button>
+              </PrimaryButton>
             </Flex>
             {error && (
               <Flex
@@ -196,9 +196,9 @@ function Init() {
             Join the mining of the first human-centric cryptocurrency
           </Text>
 
-          <Button onClick={() => Router.push('/key/create')}>
+          <PrimaryButton onClick={() => Router.push('/key/create')}>
             Create an account
-          </Button>
+          </PrimaryButton>
 
           <Flex justifyContent="center">
             <FlatButton

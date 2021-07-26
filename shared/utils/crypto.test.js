@@ -4,8 +4,6 @@ import {
   serializeAnswers,
   generateShortAnswersSalt,
   privateKeyToAddress,
-  preparePublicFlipKey,
-  encryptFlipData,
 } from './crypto'
 import {toHexString} from './buffers'
 

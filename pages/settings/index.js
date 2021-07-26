@@ -4,7 +4,7 @@ import {useTranslation} from 'react-i18next'
 import {Flex as ChakraFlex, Text, useClipboard} from '@chakra-ui/react'
 import QRCode from 'qrcode.react'
 import {saveAs} from 'file-saver'
-import {Input, Label, Button} from '../../shared/components'
+import {Input, Label} from '../../shared/components'
 import theme, {rem} from '../../shared/theme'
 import Flex from '../../shared/components/flex'
 import SettingsLayout from './layout'
@@ -15,7 +15,11 @@ import {
   DialogHeader,
   PasswordInput,
 } from '../../shared/components/components'
-import {FlatButton, SecondaryButton} from '../../shared/components/button'
+import {
+  FlatButton,
+  PrimaryButton,
+  SecondaryButton,
+} from '../../shared/components/button'
 import {
   useAuthDispatch,
   useAuthState,
@@ -56,7 +60,7 @@ function ExportLogs() {
 
   return (
     <Section title={t('Validation logs')}>
-      <Button onClick={getLogs}>{t('Export')}</Button>
+      <PrimaryButton onClick={getLogs}>{t('Export')}</PrimaryButton>
     </Section>
   )
 }
@@ -100,13 +104,13 @@ function ExportPK() {
           />
         </Flex>
         <Flex css={{marginTop: 10}}>
-          <Button
+          <PrimaryButton
             css={{marginLeft: 120, width: 100}}
             type="submit"
             disabled={!password}
           >
             {t('Export')}
-          </Button>
+          </PrimaryButton>
         </Flex>
       </form>
       <Dialog isOpen={showDialog} onClose={() => setShowDialog(false)}>

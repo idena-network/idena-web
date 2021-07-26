@@ -170,8 +170,7 @@ export function PasswordInput({width, ...props}) {
 export function Avatar({address, size = rem(80), ...props}) {
   return address ? (
     <Image
-      w={size}
-      h={size}
+      boxSize={size}
       src={`https://robohash.idena.io/${address}`}
       bg="gray.50"
       rounded="lg"

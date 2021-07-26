@@ -6,7 +6,6 @@ import {margin, borderRadius, darken, transparentize, padding} from 'polished'
 import {Trans, useTranslation} from 'react-i18next'
 import {
   Button,
-  Icon,
   Stack,
   Text,
   Flex as ChakraFlex,
@@ -17,6 +16,7 @@ import {
   MenuItem,
   Menu,
 } from '@chakra-ui/react'
+import {PlusSquareIcon} from '@chakra-ui/icons'
 import {Box, Link} from '.'
 import Flex from './flex'
 import theme, {rem} from '../theme'
@@ -45,6 +45,15 @@ import {
   onboardingPromotingStep,
   onboardingShowingStep,
 } from '../utils/onboarding'
+import {
+  ContactsIcon,
+  DeleteIcon,
+  GalleryIcon,
+  MoreIcon,
+  ProfileIcon,
+  SettingsIcon,
+  WalletIcon,
+} from './icons'
 
 function Sidebar() {
   return (
@@ -171,26 +180,22 @@ function Nav() {
           textAlign: 'left',
         }}
       >
-        <NavItem href="/" icon={<Icon name="profile" size={5} />}>
+        <NavItem href="/" icon={<ProfileIcon boxSize={5} />}>
           {t('My Idena') || nickname}
         </NavItem>
-        <NavItem href="/wallets" icon={<Icon name="wallet" size={5} />}>
+        <NavItem href="/wallets" icon={<WalletIcon boxSize={5} />}>
           {t('Wallets')}
         </NavItem>
-        <NavItem href="/flips/list" icon={<Icon name="gallery" size={5} />}>
+        <NavItem href="/flips/list" icon={<GalleryIcon boxSize={5} />}>
           {t('Flips')}
         </NavItem>
-        <NavItem href="/contacts" icon={<Icon name="contacts" size={5} />}>
+        <NavItem href="/contacts" icon={<ContactsIcon boxSize={5} />}>
           {t('Contacts')}
         </NavItem>
-        <NavItem href="/settings" icon={<Icon name="settings" size={5} />}>
+        <NavItem href="/settings" icon={<SettingsIcon boxSize={5} />}>
           {t('Settings')}
         </NavItem>
-        <NavItem
-          href=""
-          icon={<Icon name="delete" size={5} />}
-          onClick={logout}
-        >
+        <NavItem href="" icon={<DeleteIcon boxSize={5} />} onClick={logout}>
           {t('Logout')}
         </NavItem>
       </ul>
@@ -375,7 +380,7 @@ function ActionPanel() {
                       _expanded={{bg: 'brandGray.500'}}
                       _focus={{outline: 0}}
                     >
-                      <Icon name="more" size={5} />
+                      <MoreIcon boxSize={5} />
                     </MenuButton>
                     <MenuList
                       placement="bottom-end"
@@ -400,9 +405,8 @@ function ActionPanel() {
                           )
                         }}
                       >
-                        <Icon
-                          name="plus-square"
-                          size={5}
+                        <PlusSquareIcon
+                          boxSize={5}
                           mr={3}
                           color="brandBlue.500"
                         />

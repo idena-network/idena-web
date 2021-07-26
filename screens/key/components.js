@@ -1,8 +1,9 @@
-import {Flex, Icon, Text} from '@chakra-ui/react'
+import {Flex, Text} from '@chakra-ui/react'
 import {margin, rem} from 'polished'
 import {useEffect, useState} from 'react'
 import {useQuery} from 'react-query'
 import {useTranslation} from 'react-i18next'
+import {ArrowUpIcon} from '@chakra-ui/icons'
 import {Label, SubHeading} from '../../shared/components'
 import {
   useSettingsDispatch,
@@ -176,11 +177,10 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
               }}
               disabled={waiting}
             >
-              <Icon
-                name="arrow-up"
-                size={5}
+              <ArrowUpIcon
+                boxSize={5}
                 style={{transform: 'rotate(-90deg)', marginTop: -3}}
-              ></Icon>
+              />
               {t('Back')}
             </FlatButton>
 

@@ -10,9 +10,9 @@ import {
   VisuallyHidden,
   IconButton as ChakraIconButton,
   Divider,
-  Icon,
   useToast,
 } from '@chakra-ui/react'
+import {SearchIcon} from '@chakra-ui/icons'
 import {useNotificationDispatch} from '../../../shared/providers/notification-context'
 import useClickOutside from '../../../shared/hooks/use-click-outside'
 import {Menu, MenuItem} from '../../../shared/components/menu'
@@ -33,6 +33,7 @@ import {
   ApplyChangesBottomPanel,
 } from './flip-editor-tools'
 import {ImageSearchDialog} from './image-search'
+import {ClipboardIcon, FolderIcon} from '../../../shared/components/icons'
 
 const ImageEditor =
   typeof window !== 'undefined'
@@ -860,7 +861,7 @@ export default function FlipEditor({
                             setShowImageSearch(true)
                           }}
                           disabled={false}
-                          icon={<Icon size={5} name="search" />}
+                          icon={<SearchIcon boxSize={5} name="search" />}
                         >
                           {t('Search on web')}
                         </MenuItem>
@@ -871,7 +872,7 @@ export default function FlipEditor({
                             uploaderRef.current.click()
                           }}
                           disabled={false}
-                          icon={<Icon size={5} name="folder" />}
+                          icon={<FolderIcon boxSize={5} name="folder" />}
                         >
                           {t('Select file')}
                         </MenuItem>
@@ -882,7 +883,7 @@ export default function FlipEditor({
                           }}
                           disabled={false}
                           danger={false}
-                          icon={<Icon size={5} name="clipboard" />}
+                          icon={<ClipboardIcon boxSize={5} />}
                         >
                           {t('Paste image')}
                         </MenuItem>

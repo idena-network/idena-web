@@ -1,13 +1,13 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
-import {Checkbox, Flex, Icon, Text, useClipboard} from '@chakra-ui/react'
+import {Checkbox, Flex, Text, useClipboard} from '@chakra-ui/react'
 import {rem, margin} from 'polished'
 import {useState, useEffect} from 'react'
 import {useRouter} from 'next/router'
 import QRCode from 'qrcode.react'
 import {saveAs} from 'file-saver'
 import {useTranslation} from 'react-i18next'
-import {Button, Label} from '../../shared/components'
+import {Label} from '../../shared/components'
 import {
   Avatar,
   Dialog,
@@ -30,6 +30,7 @@ import {
   privateKeyToAddress,
 } from '../../shared/utils/crypto'
 import {AuthLayout} from '../../shared/components/auth'
+import {ArrowUpIcon, RefreshIcon} from '../../shared/components/icons'
 
 const steps = {
   AVATAR: 0,
@@ -90,16 +91,14 @@ export default function CreateKey() {
                     className="refresh-avatar"
                     onClick={() => generateNewAddress()}
                   >
-                    <Icon
-                      name="refresh"
-                      w={5}
-                      h={5}
+                    <RefreshIcon
+                      boxSize={5}
                       fill="white"
                       style={{
                         opacity: 0.8,
                         transform: 'scaleX(-1) rotate(90deg)',
                       }}
-                    ></Icon>
+                    ></RefreshIcon>
                   </div>
                 </div>
               </Flex>
@@ -119,9 +118,9 @@ export default function CreateKey() {
               >
                 {state.address}
               </Flex>
-              <Button onClick={() => setStep(steps.PASSWORD)}>
+              <PrimaryButton onClick={() => setStep(steps.PASSWORD)}>
                 {t('Proceed')}
-              </Button>
+              </PrimaryButton>
 
               <Flex justifyContent="center">
                 <FlatButton
@@ -254,14 +253,13 @@ export default function CreateKey() {
                       textAlign: 'center',
                     }}
                   >
-                    <Icon
-                      name="arrow-up"
-                      size={5}
+                    <ArrowUpIcon
+                      boxSize={5}
                       style={{transform: 'rotate(-90deg)', marginTop: -3}}
-                    ></Icon>
+                    ></ArrowUpIcon>
                     {t('Back')}
                   </FlatButton>
-                  <Button type="submit">{t('Next')}</Button>
+                  <PrimaryButton type="submit">{t('Next')}</PrimaryButton>
                 </Flex>
                 {error && (
                   <Flex
@@ -409,11 +407,10 @@ export default function CreateKey() {
                       textAlign: 'center',
                     }}
                   >
-                    <Icon
-                      name="arrow-up"
-                      size={5}
+                    <ArrowUpIcon
+                      boxSize={5}
                       style={{transform: 'rotate(-90deg)', marginTop: -3}}
-                    ></Icon>
+                    ></ArrowUpIcon>
                     {t('Back')}
                   </FlatButton>
                   <Flex>
@@ -505,9 +502,9 @@ export default function CreateKey() {
               >
                 {state.address}
               </Flex>
-              <Button onClick={() => router.push('/key/import')}>
+              <PrimaryButton onClick={() => router.push('/key/import')}>
                 {t('Sign in')}
-              </Button>
+              </PrimaryButton>
               <Flex justifyContent="center">
                 <FlatButton
                   color={theme.colors.primary}

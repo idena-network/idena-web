@@ -1,12 +1,5 @@
-import {
-  Alert,
-  Flex,
-  Icon,
-  Link,
-  Radio,
-  RadioGroup,
-  Stack,
-} from '@chakra-ui/react'
+import {InfoOutlineIcon} from '@chakra-ui/icons'
+import {Alert, Flex, Link, Radio, RadioGroup, Stack} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {padding} from 'polished'
 import {useEffect, useState} from 'react'
@@ -255,7 +248,7 @@ export default function Offline() {
                 css={{marginTop: rem(theme.spacings.small12)}}
               >
                 <Flex style={{opacity: 0.5}} alignItems="center">
-                  <Icon name="info-outline" size={4} mr={3}></Icon>
+                  <InfoOutlineIcon boxSize={4} mr={3}></InfoOutlineIcon>
                   <Flex>
                     {t('You can run your own node at your desktop computer.')}
                   </Flex>
