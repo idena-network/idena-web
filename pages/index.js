@@ -7,7 +7,7 @@ import {
   Text,
   useDisclosure,
   useToast,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useQuery, useQueryClient} from 'react-query'
 import {Page, PageTitle} from '../screens/app/components'

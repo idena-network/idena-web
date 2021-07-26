@@ -30,12 +30,11 @@ import {
   Stack,
   Box,
   Button,
-  PseudoBox,
   FormControl,
   useTheme,
   Divider,
   Text,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
 import {rem} from '../theme'
@@ -168,10 +167,11 @@ export function PasswordInput({width, ...props}) {
   )
 }
 
-export function Avatar({address, ...props}) {
+export function Avatar({address, size = rem(80), ...props}) {
   return address ? (
     <Image
-      size={rem(80)}
+      w={size}
+      h={size}
       src={`https://robohash.idena.io/${address}`}
       bg="gray.50"
       rounded="lg"
@@ -179,7 +179,7 @@ export function Avatar({address, ...props}) {
       {...props}
     />
   ) : (
-    <PseudoBox size={rem(80)} bg="gray.50" rounded="lg"></PseudoBox>
+    <Box w={size} h={size} bg="gray.50" rounded="lg"></Box>
   )
 }
 
@@ -301,8 +301,8 @@ export function Skeleton(props) {
   const {colors} = useTheme()
   return (
     <ChakraSkeleton
-      colorStart={colors.gray[100]}
-      colorEnd={colors.gray[300]}
+      startColor={colors.gray[100]}
+      endColor={colors.gray[300]}
       w="full"
       {...props}
     />

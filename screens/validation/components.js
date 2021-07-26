@@ -28,13 +28,13 @@ import {
   useTheme,
   Button,
   ListItem,
-  AspectRatioBox,
+  AspectRatio,
   Image,
   List,
   Modal,
   ModalOverlay,
   ModalContent,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import {useMachine} from '@xstate/react'
 import {Trans, useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
@@ -1250,9 +1250,9 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
 
 function BadFlipImage(props) {
   return (
-    <AspectRatioBox ratio={4 / 3} h={100}>
+    <AspectRatio ratio={4 / 3} h={100}>
       <Image {...props} />
-    </AspectRatioBox>
+    </AspectRatio>
   )
 }
 

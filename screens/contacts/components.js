@@ -8,7 +8,7 @@ import {
   Icon,
   Text,
   Heading,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import {Avatar, FillCenter} from '../../shared/components/components'
 import {dummyAddress} from '../../shared/utils/utils'
 

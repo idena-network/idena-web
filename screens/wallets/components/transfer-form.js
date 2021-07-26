@@ -1,7 +1,7 @@
 import React, {useState} from 'react'
 import PropTypes from 'prop-types'
 import {useTranslation} from 'react-i18next'
-import {Box, Flex, Heading, Icon, Stack} from '@chakra-ui/core'
+import {Box, Flex, Heading, Icon, Stack} from '@chakra-ui/react'
 import {useNotificationDispatch} from '../../../shared/providers/notification-context'
 import {
   Drawer,

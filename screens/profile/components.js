@@ -22,7 +22,7 @@ import {
   AlertDescription,
   useToast,
   Link,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
 import {useMachine} from '@xstate/react'
@@ -497,7 +497,7 @@ export function ActivateMiningSwitch({isOnline, isDelegator, onShow}) {
             id="mining"
             size="sm"
             isChecked={isOnline}
-            color={accentColor}
+            colorScheme={accentColor}
             h={4}
             className="toggle"
             onChange={onShow}
@@ -874,7 +874,7 @@ export function KillForm({isOpen, onClose}) {
             <PrimaryButton
               onClick={terminate}
               isLoading={submitting}
-              variantColor="red"
+              colorScheme="red"
               _hover={{
                 bg: 'rgb(227 60 60)',
               }}

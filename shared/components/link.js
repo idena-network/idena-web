@@ -3,7 +3,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import NextLink from 'next/link'
-import {Icon, Link as ChakraLink, Stack, Text} from '@chakra-ui/core'
+import {Icon, Link as ChakraLink, Stack, Text} from '@chakra-ui/react'
 import theme from '../theme'
 
 function Link({

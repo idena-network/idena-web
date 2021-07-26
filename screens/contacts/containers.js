@@ -13,7 +13,7 @@ import {
   useDisclosure,
   Collapse,
   IconButton,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {
@@ -104,7 +104,7 @@ function InviteActionBar({onNewContact}) {
       <Stack isInline spacing={3} align="center">
         <IconButton
           icon="plus-solid"
-          variantColor="blue"
+          colorScheme="blue"
           bg="blue.012"
           color="blue.500"
           fontSize="base"
@@ -363,7 +363,7 @@ export function ContactCard({
                 <VDivider />
                 <IconButton2
                   icon="delete"
-                  variantColor="red"
+                  colorScheme="red"
                   _active={{
                     bg: 'red.012',
                   }}
@@ -398,7 +398,7 @@ export function ContactCard({
                   {!activated && (
                     <Button
                       variant="link"
-                      variantColor="blue"
+                      colorScheme="blue"
                       fontWeight={500}
                       _hover={null}
                       _active={null}

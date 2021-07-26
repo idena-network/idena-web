@@ -3,7 +3,7 @@ import PropTypes from 'prop-types'
 import {ellipsis, rgba} from 'polished'
 import {useTranslation} from 'react-i18next'
 import {useInfiniteQuery} from 'react-query'
-import {Flex, Stack} from '@chakra-ui/core'
+import {Flex, Stack} from '@chakra-ui/react'
 import theme, {rem} from '../../../shared/theme'
 import Avatar from '../../../shared/components/avatar'
 import {

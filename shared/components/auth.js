@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import {Flex, Text} from '@chakra-ui/core'
+import {Flex, Text} from '@chakra-ui/react'
 import {margin} from 'polished'
 import React, {useState} from 'react'
 import {FiChevronRight} from 'react-icons/fi'

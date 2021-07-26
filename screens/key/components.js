@@ -1,4 +1,4 @@
-import {Flex, Icon, Text} from '@chakra-ui/core'
+import {Flex, Icon, Text} from '@chakra-ui/react'
 import {margin, rem} from 'polished'
 import {useEffect, useState} from 'react'
 import {useQuery} from 'react-query'

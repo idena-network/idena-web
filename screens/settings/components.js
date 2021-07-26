@@ -1,4 +1,4 @@
-import {Box} from '@chakra-ui/core'
+import {Box} from '@chakra-ui/react'
 import {margin, rem} from 'polished'
 import {SubHeading} from '../../shared/components'
 import theme from '../../shared/theme'

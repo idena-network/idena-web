@@ -3,7 +3,7 @@ import {FiChevronRight} from 'react-icons/fi'
 import {useTranslation} from 'react-i18next'
 
 import {useQuery} from 'react-query'
-import {Heading} from '@chakra-ui/core'
+import {Heading} from '@chakra-ui/react'
 import theme, {rem} from '../shared/theme'
 import {Box, Link} from '../shared/components'
 import Flex from '../shared/components/flex'

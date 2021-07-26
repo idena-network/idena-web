@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, {useState} from 'react'
 import {
-  AspectRatioBox,
+  AspectRatio,
   Box,
   Flex,
   Icon,
@@ -12,7 +12,7 @@ import {
   Spinner,
   Stack,
   Text,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
 import {Machine} from 'xstate'
@@ -136,7 +136,7 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
           {eitherState(current, 'done') && (
             <SimpleGrid columns={4} spacing={2} overflow="auto" mx={-6} px={6}>
               {images.map(({thumbnail}) => (
-                <AspectRatioBox
+                <AspectRatio
                   ratio={1}
                   w={32}
                   minH={32}
@@ -166,7 +166,7 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
                     borderWidth={1}
                     borderRadius="md"
                   />
-                </AspectRatioBox>
+                </AspectRatio>
               ))}
             </SimpleGrid>
           )}

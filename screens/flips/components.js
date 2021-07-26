@@ -12,13 +12,12 @@ import {
   Icon,
   MenuItem,
   MenuList,
-  PseudoBox,
   Button,
   RadioButtonGroup,
   Stack,
   useTheme,
   Heading,
-  AspectRatioBox,
+  AspectRatio,
   Divider,
   CloseButton,
   IconButton,
@@ -30,7 +29,7 @@ import {
   MenuDivider,
   Alert,
   AlertIcon,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd'
 import {useTranslation} from 'react-i18next'
 import {transparentize} from 'polished'
@@ -195,9 +194,9 @@ export function FlipCardImage(props) {
 
 export function FlipCardImageBox({children, ...props}) {
   return (
-    <AspectRatioBox h={150} w={150} position="relative" {...props}>
+    <AspectRatio h={150} w={150} position="relative" {...props}>
       <Box>{children}</Box>
-    </AspectRatioBox>
+    </AspectRatio>
   )
 }
 
@@ -237,7 +236,7 @@ export function FlipCardMenu(props) {
 
 export function FlipCardMenuItem(props) {
   return (
-    <PseudoBox
+    <Box
       as={MenuItem}
       fontWeight={500}
       px={3}
@@ -310,7 +309,7 @@ export function OptionalFlipPlaceholder({title, isDisabled}) {
 
 export function EmptyFlipBox(props) {
   return (
-    <PseudoBox
+    <Box
       animation="pulse 1s"
       display="flex"
       justifyContent="center"
@@ -392,7 +391,7 @@ export const FlipFilterOption = React.forwardRef(
       _hover={{bg: 'gray.50', color: 'brand.blue'}}
       {...props}
       variant="ghost"
-      variantColor="gray"
+      colorScheme="gray"
     />
   )
 )
@@ -431,7 +430,7 @@ export function FlipMasterNavbarItem({step, ...props}) {
 
 function FlipMasterNavbarItemIcon({step, ...props}) {
   return (
-    <PseudoBox
+    <Box
       as={Flex}
       justifyContent="center"
       alignItems="center"
@@ -458,7 +457,7 @@ function FlipMasterNavbarItemIcon({step, ...props}) {
         opacity={step === Step.Completed ? 1 : 0}
         transition="all 0.2s ease"
       />
-    </PseudoBox>
+    </Box>
   )
 }
 
@@ -476,9 +475,7 @@ export function FlipMasterNavbarItemText({step, ...props}) {
       break
   }
 
-  return (
-    <PseudoBox as={Text} color={color} transition="all 0.3s ease" {...props} />
-  )
+  return <Box as={Text} color={color} transition="all 0.3s ease" {...props} />
 }
 
 export function FlipStoryStep({children}) {
@@ -730,14 +727,7 @@ export function FlipEditorStep({
 }
 
 export function FlipEditorIcon(props) {
-  return (
-    <PseudoBox
-      as={Icon}
-      size={5}
-      _hover={{color: 'brandBlue.500'}}
-      {...props}
-    />
-  )
+  return <Box as={Icon} size={5} _hover={{color: 'brandBlue.500'}} {...props} />
 }
 
 export function FlipShuffleStep({
@@ -945,7 +935,7 @@ export function FlipImageList(props) {
 function SelectableItem({isActive, isFirst, isLast, ...props}) {
   const {colors} = useTheme()
   return (
-    <PseudoBox
+    <Box
       position="relative"
       _before={{
         content: `""`,
@@ -1001,7 +991,7 @@ export function FlipImage({
   ...props
 }) {
   return (
-    <AspectRatioBox
+    <AspectRatio
       ratio={4 / 3}
       bg="gray.50"
       border="1px"
@@ -1021,7 +1011,7 @@ export function FlipImage({
       ) : (
         <EmptyFlipImage />
       )}
-    </AspectRatioBox>
+    </AspectRatio>
   )
 }
 
@@ -1310,7 +1300,7 @@ export function DeleteFlipDrawer({hash, cover, onDelete, ...props}) {
           />
         </FormControl>
         <PrimaryButton
-          variantColor="red"
+          colorScheme="red"
           display="flex"
           ml="auto"
           _hover={{

@@ -1,4 +1,4 @@
-import {Flex, Checkbox, Text} from '@chakra-ui/core'
+import {Flex, Checkbox, Text} from '@chakra-ui/react'
 import {rem, margin} from 'polished'
 import {useState} from 'react'
 import Router from 'next/router'

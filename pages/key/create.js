@@ -1,6 +1,6 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
-import {Checkbox, Flex, Icon, Text, useClipboard} from '@chakra-ui/core'
+import {Checkbox, Flex, Icon, Text, useClipboard} from '@chakra-ui/react'
 import {rem, margin} from 'polished'
 import {useState, useEffect} from 'react'
 import {useRouter} from 'next/router'

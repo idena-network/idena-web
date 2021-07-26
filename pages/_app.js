@@ -2,7 +2,6 @@ import React, {useEffect} from 'react'
 import App from 'next/app'
 import Router, {useRouter} from 'next/router'
 import Head from 'next/head'
-import {ThemeProvider, CSSReset} from '@chakra-ui/core'
 import NProgress from 'nprogress'
 import GoogleFonts from 'next-google-fonts'
 import {QueryClient, QueryClientProvider} from 'react-query'
@@ -10,6 +9,7 @@ import ReactGA from 'react-ga'
 
 import '../i18n'
 
+import {ChakraProvider} from '@chakra-ui/react'
 import {uiTheme} from '../shared/theme'
 
 import {NotificationProvider} from '../shared/providers/notification-context'
@@ -73,12 +73,11 @@ export default class MyApp extends App {
             src="https://apis.google.com/js/api.js"
           ></script>
         </Head>
-        <ThemeProvider theme={uiTheme}>
-          <CSSReset />
+        <ChakraProvider theme={uiTheme}>
           <AppProviders>
             <Component {...{...pageProps, err}} />
           </AppProviders>
-        </ThemeProvider>
+        </ChakraProvider>
       </>
     )
   }

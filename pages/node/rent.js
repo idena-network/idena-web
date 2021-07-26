@@ -1,4 +1,12 @@
-import {Box, CloseButton, Flex, Link, Radio, Stack, Text} from '@chakra-ui/core'
+import {
+  Box,
+  CloseButton,
+  Flex,
+  Link,
+  Radio,
+  Stack,
+  Text,
+} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {rem} from 'polished'
 import {useState} from 'react'

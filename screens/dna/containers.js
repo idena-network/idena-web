@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import * as React from 'react'
-import {Box, Icon, Image, Stack, Text} from '@chakra-ui/core'
+import {Box, Icon, Image, Stack, Text} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {FiGlobe} from 'react-icons/fi'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'

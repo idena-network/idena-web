@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import {Box, Stack, Text, Icon, Link} from '@chakra-ui/core'
+import {Box, Stack, Text, Icon, Link} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 
 export function DnaDialogStat({label, value, children, ...props}) {

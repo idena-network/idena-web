@@ -2,7 +2,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {transparentize, darken} from 'polished'
-import {Button as ChakraButton, PseudoBox, Icon} from '@chakra-ui/core'
+import {Button as ChakraButton, Icon, Box} from '@chakra-ui/react'
 import theme, {rem} from '../theme'
 import {Tooltip} from './tooltip'
 
@@ -160,12 +160,12 @@ const BaseButton = React.forwardRef((props, ref) => (
 BaseButton.displayName = 'BaseButton'
 
 export const PrimaryButton = React.forwardRef((props, ref) => (
-  <BaseButton ref={ref} variantColor="brandBlue" color="white" {...props} />
+  <BaseButton ref={ref} colorScheme="brandBlue" color="white" {...props} />
 ))
 PrimaryButton.displayName = 'PrimaryButton'
 // eslint-disable-next-line react/display-name
 export const SecondaryButton = React.forwardRef((props, ref) => (
-  <PseudoBox
+  <Box
     ref={ref}
     as="button"
     bg="brandBlue.10"
@@ -200,7 +200,7 @@ export function IconButton2({icon, children, ...props}) {
   return (
     <ChakraButton
       variant="ghost"
-      variantColor="blue"
+      colorScheme="blue"
       fontWeight={500}
       h={8}
       px={2}

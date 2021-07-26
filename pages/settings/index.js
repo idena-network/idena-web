@@ -1,7 +1,7 @@
 import React, {useState} from 'react'
 import {margin} from 'polished'
 import {useTranslation} from 'react-i18next'
-import {Flex as ChakraFlex, Text, useClipboard} from '@chakra-ui/core'
+import {Flex as ChakraFlex, Text, useClipboard} from '@chakra-ui/react'
 import QRCode from 'qrcode.react'
 import {saveAs} from 'file-saver'
 import {Input, Label, Button} from '../../shared/components'

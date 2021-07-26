@@ -12,7 +12,7 @@ import {
   PopoverTrigger,
   Stack,
   Text,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {Page, PageTitle} from '../../screens/app/components'
 import {

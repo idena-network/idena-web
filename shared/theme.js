@@ -1,5 +1,5 @@
 import React from 'react'
-import {theme as chakraTheme} from '@chakra-ui/core'
+import {theme as chakraTheme} from '@chakra-ui/react'
 import {rem as remp, rgb, margin} from 'polished'
 
 const colors = {

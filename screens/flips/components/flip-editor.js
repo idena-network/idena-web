@@ -12,7 +12,7 @@ import {
   Divider,
   Icon,
   useToast,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import {useNotificationDispatch} from '../../../shared/providers/notification-context'
 import useClickOutside from '../../../shared/hooks/use-click-outside'
 import {Menu, MenuItem} from '../../../shared/components/menu'

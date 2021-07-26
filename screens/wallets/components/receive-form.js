@@ -10,7 +10,7 @@ import {
   Icon,
   Stack,
   useClipboard,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import theme, {rem} from '../../../shared/theme'
 import {Label} from '../../../shared/components'
 import {

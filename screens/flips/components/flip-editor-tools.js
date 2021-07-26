@@ -11,7 +11,7 @@ import {
   Flex as ChakraFlex,
   Box as ChakraBox,
   Icon,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import useClickOutside from '../../../shared/hooks/use-click-outside'
 import {Menu, MenuItem} from '../../../shared/components/menu'
 

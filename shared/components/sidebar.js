@@ -16,7 +16,7 @@ import {
   MenuList,
   MenuItem,
   Menu,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import {Box, Link} from '.'
 import Flex from './flex'
 import theme, {rem} from '../theme'
