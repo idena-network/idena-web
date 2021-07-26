@@ -13,7 +13,7 @@ import {
   FormLabel as ChakraFormLabel,
   Select as ChakraSelect,
   Skeleton as ChakraSkeleton,
-  Image,
+  Avatar as ChakraAvatar,
   Tooltip as ChakraTooltip,
   Flex,
   Alert,
@@ -169,12 +169,11 @@ export function PasswordInput({width, ...props}) {
 
 export function Avatar({address, size = rem(80), ...props}) {
   return address ? (
-    <Image
+    <ChakraAvatar
       boxSize={size}
       src={`https://robohash.idena.io/${address}`}
       bg="gray.50"
-      rounded="lg"
-      ignoreFallback
+      borderRadius="lg"
       {...props}
     />
   ) : (
