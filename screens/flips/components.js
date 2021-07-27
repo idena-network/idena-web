@@ -608,7 +608,7 @@ export function FlipKeywordPair(props) {
 }
 
 export function FlipKeyword(props) {
-  return <Stack spacing="1/2" flex={1} {...props}></Stack>
+  return <Stack spacing={0.5} flex={1} {...props}></Stack>
 }
 
 export function FlipKeywordName({children, ...props}) {

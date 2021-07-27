@@ -275,17 +275,20 @@ export const uiTheme = {
           px: 4,
           _hover: {
             bg: 'blue.024',
+            _disabled: {
+              bg: 'gray.100',
+            },
           },
           _active: {
             bg: 'blue.024',
           },
           _disabled: {
-            bg: 'gray.50',
-            color: 'gray.100',
+            bg: 'gray.100',
+            color: 'gray.300',
           },
         },
         tab: {
-          color: 'gray.100',
+          color: 'gray.300',
           borderRadius: 6,
           h: 8,
           px: 4,

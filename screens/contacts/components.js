@@ -26,7 +26,7 @@ export function ContactAvatar({address = dummyAddress, ...props}) {
 
 export function ContactStat({label, value}) {
   return (
-    <Stack as={Stat} spacing="1/2" pt={2} pb={3}>
+    <Stack as={Stat} spacing={0.5} pt={2} pb={3}>
       <StatLabel color="muted" fontSize="md">
         {label}
       </StatLabel>

@@ -996,7 +996,7 @@ function FlipEditorIcon({tooltip, isActive, isDisabled, mr, ...props}) {
       fontSize={rem(20)}
       size={6}
       rounded="md"
-      p="1/2"
+      p={0.5}
       _hover={{color: isDisabled ? 'inherit' : 'brandBlue.500'}}
       _active={{bg: 'transparent'}}
       {...props}
