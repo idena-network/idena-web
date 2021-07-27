@@ -87,7 +87,7 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
 
   return (
     <Dialog
-      size="38rem"
+      size="lg"
       initialFocusRef={searchInputRef}
       onClose={onClose}
       {...props}
@@ -103,7 +103,7 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
             }}
           >
             <InputGroup w="full">
-              <InputLeftElement w={5} h={5} top="3/2" left={3}>
+              <InputLeftElement w={5} h={5} top={1.5} left={3}>
                 <SearchIcon boxSize={3} color="gray.100" />
               </InputLeftElement>
               <Input
@@ -134,12 +134,18 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
             </Flex>
           )}
           {eitherState(current, 'done') && (
-            <SimpleGrid columns={4} spacing={2} overflow="auto" mx={-6} px={6}>
+            <SimpleGrid
+              columns={4}
+              spacing={2}
+              overflow="auto"
+              px={6}
+              style={{marginLeft: '-24px', marginRight: '-24px'}}
+            >
               {images.map(({thumbnail}) => (
                 <AspectRatio
                   ratio={1}
-                  w={32}
-                  minH={32}
+                  w={28}
+                  minH={28}
                   bg={thumbnail === selectedImage ? 'blue.032' : 'white'}
                   borderColor={
                     thumbnail === selectedImage ? 'blue.500' : 'gray.50'

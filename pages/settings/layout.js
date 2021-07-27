@@ -6,7 +6,7 @@ import {Stack} from '@chakra-ui/react'
 import Layout from '../../shared/components/layout'
 import {Box, PageTitle} from '../../shared/components'
 import theme from '../../shared/theme'
-import {TabButton} from '../../screens/settings/components'
+import {TabButton} from '../../shared/components/button'
 
 function SettingsLayout({children}) {
   const router = useRouter()

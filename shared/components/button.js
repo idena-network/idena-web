@@ -176,4 +176,21 @@ export function FlatButton2({children, ...props}) {
   )
 }
 
+export function TabButton(props) {
+  return (
+    <ChakraButton
+      bg="white"
+      color="muted"
+      fontWeight={500}
+      size="sm"
+      fontSize="md"
+      _active={{bg: 'gray.50', color: 'brand.blue'}}
+      _hover={{bg: 'gray.50', color: 'brand.blue'}}
+      variant="ghost"
+      colorScheme="gray"
+      {...props}
+    />
+  )
+}
+
 export {FlatButton}

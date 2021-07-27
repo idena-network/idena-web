@@ -52,6 +52,7 @@ import {
   OnboardingPopoverContentIconRow,
 } from '../../shared/components/onboarding'
 import {eitherState} from '../../shared/utils/utils'
+import {TabButton} from '../../shared/components/button'
 
 export default function FlipListPage() {
   const {t} = useTranslation()
@@ -148,25 +149,32 @@ export default function FlipListPage() {
   const eitherOnboardingState = (...states) =>
     eitherState(currentOnboarding, ...states)
 
+  console.log('filter', filter)
   return (
     <Layout>
       <Page>
         <PageTitle>{t('My Flips')}</PageTitle>
         <Flex justify="space-between" align="center" alignSelf="stretch" mb={8}>
-          <FlipFilter
-            value={filter}
-            onChange={value => send('FILTER', {filter: value})}
-          >
-            <FlipFilterOption value={FlipFilterType.Active}>
+          <Stack spacing={2} isInline>
+            <TabButton
+              onClick={() => send('FILTER', {filter: FlipFilterType.Active})}
+              isActive={filter === FlipFilterType.Active}
+            >
               {t('Active')}
-            </FlipFilterOption>
-            <FlipFilterOption value={FlipFilterType.Draft}>
+            </TabButton>
+            <TabButton
+              onClick={() => send('FILTER', {filter: FlipFilterType.Draft})}
+              isActive={filter === FlipFilterType.Draft}
+            >
               {t('Drafts')}
-            </FlipFilterOption>
-            <FlipFilterOption value={FlipFilterType.Archived}>
+            </TabButton>
+            <TabButton
+              onClick={() => send('FILTER', {filter: FlipFilterType.Archived})}
+              isActive={filter === FlipFilterType.Archived}
+            >
               {t('Archived')}
-            </FlipFilterOption>
-          </FlipFilter>
+            </TabButton>
+          </Stack>
           <Box alignSelf="end">
             <OnboardingPopover
               isOpen={eitherOnboardingState(
