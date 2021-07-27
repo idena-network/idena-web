@@ -8,7 +8,6 @@ import theme, {rem} from '../shared/theme'
 import {Box, Link} from '../shared/components'
 import Flex from '../shared/components/flex'
 import Actions from '../shared/components/actions'
-import IconLink from '../shared/components/icon-link'
 
 import TotalAmount from '../screens/wallets/components/total-amount'
 import WalletTransactions from '../screens/wallets/components/wallet-transactions'
@@ -19,6 +18,7 @@ import Layout from '../shared/components/layout'
 import {useAuthState} from '../shared/providers/auth-context'
 import {fetchBalance} from '../shared/api/wallet'
 import WalletCard from '../screens/wallets/components/wallet-card'
+import {IconButton2} from '../shared/components/button'
 
 export default function Index() {
   const {t} = useTranslation()
@@ -53,22 +53,22 @@ export default function Index() {
             </div>
             <div>
               <Actions>
-                <IconLink
+                <IconButton2
                   icon={<i className="icon icon--withdraw" />}
                   onClick={() => {
                     setIsTransferFormOpen(!isTransferFormOpen)
                   }}
                 >
                   {t('Send')}
-                </IconLink>
-                <IconLink
+                </IconButton2>
+                <IconButton2
                   icon={<i className="icon icon--deposit" />}
                   onClick={() => {
                     setIsReceiveFormOpen(!isReceiveFormOpen)
                   }}
                 >
                   {t('Receive')}
-                </IconLink>
+                </IconButton2>
               </Actions>
             </div>
           </Flex>

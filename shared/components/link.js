@@ -3,7 +3,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import NextLink from 'next/link'
-import {HStack, Icon, LinkBox, LinkOverlay} from '@chakra-ui/react'
 import theme from '../theme'
 
 function Link({
@@ -55,36 +54,5 @@ Link.propTypes = {
   height: PropTypes.string,
   children: PropTypes.node,
 }
-
-export const IconLink = React.forwardRef(function IconLink(
-  {href, icon, iconViewBox = '0 0 20 20', isDisabled, children},
-  ref
-) {
-  return (
-    <LinkBox
-      ref={ref}
-      d="inline-flex"
-      borderRadius="md"
-      color="blue.500"
-      fontSize="md"
-      fontWeight={500}
-      h={8}
-      px={3}
-      _hover={{
-        bg: 'blue.50',
-      }}
-      isDisabled={isDisabled}
-    >
-      <HStack>
-        <Icon boxSize={5} viewBox={iconViewBox}>
-          {icon}
-        </Icon>
-        <NextLink href={href} passHref isDisabled={isDisabled}>
-          <LinkOverlay>{children}</LinkOverlay>
-        </NextLink>
-      </HStack>
-    </LinkBox>
-  )
-})
 
 export default Link

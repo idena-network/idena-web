@@ -18,8 +18,6 @@ import {Page, PageTitle} from '../../screens/app/components'
 import {
   FlipCardTitle,
   FlipCardSubtitle,
-  FlipFilter,
-  FlipFilterOption,
   RequiredFlipPlaceholder,
   OptionalFlipPlaceholder,
   FlipCardList,
@@ -28,7 +26,6 @@ import {
   DeleteFlipDrawer,
 } from '../../screens/flips/components'
 import {formatKeywords} from '../../screens/flips/utils'
-import {IconLink} from '../../shared/components/link'
 import {
   FlipType,
   IdentityStatus,
@@ -53,6 +50,8 @@ import {
 } from '../../shared/components/onboarding'
 import {eitherState} from '../../shared/utils/utils'
 import {TabButton} from '../../shared/components/button'
+import {PlusSolidIcon} from '../../shared/components/icons'
+import IconLink from '../../shared/components/icon-link'
 
 export default function FlipListPage() {
   const {t} = useTranslation()
@@ -149,7 +148,6 @@ export default function FlipListPage() {
   const eitherOnboardingState = (...states) =>
     eitherState(currentOnboarding, ...states)
 
-  console.log('filter', filter)
   return (
     <Layout>
       <Page>
@@ -184,8 +182,8 @@ export default function FlipListPage() {
               <PopoverTrigger>
                 <Box onClick={dismissCurrentTask}>
                   <IconLink
+                    icon={<PlusSolidIcon boxSize={5} mt={1} />}
                     href="/flips/new"
-                    icon="plus-solid"
                     bg="white"
                     position={
                       eitherOnboardingState(

@@ -8,6 +8,7 @@ import {QueryClient, QueryClientProvider} from 'react-query'
 import ReactGA from 'react-ga'
 
 import '../i18n'
+import 'focus-visible/dist/focus-visible'
 
 import {ChakraProvider, extendTheme} from '@chakra-ui/react'
 import {uiTheme} from '../shared/theme'
