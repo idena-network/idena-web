@@ -94,29 +94,13 @@ export function FormControlWithLabel({label, children, ...props}) {
 }
 
 export function Input(props) {
-  return (
-    <ChakraInput
-      alignItems="center"
-      fontSize="md"
-      lineHeight="short"
-      px={3}
-      h={8}
-      _placeholder={{
-        color: 'muted',
-      }}
-      _disabled={{
-        bg: 'gray.50',
-        color: 'muted',
-      }}
-      {...props}
-    />
-  )
+  return <ChakraInput {...props} />
 }
 
 export function Select(props) {
   return (
     <ChakraSelect
-      borderColor="gray.300"
+      borderColor="gray.100"
       fontSize="md"
       lineHeight="short"
       h={8}
@@ -237,7 +221,7 @@ export function Toast({
           fontWeight={500}
           lineHeight="base"
           px={3}
-          py="3/2"
+          py={1.5}
           _hover={{bg: 'unset'}}
           _active={{bg: 'unset'}}
           _focus={{boxShadow: 'none'}}
@@ -323,7 +307,7 @@ export const VDivider = React.forwardRef(function VDivider(props, ref) {
     <Divider
       ref={ref}
       orientation="vertical"
-      borderColor="gray.300"
+      borderColor="gray.100"
       h={6}
       mx={0}
       {...props}

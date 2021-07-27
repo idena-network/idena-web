@@ -70,7 +70,7 @@ export function ContactListSidebar({
   return (
     <Stack
       spacing={3}
-      borderRightColor="gray.300"
+      borderRightColor="gray.100"
       borderRightWidth="1px"
       w={240}
       h="100vh"
@@ -106,7 +106,7 @@ function InviteActionBar({onNewContact}) {
   const [{invites: availableInviteCount, canInvite}] = useIdentity()
 
   return (
-    <Flex align="center" justify="space-between" px={4} py="3/2" w="full">
+    <Flex align="center" justify="space-between" px={4} py={1.5} w="full">
       <Stack isInline spacing={3} align="center">
         <IconButton
           icon={<PlusSolidIcon boxSize={5} ml={1} mt={1} />}
@@ -318,7 +318,7 @@ export function ContactCard({
         <Stack spacing={4}>
           <Stack isInline spacing={6} align="center" py={2}>
             <ContactAvatar address={address} borderRadius={20} />
-            <Stack spacing="3/2" fontWeight={500}>
+            <Stack spacing={1.5} fontWeight={500}>
               <Stack isInline align="center">
                 <Text fontSize="lg">
                   {`${firstName} ${lastName}`.trim() || t('...')}

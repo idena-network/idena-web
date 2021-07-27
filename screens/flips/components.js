@@ -173,7 +173,7 @@ export function FlipCard({flipService, onDelete}) {
                 </FlipCardMenuItem>
               )}
               {(isSubmittable || isEditable) && isDeletable && (
-                <MenuDivider color="gray.300" my={2} width={rem(145)} />
+                <MenuDivider color="gray.100" my={2} width={rem(145)} />
               )}
 
               {isDeletable && (
@@ -231,7 +231,7 @@ export function FlipCardMenu(props) {
     <Menu autoSelect={false}>
       <MenuButton
         rounded="md"
-        py="3/2"
+        py={1.5}
         px="2px"
         mt="-6px"
         _expanded={{bg: 'gray.50'}}
@@ -258,7 +258,7 @@ export function FlipCardMenuItem(props) {
       as={MenuItem}
       fontWeight={500}
       px={3}
-      py="3/2"
+      py={1.5}
       _hover={{bg: 'gray.50'}}
       _focus={{bg: 'gray.50'}}
       _selected={{bg: 'gray.50'}}
@@ -578,7 +578,7 @@ export function FlipKeywordTranslationSwitch({
             {hasBothTranslations ? (
               <Divider
                 orientation="vertical"
-                borderColor="gray.300"
+                borderColor="gray.100"
                 m={0}
                 h={rem(24)}
               />
@@ -935,7 +935,7 @@ export function FlipMasterFooter(props) {
     <Box
       alignSelf="stretch"
       borderTop="1px"
-      borderTopColor="gray.300"
+      borderTopColor="gray.100"
       mt="auto"
       px={4}
       py={3}
@@ -1035,7 +1035,7 @@ export function FlipImage({
 export function EmptyFlipImage(props) {
   return (
     <Flex align="center" justify="center" px={10} py={6} {...props}>
-      <PicIcon boxSize={10} color="gray.100" />
+      <PicIcon boxSize={10} color="gray.200" />
     </Flex>
   )
 }
@@ -1119,7 +1119,7 @@ export function CommunityTranslations({
             </Flex>
           ))}
 
-          {translations.length && <Divider borderColor="gray.300" />}
+          {translations.length && <Divider borderColor="gray.100" />}
 
           <Box>
             <Text fontWeight={500} mb={3}>
@@ -1145,9 +1145,9 @@ export function CommunityTranslations({
                       : 'Name'
                   }
                   px={3}
-                  pt="3/2"
+                  pt={1.5}
                   pb={2}
-                  borderColor="gray.300"
+                  borderColor="gray.100"
                   mb={2}
                   _placeholder={{
                     color: 'muted',
@@ -1162,9 +1162,9 @@ export function CommunityTranslations({
                       ? capitalize(keywords.words[wordIdx].desc)
                       : 'Description'
                   }
-                  borderColor="gray.300"
+                  borderColor="gray.100"
                   px={3}
-                  pt="3/2"
+                  pt={1.5}
                   pb={2}
                   mb={6}
                   _placeholder={{
@@ -1301,17 +1301,17 @@ export function DeleteFlipDrawer({hash, cover, onDelete, ...props}) {
           <Input
             id="hashInput"
             h={8}
-            borderColor="gray.300"
+            borderColor="gray.100"
             lineHeight={rem(18)}
             px={3}
-            pt="3/2"
+            pt={1.5}
             pb={2}
             mb={2}
             value={hash}
             isReadOnly
             _readOnly={{
               bg: 'gray.50',
-              borderColor: 'gray.300',
+              borderColor: 'gray.100',
               color: 'muted',
             }}
           />

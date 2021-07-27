@@ -238,7 +238,7 @@ export const uiTheme = {
       variants: {
         bordered: {
           container: {
-            borderColor: 'gray.300',
+            borderColor: 'gray.100',
             borderWidth: 1,
             borderRadius: 'md',
           },
@@ -281,11 +281,11 @@ export const uiTheme = {
           },
           _disabled: {
             bg: 'gray.50',
-            color: 'gray.300',
+            color: 'gray.100',
           },
         },
         tab: {
-          color: 'gray.300',
+          color: 'gray.100',
           borderRadius: 6,
           h: 8,
           px: 4,
@@ -311,6 +311,8 @@ export const uiTheme = {
       sizes: {
         md: {
           field: {
+            h: 8,
+            px: 3,
             borderRadius: 'md',
             fontSize: 'md',
           },
@@ -319,8 +321,6 @@ export const uiTheme = {
       variants: {
         outline: {
           field: {
-            px: 3,
-            h: 8,
             borderColor: 'gray.100',
             _hover: {
               borderColor: 'gray.100',

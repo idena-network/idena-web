@@ -249,9 +249,9 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
             <Textarea
               id="code"
               value={code}
-              borderColor="gray.300"
+              borderColor="gray.100"
               px={3}
-              pt="3/2"
+              pt={1.5}
               pb={2}
               isDisabled={mining || identity.state === IdentityStatus.Invite}
               minH={rem(50)}
@@ -265,6 +265,9 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
               }}
               _placeholder={{
                 color: 'muted',
+              }}
+              _hover={{
+                borderColor: 'gray.100',
               }}
               onChange={e => setCode(e.target.value)}
             />
@@ -479,7 +482,7 @@ export function ActivateMiningSwitch({isOnline, isDelegator, onShow}) {
       <Flex
         align="center"
         justify="space-between"
-        borderColor="gray.300"
+        borderColor="gray.100"
         borderWidth={1}
         rounded="md"
         h={8}
@@ -616,7 +619,7 @@ export function ActivateMiningDrawer({
               <Flex
                 borderTop="1px"
                 borderBottom="1px"
-                borderColor="gray.300"
+                borderColor="gray.100"
                 h={16}
                 alignItems="center"
                 justifyContent="space-between"
@@ -853,7 +856,7 @@ export function KillForm({isOpen, onClose}) {
         <Box
           alignSelf="stretch"
           borderTop="1px"
-          borderTopColor="gray.300"
+          borderTopColor="gray.100"
           mt="auto"
           pt={5}
           width="100%"

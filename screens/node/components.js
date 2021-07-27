@@ -159,7 +159,7 @@ export function BuySharedNodeForm({
         <Box
           alignSelf="stretch"
           borderTop="1px"
-          borderTopColor="gray.300"
+          borderTopColor="gray.100"
           mt="auto"
           pt={5}
           width="100%"

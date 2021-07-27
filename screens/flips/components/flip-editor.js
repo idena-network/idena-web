@@ -948,7 +948,7 @@ export default function FlipEditor({
                   onClick={() => setShowColorPicker(!showColorPicker)}
                 />
 
-                <Divider borderColor="gray.300" w={6} />
+                <Divider borderColor="gray.100" w={6} />
               </>
             )}
 
@@ -1017,7 +1017,7 @@ function FlipEditorToolbarDivider(props) {
   return (
     <Divider
       orientation="vertical"
-      borderColor="gray.300"
+      borderColor="gray.100"
       h={5}
       mx={0}
       {...props}

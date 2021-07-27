@@ -377,7 +377,7 @@ function ActionPanel() {
                   <Menu autoSelect={false} mr={1}>
                     <MenuButton
                       rounded="md"
-                      py="3/2"
+                      py={1.5}
                       px="2px"
                       mt="-6px"
                       _expanded={{bg: 'brandGray.500'}}

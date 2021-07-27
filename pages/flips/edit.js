@@ -222,7 +222,7 @@ export default function EditFlipPage() {
                               !isOffline && (
                                 <>
                                   <Divider
-                                    borderColor="gray.300"
+                                    borderColor="gray.100"
                                     mx={-10}
                                     mt={4}
                                     mb={6}

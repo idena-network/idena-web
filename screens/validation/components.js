@@ -1134,6 +1134,7 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
         color="brandGray.500"
         fontSize="md"
         rounded="lg"
+        w="auto"
       >
         <Stack isInline spacing={7} justify="center">
           <Stack

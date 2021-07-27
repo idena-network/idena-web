@@ -33,7 +33,7 @@ export function DnaAppUrl({url}) {
       spacing={3}
       color="muted"
       px={2}
-      py="3/2"
+      py={1.5}
       mt={16}
     >
       <LaptopIcon name="laptop" boxSize={5} />
