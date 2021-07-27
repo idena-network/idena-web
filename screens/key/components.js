@@ -4,15 +4,14 @@ import {useEffect, useState} from 'react'
 import {useQuery} from 'react-query'
 import {useTranslation} from 'react-i18next'
 import {ArrowUpIcon} from '@chakra-ui/icons'
-import {Label, SubHeading} from '../../shared/components'
+import {SubHeading} from '../../shared/components'
 import {
   useSettingsDispatch,
   useSettingsState,
 } from '../../shared/providers/settings-context'
 import theme from '../../shared/theme'
-import {Avatar, Input} from '../../shared/components/components'
+import {Avatar, FormLabel, Input} from '../../shared/components/components'
 import {
-  FlatButton,
   FlatButton2,
   PrimaryButton,
   SecondaryButton,
@@ -148,9 +147,9 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
           }}
           style={{width: '100%'}}
         >
-          <Label htmlFor="code" style={{color: 'white', fontSize: rem(13)}}>
+          <FormLabel htmlFor="code" style={{color: 'white', fontSize: rem(13)}}>
             {t('Invitation code')}
-          </Label>
+          </FormLabel>
           <Flex width="100%" style={{marginBottom: rem(20)}}>
             <Input
               id="code"

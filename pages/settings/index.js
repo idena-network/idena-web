@@ -4,7 +4,6 @@ import {useTranslation} from 'react-i18next'
 import {Flex as ChakraFlex, Text, useClipboard} from '@chakra-ui/react'
 import QRCode from 'qrcode.react'
 import {saveAs} from 'file-saver'
-import {Input, Label} from '../../shared/components'
 import theme, {rem} from '../../shared/theme'
 import Flex from '../../shared/components/flex'
 import SettingsLayout from './layout'
@@ -13,10 +12,11 @@ import {
   DialogBody,
   DialogFooter,
   DialogHeader,
+  FormLabel,
+  Input,
   PasswordInput,
 } from '../../shared/components/components'
 import {
-  FlatButton,
   FlatButton2,
   PrimaryButton,
   SecondaryButton,
@@ -91,9 +91,9 @@ function ExportPK() {
         }}
       >
         <Flex align="center">
-          <Label htmlFor="url" style={{width: 120}}>
+          <FormLabel htmlFor="url" style={{width: 100}}>
             {t('New password')}
-          </Label>
+          </FormLabel>
           <PasswordInput
             value={password}
             width={rem(300)}
@@ -106,7 +106,7 @@ function ExportPK() {
         </Flex>
         <Flex css={{marginTop: 10}}>
           <PrimaryButton
-            css={{marginLeft: 120, width: 100}}
+            css={{marginLeft: 110, width: 100}}
             type="submit"
             disabled={!password}
           >
@@ -126,11 +126,11 @@ function ExportPK() {
             <QRCode value={pk} />
           </ChakraFlex>
           <ChakraFlex justify="space-between">
-            <Label style={{fontSize: rem(13)}}>
+            <FormLabel style={{fontSize: rem(13)}}>
               Your encrypted private key
-            </Label>
+            </FormLabel>
             {hasCopied ? (
-              <Label style={{fontSize: rem(13)}}>Copied!</Label>
+              <FormLabel style={{fontSize: rem(13)}}>Copied!</FormLabel>
             ) : (
               <FlatButton2 onClick={onCopy} marginBottom={rem(10)}>
                 Copy

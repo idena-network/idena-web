@@ -4,8 +4,7 @@ import PropTypes from 'prop-types'
 import QRCode from 'qrcode.react'
 import {useTranslation} from 'react-i18next'
 import {Flex, FormControl, Heading, Stack, useClipboard} from '@chakra-ui/react'
-import theme, {rem} from '../../../shared/theme'
-import {Label} from '../../../shared/components'
+import {rem} from '../../../shared/theme'
 import {
   Drawer,
   DrawerBody,
@@ -13,7 +12,7 @@ import {
   FormLabel,
   Input,
 } from '../../../shared/components/components'
-import {FlatButton, FlatButton2} from '../../../shared/components/button'
+import {FlatButton2} from '../../../shared/components/button'
 import {SendOutIcon} from '../../../shared/components/icons'
 
 function ReceiveForm({isOpen, onClose, address}) {
@@ -49,7 +48,9 @@ function ReceiveForm({isOpen, onClose, address}) {
             <Flex justify="space-between">
               <FormLabel style={{fontSize: rem(13)}}>{t('Address')}</FormLabel>
               {hasCopied ? (
-                <Label style={{fontSize: rem(13)}}>{t('Copied!')}</Label>
+                <FormLabel style={{fontSize: rem(13)}}>
+                  {t('Copied!')}
+                </FormLabel>
               ) : (
                 <FlatButton2 onClick={onCopy} mb={2.5}>
                   {t('Copy')}

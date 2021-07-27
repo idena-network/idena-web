@@ -78,9 +78,6 @@ function WalletCard({
     setIsMenuOpen(false)
   })
 
-  const theme2 = useTheme()
-  console.log(theme2)
-
   const {t} = useTranslation()
 
   return (

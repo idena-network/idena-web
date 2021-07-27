@@ -5,13 +5,13 @@ import React, {useState} from 'react'
 import {FiChevronRight} from 'react-icons/fi'
 import Router from 'next/router'
 import theme, {rem} from '../theme'
-import {Label} from '.'
 import {
   Avatar,
   Dialog,
   DialogBody,
   DialogFooter,
   DialogHeader,
+  FormLabel,
   PasswordInput,
 } from './components'
 import {useAuthDispatch} from '../providers/auth-context'
@@ -90,7 +90,7 @@ function RestoreKey() {
               }
             }}
           >
-            <Label
+            <FormLabel
               htmlFor="password"
               style={{
                 color: 'white',
@@ -98,7 +98,7 @@ function RestoreKey() {
               }}
             >
               Password
-            </Label>
+            </FormLabel>
             <Flex width="100%">
               <PasswordInput
                 width="100%"

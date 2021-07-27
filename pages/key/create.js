@@ -7,13 +7,13 @@ import {useRouter} from 'next/router'
 import QRCode from 'qrcode.react'
 import {saveAs} from 'file-saver'
 import {useTranslation} from 'react-i18next'
-import {Label} from '../../shared/components'
 import {
   Avatar,
   Dialog,
   DialogBody,
   DialogFooter,
   DialogHeader,
+  FormLabel,
   Input,
   PasswordInput,
 } from '../../shared/components/components'
@@ -181,12 +181,12 @@ export default function CreateKey() {
                 }}
                 style={{width: '100%'}}
               >
-                <Label
+                <FormLabel
                   htmlFor="key"
                   style={{color: 'white', fontSize: rem(13)}}
                 >
                   {t('Password')}
-                </Label>
+                </FormLabel>
                 <Flex
                   width="100%"
                   style={{marginBottom: rem(20), position: 'relative'}}
@@ -206,7 +206,7 @@ export default function CreateKey() {
                     placeholder={t('Enter password')}
                   />
                 </Flex>
-                <Label
+                <FormLabel
                   htmlFor="key"
                   style={{
                     color: 'white',
@@ -214,7 +214,7 @@ export default function CreateKey() {
                   }}
                 >
                   {t('Confirm password')}
-                </Label>
+                </FormLabel>
                 <Flex width="100%" style={{position: 'relative'}}>
                   <PasswordInput
                     id="passwordConfirm"
@@ -314,13 +314,13 @@ export default function CreateKey() {
                 style={{width: '100%'}}
               >
                 <Flex justify="space-between">
-                  <Label style={{color: 'white', fontSize: rem(13)}}>
+                  <FormLabel style={{color: 'white', fontSize: rem(13)}}>
                     {t('Your encrypted private key')}
-                  </Label>
+                  </FormLabel>
                   {hasCopied ? (
-                    <Label style={{color: 'white', fontSize: rem(13)}}>
+                    <FormLabel style={{color: 'white', fontSize: rem(13)}}>
                       {t('Copied!')}
-                    </Label>
+                    </FormLabel>
                   ) : (
                     <FlatButton2 onClick={onCopy} marginBottom={rem(10)}>
                       {t('Copy')}
