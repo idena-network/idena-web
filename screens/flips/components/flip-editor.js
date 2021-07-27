@@ -11,6 +11,7 @@ import {
   IconButton as ChakraIconButton,
   Divider,
   useToast,
+  Portal,
 } from '@chakra-ui/react'
 import {SearchIcon} from '@chakra-ui/icons'
 import {useNotificationDispatch} from '../../../shared/providers/notification-context'
@@ -576,6 +577,9 @@ export default function FlipEditor({
     }
   }, [idx, showImageSearch, visible])
 
+  const leftArrowPortalRef = React.useRef()
+  const rightArrowPortalRef = React.useRef()
+
   return (
     <div
       style={{
@@ -684,23 +688,29 @@ export default function FlipEditor({
                 }}
               />
 
-              <ArrowHint
-                visible={showArrowHint}
-                hint={t('Start from uploading an image')}
-                leftHanded
-              />
+              {showArrowHint && (
+                <Portal containerRef={leftArrowPortalRef}>
+                  <ArrowHint
+                    hint={t('Start from uploading an image')}
+                    leftHanded
+                  />
+                </Portal>
+              )}
 
-              <FlipEditorIcon
-                tooltip={t('Select file')}
-                icon={<FolderIcon />}
-                onClick={() => {
-                  if (rightMenuPanel === RightMenu.Erase) {
-                    setRightMenuPanel(RightMenu.None)
-                  }
-                  setInsertImageMode(INSERT_BACKGROUND_IMAGE)
-                  uploaderRef.current.click()
-                }}
-              />
+              <Box ref={leftArrowPortalRef}>
+                <FlipEditorIcon
+                  tooltip={t('Select file')}
+                  icon={<FolderIcon />}
+                  onClick={() => {
+                    if (rightMenuPanel === RightMenu.Erase) {
+                      setRightMenuPanel(RightMenu.None)
+                    }
+                    setInsertImageMode(INSERT_BACKGROUND_IMAGE)
+                    uploaderRef.current.click()
+                  }}
+                />
+              </Box>
+
               <VisuallyHidden>
                 <input
                   id="file"
@@ -754,24 +764,30 @@ export default function FlipEditor({
                 }}
               />
 
-              <ArrowHint visible={showArrowHint} hint={t('Or start drawing')} />
+              {showArrowHint && (
+                <Portal containerRef={rightArrowPortalRef}>
+                  <ArrowHint hint={t('Or start drawing')} />
+                </Portal>
+              )}
 
-              <FlipEditorIcon
-                tooltip={t('Draw')}
-                isActive={rightMenuPanel === RightMenu.FreeDrawing}
-                icon={<DrawIcon />}
-                onClick={() => {
-                  setShowArrowHint(false)
-                  const editor = editors[idx]
-                  if (editor.getDrawingMode() === 'FREE_DRAWING') {
-                    setRightMenuPanel(RightMenu.None)
-                    editor.stopDrawingMode()
-                  } else {
-                    setRightMenuPanel(RightMenu.FreeDrawing)
-                    editor.startDrawingMode('FREE_DRAWING')
-                  }
-                }}
-              />
+              <ChakraBox ref={rightArrowPortalRef}>
+                <FlipEditorIcon
+                  tooltip={t('Draw')}
+                  isActive={rightMenuPanel === RightMenu.FreeDrawing}
+                  icon={<DrawIcon />}
+                  onClick={() => {
+                    setShowArrowHint(false)
+                    const editor = editors[idx]
+                    if (editor.getDrawingMode() === 'FREE_DRAWING') {
+                      setRightMenuPanel(RightMenu.None)
+                      editor.stopDrawingMode()
+                    } else {
+                      setRightMenuPanel(RightMenu.FreeDrawing)
+                      editor.startDrawingMode('FREE_DRAWING')
+                    }
+                  }}
+                />
+              </ChakraBox>
 
               <FlipEditorIcon
                 isDisabled={!activeObjectUrl}
