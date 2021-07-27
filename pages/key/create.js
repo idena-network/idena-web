@@ -20,7 +20,7 @@ import {
 import {SubHeading} from '../../shared/components/typo'
 import theme from '../../shared/theme'
 import {
-  FlatButton,
+  FlatButton2,
   PrimaryButton,
   SecondaryButton,
 } from '../../shared/components/button'
@@ -123,17 +123,9 @@ export default function CreateKey() {
               </PrimaryButton>
 
               <Flex justifyContent="center">
-                <FlatButton
-                  color={theme.colors.primary}
-                  onClick={() => router.push('/')}
-                  style={{
-                    marginTop: rem(20),
-                    fontSize: rem(13),
-                    textAlign: 'center',
-                  }}
-                >
+                <FlatButton2 onClick={() => router.push('/')} mt={5}>
                   {t('Cancel')}
-                </FlatButton>
+                </FlatButton2>
               </Flex>
             </Flex>
             <style jsx>{`
@@ -245,20 +237,17 @@ export default function CreateKey() {
                   }}
                   justify="space-between"
                 >
-                  <FlatButton
+                  <FlatButton2
                     color="white"
+                    _hover={{color: 'xwhite.080'}}
                     onClick={() => setStep(steps.AVATAR)}
-                    style={{
-                      fontSize: rem(13),
-                      textAlign: 'center',
-                    }}
                   >
                     <ArrowUpIcon
                       boxSize={5}
                       style={{transform: 'rotate(-90deg)', marginTop: -3}}
                     ></ArrowUpIcon>
                     {t('Back')}
-                  </FlatButton>
+                  </FlatButton2>
                   <PrimaryButton type="submit">{t('Next')}</PrimaryButton>
                 </Flex>
                 {error && (
@@ -333,17 +322,9 @@ export default function CreateKey() {
                       {t('Copied!')}
                     </Label>
                   ) : (
-                    <FlatButton
-                      color={theme.colors.primary}
-                      onClick={onCopy}
-                      style={{
-                        fontSize: rem(13),
-                        marginBottom: rem(10),
-                        textAlign: 'center',
-                      }}
-                    >
+                    <FlatButton2 onClick={onCopy} marginBottom={rem(10)}>
                       {t('Copy')}
-                    </FlatButton>
+                    </FlatButton2>
                   )}
                 </Flex>
                 <Flex
@@ -396,15 +377,12 @@ export default function CreateKey() {
                   }}
                   justify="space-between"
                 >
-                  <FlatButton
+                  <FlatButton2
                     color="white"
+                    _hover={{color: 'xwhite.080'}}
                     onClick={() => {
                       setError('')
                       setStep(steps.PASSWORD)
-                    }}
-                    style={{
-                      fontSize: rem(13),
-                      textAlign: 'center',
                     }}
                   >
                     <ArrowUpIcon
@@ -412,7 +390,7 @@ export default function CreateKey() {
                       style={{transform: 'rotate(-90deg)', marginTop: -3}}
                     ></ArrowUpIcon>
                     {t('Back')}
-                  </FlatButton>
+                  </FlatButton2>
                   <Flex>
                     <SecondaryButton
                       type="button"
@@ -506,17 +484,9 @@ export default function CreateKey() {
                 {t('Sign in')}
               </PrimaryButton>
               <Flex justifyContent="center">
-                <FlatButton
-                  color={theme.colors.primary}
-                  onClick={() => setStep(steps.BACKUP)}
-                  style={{
-                    marginTop: rem(20),
-                    fontSize: rem(13),
-                    textAlign: 'center',
-                  }}
-                >
+                <FlatButton2 onClick={() => setStep(steps.BACKUP)} mt={5}>
                   {t('Back')}
-                </FlatButton>
+                </FlatButton2>
               </Flex>
             </Flex>
           </AuthLayout.Small>

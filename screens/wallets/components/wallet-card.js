@@ -4,11 +4,17 @@ import {MdMoreVert} from 'react-icons/md'
 
 import {margin, position, borderRadius} from 'polished'
 import {useTranslation} from 'react-i18next'
+import {Icon} from '@chakra-ui/react'
+import {useTheme} from '@emotion/react'
 import useClickOutside from '../../../shared/hooks/use-click-outside'
 import {Box, Link, Absolute} from '../../../shared/components'
 import Flex from '../../../shared/components/flex'
 import theme, {rem} from '../../../shared/theme'
-import {FlatButton} from '../../../shared/components/button'
+import {
+  FlatButton,
+  FlatButton2,
+  IconButton2,
+} from '../../../shared/components/button'
 
 import useHover from '../../../shared/hooks/use-hover'
 import {Skeleton} from '../../../shared/components/components'
@@ -30,43 +36,28 @@ const WalletMenu = forwardRef((props, ref) => (
   />
 ))
 
-function WalletMenuItem({href, onClick, icon, danger, disabled, ...props}) {
-  const [hoverRef, isHovered] = useHover()
+function WalletMenuItem({icon, ...props}) {
+  const chakraTheme = useTheme()
   return (
-    <Box
-      ref={hoverRef}
-      px={theme.spacings.normal}
-      py={theme.spacings.small}
-      bg={isHovered ? theme.colors.gray : ''}
-    >
-      <Flex align="center" onClick={disabled ? null : onClick}>
-        {React.cloneElement(icon, {
-          style: {
-            marginRight: theme.spacings.normal,
-            color: danger ? theme.colors.danger : theme.colors.primary,
-            opacity: disabled ? 0.5 : 1,
-          },
-        })}
-        {href ? (
-          <Link href={href} {...props} />
-        ) : (
-          <FlatButton
-            bg={isHovered ? theme.colors.gray : ''}
-            disabled={disabled}
-            {...props}
-          />
-        )}
-      </Flex>
-    </Box>
+    <IconButton2
+      w="100%"
+      color="brandGray.080"
+      icon={React.cloneElement(icon, {
+        style: {
+          color: chakraTheme.colors.brandBlue['500'],
+          marginRight: rem(10),
+        },
+      })}
+      _hover={{bg: 'gray.50'}}
+      _active={{bg: 'gray.50'}}
+      {...props}
+    />
   )
 }
 
 WalletMenuItem.propTypes = {
-  href: PropTypes.string,
   onClick: PropTypes.func,
   icon: PropTypes.node,
-  danger: PropTypes.bool,
-  hovered: PropTypes.bool,
   disabled: PropTypes.bool,
 }
 
@@ -86,6 +77,9 @@ function WalletCard({
   useClickOutside(menuRef, () => {
     setIsMenuOpen(false)
   })
+
+  const theme2 = useTheme()
+  console.log(theme2)
 
   const {t} = useTranslation()
 
@@ -134,7 +128,7 @@ function WalletCard({
                           setIsMenuOpen(false)
                           onSend(wallet)
                         }}
-                        disabled={isStake}
+                        isDisabled={isStake}
                         icon={<i className="icon icon--withdraw" />}
                       >
                         {t('Send')}
@@ -144,7 +138,7 @@ function WalletCard({
                           setIsMenuOpen(false)
                           onReceive(wallet)
                         }}
-                        disabled={isStake}
+                        isDisabled={isStake}
                         icon={<i className="icon icon--deposit" />}
                       >
                         {t('Receive')}

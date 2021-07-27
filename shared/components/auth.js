@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import {Button, Flex, Text} from '@chakra-ui/react'
+import {Flex, Text} from '@chakra-ui/react'
 import {margin} from 'polished'
 import React, {useState} from 'react'
 import {FiChevronRight} from 'react-icons/fi'
@@ -16,7 +16,7 @@ import {
 } from './components'
 import {useAuthDispatch} from '../providers/auth-context'
 import {useSettingsState} from '../providers/settings-context'
-import {FlatButton, FlatButton2, PrimaryButton, SecondaryButton} from './button'
+import {FlatButton2, PrimaryButton, SecondaryButton} from './button'
 import {SubHeading} from './typo'
 import {useDnaUrl} from '../hooks/use-dna-link'
 import {DnaAppUrl} from '../../screens/dna/components'
@@ -53,7 +53,6 @@ function RestoreKey() {
 
             <Flex justify="space-between">
               <FlatButton2
-                color={theme.colors.primary}
                 onClick={() => showWarning(true)}
                 style={{
                   marginBottom: rem(19),
@@ -201,8 +200,7 @@ function Init() {
           </PrimaryButton>
 
           <Flex justifyContent="center">
-            <FlatButton
-              color={theme.colors.primary}
+            <FlatButton2
               onClick={() => Router.push('/key/import')}
               style={{
                 marginTop: rem(20),
@@ -211,7 +209,7 @@ function Init() {
               }}
             >
               Sign In
-            </FlatButton>
+            </FlatButton2>
           </Flex>
         </Flex>
       </AuthLayout.Small>

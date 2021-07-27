@@ -13,6 +13,7 @@ import theme from '../../shared/theme'
 import {Avatar, Input} from '../../shared/components/components'
 import {
   FlatButton,
+  FlatButton2,
   PrimaryButton,
   SecondaryButton,
 } from '../../shared/components/button'
@@ -168,21 +169,13 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
             }}
             justify="space-between"
           >
-            <FlatButton
-              color="white"
-              onClick={onBack}
-              style={{
-                fontSize: rem(13),
-                textAlign: 'center',
-              }}
-              disabled={waiting}
-            >
+            <FlatButton2 color="white" onClick={onBack} disabled={waiting}>
               <ArrowUpIcon
                 boxSize={5}
                 style={{transform: 'rotate(-90deg)', marginTop: -3}}
               />
               {t('Back')}
-            </FlatButton>
+            </FlatButton2>
 
             <Flex>
               {onSkip && (

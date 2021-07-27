@@ -142,6 +142,7 @@ export const IconButton2 = React.forwardRef((props, ref) => (
     fontSize="md"
     variant="outline"
     colorScheme="blue"
+    fontWeight={500}
     leftIcon={props.icon}
     color="blue.500"
     border="none"
@@ -162,13 +163,14 @@ export function FlatButton2({children, ...props}) {
       size="sm"
       fontSize="md"
       variant="link"
-      colorScheme="blue"
-      color="blue.500"
+      colorScheme="brandBlue"
+      color="brandBlue.500"
       fontWeight={400}
       border="none"
       borderColor="transparent"
       borderRadius="md"
       justifyContent="flex-start"
+      _hover={{color: 'brandBlue.700'}}
       {...props}
     >
       {children}

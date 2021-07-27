@@ -9,7 +9,7 @@ import {
   NotificationType,
   NOTIFICATION_DELAY,
 } from '../providers/notification-context'
-import {FlatButton2, PrimaryButton} from './button'
+import {FlatButton2} from './button'
 import {Text} from './typo'
 
 function Notifications() {

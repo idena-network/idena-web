@@ -13,7 +13,7 @@ import {
   FormLabel,
   Input,
 } from '../../../shared/components/components'
-import {FlatButton} from '../../../shared/components/button'
+import {FlatButton, FlatButton2} from '../../../shared/components/button'
 import {SendOutIcon} from '../../../shared/components/icons'
 
 function ReceiveForm({isOpen, onClose, address}) {
@@ -51,17 +51,9 @@ function ReceiveForm({isOpen, onClose, address}) {
               {hasCopied ? (
                 <Label style={{fontSize: rem(13)}}>{t('Copied!')}</Label>
               ) : (
-                <FlatButton
-                  color={theme.colors.primary}
-                  onClick={onCopy}
-                  style={{
-                    fontSize: rem(13),
-                    marginBottom: rem(10),
-                    textAlign: 'center',
-                  }}
-                >
+                <FlatButton2 onClick={onCopy} mb={2.5}>
                   {t('Copy')}
-                </FlatButton>
+                </FlatButton2>
               )}
             </Flex>
             <Input value={address} isDisabled></Input>

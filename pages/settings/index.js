@@ -17,6 +17,7 @@ import {
 } from '../../shared/components/components'
 import {
   FlatButton,
+  FlatButton2,
   PrimaryButton,
   SecondaryButton,
 } from '../../shared/components/button'
@@ -131,17 +132,9 @@ function ExportPK() {
             {hasCopied ? (
               <Label style={{fontSize: rem(13)}}>Copied!</Label>
             ) : (
-              <FlatButton
-                color={theme.colors.primary}
-                onClick={onCopy}
-                style={{
-                  fontSize: rem(13),
-                  marginBottom: rem(10),
-                  textAlign: 'center',
-                }}
-              >
+              <FlatButton2 onClick={onCopy} marginBottom={rem(10)}>
                 Copy
-              </FlatButton>
+              </FlatButton2>
             )}
           </ChakraFlex>
           <ChakraFlex
