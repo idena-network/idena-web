@@ -3,8 +3,12 @@ import {rem, margin} from 'polished'
 import {useState} from 'react'
 import Router from 'next/router'
 import {useTranslation} from 'react-i18next'
-import {Label, SubHeading} from '../../shared/components'
-import {Input, PasswordInput} from '../../shared/components/components'
+import {SubHeading} from '../../shared/components'
+import {
+  FormLabel,
+  Input,
+  PasswordInput,
+} from '../../shared/components/components'
 import {useAuthDispatch} from '../../shared/providers/auth-context'
 import theme from '../../shared/theme'
 import {ActivateInvite} from '../../screens/key/components'
@@ -92,12 +96,12 @@ export default function ImportKey() {
                 }}
                 style={{width: '100%'}}
               >
-                <Label
+                <FormLabel
                   htmlFor="key"
                   style={{color: 'white', fontSize: rem(13)}}
                 >
                   {t('Encrypted private key')}
-                </Label>
+                </FormLabel>
                 <Flex width="100%" style={{marginBottom: rem(20)}}>
                   <Input
                     id="key"
@@ -108,7 +112,7 @@ export default function ImportKey() {
                     placeholder={t('Enter your private key backup')}
                   />
                 </Flex>
-                <Label
+                <FormLabel
                   htmlFor="key"
                   style={{
                     color: 'white',
@@ -116,7 +120,7 @@ export default function ImportKey() {
                   }}
                 >
                   {t('Password')}
-                </Label>
+                </FormLabel>
                 <Flex width="100%">
                   <PasswordInput
                     value={state.password}

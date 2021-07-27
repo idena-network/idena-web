@@ -14,7 +14,7 @@ import {
   TableHint,
 } from '../../../shared/components/table'
 import {fetchApiTransactions} from '../../../shared/api/wallet'
-import {FlatButton, FlatButton2} from '../../../shared/components/button'
+import {FlatButton} from '../../../shared/components/button'
 import {Skeleton} from '../../../shared/components/components'
 import {HASH_IN_MEMPOOL} from '../../../shared/hooks/use-tx'
 
@@ -259,13 +259,13 @@ function WalletTransactions({address}) {
       )}
       {!isLoading && hasNextPage && (
         <Flex justify="center" mt={2}>
-          <FlatButton2
+          <FlatButton
             mb={2.5}
             onClick={() => fetchNextPage()}
             disabled={isFetchingNextPage}
           >
             {isFetchingNextPage ? t('Loading more...') : t('Load More')}
-          </FlatButton2>
+          </FlatButton>
         </Flex>
       )}
 

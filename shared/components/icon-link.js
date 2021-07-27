@@ -1,10 +1,10 @@
 import React from 'react'
 import Link from 'next/link'
 import PropTypes from 'prop-types'
-import {IconButton2} from './button'
+import {IconButton} from './button'
 
 function IconLink({href, icon, ...props}) {
-  const iconButton = <IconButton2 icon={icon} {...props} />
+  const iconButton = <IconButton icon={icon} {...props} />
   return href ? <Link href={href}>{iconButton}</Link> : iconButton
 }
 

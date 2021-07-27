@@ -12,7 +12,7 @@ import {CopyIcon, DeleteIcon} from '@chakra-ui/icons'
 import useClickOutside from '../../../shared/hooks/use-click-outside'
 import {Menu, MenuItem} from '../../../shared/components/menu'
 
-import {FlatButton2, IconButton2} from '../../../shared/components/button'
+import {FlatButton, IconButton} from '../../../shared/components/button'
 import {Box, Absolute} from '../../../shared/components'
 import Divider from '../../../shared/components/divider'
 import theme from '../../../shared/theme'
@@ -85,7 +85,7 @@ export function ColorPicker({visible, color, onChange}) {
                     fontSize: theme.fontSizes.large,
                   }
                   return (
-                    <IconButton2
+                    <IconButton
                       key={`${j}${j}`}
                       icon={
                         c === 'ffffff' ? (
@@ -99,7 +99,7 @@ export function ColorPicker({visible, color, onChange}) {
                           onChange(c)
                         }
                       }}
-                    ></IconButton2>
+                    ></IconButton>
                   )
                 })}
               </Flex>
@@ -120,7 +120,7 @@ ColorPicker.propTypes = {
 export function ArrowHint({hint, leftHanded}) {
   return (
     <ChakraBox position="relative">
-      <ChakraBox position="absolute" top={-105} zIndex="tooltip">
+      <ChakraBox position="absolute" top={-105} zIndex={90}>
         {leftHanded && (
           <div>
             <div
@@ -458,19 +458,19 @@ export function ApplyChangesBottomPanel({label, onDone, onCancel}) {
     >
       {label}
       <Flex align="center">
-        <FlatButton2 onClick={() => onCancel()} mr={2}>
+        <FlatButton onClick={() => onCancel()} mr={2}>
           {t('Cancel')}
-        </FlatButton2>
+        </FlatButton>
 
         <Divider vertical />
 
-        <FlatButton2
+        <FlatButton
           style={{fontWeight: theme.fontWeights.bold}}
           onClick={() => onDone()}
           ml={2}
         >
           {t('Done')}
-        </FlatButton2>
+        </FlatButton>
       </Flex>
     </Flex>
   )

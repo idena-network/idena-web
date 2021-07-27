@@ -12,7 +12,7 @@ import {
   FormLabel,
   Input,
 } from '../../../shared/components/components'
-import {FlatButton2} from '../../../shared/components/button'
+import {FlatButton} from '../../../shared/components/button'
 import {SendOutIcon} from '../../../shared/components/icons'
 
 function ReceiveForm({isOpen, onClose, address}) {
@@ -52,9 +52,9 @@ function ReceiveForm({isOpen, onClose, address}) {
                   {t('Copied!')}
                 </FormLabel>
               ) : (
-                <FlatButton2 onClick={onCopy} mb={2.5}>
+                <FlatButton onClick={onCopy} mb={2.5}>
                   {t('Copy')}
-                </FlatButton2>
+                </FlatButton>
               )}
             </Flex>
             <Input value={address} isDisabled></Input>

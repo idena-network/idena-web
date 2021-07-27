@@ -38,7 +38,7 @@ import {useIdentity} from '../shared/providers/identity-context'
 import {useEpoch} from '../shared/providers/epoch-context'
 import {fetchBalance} from '../shared/api/wallet'
 import {useAuthState} from '../shared/providers/auth-context'
-import {IconButton2, PrimaryButton} from '../shared/components/button'
+import {IconButton, PrimaryButton} from '../shared/components/button'
 import {validDnaUrl} from '../shared/utils/dna-link'
 import {DnaSignInDialog} from '../screens/dna/containers'
 import {Toast} from '../shared/components/components'
@@ -349,26 +349,26 @@ export default function ProfilePage() {
               </OnboardingPopover>
             </Box>
             <Stack spacing={1} align="flex-start">
-              <IconButton2
+              <IconButton
                 onClick={() => router.push('/flips/new')}
                 icon={<PhotoIcon boxSize={5} />}
               >
                 {t('New flip')}
-              </IconButton2>
-              <IconButton2
+              </IconButton>
+              <IconButton
                 onClick={() => router.push('/contacts?new')}
                 isDisabled={!canInvite}
                 icon={<AddUserIcon boxSize={5} />}
               >
                 {t('Invite')}
-              </IconButton2>
-              <IconButton2
+              </IconButton>
+              <IconButton
                 isDisabled={!canTerminate}
                 icon={<DeleteIcon boxSize={5} />}
                 onClick={onOpenKillForm}
               >
                 {t('Terminate')}
-              </IconButton2>
+              </IconButton>
             </Stack>
           </Stack>
         </Stack>

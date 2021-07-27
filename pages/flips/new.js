@@ -34,7 +34,7 @@ import {
 import {Notification} from '../../shared/components/notifications'
 import {Step} from '../../screens/flips/types'
 import {
-  IconButton2,
+  IconButton,
   SecondaryButton,
   PrimaryButton,
 } from '../../shared/components/button'
@@ -265,7 +265,7 @@ export default function NewFlipPage() {
                       {isOffline && <CommunityTranslationUnavailable />}
                     </Box>
                     <FlipStoryAside>
-                      <IconButton2
+                      <IconButton
                         icon={<RefreshIcon boxSize={5} />}
                         isDisabled={availableKeywords.length < 2}
                         onClick={() => send('CHANGE_KEYWORDS')}
@@ -274,13 +274,13 @@ export default function NewFlipPage() {
                         {availableKeywords.length > 1
                           ? `(#${keywordPairId + 1})`
                           : null}
-                      </IconButton2>
-                      <IconButton2
+                      </IconButton>
+                      <IconButton
                         icon={<InfoIcon boxSize={5} />}
                         onClick={onOpenBadFlipDialog}
                       >
                         {t('What is a bad flip')}
-                      </IconButton2>
+                      </IconButton>
                     </FlipStoryAside>
                   </FlipStepBody>
                 </FlipStoryStep>

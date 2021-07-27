@@ -17,7 +17,7 @@ import {
   PasswordInput,
 } from '../../shared/components/components'
 import {
-  FlatButton2,
+  FlatButton,
   PrimaryButton,
   SecondaryButton,
 } from '../../shared/components/button'
@@ -132,9 +132,9 @@ function ExportPK() {
             {hasCopied ? (
               <FormLabel style={{fontSize: rem(13)}}>Copied!</FormLabel>
             ) : (
-              <FlatButton2 onClick={onCopy} marginBottom={rem(10)}>
+              <FlatButton onClick={onCopy} marginBottom={rem(10)}>
                 Copy
-              </FlatButton2>
+              </FlatButton>
             )}
           </ChakraFlex>
           <ChakraFlex

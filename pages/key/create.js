@@ -20,7 +20,7 @@ import {
 import {SubHeading} from '../../shared/components/typo'
 import theme from '../../shared/theme'
 import {
-  FlatButton2,
+  FlatButton,
   PrimaryButton,
   SecondaryButton,
 } from '../../shared/components/button'
@@ -123,9 +123,9 @@ export default function CreateKey() {
               </PrimaryButton>
 
               <Flex justifyContent="center">
-                <FlatButton2 onClick={() => router.push('/')} mt={5}>
+                <FlatButton onClick={() => router.push('/')} mt={5}>
                   {t('Cancel')}
-                </FlatButton2>
+                </FlatButton>
               </Flex>
             </Flex>
             <style jsx>{`
@@ -237,7 +237,7 @@ export default function CreateKey() {
                   }}
                   justify="space-between"
                 >
-                  <FlatButton2
+                  <FlatButton
                     color="white"
                     _hover={{color: 'xwhite.080'}}
                     onClick={() => setStep(steps.AVATAR)}
@@ -247,7 +247,7 @@ export default function CreateKey() {
                       style={{transform: 'rotate(-90deg)', marginTop: -3}}
                     ></ArrowUpIcon>
                     {t('Back')}
-                  </FlatButton2>
+                  </FlatButton>
                   <PrimaryButton type="submit">{t('Next')}</PrimaryButton>
                 </Flex>
                 {error && (
@@ -322,9 +322,9 @@ export default function CreateKey() {
                       {t('Copied!')}
                     </FormLabel>
                   ) : (
-                    <FlatButton2 onClick={onCopy} marginBottom={rem(10)}>
+                    <FlatButton onClick={onCopy} marginBottom={rem(10)}>
                       {t('Copy')}
-                    </FlatButton2>
+                    </FlatButton>
                   )}
                 </Flex>
                 <Flex
@@ -377,7 +377,7 @@ export default function CreateKey() {
                   }}
                   justify="space-between"
                 >
-                  <FlatButton2
+                  <FlatButton
                     color="white"
                     _hover={{color: 'xwhite.080'}}
                     onClick={() => {
@@ -390,7 +390,7 @@ export default function CreateKey() {
                       style={{transform: 'rotate(-90deg)', marginTop: -3}}
                     ></ArrowUpIcon>
                     {t('Back')}
-                  </FlatButton2>
+                  </FlatButton>
                   <Flex>
                     <SecondaryButton
                       type="button"
@@ -484,9 +484,9 @@ export default function CreateKey() {
                 {t('Sign in')}
               </PrimaryButton>
               <Flex justifyContent="center">
-                <FlatButton2 onClick={() => setStep(steps.BACKUP)} mt={5}>
+                <FlatButton onClick={() => setStep(steps.BACKUP)} mt={5}>
                   {t('Back')}
-                </FlatButton2>
+                </FlatButton>
               </Flex>
             </Flex>
           </AuthLayout.Small>

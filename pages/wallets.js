@@ -18,7 +18,7 @@ import Layout from '../shared/components/layout'
 import {useAuthState} from '../shared/providers/auth-context'
 import {fetchBalance} from '../shared/api/wallet'
 import WalletCard from '../screens/wallets/components/wallet-card'
-import {IconButton2} from '../shared/components/button'
+import {IconButton} from '../shared/components/button'
 
 export default function Index() {
   const {t} = useTranslation()
@@ -53,22 +53,22 @@ export default function Index() {
             </div>
             <div>
               <Actions>
-                <IconButton2
+                <IconButton
                   icon={<i className="icon icon--withdraw" />}
                   onClick={() => {
                     setIsTransferFormOpen(!isTransferFormOpen)
                   }}
                 >
                   {t('Send')}
-                </IconButton2>
-                <IconButton2
+                </IconButton>
+                <IconButton
                   icon={<i className="icon icon--deposit" />}
                   onClick={() => {
                     setIsReceiveFormOpen(!isReceiveFormOpen)
                   }}
                 >
                   {t('Receive')}
-                </IconButton2>
+                </IconButton>
               </Actions>
             </div>
           </Flex>

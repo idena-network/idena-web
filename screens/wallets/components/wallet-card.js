@@ -4,19 +4,13 @@ import {MdMoreVert} from 'react-icons/md'
 
 import {margin, position, borderRadius} from 'polished'
 import {useTranslation} from 'react-i18next'
-import {Icon} from '@chakra-ui/react'
 import {useTheme} from '@emotion/react'
 import useClickOutside from '../../../shared/hooks/use-click-outside'
-import {Box, Link, Absolute} from '../../../shared/components'
+import {Box, Absolute} from '../../../shared/components'
 import Flex from '../../../shared/components/flex'
 import theme, {rem} from '../../../shared/theme'
-import {
-  FlatButton,
-  FlatButton2,
-  IconButton2,
-} from '../../../shared/components/button'
+import {IconButton} from '../../../shared/components/button'
 
-import useHover from '../../../shared/hooks/use-hover'
 import {Skeleton} from '../../../shared/components/components'
 
 // eslint-disable-next-line react/display-name
@@ -39,7 +33,7 @@ const WalletMenu = forwardRef((props, ref) => (
 function WalletMenuItem({icon, ...props}) {
   const chakraTheme = useTheme()
   return (
-    <IconButton2
+    <IconButton
       w="100%"
       color="brandGray.080"
       icon={React.cloneElement(icon, {

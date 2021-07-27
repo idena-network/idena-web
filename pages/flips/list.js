@@ -12,6 +12,7 @@ import {
   PopoverTrigger,
   Stack,
   Text,
+  Button,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {Page, PageTitle} from '../../screens/app/components'
@@ -49,7 +50,6 @@ import {
   OnboardingPopoverContentIconRow,
 } from '../../shared/components/onboarding'
 import {eitherState} from '../../shared/utils/utils'
-import {TabButton} from '../../shared/components/button'
 import {PlusSolidIcon} from '../../shared/components/icons'
 import IconLink from '../../shared/components/icon-link'
 
@@ -154,24 +154,27 @@ export default function FlipListPage() {
         <PageTitle>{t('My Flips')}</PageTitle>
         <Flex justify="space-between" align="center" alignSelf="stretch" mb={8}>
           <Stack spacing={2} isInline>
-            <TabButton
+            <Button
+              variant="tab"
               onClick={() => send('FILTER', {filter: FlipFilterType.Active})}
               isActive={filter === FlipFilterType.Active}
             >
               {t('Active')}
-            </TabButton>
-            <TabButton
+            </Button>
+            <Button
+              variant="tab"
               onClick={() => send('FILTER', {filter: FlipFilterType.Draft})}
               isActive={filter === FlipFilterType.Draft}
             >
               {t('Drafts')}
-            </TabButton>
-            <TabButton
+            </Button>
+            <Button
+              variant="tab"
               onClick={() => send('FILTER', {filter: FlipFilterType.Archived})}
               isActive={filter === FlipFilterType.Archived}
             >
               {t('Archived')}
-            </TabButton>
+            </Button>
           </Stack>
           <Box alignSelf="end">
             <OnboardingPopover

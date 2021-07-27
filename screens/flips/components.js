@@ -18,7 +18,7 @@ import {
   AspectRatio,
   Divider,
   CloseButton,
-  IconButton,
+  IconButton as ChakraIconButton,
   FormControl,
   Input,
   Textarea,
@@ -39,7 +39,7 @@ import FlipEditor from './components/flip-editor'
 import {Step} from './types'
 import {formatKeywords} from './utils'
 import {PageTitle} from '../app/components'
-import {PrimaryButton, IconButton2} from '../../shared/components/button'
+import {PrimaryButton, IconButton} from '../../shared/components/button'
 import {rem} from '../../shared/theme'
 import {capitalize} from '../../shared/utils/string'
 import {reorder} from '../../shared/utils/arr'
@@ -564,13 +564,13 @@ export function FlipKeywordTranslationSwitch({
 
       <Stack isInline spacing={1} align="center">
         {hasBothTranslations && (
-          <IconButton2
+          <IconButton
             icon={<SwitchIcon boxSize={5} />}
             _hover={{background: 'transparent'}}
             onClick={onSwitchLocale}
           >
             {showTranslation ? 'EN' : (locale || '').toUpperCase()}
-          </IconButton2>
+          </IconButton>
         )}
         {showTranslation || (
           <>
@@ -582,13 +582,13 @@ export function FlipKeywordTranslationSwitch({
                 h={rem(24)}
               />
             ) : null}
-            <IconButton2
+            <IconButton
               icon={<GtranslateIcon boxSize={5} />}
               _hover={{background: 'transparent'}}
               onClick={translate}
             >
               Google Translate
-            </IconButton2>
+            </IconButton>
           </>
         )}
       </Stack>
@@ -832,12 +832,12 @@ export function FlipShuffleStep({
           </FlipImageList>
         </Stack>
         <Stack spacing={1}>
-          <IconButton2 icon={<CycleIcon boxSize={5} />} onClick={onShuffle}>
+          <IconButton icon={<CycleIcon boxSize={5} />} onClick={onShuffle}>
             {t('Shuffle images')}
-          </IconButton2>
-          <IconButton2 icon={<UndoIcon boxSize={5} />} onClick={onReset}>
+          </IconButton>
+          <IconButton icon={<UndoIcon boxSize={5} />} onClick={onReset}>
             {t('Reset to default')}
-          </IconButton2>
+          </IconButton>
         </Stack>
       </Stack>
     </FlipStep>
@@ -1065,7 +1065,7 @@ export function CommunityTranslations({
 
   return (
     <Stack spacing={isOpen ? 8 : 0}>
-      <IconButton2
+      <IconButton
         icon={<CommunityIcon boxSize={5} />}
         color="brandGray.500"
         px={0}
@@ -1074,7 +1074,7 @@ export function CommunityTranslations({
       >
         {t('Community translation')}
         <ChevronDownIcon boxSize={5} color="muted" ml={2} />
-      </IconButton2>
+      </IconButton>
       <Collapse isOpen={isOpen}>
         <Stack spacing={8}>
           <RadioGroup isInline value={wordIdx} onChange={setWordIdx}>
@@ -1228,7 +1228,7 @@ FlipKeywordRadio.displayName = 'FlipKeywordRadio'
 
 export function VoteButton(props) {
   return (
-    <IconButton
+    <ChakraIconButton
       bg="transparent"
       color="brandGray.500"
       fontSize={rem(20)}

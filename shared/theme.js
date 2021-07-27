@@ -1,4 +1,3 @@
-import React from 'react'
 import {theme as chakraTheme} from '@chakra-ui/react'
 import {rem as remp, rgb, margin} from 'polished'
 
@@ -120,20 +119,23 @@ export const uiTheme = {
     black: '#16161D',
     blue: {
       '012': 'rgb(87 143 255 /0.12)',
+      '024': 'rgb(87 143 255 /.24)',
+      '050': 'rgb(87 143 255 /.50)',
       200: '#578fff',
       300: 'rgba(87, 143, 255, .12)',
       500: 'rgb(87, 143, 255)',
     },
     gray: {
-      10: 'rgba(255,255,255,0.1)',
-      50: 'rgb(245, 246, 247)',
-      100: 'rgb(210, 212, 217)',
-      200: '#53565c',
-      300: 'rgb(232, 234, 237)',
-      500: 'rgba(255,255,255,0.5)',
+      50: 'rgb(245 246 247)',
+      100: 'rgb(232 234 237)',
+      200: 'rgb(210 212 217)',
+      300: 'rgb(150 153 158)',
+      500: 'rgb(83 86 92)',
+      600: 'rgb(83 86 92)',
+      800: 'rgb(83 86 92)',
+      900: 'rgb(17 17 17)',
     },
     red: {
-      ...chakraTheme.colors.red,
       '010': 'rgb(255 102 102 /0.10)',
       '012': 'rgb(255 102 102 /0.12)',
       '020': 'rgb(255 102 102 /0.20)',
@@ -142,8 +144,8 @@ export const uiTheme = {
       500: 'rgb(255, 102, 102)',
     },
     green: {
-      ...chakraTheme.colors.green,
       '010': 'rgb(39 217 128 /.1)',
+      '020': 'rgb(39 217 128 /.2)',
       '050': 'rgb(39 217 128 /.5)',
       500: 'rgb(39 217 128)',
     },
@@ -195,7 +197,6 @@ export const uiTheme = {
       500: 'rgb(69 72 77)',
     },
     orange: {
-      ...chakraTheme.colors.orange,
       '010': 'rgb(255 163 102 /0.1)',
       '020': 'rgb(255 163 102 /0.2)',
       '050': 'rgb(255 163 102 /0.5)',
@@ -242,6 +243,68 @@ export const uiTheme = {
             borderRadius: 'md',
           },
         },
+      },
+    },
+    Button: {
+      baseStyle: {fontWeight: 500},
+      sizes: {
+        md: {h: 8},
+      },
+      variants: {
+        primary: {
+          bg: 'blue.500',
+          color: 'white',
+          borderRadius: 6,
+          h: 8,
+          px: 4,
+          _hover: {
+            bg: 'rgb(68, 124, 235)',
+            _disabled: {
+              bg: 'blue.500',
+            },
+          },
+          _active: {
+            bg: 'rgb(68, 124, 235)',
+          },
+        },
+        secondary: {
+          bg: 'blue.012',
+          color: 'blue.500',
+          borderRadius: 6,
+          h: 8,
+          px: 4,
+          _hover: {
+            bg: 'blue.024',
+          },
+          _active: {
+            bg: 'blue.024',
+          },
+          _disabled: {
+            bg: 'gray.50',
+            color: 'gray.300',
+          },
+        },
+        tab: {
+          color: 'gray.300',
+          borderRadius: 6,
+          h: 8,
+          px: 4,
+          _hover: {
+            bg: 'gray.50',
+            color: 'blue.500',
+          },
+          _selected: {
+            bg: 'gray.50',
+            color: 'blue.500',
+          },
+          _active: {
+            bg: 'gray.50',
+            color: 'blue.500',
+          },
+        },
+      },
+      defaultProps: {
+        variant: 'primary',
       },
     },
   },

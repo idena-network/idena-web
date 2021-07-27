@@ -16,7 +16,7 @@ import {
 } from './components'
 import {useAuthDispatch} from '../providers/auth-context'
 import {useSettingsState} from '../providers/settings-context'
-import {FlatButton2, PrimaryButton, SecondaryButton} from './button'
+import {FlatButton, PrimaryButton, SecondaryButton} from './button'
 import {SubHeading} from './typo'
 import {useDnaUrl} from '../hooks/use-dna-link'
 import {DnaAppUrl} from '../../screens/dna/components'
@@ -52,7 +52,7 @@ function RestoreKey() {
             </Flex>
 
             <Flex justify="space-between">
-              <FlatButton2
+              <FlatButton
                 onClick={() => showWarning(true)}
                 style={{
                   marginBottom: rem(19),
@@ -67,7 +67,7 @@ function RestoreKey() {
                   }}
                   fontSize={rem(19)}
                 />
-              </FlatButton2>
+              </FlatButton>
             </Flex>
           </Flex>
         </Flex>
@@ -200,7 +200,7 @@ function Init() {
           </PrimaryButton>
 
           <Flex justifyContent="center">
-            <FlatButton2
+            <FlatButton
               onClick={() => Router.push('/key/import')}
               style={{
                 marginTop: rem(20),
@@ -209,7 +209,7 @@ function Init() {
               }}
             >
               Sign In
-            </FlatButton2>
+            </FlatButton>
           </Flex>
         </Flex>
       </AuthLayout.Small>

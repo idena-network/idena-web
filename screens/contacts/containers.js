@@ -11,7 +11,6 @@ import {
   Box,
   useDisclosure,
   Collapse,
-  IconButton,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useIdentity} from '../../shared/providers/identity-context'
@@ -39,7 +38,7 @@ import {
   useInviteDispatch,
   useInviteState,
 } from '../../shared/providers/invite-context'
-import {PrimaryButton, IconButton2} from '../../shared/components/button'
+import {PrimaryButton, IconButton} from '../../shared/components/button'
 import {
   ContactAvatar,
   ContactCardBadge,
@@ -342,15 +341,12 @@ export function ContactCard({
           </Stack>
 
           <Stack isInline align="center" spacing={1} w="full">
-            <IconButton2
-              icon={<EditIcon boxSize={5} />}
-              onClick={onEditContact}
-            >
+            <IconButton icon={<EditIcon boxSize={5} />} onClick={onEditContact}>
               {t('Edit')}
-            </IconButton2>
+            </IconButton>
             <VDivider />
             <Tooltip label={t('Remove from device')}>
-              <IconButton2
+              <IconButton
                 icon={<FlipEditorDeleteIcon boxSize={5} />}
                 onClick={() => {
                   deleteInvite(dbkey)
@@ -366,12 +362,12 @@ export function ContactCard({
                 }}
               >
                 {t('Delete contact')}
-              </IconButton2>
+              </IconButton>
             </Tooltip>
             {canKill && (
               <>
                 <VDivider />
-                <IconButton2
+                <IconButton
                   icon={<DeleteIcon boxSize={5} />}
                   colorScheme="red"
                   _active={{
@@ -383,7 +379,7 @@ export function ContactCard({
                   onClick={onKillContact}
                 >
                   {t('Kill')}
-                </IconButton2>
+                </IconButton>
               </>
             )}
           </Stack>
