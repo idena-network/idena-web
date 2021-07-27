@@ -52,8 +52,11 @@ import {
   MoreIcon,
   ProfileIcon,
   SettingsIcon,
+  SyncIcon,
+  TelegramIcon,
   WalletIcon,
 } from './icons'
+import {TimerIcon} from '../../screens/validation/components'
 
 function Sidebar() {
   return (
@@ -435,7 +438,9 @@ function ActionPanel() {
               onDismiss={dismissCurrentTask}
             >
               <Stack spacing={5}>
-                <OnboardingPopoverContentIconRow icon="telegram">
+                <OnboardingPopoverContentIconRow
+                  icon={<TelegramIcon boxSize={5} />}
+                >
                   <Trans i18nKey="onboardingValidateSubscribe" t={t}>
                     <OnboardingLinkButton href="https://t.me/IdenaAnnouncements">
                       Subscribe
@@ -443,17 +448,23 @@ function ActionPanel() {
                     to the Idena Announcements (important updates only)
                   </Trans>
                 </OnboardingPopoverContentIconRow>
-                <OnboardingPopoverContentIconRow icon="sync">
+                <OnboardingPopoverContentIconRow
+                  icon={<SyncIcon boxSize={5} />}
+                >
                   {t(
                     `Keep your node synchronized in 45-60 minutes before the validation starts.`
                   )}
                 </OnboardingPopoverContentIconRow>
-                <OnboardingPopoverContentIconRow icon="timer">
+                <OnboardingPopoverContentIconRow
+                  icon={<TimerIcon boxSize={5} />}
+                >
                   {t(
                     `Solve the flips quickly when validation starts. The first 6 flips must be submitted in less than 2 minutes.`
                   )}
                 </OnboardingPopoverContentIconRow>
-                <OnboardingPopoverContentIconRow icon="gallery">
+                <OnboardingPopoverContentIconRow
+                  icon={<GalleryIcon boxSize={5} />}
+                >
                   <Trans i18nKey="onboardingValidateTest" t={t}>
                     <OnboardingLinkButton href="https://flips.idena.io/?pass=idena.io">
                       Test yourself

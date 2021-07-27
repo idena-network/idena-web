@@ -11,6 +11,7 @@ import {
   Stack,
   useDisclosure,
 } from '@chakra-ui/react'
+import {InfoIcon} from '@chakra-ui/icons'
 import {
   createValidationMachine,
   RelevanceType,
@@ -234,7 +235,7 @@ function ValidationSession({
                       {t(`Is the flip correct?`)}
                     </Heading>
                     <IconButton
-                      icon="info"
+                      icon={<InfoIcon />}
                       color="brandBlue.500"
                       bg="unset"
                       fontSize={rem(20)}

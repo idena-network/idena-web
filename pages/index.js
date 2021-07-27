@@ -50,7 +50,12 @@ import {
 } from '../shared/components/onboarding'
 import {onboardingShowingStep} from '../shared/utils/onboarding'
 import {useScroll} from '../shared/hooks/use-scroll'
-import {AddUserIcon, DeleteIcon, PhotoIcon} from '../shared/components/icons'
+import {
+  AddUserIcon,
+  DeleteIcon,
+  PhotoIcon,
+  TelegramIcon,
+} from '../shared/components/icons'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -282,7 +287,9 @@ export default function ProfilePage() {
                       {t(`Join the official Idena public Telegram group and follow instructions in the
                 pinned message.`)}
                     </Text>
-                    <OnboardingPopoverContentIconRow icon="telegram">
+                    <OnboardingPopoverContentIconRow
+                      icon={<TelegramIcon boxSize={5} />}
+                    >
                       <Box>
                         <PrimaryButton
                           variant="unstyled"

@@ -65,6 +65,7 @@ import {
   PlusSolidIcon,
   SwitchIcon,
   UndoIcon,
+  UpvoteIcon,
 } from '../../shared/components/icons'
 
 export function FlipPageTitle({onClose, ...props}) {
@@ -1092,7 +1093,7 @@ export function CommunityTranslations({
               </FlipKeyword>
               <Stack isInline spacing={2} align="center">
                 <VoteButton
-                  icon="upvote"
+                  icon={<UpvoteIcon />}
                   onClick={() => onVote({id, up: true})}
                 />
                 <Flex
@@ -1109,7 +1110,7 @@ export function CommunityTranslations({
                   {score}
                 </Flex>
                 <VoteButton
-                  icon="upvote"
+                  icon={<UpvoteIcon />}
                   color="muted"
                   transform="rotate(180deg)"
                   onClick={() => onVote({id, up: false})}

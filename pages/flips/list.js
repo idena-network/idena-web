@@ -50,7 +50,11 @@ import {
   OnboardingPopoverContentIconRow,
 } from '../../shared/components/onboarding'
 import {eitherState} from '../../shared/utils/utils'
-import {PlusSolidIcon} from '../../shared/components/icons'
+import {
+  PenaltyIcon,
+  PlusSolidIcon,
+  RewardIcon,
+} from '../../shared/components/icons'
 import IconLink from '../../shared/components/icon-link'
 
 export default function FlipListPage() {
@@ -211,12 +215,16 @@ export default function FlipListPage() {
                     in the next validation ceremony. Follow step-by-step
                     instructions.`)}
                   </Text>
-                  <OnboardingPopoverContentIconRow icon="reward">
+                  <OnboardingPopoverContentIconRow
+                    icon={<RewardIcon boxSize={5} />}
+                  >
                     {t(
                       `You'll get rewarded for every successfully qualified flip.`
                     )}
                   </OnboardingPopoverContentIconRow>
-                  <OnboardingPopoverContentIconRow icon="penalty">
+                  <OnboardingPopoverContentIconRow
+                    icon={<PenaltyIcon boxSize={5} />}
+                  >
                     {t(`Read carefully "What is a bad flip" rules to avoid
                       penalty.`)}
                   </OnboardingPopoverContentIconRow>

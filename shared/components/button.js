@@ -31,7 +31,6 @@ export const IconButton = React.forwardRef((props, ref) => (
     {...props}
   ></ChakraButton>
 ))
-IconButton.displayName = 'IconButton2'
 
 export function FlatButton({children, ...props}) {
   return (

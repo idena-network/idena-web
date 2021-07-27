@@ -1330,10 +1330,10 @@ function BadFlipPartFrame({flipCase, ...props}) {
         justify="center"
         bg="red.500"
         borderRadius="full"
-        size={8}
+        boxSize={8}
         position="absolute"
-        right={-20}
-        bottom={-20}
+        right={-4}
+        bottom={-4}
       >
         <BlockIcon boxSize={5} />
       </ChakraFlex>

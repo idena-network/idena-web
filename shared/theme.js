@@ -307,5 +307,34 @@ export const uiTheme = {
         variant: 'primary',
       },
     },
+    Input: {
+      sizes: {
+        md: {
+          field: {
+            borderRadius: 'md',
+            fontSize: 'md',
+          },
+        },
+      },
+      variants: {
+        outline: {
+          field: {
+            px: 3,
+            h: 8,
+            borderColor: 'gray.100',
+            _hover: {
+              borderColor: 'gray.100',
+            },
+            _placeholder: {
+              color: 'muted',
+            },
+            _disabled: {
+              bg: 'gray.50',
+              color: 'muted',
+            },
+          },
+        },
+      },
+    },
   },
 }
