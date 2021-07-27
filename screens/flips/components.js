@@ -2,7 +2,6 @@
 import React from 'react'
 import NextLink from 'next/link'
 import {
-  SimpleGrid,
   Image,
   Text,
   Box,
@@ -29,6 +28,8 @@ import {
   Alert,
   AlertIcon,
   RadioGroup,
+  Wrap,
+  WrapItem,
 } from '@chakra-ui/react'
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd'
 import {useTranslation} from 'react-i18next'
@@ -76,7 +77,7 @@ export function FlipPageTitle({onClose, ...props}) {
 }
 
 export function FlipCardList(props) {
-  return <SimpleGrid columns={4} spacing={10} {...props} />
+  return <Wrap spacing={10} {...props} />
 }
 
 export function FlipCard({flipService, onDelete}) {
@@ -99,96 +100,97 @@ export function FlipCard({flipService, onDelete}) {
   const isDeletable = [FlipType.Published, FlipType.Draft].includes(type)
 
   return (
-    <Box position="relative">
-      <FlipCardImageBox>
-        {[FlipType.Publishing, FlipType.Deleting, FlipType.Invalid].some(
-          x => x === type
-        ) && (
-          <FlipOverlay
-            backgroundImage={
-              // eslint-disable-next-line no-nested-ternary
-              [FlipType.Publishing, FlipType.Deleting].some(x => x === type)
-                ? `linear-gradient(to top, ${
-                    colors.warning[500]
-                  }, ${transparentize(100, colors.warning[500])})`
-                : type === FlipType.Invalid
-                ? `linear-gradient(to top, ${colors.red[500]}, ${transparentize(
-                    100,
-                    colors.red[500]
-                  )})`
-                : ''
-            }
-          >
-            <FlipOverlayStatus>
-              <FlipOverlayIcon name="info-solid" />
-              <FlipOverlayText>
-                {type === FlipType.Publishing && t('Mining...')}
-                {type === FlipType.Deleting && t('Deleting...')}
-                {type === FlipType.Invalid && t('Mining error')}
-              </FlipOverlayText>
-            </FlipOverlayStatus>
-          </FlipOverlay>
-        )}
-        <FlipCardImage src={images[originalOrder ? originalOrder[0] : 0]} />
-      </FlipCardImageBox>
-      <Flex justifyContent="space-between" alignItems="flex-start" mt={4}>
-        <Box>
-          <FlipCardTitle>
-            {keywords.words && keywords.words.length
-              ? formatKeywords(keywords.words)
-              : t('Missing keywords')}
-          </FlipCardTitle>
-          <FlipCardSubtitle>
-            {new Date(createdAt).toLocaleString()}
-          </FlipCardSubtitle>
-        </Box>
-        {isActionable && (
-          <FlipCardMenu>
-            {isSubmittable && (
-              <FlipCardMenuItem onClick={() => send('PUBLISH', {id})}>
-                <FlipCardMenuItemIcon name="upload" size={5} mr={2} />
-                {t('Submit flip')}
-              </FlipCardMenuItem>
-            )}
-            {isViewable && (
-              <FlipCardMenuItem>
-                <NextLink href={`/flips/view?id=${id}`}>
-                  <Flex>
-                    <FlipCardMenuItemIcon name="view" size={5} mr={2} />
-                    {t('View flip')}
-                  </Flex>
-                </NextLink>
-              </FlipCardMenuItem>
-            )}
-            {isEditable && (
-              <FlipCardMenuItem>
-                <NextLink href={`/flips/edit?id=${id}`}>
-                  <Flex>
-                    <FlipCardMenuItemIcon name="edit" size={5} mr={2} />
-                    {t('Edit flip')}
-                  </Flex>
-                </NextLink>
-              </FlipCardMenuItem>
-            )}
-            {(isSubmittable || isEditable) && isDeletable && (
-              <MenuDivider color="gray.300" my={2} width={rem(145)} />
-            )}
+    <WrapItem w={150}>
+      <Box position="relative">
+        <FlipCardImageBox>
+          {[FlipType.Publishing, FlipType.Deleting, FlipType.Invalid].some(
+            x => x === type
+          ) && (
+            <FlipOverlay
+              backgroundImage={
+                // eslint-disable-next-line no-nested-ternary
+                [FlipType.Publishing, FlipType.Deleting].some(x => x === type)
+                  ? `linear-gradient(to top, ${
+                      colors.warning[500]
+                    }, ${transparentize(100, colors.warning[500])})`
+                  : type === FlipType.Invalid
+                  ? `linear-gradient(to top, ${
+                      colors.red[500]
+                    }, ${transparentize(100, colors.red[500])})`
+                  : ''
+              }
+            >
+              <FlipOverlayStatus>
+                <FlipOverlayIcon name="info-solid" />
+                <FlipOverlayText>
+                  {type === FlipType.Publishing && t('Mining...')}
+                  {type === FlipType.Deleting && t('Deleting...')}
+                  {type === FlipType.Invalid && t('Mining error')}
+                </FlipOverlayText>
+              </FlipOverlayStatus>
+            </FlipOverlay>
+          )}
+          <FlipCardImage src={images[originalOrder ? originalOrder[0] : 0]} />
+        </FlipCardImageBox>
+        <Flex justifyContent="space-between" alignItems="flex-start" mt={4}>
+          <Box>
+            <FlipCardTitle>
+              {keywords.words && keywords.words.length
+                ? formatKeywords(keywords.words)
+                : t('Missing keywords')}
+            </FlipCardTitle>
+            <FlipCardSubtitle>
+              {new Date(createdAt).toLocaleString()}
+            </FlipCardSubtitle>
+          </Box>
+          {isActionable && (
+            <FlipCardMenu>
+              {isSubmittable && (
+                <FlipCardMenuItem onClick={() => send('PUBLISH', {id})}>
+                  <FlipCardMenuItemIcon name="upload" size={5} mr={2} />
+                  {t('Submit flip')}
+                </FlipCardMenuItem>
+              )}
+              {isViewable && (
+                <FlipCardMenuItem>
+                  <NextLink href={`/flips/view?id=${id}`}>
+                    <Flex>
+                      <FlipCardMenuItemIcon name="view" size={5} mr={2} />
+                      {t('View flip')}
+                    </Flex>
+                  </NextLink>
+                </FlipCardMenuItem>
+              )}
+              {isEditable && (
+                <FlipCardMenuItem>
+                  <NextLink href={`/flips/edit?id=${id}`}>
+                    <Flex>
+                      <FlipCardMenuItemIcon name="edit" size={5} mr={2} />
+                      {t('Edit flip')}
+                    </Flex>
+                  </NextLink>
+                </FlipCardMenuItem>
+              )}
+              {(isSubmittable || isEditable) && isDeletable && (
+                <MenuDivider color="gray.300" my={2} width={rem(145)} />
+              )}
 
-            {isDeletable && (
-              <FlipCardMenuItem onClick={onDelete}>
-                <FlipCardMenuItemIcon
-                  name="delete"
-                  size={5}
-                  mr={2}
-                  color="red.500"
-                />
-                {t('Delete flip')}
-              </FlipCardMenuItem>
-            )}
-          </FlipCardMenu>
-        )}
-      </Flex>
-    </Box>
+              {isDeletable && (
+                <FlipCardMenuItem onClick={onDelete}>
+                  <FlipCardMenuItemIcon
+                    name="delete"
+                    size={5}
+                    mr={2}
+                    color="red.500"
+                  />
+                  {t('Delete flip')}
+                </FlipCardMenuItem>
+              )}
+            </FlipCardMenu>
+          )}
+        </Flex>
+      </Box>
+    </WrapItem>
   )
 }
 

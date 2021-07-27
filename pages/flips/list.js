@@ -18,8 +18,6 @@ import {Page, PageTitle} from '../../screens/app/components'
 import {
   FlipCardTitle,
   FlipCardSubtitle,
-  FlipFilter,
-  FlipFilterOption,
   RequiredFlipPlaceholder,
   OptionalFlipPlaceholder,
   FlipCardList,
