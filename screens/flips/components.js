@@ -198,11 +198,12 @@ export function FlipCardImage(props) {
   return (
     <Image
       objectFit="cover"
+      borderStyle="solid"
       borderWidth="1px"
       borderColor="brandGray.016"
-      // boxShadow={`0 0 0 1px ${colors.brandGray['016']}`}
       rounded="lg"
       height="full"
+      ignoreFallback
       {...props}
     />
   )
