@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import React, {useRef, useCallback, useEffect, useState} from 'react'
 import PropTypes from 'prop-types'
@@ -116,100 +117,90 @@ ColorPicker.propTypes = {
   onChange: PropTypes.func,
 }
 
-export function ArrowHint({hint, leftHanded, visible}) {
+export function ArrowHint({hint, leftHanded}) {
   return (
-    visible && (
-      <div>
-        <Box css={position('relative')}>
-          <Absolute top={rem(-105)} left={rem(0)} zIndex={90}>
-            {leftHanded && (
-              <div>
-                <div
-                  style={{
-                    minWidth: rem(24),
-                    minHeight: rem(40),
-                    borderLeft: `2px solid ${theme.colors.primary}`,
-                    borderTop: `2px solid ${theme.colors.primary}`,
-                  }}
-                />
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: '-5px',
-                    width: 0,
-                    height: 0,
-                    borderTop: `6px solid transparent`,
-                    borderLeft: `6px solid transparent`,
-                    borderRight: `6px solid transparent`,
-                    borderBottom: 0,
-                    borderTopColor: `${theme.colors.primary}`,
-                  }}
-                />
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: '30px',
-                    top: '-25px',
-                    minWidth: '75px',
-                    color: `${theme.colors.muted}`,
-                    fontWeight: `${theme.fontWeights.normal}`,
-                  }}
-                >
-                  {hint}
-                </div>
-              </div>
-            )}
+    <ChakraBox position="relative">
+      <ChakraBox position="absolute" top={-105} zIndex="tooltip">
+        {leftHanded && (
+          <div>
+            <div
+              style={{
+                minWidth: rem(24),
+                minHeight: rem(40),
+                borderLeft: `2px solid ${theme.colors.primary}`,
+                borderTop: `2px solid ${theme.colors.primary}`,
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                left: '-5px',
+                width: 0,
+                height: 0,
+                borderTop: `6px solid transparent`,
+                borderLeft: `6px solid transparent`,
+                borderRight: `6px solid transparent`,
+                borderBottom: 0,
+                borderTopColor: `${theme.colors.primary}`,
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                left: '30px',
+                top: '-25px',
+                minWidth: '75px',
+                color: `${theme.colors.muted}`,
+                fontWeight: `${theme.fontWeights.normal}`,
+              }}
+            >
+              {hint}
+            </div>
+          </div>
+        )}
 
-            {!leftHanded && (
-              <div>
-                <div
-                  style={{
-                    minWidth: rem(24),
-                    minHeight: rem(40),
-                    borderRight: `2px solid ${theme.colors.primary}`,
-                    borderTop: `2px solid ${theme.colors.primary}`,
-                  }}
-                />
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: rem(16),
-                    width: 0,
-                    height: 0,
-                    marginLeft: '0px',
-                    borderLeft: `6px solid transparent`,
-                    borderRight: `6px solid transparent`,
-                    borderTop: `6px solid transparent`,
-                    borderBottom: 0,
-                    borderTopColor: `${theme.colors.primary}`,
-                  }}
-                />
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: '-58px',
-                    top: '-25px',
-                    minWidth: rem(52, theme.fontSizes.base),
-                    width: rem(52, theme.fontSizes.base),
-                    color: `${theme.colors.muted}`,
-                    fontWeight: `${theme.fontWeights.normal}`,
-                  }}
-                >
-                  {hint}
-                </div>
-              </div>
-            )}
-          </Absolute>
-        </Box>
-      </div>
-    )
+        {!leftHanded && (
+          <div>
+            <div
+              style={{
+                minWidth: rem(24),
+                minHeight: rem(40),
+                borderRight: `2px solid ${theme.colors.primary}`,
+                borderTop: `2px solid ${theme.colors.primary}`,
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                left: rem(16),
+                width: 0,
+                height: 0,
+                marginLeft: '0px',
+                borderLeft: `6px solid transparent`,
+                borderRight: `6px solid transparent`,
+                borderTop: `6px solid transparent`,
+                borderBottom: 0,
+                borderTopColor: `${theme.colors.primary}`,
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                left: '-58px',
+                top: '-25px',
+                minWidth: rem(52, theme.fontSizes.base),
+                width: rem(52, theme.fontSizes.base),
+                color: `${theme.colors.muted}`,
+                fontWeight: `${theme.fontWeights.normal}`,
+              }}
+            >
+              {hint}
+            </div>
+          </div>
+        )}
+      </ChakraBox>
+    </ChakraBox>
   )
-}
-
-ArrowHint.propTypes = {
-  hint: PropTypes.string,
-  leftHanded: PropTypes.bool,
-  visible: PropTypes.bool,
 }
 
 EditorContextMenu.propTypes = {

@@ -1135,7 +1135,7 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
         fontSize="md"
         rounded="lg"
       >
-        <Stack isInline spacing={28}>
+        <Stack isInline spacing={7} justify="center">
           <Stack
             spacing={0}
             borderColor="brandGray.016"
@@ -1305,9 +1305,9 @@ function BadFlipPartFrame({flipCase, ...props}) {
   const framePosition = [
     {},
     {},
-    {top: 100 * 3 - 4, bottom: -4},
-    {top: 100 * 1 - 4, bottom: 100 * 2 - 4},
-    {top: 100 * 1 - 4, bottom: 100 * 2 - 4},
+    {top: `${100 * 3 - 4}px`, bottom: `${-4}px`},
+    {top: `${100 * 1 - 4}px`, bottom: `${100 * 2 - 4}px`},
+    {top: `${100 * 1 - 4}px`, bottom: `${100 * 2 - 4}px`},
   ]
   return (
     <ChakraBox
@@ -1316,10 +1316,10 @@ function BadFlipPartFrame({flipCase, ...props}) {
       borderColor="red.500"
       borderRadius="md"
       boxShadow="0 0 0 4px rgba(255, 102, 102, 0.25)"
-      top={-4}
-      left={-4}
-      right={-4}
-      bottom={-4}
+      top={-1}
+      left={-1}
+      right={-1}
+      bottom={-1}
       {...framePosition[flipCase]}
       transition="all 0.2s ease-out"
       zIndex={1}
