@@ -252,6 +252,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
               px={3}
               pt={1.5}
               pb={2}
+              bg="white"
               isDisabled={mining || identity.state === IdentityStatus.Invite}
               minH={rem(50)}
               placeholder={

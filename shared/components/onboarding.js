@@ -28,6 +28,7 @@ export function OnboardingPopover({children, ...props}) {
           right={0}
           bottom={0}
           zIndex={2}
+          css={{margin: '0!important', padding: '0!important'}}
         />
       )}
       <Popover closeOnBlur={false} usePortal {...props}>
