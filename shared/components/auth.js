@@ -86,7 +86,6 @@ function RestoreKey() {
                 login(password)
               } catch (err) {
                 setError('Password is invalid. Try again.')
-                console.log(err)
               }
             }}
           >

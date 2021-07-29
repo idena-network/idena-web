@@ -120,7 +120,7 @@ ColorPicker.propTypes = {
 export function ArrowHint({hint, leftHanded}) {
   return (
     <ChakraBox position="relative">
-      <ChakraBox position="absolute" top={-105} zIndex={90}>
+      <ChakraBox position="absolute" bottom="86px" zIndex={90}>
         {leftHanded && (
           <div>
             <div

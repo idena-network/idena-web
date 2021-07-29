@@ -35,6 +35,7 @@ import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd'
 import {useTranslation} from 'react-i18next'
 import {transparentize} from 'polished'
 import {useService} from '@xstate/react'
+import {EditIcon, ViewIcon} from '@chakra-ui/icons'
 import FlipEditor from './components/flip-editor'
 import {Step} from './types'
 import {formatKeywords} from './utils'
@@ -58,6 +59,7 @@ import {
   CycleIcon,
   DeleteIcon,
   GtranslateIcon,
+  InfoSolidIcon,
   MoreIcon,
   MoveIcon,
   OkIcon,
@@ -65,6 +67,7 @@ import {
   PlusSolidIcon,
   SwitchIcon,
   UndoIcon,
+  UploadIcon,
   UpvoteIcon,
 } from '../../shared/components/icons'
 
@@ -122,7 +125,7 @@ export function FlipCard({flipService, onDelete}) {
               }
             >
               <FlipOverlayStatus>
-                <FlipOverlayIcon name="info-solid" />
+                <InfoSolidIcon boxSize={5} />
                 <FlipOverlayText>
                   {type === FlipType.Publishing && t('Mining...')}
                   {type === FlipType.Deleting && t('Deleting...')}
@@ -148,7 +151,7 @@ export function FlipCard({flipService, onDelete}) {
             <FlipCardMenu>
               {isSubmittable && (
                 <FlipCardMenuItem onClick={() => send('PUBLISH', {id})}>
-                  <FlipCardMenuItemIcon name="upload" size={5} mr={2} />
+                  <UploadIcon boxSize={5} mr={2} color="blue.500" />
                   {t('Submit flip')}
                 </FlipCardMenuItem>
               )}
@@ -156,7 +159,7 @@ export function FlipCard({flipService, onDelete}) {
                 <FlipCardMenuItem>
                   <NextLink href={`/flips/view?id=${id}`}>
                     <Flex>
-                      <FlipCardMenuItemIcon name="view" size={5} mr={2} />
+                      <ViewIcon boxSize={5} mr={2} color="blue.500" />
                       {t('View flip')}
                     </Flex>
                   </NextLink>
@@ -166,7 +169,7 @@ export function FlipCard({flipService, onDelete}) {
                 <FlipCardMenuItem>
                   <NextLink href={`/flips/edit?id=${id}`}>
                     <Flex>
-                      <FlipCardMenuItemIcon name="edit" size={5} mr={2} />
+                      <EditIcon boxSize={5} mr={2} color="blue.500" />
                       {t('Edit flip')}
                     </Flex>
                   </NextLink>
@@ -178,12 +181,7 @@ export function FlipCard({flipService, onDelete}) {
 
               {isDeletable && (
                 <FlipCardMenuItem onClick={onDelete}>
-                  <FlipCardMenuItemIcon
-                    name="delete"
-                    size={5}
-                    mr={2}
-                    color="red.500"
-                  />
+                  <DeleteIcon boxSize={5} mr={2} color="red.500" />
                   {t('Delete flip')}
                 </FlipCardMenuItem>
               )}
@@ -228,7 +226,7 @@ export function FlipCardSubtitle(props) {
 
 export function FlipCardMenu(props) {
   return (
-    <Menu autoSelect={false}>
+    <Menu autoSelect={false} placement="bottom-end">
       <MenuButton
         rounded="md"
         py={1.5}
@@ -240,12 +238,11 @@ export function FlipCardMenu(props) {
         <MoreIcon boxSize={5} />
       </MenuButton>
       <MenuList
-        placement="bottom-end"
-        border="none"
-        shadow="0 4px 6px 0 rgba(83, 86, 92, 0.24), 0 0 2px 0 rgba(83, 86, 92, 0.2)"
         rounded="lg"
         py={2}
-        minWidth="145px"
+        border="none"
+        shadow="0 4px 6px 0 rgba(83, 86, 92, 0.24), 0 0 2px 0 rgba(83, 86, 92, 0.2) !important"
+        minWidth="auto"
         {...props}
       />
     </Menu>
@@ -266,10 +263,6 @@ export function FlipCardMenuItem(props) {
       {...props}
     />
   )
-}
-
-export function FlipCardMenuItemIcon(props) {
-  return <Icon size={5} mr={3} color="brand.blue" {...props} />
 }
 
 export function RequiredFlipPlaceholder({title}) {
@@ -379,10 +372,6 @@ export function FlipOverlayStatus(props) {
       {...props}
     />
   )
-}
-
-export function FlipOverlayIcon(props) {
-  return <Icon size={5} {...props} />
 }
 
 export function FlipOverlayText(props) {

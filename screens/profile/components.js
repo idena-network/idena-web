@@ -15,7 +15,6 @@ import {
   Button,
   Text,
   Switch,
-  Icon,
   Radio,
   Alert,
   AlertIcon,
@@ -73,7 +72,7 @@ import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {activateMiningMachine} from './machines'
 import {fetchBalance} from '../../shared/api/wallet'
-import {LaptopIcon} from '../../shared/components/icons'
+import {LaptopIcon, UserIcon} from '../../shared/components/icons'
 
 export function UserInlineCard({address, state, ...props}) {
   return (
@@ -538,7 +537,7 @@ export function ActivateMiningDrawer({
           w={12}
           rounded="xl"
         >
-          <Icon name="user" w={6} h={6} color="blue.500" />
+          <UserIcon boxSize={6} color="blue.500" />
         </Flex>
         <Heading
           color="brandGray.500"
@@ -554,14 +553,14 @@ export function ActivateMiningDrawer({
         <Stack spacing={6} mt={30}>
           <FormControl as={Stack} spacing={3}>
             <FormLabel p={0}>{t('Type')}</FormLabel>
-            <RadioGroup
-              spacing={2}
-              isInline
-              d="flex"
-              value={mode}
-              onChange={onChangeMode}
-            >
-              <Radio variant="bordered" value={NodeType.Miner} flex={1} p={2}>
+            <RadioGroup isInline d="flex" value={mode} onChange={onChangeMode}>
+              <Radio
+                variant="bordered"
+                value={NodeType.Miner}
+                flex={1}
+                p={2}
+                mr={2}
+              >
                 {t('Mining')}
               </Radio>
               <Radio
@@ -707,7 +706,7 @@ export function DeactivateMiningDrawer({
           w={12}
           rounded="xl"
         >
-          <Icon name="user" w={6} h={6} color="blue.500" />
+          <UserIcon boxSize={6} color="blue.500" />
         </Flex>
         <Heading
           color="brandGray.500"

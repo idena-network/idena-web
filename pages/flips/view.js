@@ -9,6 +9,7 @@ import {
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
+import {DeleteIcon} from '@chakra-ui/icons'
 import {Page, PageTitle} from '../../screens/app/components'
 import {
   FlipMaster,
@@ -21,7 +22,6 @@ import {
   FlipImageListItem,
   FlipMasterFooter,
   FlipCardMenuItem,
-  FlipCardMenuItemIcon,
   FlipCardMenu,
   DeleteFlipDrawer,
 } from '../../screens/flips/components'
@@ -169,12 +169,7 @@ export default function ViewFlipPage() {
                   else send('ARCHIVE')
                 }}
               >
-                <FlipCardMenuItemIcon
-                  name="delete"
-                  size={5}
-                  mr={2}
-                  color="red.500"
-                />
+                <DeleteIcon size={5} mr={2} color="red.500" />
                 {t('Delete flip')}
               </FlipCardMenuItem>
             </FlipCardMenu>

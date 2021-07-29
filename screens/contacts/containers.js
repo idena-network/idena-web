@@ -109,7 +109,7 @@ function InviteActionBar({onNewContact}) {
     <Flex align="center" justify="space-between" px={4} py={1.5} w="full">
       <Stack isInline spacing={3} align="center">
         <IconButton
-          icon={<PlusSolidIcon boxSize={5} ml={1} mt={1} />}
+          icon={<PlusSolidIcon boxSize={5} ml={-1} mt={1} />}
           colorScheme="blue"
           bg="blue.012"
           color="blue.500"
