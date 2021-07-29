@@ -13,10 +13,12 @@ import {
   Collapse,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
+import {useQuery} from 'react-query'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {
   byId,
   calculateInvitationRewardRatio,
+  callRpc,
   dummyAddress,
   mapToFriendlyStatus,
   toLocaleDna,
@@ -142,7 +144,10 @@ function InvitationRewardRatioInfo() {
   const {t} = useTranslation()
 
   const epoch = useEpoch()
-  const {highestBlock} = {highestBlock: 0} // useChainState()
+
+  const {data: lastBlock} = useQuery('bcn_lastBlock', () =>
+    callRpc('bcn_lastBlock')
+  )
 
   return (
     <Tooltip
@@ -151,7 +156,7 @@ function InvitationRewardRatioInfo() {
         {
           invitationRewardRatio: toPercent(
             calculateInvitationRewardRatio(epoch ?? {}, {
-              highestBlock,
+              highestBlock: lastBlock?.height,
             })
           ),
         }
