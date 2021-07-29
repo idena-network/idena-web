@@ -10,9 +10,10 @@ import {
   VisuallyHidden,
   IconButton as ChakraIconButton,
   Divider,
-  Icon,
   useToast,
-} from '@chakra-ui/core'
+  Portal,
+} from '@chakra-ui/react'
+import {SearchIcon} from '@chakra-ui/icons'
 import {useNotificationDispatch} from '../../../shared/providers/notification-context'
 import useClickOutside from '../../../shared/hooks/use-click-outside'
 import {Menu, MenuItem} from '../../../shared/components/menu'
@@ -33,6 +34,17 @@ import {
   ApplyChangesBottomPanel,
 } from './flip-editor-tools'
 import {ImageSearchDialog} from './image-search'
+import {
+  AddImageIcon,
+  ClipboardIcon,
+  CropIcon,
+  DrawIcon,
+  EraserIcon,
+  FlipEditorDeleteIcon,
+  FolderIcon,
+  RedoIcon,
+  UndoIcon,
+} from '../../../shared/components/icons'
 
 const ImageEditor =
   typeof window !== 'undefined'
@@ -565,6 +577,9 @@ export default function FlipEditor({
     }
   }, [idx, showImageSearch, visible])
 
+  const leftArrowPortalRef = React.useRef()
+  const rightArrowPortalRef = React.useRef()
+
   return (
     <div
       style={{
@@ -663,7 +678,7 @@ export default function FlipEditor({
             <Stack isInline align="center" spacing={3} mt={6}>
               <FlipEditorIcon
                 tooltip={t('Search on web')}
-                icon="search"
+                icon={<SearchIcon />}
                 onClick={() => {
                   if (rightMenuPanel === RightMenu.Erase) {
                     setRightMenuPanel(RightMenu.None)
@@ -673,23 +688,29 @@ export default function FlipEditor({
                 }}
               />
 
-              <ArrowHint
-                visible={showArrowHint}
-                hint={t('Start from uploading an image')}
-                leftHanded
-              />
+              {showArrowHint && (
+                <Portal containerRef={leftArrowPortalRef}>
+                  <ArrowHint
+                    hint={t('Start from uploading an image')}
+                    leftHanded
+                  />
+                </Portal>
+              )}
 
-              <FlipEditorIcon
-                tooltip={t('Select file')}
-                icon="folder"
-                onClick={() => {
-                  if (rightMenuPanel === RightMenu.Erase) {
-                    setRightMenuPanel(RightMenu.None)
-                  }
-                  setInsertImageMode(INSERT_BACKGROUND_IMAGE)
-                  uploaderRef.current.click()
-                }}
-              />
+              <Box ref={leftArrowPortalRef}>
+                <FlipEditorIcon
+                  tooltip={t('Select file')}
+                  icon={<FolderIcon />}
+                  onClick={() => {
+                    if (rightMenuPanel === RightMenu.Erase) {
+                      setRightMenuPanel(RightMenu.None)
+                    }
+                    setInsertImageMode(INSERT_BACKGROUND_IMAGE)
+                    uploaderRef.current.click()
+                  }}
+                />
+              </Box>
+
               <VisuallyHidden>
                 <input
                   id="file"
@@ -702,7 +723,7 @@ export default function FlipEditor({
 
               <FlipEditorIcon
                 tooltip={t('Add image')}
-                icon="add-image"
+                icon={<AddImageIcon />}
                 onClick={() => {
                   if (rightMenuPanel === RightMenu.Erase) {
                     setRightMenuPanel(RightMenu.None)
@@ -716,13 +737,13 @@ export default function FlipEditor({
               <FlipEditorToolbarDivider />
 
               <FlipEditorIcon
-                icon="undo"
+                icon={<UndoIcon />}
                 tooltip={`${t('Undo')} (Ctrl/Cmd+Z})`}
                 isDisabled={editors[idx] && editors[idx].isEmptyUndoStack()}
                 onClick={handleUndo}
               />
               <FlipEditorIcon
-                icon="redo"
+                icon={<RedoIcon />}
                 tooltip={`${t('Redo')} (Ctrl/Cmd+Shift+Z})`}
                 isDisabled={editors[idx] && editors[idx].isEmptyUndoStack()}
                 onClick={handleRedo}
@@ -732,7 +753,7 @@ export default function FlipEditor({
 
               <FlipEditorIcon
                 tooltip={t('Crop image')}
-                icon="crop"
+                icon={<CropIcon />}
                 isDisabled={src === null}
                 onClick={() => {
                   editors[idx].startDrawingMode('CROPPER')
@@ -743,24 +764,30 @@ export default function FlipEditor({
                 }}
               />
 
-              <ArrowHint visible={showArrowHint} hint={t('Or start drawing')} />
+              {showArrowHint && (
+                <Portal containerRef={rightArrowPortalRef}>
+                  <ArrowHint hint={t('Or start drawing')} />
+                </Portal>
+              )}
 
-              <FlipEditorIcon
-                tooltip={t('Draw')}
-                isActive={rightMenuPanel === RightMenu.FreeDrawing}
-                icon="draw"
-                onClick={() => {
-                  setShowArrowHint(false)
-                  const editor = editors[idx]
-                  if (editor.getDrawingMode() === 'FREE_DRAWING') {
-                    setRightMenuPanel(RightMenu.None)
-                    editor.stopDrawingMode()
-                  } else {
-                    setRightMenuPanel(RightMenu.FreeDrawing)
-                    editor.startDrawingMode('FREE_DRAWING')
-                  }
-                }}
-              />
+              <ChakraBox ref={rightArrowPortalRef}>
+                <FlipEditorIcon
+                  tooltip={t('Draw')}
+                  isActive={rightMenuPanel === RightMenu.FreeDrawing}
+                  icon={<DrawIcon />}
+                  onClick={() => {
+                    setShowArrowHint(false)
+                    const editor = editors[idx]
+                    if (editor.getDrawingMode() === 'FREE_DRAWING') {
+                      setRightMenuPanel(RightMenu.None)
+                      editor.stopDrawingMode()
+                    } else {
+                      setRightMenuPanel(RightMenu.FreeDrawing)
+                      editor.startDrawingMode('FREE_DRAWING')
+                    }
+                  }}
+                />
+              </ChakraBox>
 
               <FlipEditorIcon
                 isDisabled={!activeObjectUrl}
@@ -768,7 +795,7 @@ export default function FlipEditor({
                   activeObjectUrl ? t('Erase') : t('Select image to erase')
                 }
                 isActive={rightMenuPanel === RightMenu.Erase}
-                icon="eraser"
+                icon={<EraserIcon />}
                 onClick={() => {
                   if (rightMenuPanel === RightMenu.Erase) {
                     setRightMenuPanel(RightMenu.None)
@@ -784,7 +811,7 @@ export default function FlipEditor({
 
               <FlipEditorIcon
                 tooltip={t('Clear')}
-                icon="flip-editor-delete"
+                icon={<FlipEditorDeleteIcon />}
                 color="red.500"
                 _hover={{color: 'red.500'}}
                 onClick={handleOnClear}
@@ -860,7 +887,7 @@ export default function FlipEditor({
                             setShowImageSearch(true)
                           }}
                           disabled={false}
-                          icon={<Icon size={5} name="search" />}
+                          icon={<SearchIcon boxSize={5} name="search" />}
                         >
                           {t('Search on web')}
                         </MenuItem>
@@ -871,7 +898,7 @@ export default function FlipEditor({
                             uploaderRef.current.click()
                           }}
                           disabled={false}
-                          icon={<Icon size={5} name="folder" />}
+                          icon={<FolderIcon boxSize={5} name="folder" />}
                         >
                           {t('Select file')}
                         </MenuItem>
@@ -882,7 +909,7 @@ export default function FlipEditor({
                           }}
                           disabled={false}
                           danger={false}
-                          icon={<Icon size={5} name="clipboard" />}
+                          icon={<ClipboardIcon boxSize={5} />}
                         >
                           {t('Paste image')}
                         </MenuItem>
@@ -917,11 +944,11 @@ export default function FlipEditor({
                   border="1px"
                   borderColor="brandGray.016"
                   rounded="full"
-                  size={4}
+                  boxSize={4}
                   onClick={() => setShowColorPicker(!showColorPicker)}
                 />
 
-                <Divider borderColor="gray.300" w={6} />
+                <Divider borderColor="gray.100" w={6} />
               </>
             )}
 
@@ -969,7 +996,7 @@ function FlipEditorIcon({tooltip, isActive, isDisabled, mr, ...props}) {
       fontSize={rem(20)}
       size={6}
       rounded="md"
-      p="1/2"
+      p={0.5}
       _hover={{color: isDisabled ? 'inherit' : 'brandBlue.500'}}
       _active={{bg: 'transparent'}}
       {...props}
@@ -990,7 +1017,7 @@ function FlipEditorToolbarDivider(props) {
   return (
     <Divider
       orientation="vertical"
-      borderColor="gray.300"
+      borderColor="gray.100"
       h={5}
       mx={0}
       {...props}

@@ -22,19 +22,18 @@ import {
   Stack,
   Text,
   Heading,
-  Icon,
   Alert,
   AlertIcon,
   useTheme,
   Button,
   ListItem,
-  AspectRatioBox,
+  AspectRatio,
   Image,
   List,
   Modal,
   ModalOverlay,
   ModalContent,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import {useMachine} from '@xstate/react'
 import {Trans, useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
@@ -62,6 +61,7 @@ import {
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import useNodeTiming from '../../shared/hooks/use-node-timing'
 import {useInterval} from '../../shared/hooks/use-interval'
+import {BlockIcon, TickIcon} from '../../shared/components/icons'
 
 export function ValidationScene(props) {
   return (
@@ -579,7 +579,7 @@ export const QualificationButton = React.forwardRef(
     return (
       <ButtonVariant ref={ref} flex={1} maxW={40} {...props}>
         <Stack isInline spacing={2} align="center" justify="center">
-          {isSelected && <Icon name="tick" size={5} />}
+          {isSelected && <TickIcon boxSize={5} />}
           <Text>{children}</Text>
         </Stack>
       </ButtonVariant>
@@ -1134,8 +1134,9 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
         color="brandGray.500"
         fontSize="md"
         rounded="lg"
+        w="auto"
       >
-        <Stack isInline spacing={28}>
+        <Stack isInline spacing={7} justify="center">
           <Stack
             spacing={0}
             borderColor="brandGray.016"
@@ -1250,9 +1251,9 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
 
 function BadFlipImage(props) {
   return (
-    <AspectRatioBox ratio={4 / 3} h={100}>
+    <AspectRatio ratio={4 / 3} h={100}>
       <Image {...props} />
-    </AspectRatioBox>
+    </AspectRatio>
   )
 }
 
@@ -1305,9 +1306,9 @@ function BadFlipPartFrame({flipCase, ...props}) {
   const framePosition = [
     {},
     {},
-    {top: 100 * 3 - 4, bottom: -4},
-    {top: 100 * 1 - 4, bottom: 100 * 2 - 4},
-    {top: 100 * 1 - 4, bottom: 100 * 2 - 4},
+    {top: `${100 * 3 - 4}px`, bottom: `${-4}px`},
+    {top: `${100 * 1 - 4}px`, bottom: `${100 * 2 - 4}px`},
+    {top: `${100 * 1 - 4}px`, bottom: `${100 * 2 - 4}px`},
   ]
   return (
     <ChakraBox
@@ -1316,10 +1317,10 @@ function BadFlipPartFrame({flipCase, ...props}) {
       borderColor="red.500"
       borderRadius="md"
       boxShadow="0 0 0 4px rgba(255, 102, 102, 0.25)"
-      top={-4}
-      left={-4}
-      right={-4}
-      bottom={-4}
+      top={-1}
+      left={-1}
+      right={-1}
+      bottom={-1}
       {...framePosition[flipCase]}
       transition="all 0.2s ease-out"
       zIndex={1}
@@ -1330,12 +1331,12 @@ function BadFlipPartFrame({flipCase, ...props}) {
         justify="center"
         bg="red.500"
         borderRadius="full"
-        size={8}
+        boxSize={8}
         position="absolute"
-        right={-20}
-        bottom={-20}
+        right={-4}
+        bottom={-4}
       >
-        <Icon name="block" size={5} />
+        <BlockIcon boxSize={5} />
       </ChakraFlex>
     </ChakraBox>
   )

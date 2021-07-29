@@ -1,4 +1,4 @@
-import {Flex} from '@chakra-ui/core'
+import {Flex} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {ActivateInvite} from '../../screens/key/components'
 import Layout from '../../shared/components/layout'

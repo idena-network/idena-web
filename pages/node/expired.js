@@ -1,4 +1,4 @@
-import {Flex, Link, Radio, RadioGroup, Stack} from '@chakra-ui/core'
+import {Flex, Link, Radio, RadioGroup, Stack} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {padding} from 'polished'
 import {useEffect, useState} from 'react'

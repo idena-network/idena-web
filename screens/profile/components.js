@@ -1,3 +1,4 @@
+/* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/prop-types */
 import React, {useEffect, useState} from 'react'
 import {
@@ -14,15 +15,15 @@ import {
   Button,
   Text,
   Switch,
-  Icon,
-  RadioButtonGroup,
   Radio,
   Alert,
   AlertIcon,
   AlertDescription,
   useToast,
   Link,
-} from '@chakra-ui/core'
+  RadioGroup,
+  Spacer,
+} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
 import {useMachine} from '@xstate/react'
@@ -71,17 +72,11 @@ import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {activateMiningMachine} from './machines'
 import {fetchBalance} from '../../shared/api/wallet'
+import {LaptopIcon, UserIcon} from '../../shared/components/icons'
 
 export function UserInlineCard({address, state, ...props}) {
   return (
-    <Stack
-      isInline
-      spacing={6}
-      align="center"
-      mb={6}
-      width={rem(480)}
-      {...props}
-    >
+    <Stack isInline spacing={6} align="center" width={rem(480)} {...props}>
       <Avatar address={address} />
       <Stack spacing={1}>
         <Heading as="h2" fontSize="lg" fontWeight={500} lineHeight="short">
@@ -142,6 +137,7 @@ export function UserStat(props) {
 export function UserStatLabel(props) {
   return (
     <StatLabel
+      style={{display: 'inline-block'}}
       color="muted"
       alignSelf="flex-start"
       fontSize="md"
@@ -252,10 +248,11 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
             <Textarea
               id="code"
               value={code}
-              borderColor="gray.300"
+              borderColor="gray.100"
               px={3}
-              pt="3/2"
+              pt={1.5}
               pb={2}
+              bg="white"
               isDisabled={mining || identity.state === IdentityStatus.Invite}
               minH={rem(50)}
               placeholder={
@@ -269,18 +266,23 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
               _placeholder={{
                 color: 'muted',
               }}
+              _hover={{
+                borderColor: 'gray.100',
+              }}
               onChange={e => setCode(e.target.value)}
             />
           </Stack>
         </FormControl>
-        <PrimaryButton
-          isLoading={mining}
-          loadingText={t('Mining...')}
-          type="submit"
-          ml="auto"
-        >
-          {t('Activate invite')}
-        </PrimaryButton>
+        <Flex>
+          <Spacer />
+          <PrimaryButton
+            isLoading={mining}
+            loadingText={t('Mining...')}
+            type="submit"
+          >
+            {t('Activate invite')}
+          </PrimaryButton>
+        </Flex>
       </Stack>
     </Box>
   )
@@ -480,13 +482,13 @@ export function ActivateMiningSwitch({isOnline, isDelegator, onShow}) {
       <Flex
         align="center"
         justify="space-between"
-        borderColor="gray.300"
+        borderColor="gray.100"
         borderWidth={1}
         rounded="md"
         h={8}
         px={3}
       >
-        <FormLabel htmlFor="mining" fontWeight="normal" pb={0}>
+        <FormLabel htmlFor="mining" fontWeight="normal" m={0}>
           {isDelegator ? t('Delegation') : t('Mining')}
         </FormLabel>
         <Stack isInline align="center">
@@ -497,13 +499,13 @@ export function ActivateMiningSwitch({isOnline, isDelegator, onShow}) {
             id="mining"
             size="sm"
             isChecked={isOnline}
-            color={accentColor}
+            colorScheme={accentColor}
             h={4}
             className="toggle"
             onChange={onShow}
           />
           <style jsx global>{`
-            .toggle > input[type='checkbox']:not(:checked) + div {
+            .toggle > input[type='checkbox']:not(:checked) + span {
               background: ${colors.red[500]};
             }
           `}</style>
@@ -536,7 +538,7 @@ export function ActivateMiningDrawer({
           w={12}
           rounded="xl"
         >
-          <Icon name="user" w={6} h={6} color="blue.500" />
+          <UserIcon boxSize={6} color="blue.500" />
         </Flex>
         <Heading
           color="brandGray.500"
@@ -552,36 +554,25 @@ export function ActivateMiningDrawer({
         <Stack spacing={6} mt={30}>
           <FormControl as={Stack} spacing={3}>
             <FormLabel p={0}>{t('Type')}</FormLabel>
-            <RadioButtonGroup
-              spacing={2}
-              isInline
-              d="flex"
-              value={mode}
-              onChange={onChangeMode}
-            >
+            <RadioGroup isInline d="flex" value={mode} onChange={onChangeMode}>
               <Radio
+                variant="bordered"
                 value={NodeType.Miner}
                 flex={1}
-                borderColor="gray.300"
-                borderWidth={1}
-                borderRadius="md"
                 p={2}
-                px={3}
+                mr={2}
               >
                 {t('Mining')}
               </Radio>
               <Radio
+                variant="bordered"
                 value={NodeType.Delegator}
                 flex={1}
-                borderColor="gray.300"
-                borderWidth={1}
-                borderRadius="md"
                 p={2}
-                px={3}
               >
                 {t('Delegation')}
               </Radio>
-            </RadioButtonGroup>
+            </RadioGroup>
           </FormControl>
           {mode === NodeType.Delegator ? (
             <Stack spacing={5}>
@@ -628,14 +619,14 @@ export function ActivateMiningDrawer({
               <Flex
                 borderTop="1px"
                 borderBottom="1px"
-                borderColor="gray.300"
+                borderColor="gray.100"
                 h={16}
                 alignItems="center"
                 justifyContent="space-between"
               >
                 <Flex>
                   <Stack spacing={2} isInline align="center" color="brand.gray">
-                    <Icon name="laptop" size={5} />
+                    <LaptopIcon boxSize={5} />
                     <Text as="span" fontSize={14} fontWeight={500}>
                       {t('Desktop App')}
                     </Text>
@@ -716,7 +707,7 @@ export function DeactivateMiningDrawer({
           w={12}
           rounded="xl"
         >
-          <Icon name="user" w={6} h={6} color="blue.500" />
+          <UserIcon boxSize={6} color="blue.500" />
         </Flex>
         <Heading
           color="brandGray.500"
@@ -865,7 +856,7 @@ export function KillForm({isOpen, onClose}) {
         <Box
           alignSelf="stretch"
           borderTop="1px"
-          borderTopColor="gray.300"
+          borderTopColor="gray.100"
           mt="auto"
           pt={5}
           width="100%"
@@ -874,7 +865,7 @@ export function KillForm({isOpen, onClose}) {
             <PrimaryButton
               onClick={terminate}
               isLoading={submitting}
-              variantColor="red"
+              colorScheme="red"
               _hover={{
                 bg: 'rgb(227 60 60)',
               }}

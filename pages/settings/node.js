@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
-import {Alert, AlertIcon, FormControl, Stack} from '@chakra-ui/core'
+import {Alert, AlertIcon, FormControl, Stack} from '@chakra-ui/react'
 import {Link} from '../../shared/components'
 import theme, {rem} from '../../shared/theme'
 import Flex from '../../shared/components/flex'

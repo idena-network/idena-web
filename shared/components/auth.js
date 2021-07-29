@@ -1,17 +1,17 @@
 /* eslint-disable react/prop-types */
-import {Flex, Text} from '@chakra-ui/core'
+import {Flex, Text} from '@chakra-ui/react'
 import {margin} from 'polished'
 import React, {useState} from 'react'
 import {FiChevronRight} from 'react-icons/fi'
 import Router from 'next/router'
 import theme, {rem} from '../theme'
-import {Label, Button} from '.'
 import {
   Avatar,
   Dialog,
   DialogBody,
   DialogFooter,
   DialogHeader,
+  FormLabel,
   PasswordInput,
 } from './components'
 import {useAuthDispatch} from '../providers/auth-context'
@@ -53,7 +53,6 @@ function RestoreKey() {
 
             <Flex justify="space-between">
               <FlatButton
-                color={theme.colors.primary}
                 onClick={() => showWarning(true)}
                 style={{
                   marginBottom: rem(19),
@@ -87,11 +86,10 @@ function RestoreKey() {
                 login(password)
               } catch (err) {
                 setError('Password is invalid. Try again.')
-                console.log(err)
               }
             }}
           >
-            <Label
+            <FormLabel
               htmlFor="password"
               style={{
                 color: 'white',
@@ -99,7 +97,7 @@ function RestoreKey() {
               }}
             >
               Password
-            </Label>
+            </FormLabel>
             <Flex width="100%">
               <PasswordInput
                 width="100%"
@@ -109,13 +107,13 @@ function RestoreKey() {
                 onChange={e => setPassword(e.target.value)}
                 placeholder="Enter your password"
               />
-              <Button
+              <PrimaryButton
                 type="submit"
-                disabled={!password}
+                isDisabled={!password}
                 style={{marginLeft: rem(10)}}
               >
                 Proceed
-              </Button>
+              </PrimaryButton>
             </Flex>
             {error && (
               <Flex
@@ -196,13 +194,12 @@ function Init() {
             Join the mining of the first human-centric cryptocurrency
           </Text>
 
-          <Button onClick={() => Router.push('/key/create')}>
+          <PrimaryButton onClick={() => Router.push('/key/create')}>
             Create an account
-          </Button>
+          </PrimaryButton>
 
           <Flex justifyContent="center">
             <FlatButton
-              color={theme.colors.primary}
               onClick={() => Router.push('/key/import')}
               style={{
                 marginTop: rem(20),

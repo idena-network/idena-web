@@ -1,5 +1,5 @@
 import * as React from 'react'
-import {Box, Spinner, useToast} from '@chakra-ui/core'
+import {Box, Spinner, useToast} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
 import {Page, PageTitle} from '../../screens/app/components'

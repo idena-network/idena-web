@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import {Flex, Heading} from '@chakra-ui/core'
+import {Flex, Heading} from '@chakra-ui/react'
 
 export function LayoutContainer(props) {
   return (

@@ -126,6 +126,15 @@ export function IdentityProvider(props) {
     ].includes(identity.state) ||
       identity.isPool)
 
+  const canTerminate =
+    identity &&
+    [
+      IdentityStatus.Verified,
+      IdentityStatus.Suspended,
+      IdentityStatus.Zombie,
+      IdentityStatus.Human,
+    ].includes(identity.state)
+
   const canActivateInvite =
     identity &&
     [IdentityStatus.Undefined, IdentityStatus.Invite].includes(identity.state)
@@ -144,6 +153,7 @@ export function IdentityProvider(props) {
             IdentityStatus.Human,
           ].includes(identity?.state),
           canInvite: identity?.invites > 0,
+          canTerminate,
         },
         {
           killMe,

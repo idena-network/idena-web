@@ -4,8 +4,8 @@ import {margin} from 'polished'
 import {useTranslation} from 'react-i18next'
 import Router from 'next/router'
 import Layout from '../shared/components/layout'
-import {Button} from '../shared/components'
 import theme, {rem} from '../shared/theme'
+import {PrimaryButton} from '../shared/components/button'
 
 // eslint-disable-next-line react/prop-types
 function MyError({statusCode, hasGetInitialPropsRun, err}) {
@@ -30,9 +30,9 @@ function MyError({statusCode, hasGetInitialPropsRun, err}) {
                 : t('An error occurred on client')}
             </h2>
             <div>
-              <Button onClick={() => Router.push('/')}>
+              <PrimaryButton onClick={() => Router.push('/')}>
                 {t('Go to My Idena')}
-              </Button>
+              </PrimaryButton>
             </div>
           </section>
         </div>

@@ -3,7 +3,6 @@ import React from 'react'
 import {
   Box,
   Button,
-  Icon,
   Popover,
   PopoverArrow,
   PopoverBody,
@@ -12,7 +11,7 @@ import {
   PopoverHeader,
   Stack,
   useTheme,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {openExternalUrl} from '../utils/utils'
 
@@ -29,6 +28,7 @@ export function OnboardingPopover({children, ...props}) {
           right={0}
           bottom={0}
           zIndex={2}
+          css={{margin: '0!important', padding: '0!important'}}
         />
       )}
       <Popover closeOnBlur={false} usePortal {...props}>
@@ -57,7 +57,7 @@ export function OnboardingPopoverContent({
       zIndex="popover"
       {...props}
     >
-      <PopoverArrow />
+      <PopoverArrow bg="blue.500" boxShadow="none !important" />
       <Box p={2}>
         <Stack spacing={3}>
           <PopoverHeader
@@ -89,11 +89,7 @@ export function OnboardingPopoverContent({
 export function OnboardingPopoverContentIconRow({icon, children, ...props}) {
   return (
     <Stack isInline spacing={4} align="center" {...props}>
-      {typeof icon === 'string' ? (
-        <Icon name={icon} size={5} />
-      ) : (
-        <Box>{icon}</Box>
-      )}
+      {icon}
       <Box color="white">{children}</Box>
     </Stack>
   )

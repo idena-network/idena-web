@@ -2,10 +2,10 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
+import {Button, Stack} from '@chakra-ui/react'
 import Layout from '../../shared/components/layout'
 import {Box, PageTitle} from '../../shared/components'
 import theme from '../../shared/theme'
-import {FlipFilter, FlipFilterOption} from '../../screens/flips/components'
 
 function SettingsLayout({children}) {
   const router = useRouter()
@@ -16,15 +16,22 @@ function SettingsLayout({children}) {
       <Box px={theme.spacings.xxxlarge} py={theme.spacings.large}>
         <Box>
           <PageTitle>{t('Settings')}</PageTitle>
-          {/* TODO: make it shared <Pill /> or <Tab /> component */}
-          <FlipFilter value={router.pathname} onChange={router.push}>
-            <FlipFilterOption value="/settings">
+          <Stack spacing={2} isInline>
+            <Button
+              variant="tab"
+              onClick={() => router.push('/settings')}
+              isActive={router.pathname === '/settings'}
+            >
               {t('General')}
-            </FlipFilterOption>
-            <FlipFilterOption value="/settings/node">
+            </Button>
+            <Button
+              variant="tab"
+              onClick={() => router.push('/settings/node')}
+              isActive={router.pathname === '/settings/node'}
+            >
               {t('Node')}
-            </FlipFilterOption>
-          </FlipFilter>
+            </Button>
+          </Stack>
         </Box>
         {children}
       </Box>

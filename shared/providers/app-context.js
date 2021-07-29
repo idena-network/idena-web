@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react'
-import {useToast} from '@chakra-ui/core'
+import {useToast} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useInterval} from '../hooks/use-interval'
 

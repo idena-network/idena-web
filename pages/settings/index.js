@@ -1,10 +1,9 @@
 import React, {useState} from 'react'
 import {margin} from 'polished'
 import {useTranslation} from 'react-i18next'
-import {Flex as ChakraFlex, Text, useClipboard} from '@chakra-ui/core'
+import {Flex as ChakraFlex, Text, useClipboard} from '@chakra-ui/react'
 import QRCode from 'qrcode.react'
 import {saveAs} from 'file-saver'
-import {Input, Label, Button} from '../../shared/components'
 import theme, {rem} from '../../shared/theme'
 import Flex from '../../shared/components/flex'
 import SettingsLayout from './layout'
@@ -13,9 +12,15 @@ import {
   DialogBody,
   DialogFooter,
   DialogHeader,
+  FormLabel,
+  Input,
   PasswordInput,
 } from '../../shared/components/components'
-import {FlatButton, SecondaryButton} from '../../shared/components/button'
+import {
+  FlatButton,
+  PrimaryButton,
+  SecondaryButton,
+} from '../../shared/components/button'
 import {
   useAuthDispatch,
   useAuthState,
@@ -56,7 +61,7 @@ function ExportLogs() {
 
   return (
     <Section title={t('Validation logs')}>
-      <Button onClick={getLogs}>{t('Export')}</Button>
+      <PrimaryButton onClick={getLogs}>{t('Export')}</PrimaryButton>
     </Section>
   )
 }
@@ -86,9 +91,9 @@ function ExportPK() {
         }}
       >
         <Flex align="center">
-          <Label htmlFor="url" style={{width: 120}}>
+          <FormLabel htmlFor="url" style={{width: 100}}>
             {t('New password')}
-          </Label>
+          </FormLabel>
           <PasswordInput
             value={password}
             width={rem(300)}
@@ -100,13 +105,13 @@ function ExportPK() {
           />
         </Flex>
         <Flex css={{marginTop: 10}}>
-          <Button
-            css={{marginLeft: 120, width: 100}}
+          <PrimaryButton
+            css={{marginLeft: 110, width: 100}}
             type="submit"
             disabled={!password}
           >
             {t('Export')}
-          </Button>
+          </PrimaryButton>
         </Flex>
       </form>
       <Dialog isOpen={showDialog} onClose={() => setShowDialog(false)}>
@@ -121,21 +126,13 @@ function ExportPK() {
             <QRCode value={pk} />
           </ChakraFlex>
           <ChakraFlex justify="space-between">
-            <Label style={{fontSize: rem(13)}}>
+            <FormLabel style={{fontSize: rem(13)}}>
               Your encrypted private key
-            </Label>
+            </FormLabel>
             {hasCopied ? (
-              <Label style={{fontSize: rem(13)}}>Copied!</Label>
+              <FormLabel style={{fontSize: rem(13)}}>Copied!</FormLabel>
             ) : (
-              <FlatButton
-                color={theme.colors.primary}
-                onClick={onCopy}
-                style={{
-                  fontSize: rem(13),
-                  marginBottom: rem(10),
-                  textAlign: 'center',
-                }}
-              >
+              <FlatButton onClick={onCopy} marginBottom={rem(10)}>
                 Copy
               </FlatButton>
             )}

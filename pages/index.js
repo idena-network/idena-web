@@ -1,15 +1,15 @@
 import React, {useEffect} from 'react'
 import {
   Box,
-  Icon,
   PopoverTrigger,
   Stack,
   Text,
   useDisclosure,
   useToast,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useQuery, useQueryClient} from 'react-query'
+import {useRouter} from 'next/router'
 import {Page, PageTitle} from '../screens/app/components'
 import {
   UserInlineCard,
@@ -34,12 +34,11 @@ import {
   openExternalUrl,
 } from '../shared/utils/utils'
 import {hasPersistedValidationResults} from '../screens/validation/utils'
-import {IconLink} from '../shared/components/link'
 import {useIdentity} from '../shared/providers/identity-context'
 import {useEpoch} from '../shared/providers/epoch-context'
 import {fetchBalance} from '../shared/api/wallet'
 import {useAuthState} from '../shared/providers/auth-context'
-import {IconButton2, PrimaryButton} from '../shared/components/button'
+import {IconButton, PrimaryButton} from '../shared/components/button'
 import {validDnaUrl} from '../shared/utils/dna-link'
 import {DnaSignInDialog} from '../screens/dna/containers'
 import {Toast} from '../shared/components/components'
@@ -51,6 +50,12 @@ import {
 } from '../shared/components/onboarding'
 import {onboardingShowingStep} from '../shared/utils/onboarding'
 import {useScroll} from '../shared/hooks/use-scroll'
+import {
+  AddUserIcon,
+  DeleteIcon,
+  PhotoIcon,
+  TelegramIcon,
+} from '../shared/components/icons'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -73,8 +78,11 @@ export default function ProfilePage() {
       delegationEpoch,
       canMine,
       canInvite,
+      canTerminate,
     },
   ] = useIdentity()
+
+  const router = useRouter()
 
   const epoch = useEpoch()
   const {coinbase, privateKey} = useAuthState()
@@ -279,7 +287,9 @@ export default function ProfilePage() {
                       {t(`Join the official Idena public Telegram group and follow instructions in the
                 pinned message.`)}
                     </Text>
-                    <OnboardingPopoverContentIconRow icon="telegram">
+                    <OnboardingPopoverContentIconRow
+                      icon={<TelegramIcon boxSize={5} />}
+                    >
                       <Box>
                         <PrimaryButton
                           variant="unstyled"
@@ -346,23 +356,26 @@ export default function ProfilePage() {
               </OnboardingPopover>
             </Box>
             <Stack spacing={1} align="flex-start">
-              <IconLink href="/flips/new" icon={<Icon name="photo" size={5} />}>
+              <IconButton
+                onClick={() => router.push('/flips/new')}
+                icon={<PhotoIcon boxSize={5} />}
+              >
                 {t('New flip')}
-              </IconLink>
-              <IconLink
-                href="/contacts?new"
+              </IconButton>
+              <IconButton
+                onClick={() => router.push('/contacts?new')}
                 isDisabled={!canInvite}
-                icon={<Icon name="add-user" size={5} />}
+                icon={<AddUserIcon boxSize={5} />}
               >
                 {t('Invite')}
-              </IconLink>
-              <IconButton2
-                isDisabled={!true}
-                icon="delete"
+              </IconButton>
+              <IconButton
+                isDisabled={!canTerminate}
+                icon={<DeleteIcon boxSize={5} />}
                 onClick={onOpenKillForm}
               >
                 {t('Terminate')}
-              </IconButton2>
+              </IconButton>
             </Stack>
           </Stack>
         </Stack>

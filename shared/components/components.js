@@ -13,7 +13,7 @@ import {
   FormLabel as ChakraFormLabel,
   Select as ChakraSelect,
   Skeleton as ChakraSkeleton,
-  Image,
+  Avatar as ChakraAvatar,
   Tooltip as ChakraTooltip,
   Flex,
   Alert,
@@ -30,12 +30,11 @@ import {
   Stack,
   Box,
   Button,
-  PseudoBox,
   FormControl,
   useTheme,
   Divider,
   Text,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
 import {rem} from '../theme'
@@ -95,30 +94,13 @@ export function FormControlWithLabel({label, children, ...props}) {
 }
 
 export function Input(props) {
-  return (
-    <ChakraInput
-      alignItems="center"
-      borderColor="gray.300"
-      fontSize="md"
-      lineHeight="short"
-      px={3}
-      h={8}
-      _placeholder={{
-        color: 'muted',
-      }}
-      _disabled={{
-        bg: 'gray.50',
-        color: 'muted',
-      }}
-      {...props}
-    />
-  )
+  return <ChakraInput {...props} />
 }
 
 export function Select(props) {
   return (
     <ChakraSelect
-      borderColor="gray.300"
+      borderColor="gray.100"
       fontSize="md"
       lineHeight="short"
       h={8}
@@ -168,18 +150,17 @@ export function PasswordInput({width, ...props}) {
   )
 }
 
-export function Avatar({address, ...props}) {
+export function Avatar({address, size = rem(80), ...props}) {
   return address ? (
-    <Image
-      size={rem(80)}
+    <ChakraAvatar
+      boxSize={size}
       src={`https://robohash.idena.io/${address}`}
       bg="gray.50"
-      rounded="lg"
-      ignoreFallback
+      borderRadius="lg"
       {...props}
     />
   ) : (
-    <PseudoBox size={rem(80)} bg="gray.50" rounded="lg"></PseudoBox>
+    <Box w={size} h={size} bg="gray.50" rounded="lg"></Box>
   )
 }
 
@@ -240,7 +221,7 @@ export function Toast({
           fontWeight={500}
           lineHeight="base"
           px={3}
-          py="3/2"
+          py={1.5}
           _hover={{bg: 'unset'}}
           _active={{bg: 'unset'}}
           _focus={{boxShadow: 'none'}}
@@ -301,8 +282,8 @@ export function Skeleton(props) {
   const {colors} = useTheme()
   return (
     <ChakraSkeleton
-      colorStart={colors.gray[100]}
-      colorEnd={colors.gray[300]}
+      startColor={colors.gray[100]}
+      endColor={colors.gray[300]}
       w="full"
       {...props}
     />
@@ -326,7 +307,7 @@ export const VDivider = React.forwardRef(function VDivider(props, ref) {
     <Divider
       ref={ref}
       orientation="vertical"
-      borderColor="gray.300"
+      borderColor="gray.100"
       h={6}
       mx={0}
       {...props}

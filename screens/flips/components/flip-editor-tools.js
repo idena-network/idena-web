@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
 import React, {useRef, useCallback, useEffect, useState} from 'react'
 import PropTypes from 'prop-types'
@@ -6,20 +7,20 @@ import {FaCircle} from 'react-icons/fa'
 import {FiCircle} from 'react-icons/fi'
 
 import {useTranslation} from 'react-i18next'
-import {
-  Stack,
-  Flex as ChakraFlex,
-  Box as ChakraBox,
-  Icon,
-} from '@chakra-ui/core'
+import {Stack, Flex as ChakraFlex, Box as ChakraBox} from '@chakra-ui/react'
+import {CopyIcon, DeleteIcon} from '@chakra-ui/icons'
 import useClickOutside from '../../../shared/hooks/use-click-outside'
 import {Menu, MenuItem} from '../../../shared/components/menu'
 
-import {IconButton} from '../../../shared/components/button'
+import {FlatButton, IconButton} from '../../../shared/components/button'
 import {Box, Absolute} from '../../../shared/components'
 import Divider from '../../../shared/components/divider'
 import theme from '../../../shared/theme'
 import Flex from '../../../shared/components/flex'
+import {
+  ClipboardIcon,
+  FlipEditorDeleteIcon,
+} from '../../../shared/components/icons'
 
 export function Brushes({brush, onChange}) {
   const brushes = [4, 12, 20, 28, 36]
@@ -32,14 +33,14 @@ export function Brushes({brush, onChange}) {
           justify="center"
           bg={brush === b ? 'gray.50' : 'unset'}
           rounded="md"
-          size={6}
+          boxSize={6}
           onClick={() => onChange(b)}
         >
           <ChakraBox
             key={b}
             bg="brandGray.500"
             rounded="full"
-            size={rem((i + 1) * 2)}
+            boxSize={rem((i + 1) * 2)}
           />
         </ChakraFlex>
       ))}
@@ -116,100 +117,90 @@ ColorPicker.propTypes = {
   onChange: PropTypes.func,
 }
 
-export function ArrowHint({hint, leftHanded, visible}) {
+export function ArrowHint({hint, leftHanded}) {
   return (
-    visible && (
-      <div>
-        <Box css={position('relative')}>
-          <Absolute top={rem(-105)} left={rem(0)} zIndex={90}>
-            {leftHanded && (
-              <div>
-                <div
-                  style={{
-                    minWidth: rem(24),
-                    minHeight: rem(40),
-                    borderLeft: `2px solid ${theme.colors.primary}`,
-                    borderTop: `2px solid ${theme.colors.primary}`,
-                  }}
-                />
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: '-5px',
-                    width: 0,
-                    height: 0,
-                    borderTop: `6px solid transparent`,
-                    borderLeft: `6px solid transparent`,
-                    borderRight: `6px solid transparent`,
-                    borderBottom: 0,
-                    borderTopColor: `${theme.colors.primary}`,
-                  }}
-                />
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: '30px',
-                    top: '-25px',
-                    minWidth: '75px',
-                    color: `${theme.colors.muted}`,
-                    fontWeight: `${theme.fontWeights.normal}`,
-                  }}
-                >
-                  {hint}
-                </div>
-              </div>
-            )}
+    <ChakraBox position="relative">
+      <ChakraBox position="absolute" bottom="86px" zIndex={90}>
+        {leftHanded && (
+          <div>
+            <div
+              style={{
+                minWidth: rem(24),
+                minHeight: rem(40),
+                borderLeft: `2px solid ${theme.colors.primary}`,
+                borderTop: `2px solid ${theme.colors.primary}`,
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                left: '-5px',
+                width: 0,
+                height: 0,
+                borderTop: `6px solid transparent`,
+                borderLeft: `6px solid transparent`,
+                borderRight: `6px solid transparent`,
+                borderBottom: 0,
+                borderTopColor: `${theme.colors.primary}`,
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                left: '30px',
+                top: '-25px',
+                minWidth: '75px',
+                color: `${theme.colors.muted}`,
+                fontWeight: `${theme.fontWeights.normal}`,
+              }}
+            >
+              {hint}
+            </div>
+          </div>
+        )}
 
-            {!leftHanded && (
-              <div>
-                <div
-                  style={{
-                    minWidth: rem(24),
-                    minHeight: rem(40),
-                    borderRight: `2px solid ${theme.colors.primary}`,
-                    borderTop: `2px solid ${theme.colors.primary}`,
-                  }}
-                />
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: rem(16),
-                    width: 0,
-                    height: 0,
-                    marginLeft: '0px',
-                    borderLeft: `6px solid transparent`,
-                    borderRight: `6px solid transparent`,
-                    borderTop: `6px solid transparent`,
-                    borderBottom: 0,
-                    borderTopColor: `${theme.colors.primary}`,
-                  }}
-                />
-                <div
-                  style={{
-                    position: 'absolute',
-                    left: '-58px',
-                    top: '-25px',
-                    minWidth: rem(52, theme.fontSizes.base),
-                    width: rem(52, theme.fontSizes.base),
-                    color: `${theme.colors.muted}`,
-                    fontWeight: `${theme.fontWeights.normal}`,
-                  }}
-                >
-                  {hint}
-                </div>
-              </div>
-            )}
-          </Absolute>
-        </Box>
-      </div>
-    )
+        {!leftHanded && (
+          <div>
+            <div
+              style={{
+                minWidth: rem(24),
+                minHeight: rem(40),
+                borderRight: `2px solid ${theme.colors.primary}`,
+                borderTop: `2px solid ${theme.colors.primary}`,
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                left: rem(16),
+                width: 0,
+                height: 0,
+                marginLeft: '0px',
+                borderLeft: `6px solid transparent`,
+                borderRight: `6px solid transparent`,
+                borderTop: `6px solid transparent`,
+                borderBottom: 0,
+                borderTopColor: `${theme.colors.primary}`,
+              }}
+            />
+            <div
+              style={{
+                position: 'absolute',
+                left: '-58px',
+                top: '-25px',
+                minWidth: rem(52, theme.fontSizes.base),
+                width: rem(52, theme.fontSizes.base),
+                color: `${theme.colors.muted}`,
+                fontWeight: `${theme.fontWeights.normal}`,
+              }}
+            >
+              {hint}
+            </div>
+          </div>
+        )}
+      </ChakraBox>
+    </ChakraBox>
   )
-}
-
-ArrowHint.propTypes = {
-  hint: PropTypes.string,
-  leftHanded: PropTypes.bool,
-  visible: PropTypes.bool,
 }
 
 EditorContextMenu.propTypes = {
@@ -253,7 +244,7 @@ export function EditorContextMenu({
                     onCopy()
                     onClose()
                   }}
-                  icon={<Icon name="copy" size={5} />}
+                  icon={<CopyIcon boxSize={5} />}
                 >
                   {`${t('Copy')} (Ctrl/Cmd+C)`}
                 </MenuItem>
@@ -264,7 +255,7 @@ export function EditorContextMenu({
                     onPaste()
                     onClose()
                   }}
-                  icon={<Icon name="clipboard" size={5} />}
+                  icon={<ClipboardIcon boxSize={5} />}
                 >
                   {`${t('Paste image')} (Ctrl/Cmd+V)`}
                 </MenuItem>
@@ -287,7 +278,7 @@ export function EditorContextMenu({
                     onClose()
                   }}
                   danger
-                  icon={<Icon name="delete" size={5} color="red.500" />}
+                  icon={<DeleteIcon boxSize={5} color="red.500" />}
                 >
                   {`${t('Delete')} `}
                 </MenuItem>
@@ -298,13 +289,7 @@ export function EditorContextMenu({
                       onClear()
                       onClose()
                     }}
-                    icon={
-                      <Icon
-                        name="flip-editor-delete"
-                        size={5}
-                        color="red.500"
-                      />
-                    }
+                    icon={<FlipEditorDeleteIcon boxSize={5} color="red.500" />}
                   >
                     {`${t('Clear')} `}
                   </MenuItem>
@@ -473,16 +458,19 @@ export function ApplyChangesBottomPanel({label, onDone, onCancel}) {
     >
       {label}
       <Flex align="center">
-        <IconButton onClick={() => onCancel()}>{t('Cancel')}</IconButton>
+        <FlatButton onClick={() => onCancel()} mr={2}>
+          {t('Cancel')}
+        </FlatButton>
 
         <Divider vertical />
 
-        <IconButton
+        <FlatButton
           style={{fontWeight: theme.fontWeights.bold}}
           onClick={() => onDone()}
+          ml={2}
         >
           {t('Done')}
-        </IconButton>
+        </FlatButton>
       </Flex>
     </Flex>
   )

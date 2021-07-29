@@ -1,15 +1,16 @@
-import {Flex, Icon, Text} from '@chakra-ui/core'
+import {Flex, Text} from '@chakra-ui/react'
 import {margin, rem} from 'polished'
 import {useEffect, useState} from 'react'
 import {useQuery} from 'react-query'
 import {useTranslation} from 'react-i18next'
-import {Label, SubHeading} from '../../shared/components'
+import {ArrowUpIcon} from '@chakra-ui/icons'
+import {SubHeading} from '../../shared/components'
 import {
   useSettingsDispatch,
   useSettingsState,
 } from '../../shared/providers/settings-context'
 import theme from '../../shared/theme'
-import {Avatar, Input} from '../../shared/components/components'
+import {Avatar, FormLabel, Input} from '../../shared/components/components'
 import {
   FlatButton,
   PrimaryButton,
@@ -146,9 +147,9 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
           }}
           style={{width: '100%'}}
         >
-          <Label htmlFor="code" style={{color: 'white', fontSize: rem(13)}}>
+          <FormLabel htmlFor="code" style={{color: 'white', fontSize: rem(13)}}>
             {t('Invitation code')}
-          </Label>
+          </FormLabel>
           <Flex width="100%" style={{marginBottom: rem(20)}}>
             <Input
               id="code"
@@ -167,20 +168,11 @@ export function ActivateInvite({privateKey, onBack, onSkip, onNext}) {
             }}
             justify="space-between"
           >
-            <FlatButton
-              color="white"
-              onClick={onBack}
-              style={{
-                fontSize: rem(13),
-                textAlign: 'center',
-              }}
-              disabled={waiting}
-            >
-              <Icon
-                name="arrow-up"
-                size={5}
+            <FlatButton color="white" onClick={onBack} disabled={waiting}>
+              <ArrowUpIcon
+                boxSize={5}
                 style={{transform: 'rotate(-90deg)', marginTop: -3}}
-              ></Icon>
+              />
               {t('Back')}
             </FlatButton>
 

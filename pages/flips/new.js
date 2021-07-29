@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react'
 import {useRouter} from 'next/router'
-import {Box, Flex, useToast, Divider, useDisclosure} from '@chakra-ui/core'
+import {Box, Flex, useToast, Divider, useDisclosure} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
 import {Page} from '../../screens/app/components'
@@ -34,7 +34,7 @@ import {
 import {Notification} from '../../shared/components/notifications'
 import {Step} from '../../screens/flips/types'
 import {
-  IconButton2,
+  IconButton,
   SecondaryButton,
   PrimaryButton,
 } from '../../shared/components/button'
@@ -45,6 +45,7 @@ import {redact} from '../../shared/utils/logs'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {BadFlipDialog} from '../../screens/validation/components'
+import {InfoIcon, RefreshIcon} from '../../shared/components/icons'
 
 export default function NewFlipPage() {
   const {t, i18n} = useTranslation()
@@ -232,7 +233,7 @@ export default function NewFlipPage() {
                               !isOffline && (
                                 <>
                                   <Divider
-                                    borderColor="gray.300"
+                                    borderColor="gray.100"
                                     mx={-10}
                                     mt={4}
                                     mb={6}
@@ -264,8 +265,8 @@ export default function NewFlipPage() {
                       {isOffline && <CommunityTranslationUnavailable />}
                     </Box>
                     <FlipStoryAside>
-                      <IconButton2
-                        icon="refresh"
+                      <IconButton
+                        icon={<RefreshIcon boxSize={5} />}
                         isDisabled={availableKeywords.length < 2}
                         onClick={() => send('CHANGE_KEYWORDS')}
                       >
@@ -273,10 +274,13 @@ export default function NewFlipPage() {
                         {availableKeywords.length > 1
                           ? `(#${keywordPairId + 1})`
                           : null}
-                      </IconButton2>
-                      <IconButton2 icon="info" onClick={onOpenBadFlipDialog}>
+                      </IconButton>
+                      <IconButton
+                        icon={<InfoIcon boxSize={5} />}
+                        onClick={onOpenBadFlipDialog}
+                      >
                         {t('What is a bad flip')}
-                      </IconButton2>
+                      </IconButton>
                     </FlipStoryAside>
                   </FlipStepBody>
                 </FlipStoryStep>

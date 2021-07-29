@@ -1,10 +1,9 @@
 /* eslint-disable react/prop-types */
 import React, {useState} from 'react'
 import {
-  AspectRatioBox,
+  AspectRatio,
   Box,
   Flex,
-  Icon,
   Image,
   InputGroup,
   InputLeftElement,
@@ -12,12 +11,13 @@ import {
   Spinner,
   Stack,
   Text,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
 import {Machine} from 'xstate'
 import {assign, log} from 'xstate/lib/actions'
 import axios from 'axios'
+import {SearchIcon} from '@chakra-ui/icons'
 import {PrimaryButton, SecondaryButton} from '../../../shared/components/button'
 import {
   Dialog,
@@ -87,7 +87,7 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
 
   return (
     <Dialog
-      size="38rem"
+      size="lg"
       initialFocusRef={searchInputRef}
       onClose={onClose}
       {...props}
@@ -103,8 +103,8 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
             }}
           >
             <InputGroup w="full">
-              <InputLeftElement w={5} h={5} top="3/2" left={3}>
-                <Icon name="search" size={3} color="gray.100" />
+              <InputLeftElement w={5} h={5} top={1.5} left={3}>
+                <SearchIcon boxSize={3} color="gray.200" />
               </InputLeftElement>
               <Input
                 ref={searchInputRef}
@@ -123,7 +123,7 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
             <Flex direction="column" flex={1} align="center" justify="center">
               <Stack spacing={4} align="center" w="3xs">
                 <Box p={3}>
-                  <Icon name="search" size="56px" color="gray.300" />
+                  <SearchIcon boxSize="56px" color="gray.100" />
                 </Box>
                 <Text color="muted" textAlign="center" w="full">
                   {t(
@@ -134,12 +134,18 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
             </Flex>
           )}
           {eitherState(current, 'done') && (
-            <SimpleGrid columns={4} spacing={2} overflow="auto" mx={-6} px={6}>
+            <SimpleGrid
+              columns={4}
+              spacing={2}
+              overflow="auto"
+              px={6}
+              style={{marginLeft: '-24px', marginRight: '-24px'}}
+            >
               {images.map(({thumbnail}) => (
-                <AspectRatioBox
+                <AspectRatio
                   ratio={1}
-                  w={32}
-                  minH={32}
+                  w={28}
+                  minH={28}
                   bg={thumbnail === selectedImage ? 'blue.032' : 'white'}
                   borderColor={
                     thumbnail === selectedImage ? 'blue.500' : 'gray.50'
@@ -166,7 +172,7 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
                     borderWidth={1}
                     borderRadius="md"
                   />
-                </AspectRatioBox>
+                </AspectRatio>
               ))}
             </SimpleGrid>
           )}

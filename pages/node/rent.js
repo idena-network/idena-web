@@ -1,4 +1,12 @@
-import {Box, CloseButton, Flex, Link, Radio, Stack, Text} from '@chakra-ui/core'
+import {
+  Box,
+  CloseButton,
+  Flex,
+  Link,
+  Radio,
+  Stack,
+  Text,
+} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {rem} from 'polished'
 import {useState} from 'react'
@@ -133,7 +141,7 @@ export default function Rent() {
         <Box
           alignSelf="stretch"
           borderTop="1px"
-          borderTopColor="gray.300"
+          borderTopColor="gray.100"
           mt="auto"
           pt={5}
         >

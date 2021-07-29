@@ -9,11 +9,9 @@ import {
   Button,
   useClipboard,
   Box,
-  Icon,
   useDisclosure,
   Collapse,
-  IconButton,
-} from '@chakra-ui/core'
+} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {
@@ -40,7 +38,7 @@ import {
   useInviteDispatch,
   useInviteState,
 } from '../../shared/providers/invite-context'
-import {PrimaryButton, IconButton2} from '../../shared/components/button'
+import {PrimaryButton, IconButton} from '../../shared/components/button'
 import {
   ContactAvatar,
   ContactCardBadge,
@@ -51,6 +49,14 @@ import {useEpoch} from '../../shared/providers/epoch-context'
 import {useSuccessToast} from '../../shared/hooks/use-toast'
 import {IdentityStatus} from '../../shared/types'
 import {useAuthState} from '../../shared/providers/auth-context'
+import {
+  ChevronDownIcon,
+  DeleteIcon,
+  EditIcon,
+  FlipEditorDeleteIcon,
+  InfoIcon,
+  PlusSolidIcon,
+} from '../../shared/components/icons'
 
 export function ContactListSidebar({
   selectedContactId,
@@ -64,7 +70,7 @@ export function ContactListSidebar({
   return (
     <Stack
       spacing={3}
-      borderRightColor="gray.300"
+      borderRightColor="gray.100"
       borderRightWidth="1px"
       w={240}
       h="100vh"
@@ -100,11 +106,11 @@ function InviteActionBar({onNewContact}) {
   const [{invites: availableInviteCount, canInvite}] = useIdentity()
 
   return (
-    <Flex align="center" justify="space-between" px={4} py="3/2" w="full">
+    <Flex align="center" justify="space-between" px={4} py={1.5} w="full">
       <Stack isInline spacing={3} align="center">
         <IconButton
-          icon="plus-solid"
-          variantColor="blue"
+          icon={<PlusSolidIcon boxSize={5} ml={-1} mt={1} />}
+          colorScheme="blue"
           bg="blue.012"
           color="blue.500"
           fontSize="base"
@@ -153,7 +159,7 @@ function InvitationRewardRatioInfo() {
       placement="right"
       w={151}
     >
-      <Icon name="info" size={5} color="blue.500" />
+      <InfoIcon boxSize={5} color="blue.500" />
     </Tooltip>
   )
 }
@@ -240,7 +246,7 @@ function ContactListItem({
       spacing={3}
       align="center"
       bg={isActive ? 'gray.50' : ''}
-      h={44}
+      h={12}
       px={4}
       cursor="pointer"
       {...props}
@@ -311,8 +317,8 @@ export function ContactCard({
       <Stack spacing={6} w="full">
         <Stack spacing={4}>
           <Stack isInline spacing={6} align="center" py={2}>
-            <ContactAvatar address={address} h={80} w={80} borderRadius={20} />
-            <Stack spacing="3/2" fontWeight={500}>
+            <ContactAvatar address={address} borderRadius={20} />
+            <Stack spacing={1.5} fontWeight={500}>
               <Stack isInline align="center">
                 <Text fontSize="lg">
                   {`${firstName} ${lastName}`.trim() || t('...')}
@@ -335,13 +341,13 @@ export function ContactCard({
           </Stack>
 
           <Stack isInline align="center" spacing={1} w="full">
-            <IconButton2 icon="edit" onClick={onEditContact}>
+            <IconButton icon={<EditIcon boxSize={5} />} onClick={onEditContact}>
               {t('Edit')}
-            </IconButton2>
+            </IconButton>
             <VDivider />
             <Tooltip label={t('Remove from device')}>
-              <IconButton2
-                icon="flip-editor-delete"
+              <IconButton
+                icon={<FlipEditorDeleteIcon boxSize={5} />}
                 onClick={() => {
                   deleteInvite(dbkey)
                   successToast({
@@ -356,14 +362,14 @@ export function ContactCard({
                 }}
               >
                 {t('Delete contact')}
-              </IconButton2>
+              </IconButton>
             </Tooltip>
             {canKill && (
               <>
                 <VDivider />
-                <IconButton2
-                  icon="delete"
-                  variantColor="red"
+                <IconButton
+                  icon={<DeleteIcon boxSize={5} />}
+                  colorScheme="red"
                   _active={{
                     bg: 'red.012',
                   }}
@@ -373,7 +379,7 @@ export function ContactCard({
                   onClick={onKillContact}
                 >
                   {t('Kill')}
-                </IconButton2>
+                </IconButton>
               </>
             )}
           </Stack>
@@ -398,7 +404,7 @@ export function ContactCard({
                   {!activated && (
                     <Button
                       variant="link"
-                      variantColor="blue"
+                      colorScheme="blue"
                       fontWeight={500}
                       _hover={null}
                       _active={null}
@@ -497,9 +503,8 @@ export function IssueInviteDrawer({onIssue, onIssueFail, ...props}) {
               onClick={onToggleAdvancedOptions}
             >
               {t('Advanced')}
-              <Icon
-                size={5}
-                name="chevron-down"
+              <ChevronDownIcon
+                boxSize={5}
                 color="muted"
                 ml={2}
                 transform={isOpenAdvancedOptions ? 'rotate(180deg)' : ''}

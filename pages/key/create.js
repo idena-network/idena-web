@@ -1,19 +1,19 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
-import {Checkbox, Flex, Icon, Text, useClipboard} from '@chakra-ui/core'
+import {Checkbox, Flex, Text, useClipboard} from '@chakra-ui/react'
 import {rem, margin} from 'polished'
 import {useState, useEffect} from 'react'
 import {useRouter} from 'next/router'
 import QRCode from 'qrcode.react'
 import {saveAs} from 'file-saver'
 import {useTranslation} from 'react-i18next'
-import {Button, Label} from '../../shared/components'
 import {
   Avatar,
   Dialog,
   DialogBody,
   DialogFooter,
   DialogHeader,
+  FormLabel,
   Input,
   PasswordInput,
 } from '../../shared/components/components'
@@ -30,6 +30,7 @@ import {
   privateKeyToAddress,
 } from '../../shared/utils/crypto'
 import {AuthLayout} from '../../shared/components/auth'
+import {ArrowUpIcon, RefreshIcon} from '../../shared/components/icons'
 
 const steps = {
   AVATAR: 0,
@@ -90,16 +91,14 @@ export default function CreateKey() {
                     className="refresh-avatar"
                     onClick={() => generateNewAddress()}
                   >
-                    <Icon
-                      name="refresh"
-                      w={5}
-                      h={5}
+                    <RefreshIcon
+                      boxSize={5}
                       fill="white"
                       style={{
                         opacity: 0.8,
                         transform: 'scaleX(-1) rotate(90deg)',
                       }}
-                    ></Icon>
+                    ></RefreshIcon>
                   </div>
                 </div>
               </Flex>
@@ -119,20 +118,12 @@ export default function CreateKey() {
               >
                 {state.address}
               </Flex>
-              <Button onClick={() => setStep(steps.PASSWORD)}>
+              <PrimaryButton onClick={() => setStep(steps.PASSWORD)}>
                 {t('Proceed')}
-              </Button>
+              </PrimaryButton>
 
               <Flex justifyContent="center">
-                <FlatButton
-                  color={theme.colors.primary}
-                  onClick={() => router.push('/')}
-                  style={{
-                    marginTop: rem(20),
-                    fontSize: rem(13),
-                    textAlign: 'center',
-                  }}
-                >
+                <FlatButton onClick={() => router.push('/')} mt={5}>
                   {t('Cancel')}
                 </FlatButton>
               </Flex>
@@ -190,12 +181,12 @@ export default function CreateKey() {
                 }}
                 style={{width: '100%'}}
               >
-                <Label
+                <FormLabel
                   htmlFor="key"
                   style={{color: 'white', fontSize: rem(13)}}
                 >
                   {t('Password')}
-                </Label>
+                </FormLabel>
                 <Flex
                   width="100%"
                   style={{marginBottom: rem(20), position: 'relative'}}
@@ -215,7 +206,7 @@ export default function CreateKey() {
                     placeholder={t('Enter password')}
                   />
                 </Flex>
-                <Label
+                <FormLabel
                   htmlFor="key"
                   style={{
                     color: 'white',
@@ -223,7 +214,7 @@ export default function CreateKey() {
                   }}
                 >
                   {t('Confirm password')}
-                </Label>
+                </FormLabel>
                 <Flex width="100%" style={{position: 'relative'}}>
                   <PasswordInput
                     id="passwordConfirm"
@@ -248,20 +239,16 @@ export default function CreateKey() {
                 >
                   <FlatButton
                     color="white"
+                    _hover={{color: 'xwhite.080'}}
                     onClick={() => setStep(steps.AVATAR)}
-                    style={{
-                      fontSize: rem(13),
-                      textAlign: 'center',
-                    }}
                   >
-                    <Icon
-                      name="arrow-up"
-                      size={5}
+                    <ArrowUpIcon
+                      boxSize={5}
                       style={{transform: 'rotate(-90deg)', marginTop: -3}}
-                    ></Icon>
+                    ></ArrowUpIcon>
                     {t('Back')}
                   </FlatButton>
-                  <Button type="submit">{t('Next')}</Button>
+                  <PrimaryButton type="submit">{t('Next')}</PrimaryButton>
                 </Flex>
                 {error && (
                   <Flex
@@ -327,23 +314,15 @@ export default function CreateKey() {
                 style={{width: '100%'}}
               >
                 <Flex justify="space-between">
-                  <Label style={{color: 'white', fontSize: rem(13)}}>
+                  <FormLabel style={{color: 'white', fontSize: rem(13)}}>
                     {t('Your encrypted private key')}
-                  </Label>
+                  </FormLabel>
                   {hasCopied ? (
-                    <Label style={{color: 'white', fontSize: rem(13)}}>
+                    <FormLabel style={{color: 'white', fontSize: rem(13)}}>
                       {t('Copied!')}
-                    </Label>
+                    </FormLabel>
                   ) : (
-                    <FlatButton
-                      color={theme.colors.primary}
-                      onClick={onCopy}
-                      style={{
-                        fontSize: rem(13),
-                        marginBottom: rem(10),
-                        textAlign: 'center',
-                      }}
-                    >
+                    <FlatButton onClick={onCopy} marginBottom={rem(10)}>
                       {t('Copy')}
                     </FlatButton>
                   )}
@@ -400,20 +379,16 @@ export default function CreateKey() {
                 >
                   <FlatButton
                     color="white"
+                    _hover={{color: 'xwhite.080'}}
                     onClick={() => {
                       setError('')
                       setStep(steps.PASSWORD)
                     }}
-                    style={{
-                      fontSize: rem(13),
-                      textAlign: 'center',
-                    }}
                   >
-                    <Icon
-                      name="arrow-up"
-                      size={5}
+                    <ArrowUpIcon
+                      boxSize={5}
                       style={{transform: 'rotate(-90deg)', marginTop: -3}}
-                    ></Icon>
+                    ></ArrowUpIcon>
                     {t('Back')}
                   </FlatButton>
                   <Flex>
@@ -505,19 +480,11 @@ export default function CreateKey() {
               >
                 {state.address}
               </Flex>
-              <Button onClick={() => router.push('/key/import')}>
+              <PrimaryButton onClick={() => router.push('/key/import')}>
                 {t('Sign in')}
-              </Button>
+              </PrimaryButton>
               <Flex justifyContent="center">
-                <FlatButton
-                  color={theme.colors.primary}
-                  onClick={() => setStep(steps.BACKUP)}
-                  style={{
-                    marginTop: rem(20),
-                    fontSize: rem(13),
-                    textAlign: 'center',
-                  }}
-                >
+                <FlatButton onClick={() => setStep(steps.BACKUP)} mt={5}>
                   {t('Back')}
                 </FlatButton>
               </Flex>

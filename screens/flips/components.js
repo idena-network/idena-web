@@ -2,7 +2,6 @@
 import React from 'react'
 import NextLink from 'next/link'
 import {
-  SimpleGrid,
   Image,
   Text,
   Box,
@@ -12,16 +11,14 @@ import {
   Icon,
   MenuItem,
   MenuList,
-  PseudoBox,
   Button,
-  RadioButtonGroup,
   Stack,
   useTheme,
   Heading,
-  AspectRatioBox,
+  AspectRatio,
   Divider,
   CloseButton,
-  IconButton,
+  IconButton as ChakraIconButton,
   FormControl,
   Input,
   Textarea,
@@ -30,16 +27,20 @@ import {
   MenuDivider,
   Alert,
   AlertIcon,
-} from '@chakra-ui/core'
+  RadioGroup,
+  Wrap,
+  WrapItem,
+} from '@chakra-ui/react'
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd'
 import {useTranslation} from 'react-i18next'
 import {transparentize} from 'polished'
 import {useService} from '@xstate/react'
+import {EditIcon, ViewIcon} from '@chakra-ui/icons'
 import FlipEditor from './components/flip-editor'
 import {Step} from './types'
 import {formatKeywords} from './utils'
 import {PageTitle} from '../app/components'
-import {PrimaryButton, IconButton2} from '../../shared/components/button'
+import {PrimaryButton, IconButton} from '../../shared/components/button'
 import {rem} from '../../shared/theme'
 import {capitalize} from '../../shared/utils/string'
 import {reorder} from '../../shared/utils/arr'
@@ -52,6 +53,23 @@ import {
   FormLabel,
 } from '../../shared/components/components'
 import {openExternalUrl} from '../../shared/utils/utils'
+import {
+  ChevronDownIcon,
+  CommunityIcon,
+  CycleIcon,
+  DeleteIcon,
+  GtranslateIcon,
+  InfoSolidIcon,
+  MoreIcon,
+  MoveIcon,
+  OkIcon,
+  PicIcon,
+  PlusSolidIcon,
+  SwitchIcon,
+  UndoIcon,
+  UploadIcon,
+  UpvoteIcon,
+} from '../../shared/components/icons'
 
 export function FlipPageTitle({onClose, ...props}) {
   return (
@@ -63,7 +81,7 @@ export function FlipPageTitle({onClose, ...props}) {
 }
 
 export function FlipCardList(props) {
-  return <SimpleGrid columns={4} spacing={10} {...props} />
+  return <Wrap spacing={10} {...props} />
 }
 
 export function FlipCard({flipService, onDelete}) {
@@ -86,96 +104,92 @@ export function FlipCard({flipService, onDelete}) {
   const isDeletable = [FlipType.Published, FlipType.Draft].includes(type)
 
   return (
-    <Box position="relative">
-      <FlipCardImageBox>
-        {[FlipType.Publishing, FlipType.Deleting, FlipType.Invalid].some(
-          x => x === type
-        ) && (
-          <FlipOverlay
-            backgroundImage={
-              // eslint-disable-next-line no-nested-ternary
-              [FlipType.Publishing, FlipType.Deleting].some(x => x === type)
-                ? `linear-gradient(to top, ${
-                    colors.warning[500]
-                  }, ${transparentize(100, colors.warning[500])})`
-                : type === FlipType.Invalid
-                ? `linear-gradient(to top, ${colors.red[500]}, ${transparentize(
-                    100,
-                    colors.red[500]
-                  )})`
-                : ''
-            }
-          >
-            <FlipOverlayStatus>
-              <FlipOverlayIcon name="info-solid" />
-              <FlipOverlayText>
-                {type === FlipType.Publishing && t('Mining...')}
-                {type === FlipType.Deleting && t('Deleting...')}
-                {type === FlipType.Invalid && t('Mining error')}
-              </FlipOverlayText>
-            </FlipOverlayStatus>
-          </FlipOverlay>
-        )}
-        <FlipCardImage src={images[originalOrder ? originalOrder[0] : 0]} />
-      </FlipCardImageBox>
-      <Flex justifyContent="space-between" alignItems="flex-start" mt={4}>
-        <Box>
-          <FlipCardTitle>
-            {keywords.words && keywords.words.length
-              ? formatKeywords(keywords.words)
-              : t('Missing keywords')}
-          </FlipCardTitle>
-          <FlipCardSubtitle>
-            {new Date(createdAt).toLocaleString()}
-          </FlipCardSubtitle>
-        </Box>
-        {isActionable && (
-          <FlipCardMenu>
-            {isSubmittable && (
-              <FlipCardMenuItem onClick={() => send('PUBLISH', {id})}>
-                <FlipCardMenuItemIcon name="upload" size={5} mr={2} />
-                {t('Submit flip')}
-              </FlipCardMenuItem>
-            )}
-            {isViewable && (
-              <FlipCardMenuItem>
-                <NextLink href={`/flips/view?id=${id}`}>
-                  <Flex>
-                    <FlipCardMenuItemIcon name="view" size={5} mr={2} />
-                    {t('View flip')}
-                  </Flex>
-                </NextLink>
-              </FlipCardMenuItem>
-            )}
-            {isEditable && (
-              <FlipCardMenuItem>
-                <NextLink href={`/flips/edit?id=${id}`}>
-                  <Flex>
-                    <FlipCardMenuItemIcon name="edit" size={5} mr={2} />
-                    {t('Edit flip')}
-                  </Flex>
-                </NextLink>
-              </FlipCardMenuItem>
-            )}
-            {(isSubmittable || isEditable) && isDeletable && (
-              <MenuDivider color="gray.300" my={2} width={rem(145)} />
-            )}
+    <WrapItem w={150}>
+      <Box position="relative">
+        <FlipCardImageBox>
+          {[FlipType.Publishing, FlipType.Deleting, FlipType.Invalid].some(
+            x => x === type
+          ) && (
+            <FlipOverlay
+              backgroundImage={
+                // eslint-disable-next-line no-nested-ternary
+                [FlipType.Publishing, FlipType.Deleting].some(x => x === type)
+                  ? `linear-gradient(to top, ${
+                      colors.warning[500]
+                    }, ${transparentize(100, colors.warning[500])})`
+                  : type === FlipType.Invalid
+                  ? `linear-gradient(to top, ${
+                      colors.red[500]
+                    }, ${transparentize(100, colors.red[500])})`
+                  : ''
+              }
+            >
+              <FlipOverlayStatus>
+                <InfoSolidIcon boxSize={5} />
+                <FlipOverlayText>
+                  {type === FlipType.Publishing && t('Mining...')}
+                  {type === FlipType.Deleting && t('Deleting...')}
+                  {type === FlipType.Invalid && t('Mining error')}
+                </FlipOverlayText>
+              </FlipOverlayStatus>
+            </FlipOverlay>
+          )}
+          <FlipCardImage src={images[originalOrder ? originalOrder[0] : 0]} />
+        </FlipCardImageBox>
+        <Flex justifyContent="space-between" alignItems="flex-start" mt={4}>
+          <Box>
+            <FlipCardTitle>
+              {keywords.words && keywords.words.length
+                ? formatKeywords(keywords.words)
+                : t('Missing keywords')}
+            </FlipCardTitle>
+            <FlipCardSubtitle>
+              {new Date(createdAt).toLocaleString()}
+            </FlipCardSubtitle>
+          </Box>
+          {isActionable && (
+            <FlipCardMenu>
+              {isSubmittable && (
+                <FlipCardMenuItem onClick={() => send('PUBLISH', {id})}>
+                  <UploadIcon boxSize={5} mr={2} color="blue.500" />
+                  {t('Submit flip')}
+                </FlipCardMenuItem>
+              )}
+              {isViewable && (
+                <FlipCardMenuItem>
+                  <NextLink href={`/flips/view?id=${id}`}>
+                    <Flex>
+                      <ViewIcon boxSize={5} mr={2} color="blue.500" />
+                      {t('View flip')}
+                    </Flex>
+                  </NextLink>
+                </FlipCardMenuItem>
+              )}
+              {isEditable && (
+                <FlipCardMenuItem>
+                  <NextLink href={`/flips/edit?id=${id}`}>
+                    <Flex>
+                      <EditIcon boxSize={5} mr={2} color="blue.500" />
+                      {t('Edit flip')}
+                    </Flex>
+                  </NextLink>
+                </FlipCardMenuItem>
+              )}
+              {(isSubmittable || isEditable) && isDeletable && (
+                <MenuDivider color="gray.100" my={2} width={rem(145)} />
+              )}
 
-            {isDeletable && (
-              <FlipCardMenuItem onClick={onDelete}>
-                <FlipCardMenuItemIcon
-                  name="delete"
-                  size={5}
-                  mr={2}
-                  color="red.500"
-                />
-                {t('Delete flip')}
-              </FlipCardMenuItem>
-            )}
-          </FlipCardMenu>
-        )}
-      </Flex>
-    </Box>
+              {isDeletable && (
+                <FlipCardMenuItem onClick={onDelete}>
+                  <DeleteIcon boxSize={5} mr={2} color="red.500" />
+                  {t('Delete flip')}
+                </FlipCardMenuItem>
+              )}
+            </FlipCardMenu>
+          )}
+        </Flex>
+      </Box>
+    </WrapItem>
   )
 }
 
@@ -183,11 +197,12 @@ export function FlipCardImage(props) {
   return (
     <Image
       objectFit="cover"
+      borderStyle="solid"
       borderWidth="1px"
       borderColor="brandGray.016"
-      // boxShadow={`0 0 0 1px ${colors.brandGray['016']}`}
       rounded="lg"
       height="full"
+      ignoreFallback
       {...props}
     />
   )
@@ -195,9 +210,9 @@ export function FlipCardImage(props) {
 
 export function FlipCardImageBox({children, ...props}) {
   return (
-    <AspectRatioBox h={150} w={150} position="relative" {...props}>
+    <AspectRatio h={150} w={150} position="relative" {...props}>
       <Box>{children}</Box>
-    </AspectRatioBox>
+    </AspectRatio>
   )
 }
 
@@ -211,24 +226,23 @@ export function FlipCardSubtitle(props) {
 
 export function FlipCardMenu(props) {
   return (
-    <Menu autoSelect={false}>
+    <Menu autoSelect={false} placement="bottom-end">
       <MenuButton
         rounded="md"
-        py="3/2"
+        py={1.5}
         px="2px"
         mt="-6px"
         _expanded={{bg: 'gray.50'}}
         _focus={{outline: 0}}
       >
-        <Icon name="more" size={5} />
+        <MoreIcon boxSize={5} />
       </MenuButton>
       <MenuList
-        placement="bottom-end"
-        border="none"
-        shadow="0 4px 6px 0 rgba(83, 86, 92, 0.24), 0 0 2px 0 rgba(83, 86, 92, 0.2)"
         rounded="lg"
         py={2}
-        minWidth="145px"
+        border="none"
+        shadow="0 4px 6px 0 rgba(83, 86, 92, 0.24), 0 0 2px 0 rgba(83, 86, 92, 0.2) !important"
+        minWidth="auto"
         {...props}
       />
     </Menu>
@@ -237,11 +251,11 @@ export function FlipCardMenu(props) {
 
 export function FlipCardMenuItem(props) {
   return (
-    <PseudoBox
+    <Box
       as={MenuItem}
       fontWeight={500}
       px={3}
-      py="3/2"
+      py={1.5}
       _hover={{bg: 'gray.50'}}
       _focus={{bg: 'gray.50'}}
       _selected={{bg: 'gray.50'}}
@@ -249,10 +263,6 @@ export function FlipCardMenuItem(props) {
       {...props}
     />
   )
-}
-
-export function FlipCardMenuItemIcon(props) {
-  return <Icon size={5} mr={3} color="brand.blue" {...props} />
 }
 
 export function RequiredFlipPlaceholder({title}) {
@@ -310,7 +320,7 @@ export function OptionalFlipPlaceholder({title, isDisabled}) {
 
 export function EmptyFlipBox(props) {
   return (
-    <PseudoBox
+    <Box
       animation="pulse 1s"
       display="flex"
       justifyContent="center"
@@ -330,7 +340,7 @@ export function EmptyFlipBox(props) {
 }
 
 export function FlipPlaceholder(props) {
-  return <Icon name="plus-solid" size={8} {...props} />
+  return <PlusSolidIcon boxSize={8} {...props} />
 }
 
 export function FlipOverlay(props) {
@@ -364,16 +374,12 @@ export function FlipOverlayStatus(props) {
   )
 }
 
-export function FlipOverlayIcon(props) {
-  return <Icon size={5} {...props} />
-}
-
 export function FlipOverlayText(props) {
   return <Text fontWeight={500} {...props} />
 }
 
 export function FlipFilter(props) {
-  return <RadioButtonGroup isInline spacing={2} {...props} />
+  return <RadioGroup isInline spacing={2} {...props} />
 }
 
 export const FlipFilterOption = React.forwardRef(
@@ -392,7 +398,7 @@ export const FlipFilterOption = React.forwardRef(
       _hover={{bg: 'gray.50', color: 'brand.blue'}}
       {...props}
       variant="ghost"
-      variantColor="gray"
+      colorScheme="gray"
     />
   )
 )
@@ -431,7 +437,7 @@ export function FlipMasterNavbarItem({step, ...props}) {
 
 function FlipMasterNavbarItemIcon({step, ...props}) {
   return (
-    <PseudoBox
+    <Box
       as={Flex}
       justifyContent="center"
       alignItems="center"
@@ -452,13 +458,12 @@ function FlipMasterNavbarItemIcon({step, ...props}) {
       transition="all 0.2s ease"
       {...props}
     >
-      <Icon
-        name="ok"
-        size={3}
+      <OkIcon
+        boxSize={3}
         opacity={step === Step.Completed ? 1 : 0}
         transition="all 0.2s ease"
       />
-    </PseudoBox>
+    </Box>
   )
 }
 
@@ -476,9 +481,7 @@ export function FlipMasterNavbarItemText({step, ...props}) {
       break
   }
 
-  return (
-    <PseudoBox as={Text} color={color} transition="all 0.3s ease" {...props} />
-  )
+  return <Box as={Text} color={color} transition="all 0.3s ease" {...props} />
 }
 
 export function FlipStoryStep({children}) {
@@ -551,31 +554,31 @@ export function FlipKeywordTranslationSwitch({
 
       <Stack isInline spacing={1} align="center">
         {hasBothTranslations && (
-          <IconButton2
-            icon="switch"
+          <IconButton
+            icon={<SwitchIcon boxSize={5} />}
             _hover={{background: 'transparent'}}
             onClick={onSwitchLocale}
           >
             {showTranslation ? 'EN' : (locale || '').toUpperCase()}
-          </IconButton2>
+          </IconButton>
         )}
         {showTranslation || (
           <>
             {hasBothTranslations ? (
               <Divider
                 orientation="vertical"
-                borderColor="gray.300"
+                borderColor="gray.100"
                 m={0}
                 h={rem(24)}
               />
             ) : null}
-            <IconButton2
-              icon="gtranslate"
+            <IconButton
+              icon={<GtranslateIcon boxSize={5} />}
               _hover={{background: 'transparent'}}
               onClick={translate}
             >
               Google Translate
-            </IconButton2>
+            </IconButton>
           </>
         )}
       </Stack>
@@ -594,7 +597,7 @@ export function FlipKeywordPair(props) {
 }
 
 export function FlipKeyword(props) {
-  return <Stack spacing="1/2" flex={1} {...props}></Stack>
+  return <Stack spacing={0.5} flex={1} {...props}></Stack>
 }
 
 export function FlipKeywordName({children, ...props}) {
@@ -730,14 +733,7 @@ export function FlipEditorStep({
 }
 
 export function FlipEditorIcon(props) {
-  return (
-    <PseudoBox
-      as={Icon}
-      size={5}
-      _hover={{color: 'brandBlue.500'}}
-      {...props}
-    />
-  )
+  return <Box as={Icon} size={5} _hover={{color: 'brandBlue.500'}} {...props} />
 }
 
 export function FlipShuffleStep({
@@ -808,7 +804,7 @@ export function FlipShuffleStep({
                             right={1}
                             zIndex={1}
                           >
-                            <Icon name="move" size={5} color="white" />
+                            <MoveIcon boxSize={5} color="white" />
                           </Flex>
                           <FlipImageListItem
                             isFirst={idx === 0}
@@ -826,12 +822,12 @@ export function FlipShuffleStep({
           </FlipImageList>
         </Stack>
         <Stack spacing={1}>
-          <IconButton2 icon="cycle" onClick={onShuffle}>
+          <IconButton icon={<CycleIcon boxSize={5} />} onClick={onShuffle}>
             {t('Shuffle images')}
-          </IconButton2>
-          <IconButton2 icon="undo" onClick={onReset}>
+          </IconButton>
+          <IconButton icon={<UndoIcon boxSize={5} />} onClick={onReset}>
             {t('Reset to default')}
-          </IconButton2>
+          </IconButton>
         </Stack>
       </Stack>
     </FlipStep>
@@ -928,7 +924,7 @@ export function FlipMasterFooter(props) {
     <Box
       alignSelf="stretch"
       borderTop="1px"
-      borderTopColor="gray.300"
+      borderTopColor="gray.100"
       mt="auto"
       px={4}
       py={3}
@@ -945,7 +941,7 @@ export function FlipImageList(props) {
 function SelectableItem({isActive, isFirst, isLast, ...props}) {
   const {colors} = useTheme()
   return (
-    <PseudoBox
+    <Box
       position="relative"
       _before={{
         content: `""`,
@@ -1001,7 +997,7 @@ export function FlipImage({
   ...props
 }) {
   return (
-    <AspectRatioBox
+    <AspectRatio
       ratio={4 / 3}
       bg="gray.50"
       border="1px"
@@ -1021,14 +1017,14 @@ export function FlipImage({
       ) : (
         <EmptyFlipImage />
       )}
-    </AspectRatioBox>
+    </AspectRatio>
   )
 }
 
 export function EmptyFlipImage(props) {
   return (
     <Flex align="center" justify="center" px={10} py={6} {...props}>
-      <Icon name="pic" size={10} color="gray.100" />
+      <PicIcon boxSize={10} color="gray.200" />
     </Flex>
   )
 }
@@ -1059,25 +1055,25 @@ export function CommunityTranslations({
 
   return (
     <Stack spacing={isOpen ? 8 : 0}>
-      <IconButton2
-        icon="community"
+      <IconButton
+        icon={<CommunityIcon boxSize={5} />}
         color="brandGray.500"
         px={0}
         _hover={{background: 'transparent'}}
         onClick={onToggle}
       >
         {t('Community translation')}
-        <Icon size={5} name="chevron-down" color="muted" ml={2}></Icon>
-      </IconButton2>
+        <ChevronDownIcon boxSize={5} color="muted" ml={2} />
+      </IconButton>
       <Collapse isOpen={isOpen}>
         <Stack spacing={8}>
-          <RadioButtonGroup isInline value={wordIdx} onChange={setWordIdx}>
+          <RadioGroup isInline value={wordIdx} onChange={setWordIdx}>
             {keywords.words.map(({id, name}, i) => (
               <FlipKeywordRadio key={id} value={i}>
                 {name && capitalize(name)}
               </FlipKeywordRadio>
             ))}
-          </RadioButtonGroup>
+          </RadioGroup>
           {translations.map(({id, name, desc, score}) => (
             <Flex key={id} justify="space-between">
               <FlipKeyword>
@@ -1086,7 +1082,7 @@ export function CommunityTranslations({
               </FlipKeyword>
               <Stack isInline spacing={2} align="center">
                 <VoteButton
-                  icon="upvote"
+                  icon={<UpvoteIcon />}
                   onClick={() => onVote({id, up: true})}
                 />
                 <Flex
@@ -1103,7 +1099,7 @@ export function CommunityTranslations({
                   {score}
                 </Flex>
                 <VoteButton
-                  icon="upvote"
+                  icon={<UpvoteIcon />}
                   color="muted"
                   transform="rotate(180deg)"
                   onClick={() => onVote({id, up: false})}
@@ -1112,7 +1108,7 @@ export function CommunityTranslations({
             </Flex>
           ))}
 
-          {translations.length && <Divider borderColor="gray.300" />}
+          {translations.length && <Divider borderColor="gray.100" />}
 
           <Box>
             <Text fontWeight={500} mb={3}>
@@ -1138,9 +1134,9 @@ export function CommunityTranslations({
                       : 'Name'
                   }
                   px={3}
-                  pt="3/2"
+                  pt={1.5}
                   pb={2}
-                  borderColor="gray.300"
+                  borderColor="gray.100"
                   mb={2}
                   _placeholder={{
                     color: 'muted',
@@ -1155,9 +1151,9 @@ export function CommunityTranslations({
                       ? capitalize(keywords.words[wordIdx].desc)
                       : 'Description'
                   }
-                  borderColor="gray.300"
+                  borderColor="gray.100"
                   px={3}
-                  pt="3/2"
+                  pt={1.5}
                   pb={2}
                   mb={6}
                   _placeholder={{
@@ -1222,7 +1218,7 @@ FlipKeywordRadio.displayName = 'FlipKeywordRadio'
 
 export function VoteButton(props) {
   return (
-    <IconButton
+    <ChakraIconButton
       bg="transparent"
       color="brandGray.500"
       fontSize={rem(20)}
@@ -1268,7 +1264,7 @@ export function DeleteFlipDrawer({hash, cover, onDelete, ...props}) {
           w={12}
           rounded="xl"
         >
-          <Icon name="delete" size={6} color="red.500" />
+          <DeleteIcon boxSize={6} color="red.500" />
         </Flex>
         <Heading fontSize="lg" fontWeight={500} color="brandGray.500" mt={4}>
           {t('Delete flip')}
@@ -1294,23 +1290,23 @@ export function DeleteFlipDrawer({hash, cover, onDelete, ...props}) {
           <Input
             id="hashInput"
             h={8}
-            borderColor="gray.300"
+            borderColor="gray.100"
             lineHeight={rem(18)}
             px={3}
-            pt="3/2"
+            pt={1.5}
             pb={2}
             mb={2}
             value={hash}
             isReadOnly
             _readOnly={{
               bg: 'gray.50',
-              borderColor: 'gray.300',
+              borderColor: 'gray.100',
               color: 'muted',
             }}
           />
         </FormControl>
         <PrimaryButton
-          variantColor="red"
+          colorScheme="red"
           display="flex"
           ml="auto"
           _hover={{
