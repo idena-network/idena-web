@@ -55,6 +55,7 @@
     "duckduckgo-images-api": "^1.0.5",
     "elliptic": "^6.5.3",
     "express": "^4.17.0",
+    "faunadb": "^4.3.0",
     "file-saver": "^2.0.5",
     "focus-visible": "^5.2.0",
     "follow-redirects": "^1.9.0",
