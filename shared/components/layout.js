@@ -58,7 +58,9 @@ function NormalApp({children, canRedirect = true}) {
     <Flex as="section" direction="column" flex={1} h="100vh" overflowY="auto">
       {children}
 
-      {current && <ValidationToast epoch={testValidationEpoch} />}
+      {current && (
+        <ValidationToast epoch={testValidationEpoch} isTestValidation />
+      )}
       {epoch && <ValidationToast epoch={epoch} identity={identity} />}
 
       <Notifications />
