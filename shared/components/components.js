@@ -384,3 +384,41 @@ export const TextLink = React.forwardRef(({href, children, ...props}, ref) => (
     </Link>
   </NextLink>
 ))
+
+export function SuccessAlert({children, ...props}) {
+  return (
+    <Alert
+      status="success"
+      bg="green.010"
+      borderWidth="1px"
+      borderColor="green.050"
+      fontWeight={500}
+      rounded="md"
+      px={3}
+      py={2}
+      {...props}
+    >
+      <AlertIcon name="info" color="green.500" size={5} mr={3} />
+      {children}
+    </Alert>
+  )
+}
+
+export function ErrorAlert({children, ...props}) {
+  return (
+    <Alert
+      status="error"
+      bg="red.010"
+      borderWidth="1px"
+      borderColor="red.050"
+      fontWeight={500}
+      rounded="md"
+      px={3}
+      py={2}
+      {...props}
+    >
+      <AlertIcon name="info" color="red.500" size={5} mr={3}></AlertIcon>
+      {children}
+    </Alert>
+  )
+}

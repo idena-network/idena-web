@@ -1,26 +1,36 @@
 /* eslint-disable react/prop-types */
 import {useMachine} from '@xstate/react'
-import {useMemo} from 'react'
+import {useEffect, useMemo} from 'react'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
-import {useDisclosure} from '@chakra-ui/core'
+import {useDisclosure} from '@chakra-ui/react'
 import dayjs from 'dayjs'
 import {createValidationMachine} from '../../screens/validation/machine'
 import {ValidationScreen} from '../../screens/validation/components'
 import {useAuthState} from '../../shared/providers/auth-context'
-import {useLocalStorageLogger} from '../../shared/utils/logs'
 import {LayoutContainer} from '../../screens/app/components'
 import Auth from '../../shared/components/auth'
-import {
-  getTestFlip,
-  testLongHashes,
-  testShortHashes,
-} from '../../screens/validation/test-flips'
 import {forEachAsync} from '../../shared/utils/fn'
 import {decodedWithoutKeywords} from '../../screens/validation/utils'
+import {
+  TEST_LONG_SESSION_INTERVAL_SEC,
+  TEST_SHORT_SESSION_INTERVAL_SEC,
+  useTestValidationDispatch,
+  useTestValidationState,
+} from '../../shared/providers/test-validation-context'
+import {getFlip, getHashes, submitAnswers} from '../../shared/api/self'
+import {RelevanceType, SessionType} from '../../shared/types'
 
 export default function TrainingPage() {
   const {auth, privateKey, coinbase} = useAuthState()
+  const {current} = useTestValidationState()
+  const router = useRouter()
+
+  useEffect(() => {
+    if (!current) {
+      router.push('/try')
+    }
+  }, [current, router])
 
   if (!auth) {
     return (
@@ -30,14 +40,15 @@ export default function TrainingPage() {
     )
   }
 
-  if (privateKey && coinbase)
+  if (privateKey && coinbase && current)
     return (
       <ValidationSession
+        id={current.id}
         coinbase={coinbase}
         privateKey={privateKey}
-        validationStart={new Date().getTime()}
-        shortSessionDuration={30}
-        longSessionDuration={30}
+        validationStart={current.startTime}
+        shortSessionDuration={TEST_SHORT_SESSION_INTERVAL_SEC}
+        longSessionDuration={TEST_LONG_SESSION_INTERVAL_SEC}
       />
     )
 
@@ -45,6 +56,7 @@ export default function TrainingPage() {
 }
 
 function ValidationSession({
+  id,
   privateKey,
   coinbase,
   epoch,
@@ -53,6 +65,7 @@ function ValidationSession({
   longSessionDuration,
 }) {
   const router = useRouter()
+  const {checkValidation} = useTestValidationDispatch()
 
   const {i18n} = useTranslation()
 
@@ -89,13 +102,18 @@ function ValidationSession({
         onOpenExceededTooltip()
         setTimeout(onCloseExceededTooltip, 3000)
       },
-      onValidationSucceeded: () => {
-        router.push('/')
+      onValidationSucceeded: async () => {
+        await checkValidation(id)
+
+        router.push('/try')
       },
     },
     services: {
       fetchIdentity: () => Promise.resolve({}),
-      fetchShortHashes: () => Promise.resolve(testShortHashes),
+      fetchShortHashes: () =>
+        getHashes(id, SessionType.Short).then(data =>
+          data.map(x => ({hash: x}))
+        ),
       fetchShortFlips: ({shortFlips}) => cb =>
         fetchFlips(
           shortFlips
@@ -103,7 +121,10 @@ function ValidationSession({
             .map(({hash}) => hash),
           cb
         ),
-      fetchLongHashes: () => Promise.resolve(testLongHashes),
+      fetchLongHashes: () =>
+        getHashes(id, SessionType.Long).then(data =>
+          data.map(x => ({hash: x}))
+        ),
       fetchLongFlips: ({longFlips}) => cb =>
         fetchFlips(
           longFlips
@@ -116,13 +137,24 @@ function ValidationSession({
       fetchWords: ({longFlips}) =>
         loadWords(longFlips.filter(decodedWithoutKeywords)),
       fetchWordsSeed: () => Promise.resolve('0x'),
-      submitShortAnswers: () => {
-        console.log('short answers submitted!')
-        return Promise.resolve()
+      submitShortAnswers: ({shortFlips}) => {
+        const answers = shortFlips.map(({option: answer = 0, hash}) => ({
+          answer,
+          hash,
+        }))
+
+        return submitAnswers(id, SessionType.Short, answers)
       },
-      submitLongAnswers: () => {
-        console.log('long answers submitted!')
-        return Promise.resolve()
+      submitLongAnswers: ({longFlips}) => {
+        const answers = longFlips.map(
+          ({option: answer = 0, hash, relevance}) => ({
+            answer,
+            hash,
+            wrongWords: relevance === RelevanceType.Irrelevant,
+          })
+        )
+
+        return submitAnswers(id, SessionType.Long, answers)
       },
     },
   })
@@ -135,6 +167,10 @@ function ValidationSession({
       shortSessionDuration={shortSessionDuration}
       longSessionDuration={longSessionDuration}
       isExceededTooltipOpen={isExceededTooltipOpen}
+      onValidationFailed={async () => {
+        await checkValidation(id)
+        router.push('/try')
+      }}
     />
   )
 }
@@ -146,13 +182,11 @@ async function loadWords(flips) {
 }
 
 async function fetchFlips(hashes, cb) {
+  console.log(hashes)
   return forEachAsync(hashes, async hash => {
-    const flip = await (await fetch(`/api/validation/flip?hash=${hash}`)).json()
-    // const flip = await getTestFlip(hash)
+    const flip = await getFlip(hash)
     if (flip) {
       const images = await Promise.all(flip.images.map(toBlob))
-
-      console.log(images)
 
       return cb({
         type: 'FLIP',

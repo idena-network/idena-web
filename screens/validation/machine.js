@@ -12,7 +12,7 @@ import {
   sendPublicEncryptionKey,
 } from '../../shared/api/validation'
 import {sendRawTx, getRawTx} from '../../shared/api/chain'
-import {SessionType} from '../../shared/types'
+import {RelevanceType, SessionType} from '../../shared/types'
 import {fetchFlipKeys, fetchRawFlip} from '../../shared/api'
 import {fetchWordsSeed, fetchIdentity} from '../../shared/api/dna'
 import apiClient from '../../shared/api/api-client'
@@ -1324,7 +1324,6 @@ export const createValidationMachine = ({
             },
           },
         },
-
         validationFailed: {
           type: 'final',
           entry: log('VALIDATION FAILED'),
@@ -1529,6 +1528,7 @@ export const createValidationMachine = ({
               return translations
             }, translations),
         }),
+        onValidationFailed: () => {},
       },
       guards: {
         didFetchShortFlips: ({shortFlips}) => {
@@ -1714,11 +1714,6 @@ async function fetchWords(hash) {
       id: 1,
     })
   ).data
-}
-
-export const RelevanceType = {
-  Relevant: 1,
-  Irrelevant: 2,
 }
 
 export function adjustDuration(validationStart, duration) {

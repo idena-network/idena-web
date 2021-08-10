@@ -55,6 +55,7 @@ import {
   ChevronDownIcon,
   DeleteIcon,
   PhotoIcon,
+  TestValidationIcon,
 } from '../shared/components/icons'
 
 export default function ProfilePage() {
@@ -411,6 +412,12 @@ export default function ProfilePage() {
                 icon={<AddUserIcon boxSize={5} />}
               >
                 {t('Invite')}
+              </IconButton>
+              <IconButton
+                onClick={() => router.push('/try')}
+                icon={<TestValidationIcon boxSize={5} />}
+              >
+                {t('Test validation')}
               </IconButton>
               <IconButton
                 isDisabled={!canTerminate}

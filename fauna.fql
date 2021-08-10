@@ -1,0 +1,70 @@
+CreateCollection({
+  name: "flips",
+  history_days: 30,
+  ttl_days: null
+})
+
+CreateCollection({
+  name: "validations",
+  history_days: 30,
+  ttl_days: null
+})
+
+CreateIndex({
+  name: "flips_by_hash",
+  unique: true,
+  serialized: true,
+  source: "flips",
+  terms: [
+    {
+      field: ["data", "hash"]
+    }
+  ]
+})
+
+CreateIndex({
+  name: "flip_hashes",
+  unique: true,
+  serialized: true,
+  source: "flips",
+  values: [
+    {
+      field: ["data", "hash"]
+    },
+    {
+      field: ["data", "isReported"]
+    }
+  ]
+})
+
+CreateIndex({
+  name: "flips_by_hash_with_answer_isReported",
+  unique: false,
+  serialized: true,
+  source: "flips",
+  terms: [
+    {
+      field: ["data", "hash"]
+    }
+  ],
+  values: [
+    {
+      field: ["data", "answer"]
+    },
+    {
+      field: ["data", "isReported"]
+    }
+  ]
+})
+
+CreateIndex({
+  name: "validation_by_id",
+  unique: true,
+  serialized: true,
+  source: "validations",
+  terms: [
+    {
+      field: ["data", "id"]
+    }
+  ]
+})

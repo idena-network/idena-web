@@ -39,7 +39,7 @@ import {Box, Fill, Absolute} from '../../shared/components'
 import Flex from '../../shared/components/flex'
 import {reorderList} from '../../shared/utils/arr'
 import theme, {rem} from '../../shared/theme'
-import {RelevanceType, adjustDuration} from './machine'
+import {adjustDuration} from './machine'
 import {Tooltip as TooltipLegacy} from '../../shared/components/tooltip'
 import {
   Tooltip,
@@ -57,7 +57,7 @@ import {
 } from './utils'
 import {Notification, Snackbar} from '../../shared/components/notifications'
 import {NotificationType} from '../../shared/providers/notification-context'
-import {AnswerType, EpochPeriod} from '../../shared/types'
+import {AnswerType, EpochPeriod, RelevanceType} from '../../shared/types'
 import {createTimerMachine} from '../../shared/machines'
 import {
   FlipKeywordPanel,
@@ -77,6 +77,7 @@ import {
   TimerIcon,
   InfoIcon,
 } from '../../shared/components/icons'
+import {TEST_SHORT_SESSION_INTERVAL_SEC} from '../../shared/providers/test-validation-context'
 
 export function ValidationScene(props) {
   return (
@@ -722,6 +723,7 @@ export function TimerClock({duration, color}) {
   )
 
   React.useEffect(() => {
+    console.log('SET TIMER CLOCK UPDATE', duration)
     send('DURATION_UPDATE', {duration})
   }, [duration, send])
 
@@ -816,13 +818,26 @@ function ValidationDialogFooter({submitText, onSubmit, props}) {
   )
 }
 
-export function ValidationToast({epoch: {currentPeriod, nextValidation}}) {
+export function ValidationToast({
+  epoch: {currentPeriod, nextValidation},
+  isTestValidation,
+}) {
   switch (currentPeriod) {
     case EpochPeriod.FlipLottery:
-      return <ValidationSoonToast validationStart={nextValidation} />
+      return (
+        <ValidationSoonToast
+          validationStart={nextValidation}
+          isTestValidation
+        />
+      )
     case EpochPeriod.ShortSession:
     case EpochPeriod.LongSession:
-      return (
+      return isTestValidation ? (
+        <TestValidationRunningToast
+          key={currentPeriod}
+          validationStart={nextValidation}
+        />
+      ) : (
         <ValidationRunningToast
           key={currentPeriod}
           currentPeriod={currentPeriod}
@@ -836,7 +851,7 @@ export function ValidationToast({epoch: {currentPeriod, nextValidation}}) {
   }
 }
 
-export function ValidationSoonToast({validationStart}) {
+export function ValidationSoonToast({validationStart, isTestValidation}) {
   const timerMachine = React.useMemo(
     () => createTimerMachine(dayjs(validationStart).diff(dayjs(), 's')),
     [validationStart]
@@ -859,7 +874,50 @@ export function ValidationSoonToast({validationStart}) {
         pinned
         type={NotificationType.Info}
         title={<TimerClock duration={duration} color={theme.colors.white} />}
-        body={t('Idena validation will start soon')}
+        body={
+          isTestValidation
+            ? t('Idena test validation will start soon')
+            : t('Idena validation will start soon')
+        }
+      />
+    </Snackbar>
+  )
+}
+
+export function TestValidationRunningToast({validationStart}) {
+  const router = useRouter()
+
+  const {t} = useTranslation()
+
+  const timerMachine = React.useMemo(
+    () =>
+      createTimerMachine(
+        dayjs(validationStart)
+          .add(TEST_SHORT_SESSION_INTERVAL_SEC, 's')
+          .diff(dayjs(), 's')
+      ),
+    [validationStart]
+  )
+
+  const [
+    {
+      context: {duration},
+    },
+  ] = useMachine(timerMachine)
+
+  return (
+    <Snackbar>
+      <Notification
+        bg={theme.colors.primary}
+        color={theme.colors.white}
+        iconColor={theme.colors.white}
+        actionColor={theme.colors.white}
+        pinned
+        type={NotificationType.Info}
+        title={<TimerClock duration={duration} color={theme.colors.white} />}
+        body={t(`Idena test validation is in progress`)}
+        action={() => router.push('/validation/training')}
+        actionName={t('Validate')}
       />
     </Snackbar>
   )
@@ -1398,6 +1456,7 @@ export function ValidationScreen({
   shortSessionDuration,
   longSessionDuration,
   isExceededTooltipOpen,
+  onValidationFailed,
 }) {
   const router = useRouter()
 
@@ -1476,107 +1535,106 @@ export function ValidationScreen({
               onImageFail={() => send('REFETCH_FLIPS')}
             />
           </Flex>
-          {(isLongSessionKeywords(state) ||
-            state.matches('validationSucceeded')) &&
-            currentFlip && (
-              <FlipWords
-                key={currentFlip.hash}
-                currentFlip={currentFlip}
-                translations={translations}
-              >
-                <Stack spacing={4}>
-                  <Stack isInline spacing={1} align="center">
-                    <Heading fontSize="base" fontWeight={500}>
-                      {t(`Is the flip correct?`)}
-                    </Heading>
-                    <IconButton
-                      icon={<InfoIcon />}
-                      bg="unset"
-                      fontSize={rem(20)}
-                      minW={5}
-                      w={5}
-                      h={5}
-                      _active={{
-                        bg: 'unset',
-                      }}
-                      _hover={{
-                        bg: 'unset',
-                      }}
-                      _focus={{
-                        outline: 'none',
-                      }}
-                      onClick={onOpenReportDialog}
-                    />
-                  </Stack>
-                  <QualificationActions>
+          {isLongSessionKeywords(state) && currentFlip && (
+            <FlipWords
+              key={currentFlip.hash}
+              currentFlip={currentFlip}
+              translations={translations}
+            >
+              <Stack spacing={4}>
+                <Stack isInline spacing={1} align="center">
+                  <Heading fontSize="base" fontWeight={500}>
+                    {t(`Is the flip correct?`)}
+                  </Heading>
+                  <IconButton
+                    icon={<InfoIcon />}
+                    bg="unset"
+                    fontSize={rem(20)}
+                    minW={5}
+                    w={5}
+                    h={5}
+                    _active={{
+                      bg: 'unset',
+                    }}
+                    _hover={{
+                      bg: 'unset',
+                    }}
+                    _focus={{
+                      outline: 'none',
+                    }}
+                    onClick={onOpenReportDialog}
+                  />
+                </Stack>
+                <QualificationActions>
+                  <QualificationButton
+                    isSelected={
+                      currentFlip.relevance === RelevanceType.Relevant
+                    }
+                    onClick={() =>
+                      send({
+                        type: 'TOGGLE_WORDS',
+                        hash: currentFlip.hash,
+                        relevance: RelevanceType.Relevant,
+                      })
+                    }
+                  >
+                    {t('Both relevant')}
+                  </QualificationButton>
+                  <Tooltip
+                    label={t(
+                      'Please remove Report status from some other flips to continue'
+                    )}
+                    isOpen={isExceededTooltipOpen}
+                    placement="top"
+                    zIndex="tooltip"
+                  >
                     <QualificationButton
                       isSelected={
-                        currentFlip.relevance === RelevanceType.Relevant
+                        currentFlip.relevance === RelevanceType.Irrelevant
                       }
+                      bg={
+                        currentFlip.relevance === RelevanceType.Irrelevant
+                          ? 'red.500'
+                          : 'red.012'
+                      }
+                      color={
+                        currentFlip.relevance === RelevanceType.Irrelevant
+                          ? 'white'
+                          : 'red.500'
+                      }
+                      _hover={null}
+                      _active={null}
+                      _focus={{
+                        boxShadow: '0 0 0 3px rgb(255 102 102 /0.50)',
+                        outline: 'none',
+                      }}
                       onClick={() =>
                         send({
                           type: 'TOGGLE_WORDS',
                           hash: currentFlip.hash,
-                          relevance: RelevanceType.Relevant,
+                          relevance: RelevanceType.Irrelevant,
                         })
                       }
                     >
-                      {t('Both relevant')}
+                      {t('Report')}{' '}
+                      {t('({{count}} left)', {
+                        count:
+                          availableReportsNumber(longFlips) -
+                          reportedFlipsCount,
+                      })}
                     </QualificationButton>
-                    <Tooltip
-                      label={t(
-                        'Please remove Report status from some other flips to continue'
-                      )}
-                      isOpen={isExceededTooltipOpen}
-                      placement="top"
-                      zIndex="tooltip"
-                    >
-                      <QualificationButton
-                        isSelected={
-                          currentFlip.relevance === RelevanceType.Irrelevant
-                        }
-                        bg={
-                          currentFlip.relevance === RelevanceType.Irrelevant
-                            ? 'red.500'
-                            : 'red.012'
-                        }
-                        color={
-                          currentFlip.relevance === RelevanceType.Irrelevant
-                            ? 'white'
-                            : 'red.500'
-                        }
-                        _hover={null}
-                        _active={null}
-                        _focus={{
-                          boxShadow: '0 0 0 3px rgb(255 102 102 /0.50)',
-                          outline: 'none',
-                        }}
-                        onClick={() =>
-                          send({
-                            type: 'TOGGLE_WORDS',
-                            hash: currentFlip.hash,
-                            relevance: RelevanceType.Irrelevant,
-                          })
-                        }
-                      >
-                        {t('Report')}{' '}
-                        {t('({{count}} left)', {
-                          count:
-                            availableReportsNumber(longFlips) -
-                            reportedFlipsCount,
-                        })}
-                      </QualificationButton>
-                    </Tooltip>
-                  </QualificationActions>
-                </Stack>
-              </FlipWords>
-            )}
+                  </Tooltip>
+                </QualificationActions>
+              </Stack>
+            </FlipWords>
+          )}
         </FlipChallenge>
       </CurrentStep>
       <ActionBar>
         <ActionBarItem />
         <ActionBarItem justify="center">
           <ValidationTimer
+            key={isShortSession(state) ? 'short-timer' : 'long-timer'}
             validationStart={validationStart}
             duration={
               shortSessionDuration -
@@ -1672,7 +1730,14 @@ export function ValidationScreen({
       )}
 
       {state.matches('validationFailed') && (
-        <ValidationFailedDialog isOpen onSubmit={() => router.push('/')} />
+        <ValidationFailedDialog
+          isOpen
+          onSubmit={
+            onValidationFailed
+              ? () => onValidationFailed()
+              : () => router.push('/')
+          }
+        />
       )}
 
       <BadFlipDialog

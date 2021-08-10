@@ -24,6 +24,7 @@ import {AppProvider} from '../shared/providers/app-context'
 import {IdentityProvider} from '../shared/providers/identity-context'
 import {EpochProvider} from '../shared/providers/epoch-context'
 import {OnboardingProvider} from '../shared/providers/onboarding-context'
+import {TestValidationProvider} from '../shared/providers/test-validation-context'
 
 export default class MyApp extends App {
   render() {
@@ -93,16 +94,18 @@ function AppProviders({tabId, ...props}) {
     <QueryClientProvider client={queryClient}>
       <SettingsProvider>
         <AuthProvider>
-          <EpochProvider>
-            <IdentityProvider>
-              <AppProvider tabId={tabId}>
-                <Flips />
-                <OnboardingProvider>
-                  <NotificationProvider {...props} />
-                </OnboardingProvider>
-              </AppProvider>
-            </IdentityProvider>
-          </EpochProvider>
+          <TestValidationProvider>
+            <EpochProvider>
+              <IdentityProvider>
+                <AppProvider tabId={tabId}>
+                  <Flips />
+                  <OnboardingProvider>
+                    <NotificationProvider {...props} />
+                  </OnboardingProvider>
+                </AppProvider>
+              </IdentityProvider>
+            </EpochProvider>
+          </TestValidationProvider>
         </AuthProvider>
       </SettingsProvider>
     </QueryClientProvider>
