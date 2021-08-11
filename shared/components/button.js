@@ -11,6 +11,10 @@ export const SecondaryButton = React.forwardRef((props, ref) => (
   <Button ref={ref} variant="secondary" {...props} />
 ))
 
+export const WideButton = React.forwardRef((props, ref) => (
+  <Button ref={ref} variant="wide" isFullWidth={true} {...props} />
+))
+
 export const IconButton = React.forwardRef((props, ref) => (
   <ChakraButton
     ref={ref}

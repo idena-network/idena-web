@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import {Flex, Text} from '@chakra-ui/react'
+import {Flex, Text, useMediaQuery} from '@chakra-ui/react'
 import {margin} from 'polished'
 import React, {useState} from 'react'
 import {FiChevronRight} from 'react-icons/fi'
@@ -13,10 +13,11 @@ import {
   DialogHeader,
   FormLabel,
   PasswordInput,
+  SimplePasswordInput,
 } from './components'
 import {useAuthDispatch} from '../providers/auth-context'
 import {useSettingsState} from '../providers/settings-context'
-import {FlatButton, PrimaryButton, SecondaryButton} from './button'
+import {FlatButton, PrimaryButton, SecondaryButton, WideButton} from './button'
 import {SubHeading} from './typo'
 import {useDnaUrl} from '../hooks/use-dna-link'
 import {DnaAppUrl} from '../../screens/dna/components'
@@ -27,10 +28,11 @@ function RestoreKey() {
   const {login, removeKey} = useAuthDispatch()
   const {coinbase} = useSettingsState()
   const [error, setError] = useState()
+  const [isDesktop] = useMediaQuery('(min-width: 376px)')
 
   const dnaAppUrl = useDnaUrl()
 
-  return (
+  return isDesktop ? (
     <AuthLayout>
       <AuthLayout.Normal>
         <Flex width="100%">
@@ -164,6 +166,95 @@ function RestoreKey() {
         </Dialog>
       </AuthLayout.Normal>
     </AuthLayout>
+  ) : (
+    <MobileAuthLayout>
+      <AuthLayout.Mobile>
+        <Avatar
+          address={coinbase}
+          h={rem(88)}
+          w={rem(88)}
+          borderRadius={rem(28)}
+        />
+        <Flex marginTop={rem(21)} justify="center">
+          <Text
+            w="60%"
+            color="xwhite.050"
+            fontSize={rem(14)}
+            fontWeight="300"
+            lineHeight={rem(20)}
+          >
+            {coinbase}
+          </Text>
+        </Flex>
+        <SubHeading css={{marginTop: rem(50), fontWeight: '400'}} color="white">
+          Password
+        </SubHeading>
+        <form
+          style={{width: '100%'}}
+          onSubmit={e => {
+            try {
+              e.preventDefault()
+              setError(null)
+              login(password)
+            } catch (err) {
+              setError('Password is invalid. Try again.')
+              console.log(err)
+            }
+          }}
+        >
+          <Flex width="100%" marginTop={rem(28)}>
+            <SimplePasswordInput
+              value={password}
+              size="lg"
+              width="100%"
+              borderColor="xblack.008"
+              backgroundColor="xblack.016"
+              onChange={e => setPassword(e.target.value)}
+              placeholder="Enter your password"
+            />
+          </Flex>
+          <Flex width="100%" marginTop={rem(16)}>
+            <WideButton size="lg" type="submit" isDisabled={!password}>
+              Proceed
+            </WideButton>
+          </Flex>
+        </form>
+        <FlatButton
+          onClick={() => showWarning(true)}
+          style={{
+            marginTop: rem(31),
+            fontSize: rem(15),
+          }}
+        >
+          <span>Change an account</span>
+        </FlatButton>
+        <Dialog
+          key="warning"
+          isOpen={warning}
+          onClose={() => showWarning(false)}
+        >
+          <DialogHeader>Remove private key?</DialogHeader>
+          <DialogBody>
+            Make sure you have the private key backup. Otherwise you will lose
+            access to your account.
+          </DialogBody>
+          <DialogFooter>
+            <SecondaryButton onClick={() => showWarning(false)}>
+              Cancel
+            </SecondaryButton>
+            <PrimaryButton
+              onClick={removeKey}
+              backgroundColor="red.090"
+              _hover={{
+                bg: 'red.500',
+              }}
+            >
+              Remove
+            </PrimaryButton>
+          </DialogFooter>
+        </Dialog>
+      </AuthLayout.Mobile>
+    </MobileAuthLayout>
   )
 }
 
@@ -278,6 +369,49 @@ AuthLayout.Small = function({children}) {
           background-color: rgba(0, 0, 0, 0.16);
           padding: 52px 40px 36px;
           border-radius: 8px;
+        }
+      `}</style>
+    </>
+  )
+}
+
+export function MobileAuthLayout({children}) {
+  return (
+    <>
+      <section>{children}</section>
+      <style jsx>{`
+        section {
+          background: ${theme.colors.darkGraphite};
+          color: white;
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          justify-content: flex-start;
+          flex: 1;
+          height: 100vh;
+          padding-top: 78px;
+        }
+      `}</style>
+    </>
+  )
+}
+
+// eslint-disable-next-line react/display-name
+AuthLayout.Mobile = function({children}) {
+  return (
+    <>
+      <div>{children}</div>
+      <style jsx>{`
+        div {
+          display: flex;
+          align-items: center;
+          justify-content: start;
+          flex-direction: column;
+          width: ${rem(279)};
+          text-align: center;
+          //background-color: rgba(0, 0, 0, 0.16);
+          //padding: 52px 40px 36px;
+          //border-radius: 8px;
         }
       `}</style>
     </>

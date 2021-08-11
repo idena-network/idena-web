@@ -1,6 +1,12 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
-import {Checkbox, Flex, Text, useClipboard} from '@chakra-ui/react'
+import {
+  Checkbox,
+  Flex,
+  Text,
+  useClipboard,
+  useMediaQuery,
+} from '@chakra-ui/react'
 import {rem, margin} from 'polished'
 import {useState, useEffect} from 'react'
 import {useRouter} from 'next/router'
@@ -48,6 +54,7 @@ export default function CreateKey() {
   })
   const [error, setError] = useState()
   const {onCopy, hasCopied} = useClipboard(state.encryptedPrivateKey)
+  const [isDesktop] = useMediaQuery('(min-width: 376px)')
 
   const setStep = s => setState(prevState => ({...prevState, step: s}))
 
@@ -148,127 +155,137 @@ export default function CreateKey() {
       )}
       {state.step === steps.PASSWORD && (
         <AuthLayout>
-          <AuthLayout.Normal>
-            <Flex width="100%">
-              <Avatar address={state.address} />
-              <Flex
-                direction="column"
-                justify="center"
-                flex="1"
-                style={{marginLeft: rem(20)}}
-              >
-                <SubHeading color="white">
-                  {t('Create password to encrypt your account')}
-                </SubHeading>
+          {isDesktop ? (
+            <AuthLayout.Normal>
+              <Flex width="100%">
+                <Avatar address={state.address} />
+                <Flex
+                  direction="column"
+                  justify="center"
+                  flex="1"
+                  style={{marginLeft: rem(20)}}
+                >
+                  <SubHeading color="white">
+                    {t('Create password to encrypt your account')}
+                  </SubHeading>
 
-                <Flex justify="space-between">
-                  <Text color="xwhite.050" fontSize={rem(14)}>
-                    {state.address}
-                  </Text>
+                  <Flex justify="space-between">
+                    <Text color="xwhite.050" fontSize={rem(14)}>
+                      {state.address}
+                    </Text>
+                  </Flex>
                 </Flex>
               </Flex>
-            </Flex>
-            <Flex
-              width="100%"
-              style={{
-                ...margin(theme.spacings.medium24, 0, 0, 0),
-              }}
-            >
-              <form
-                onSubmit={e => {
-                  e.preventDefault()
-                  setPassword()
+              <Flex
+                width="100%"
+                style={{
+                  ...margin(theme.spacings.medium24, 0, 0, 0),
                 }}
-                style={{width: '100%'}}
               >
-                <FormLabel
-                  htmlFor="key"
-                  style={{color: 'white', fontSize: rem(13)}}
-                >
-                  {t('Password')}
-                </FormLabel>
-                <Flex
-                  width="100%"
-                  style={{marginBottom: rem(20), position: 'relative'}}
-                >
-                  <PasswordInput
-                    id="password"
-                    value={state.password}
-                    width="100%"
-                    borderColor="xblack.008"
-                    backgroundColor="xblack.016"
-                    onChange={e =>
-                      setState({
-                        ...state,
-                        password: e.target.value,
-                      })
-                    }
-                    placeholder={t('Enter password')}
-                  />
-                </Flex>
-                <FormLabel
-                  htmlFor="key"
-                  style={{
-                    color: 'white',
-                    fontSize: rem(13),
+                <form
+                  onSubmit={e => {
+                    e.preventDefault()
+                    setPassword()
                   }}
+                  style={{width: '100%'}}
                 >
-                  {t('Confirm password')}
-                </FormLabel>
-                <Flex width="100%" style={{position: 'relative'}}>
-                  <PasswordInput
-                    id="passwordConfirm"
-                    value={state.passwordConfirm}
-                    width="100%"
-                    borderColor="xblack.008"
-                    backgroundColor="xblack.016"
-                    onChange={e =>
-                      setState({
-                        ...state,
-                        passwordConfirm: e.target.value,
-                      })
-                    }
-                    placeholder={t('Enter password again')}
-                  />
-                </Flex>
-                <Flex
-                  style={{
-                    ...margin(theme.spacings.xlarge, 0, 0, 0),
-                  }}
-                  justify="space-between"
-                >
-                  <FlatButton
-                    color="white"
-                    _hover={{color: 'xwhite.080'}}
-                    onClick={() => setStep(steps.AVATAR)}
+                  <FormLabel
+                    htmlFor="key"
+                    style={{color: 'white', fontSize: rem(13)}}
                   >
-                    <ArrowUpIcon
-                      boxSize={5}
-                      style={{transform: 'rotate(-90deg)', marginTop: -3}}
-                    ></ArrowUpIcon>
-                    {t('Back')}
-                  </FlatButton>
-                  <PrimaryButton type="submit">{t('Next')}</PrimaryButton>
-                </Flex>
-                {error && (
+                    {t('Password')}
+                  </FormLabel>
                   <Flex
+                    width="100%"
+                    style={{marginBottom: rem(20), position: 'relative'}}
+                  >
+                    <PasswordInput
+                      id="password"
+                      value={state.password}
+                      width="100%"
+                      borderColor="xblack.008"
+                      backgroundColor="xblack.016"
+                      onChange={e =>
+                        setState({
+                          ...state,
+                          password: e.target.value,
+                        })
+                      }
+                      placeholder={t('Enter password')}
+                    />
+                  </Flex>
+                  <FormLabel
+                    htmlFor="key"
                     style={{
-                      marginTop: rem(30, theme.fontSizes.base),
-                      backgroundColor: theme.colors.danger,
-                      borderRadius: rem(9, theme.fontSizes.base),
-                      fontSize: rem(14, theme.fontSizes.base),
-                      padding: `${rem(18, theme.fontSizes.base)} ${rem(
-                        24,
-                        theme.fontSizes.base
-                      )}`,
+                      color: 'white',
+                      fontSize: rem(13),
                     }}
                   >
-                    {error}
+                    {t('Confirm password')}
+                  </FormLabel>
+                  <Flex width="100%" style={{position: 'relative'}}>
+                    <PasswordInput
+                      id="passwordConfirm"
+                      value={state.passwordConfirm}
+                      width="100%"
+                      borderColor="xblack.008"
+                      backgroundColor="xblack.016"
+                      onChange={e =>
+                        setState({
+                          ...state,
+                          passwordConfirm: e.target.value,
+                        })
+                      }
+                      placeholder={t('Enter password again')}
+                    />
                   </Flex>
-                )}
-              </form>
-            </Flex>
-          </AuthLayout.Normal>
+                  <Flex
+                    style={{
+                      ...margin(theme.spacings.xlarge, 0, 0, 0),
+                    }}
+                    justify="space-between"
+                  >
+                    <FlatButton
+                      color="white"
+                      _hover={{color: 'xwhite.080'}}
+                      onClick={() => setStep(steps.AVATAR)}
+                    >
+                      <ArrowUpIcon
+                        boxSize={5}
+                        style={{transform: 'rotate(-90deg)', marginTop: -3}}
+                      ></ArrowUpIcon>
+                      {t('Back')}
+                    </FlatButton>
+                    <PrimaryButton type="submit">{t('Next')}</PrimaryButton>
+                  </Flex>
+                  {error && (
+                    <Flex
+                      style={{
+                        marginTop: rem(30, theme.fontSizes.base),
+                        backgroundColor: theme.colors.danger,
+                        borderRadius: rem(9, theme.fontSizes.base),
+                        fontSize: rem(14, theme.fontSizes.base),
+                        padding: `${rem(18, theme.fontSizes.base)} ${rem(
+                          24,
+                          theme.fontSizes.base
+                        )}`,
+                      }}
+                    >
+                      {error}
+                    </Flex>
+                  )}
+                </form>
+              </Flex>
+            </AuthLayout.Normal>
+          ) : (
+            <AuthLayout.Mobile>
+              <img
+                src="/static/idena-logo-circle.svg"
+                alt="logo"
+                style={{width: rem(90), height: rem(90)}}
+              />
+            </AuthLayout.Mobile>
+          )}
         </AuthLayout>
       )}
       {state.step === steps.BACKUP && (

@@ -97,6 +97,10 @@ export function Input(props) {
   return <ChakraInput {...props} />
 }
 
+export function SimplePasswordInput(props) {
+  return <ChakraInput type="password" {...props} />
+}
+
 export function Select(props) {
   return (
     <ChakraSelect
