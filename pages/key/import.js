@@ -37,7 +37,7 @@ export default function ImportKey() {
   const {setNewKey, decryptKey} = useAuthDispatch()
   const [error, setError] = useState()
   const [step, setStep] = useState(steps.KEY)
-  const [isDesktop] = useMediaQuery('(min-width: 376px)')
+  const [isDesktop] = useMediaQuery('(min-width: 481px)')
 
   const addKey = async () => {
     const key = decryptKey(state.key, state.password)

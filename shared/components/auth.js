@@ -28,7 +28,7 @@ function RestoreKey() {
   const {login, removeKey} = useAuthDispatch()
   const {coinbase} = useSettingsState()
   const [error, setError] = useState()
-  const [isDesktop] = useMediaQuery('(min-width: 376px)')
+  const [isDesktop] = useMediaQuery('(min-width: 481px)')
 
   const dnaAppUrl = useDnaUrl()
 

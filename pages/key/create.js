@@ -54,7 +54,7 @@ export default function CreateKey() {
   })
   const [error, setError] = useState()
   const {onCopy, hasCopied} = useClipboard(state.encryptedPrivateKey)
-  const [isDesktop] = useMediaQuery('(min-width: 376px)')
+  const [isDesktop] = useMediaQuery('(min-width: 481px)')
 
   const setStep = s => setState(prevState => ({...prevState, step: s}))
 
