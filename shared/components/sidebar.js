@@ -79,14 +79,18 @@ function Sidebar({isOpen, onClose, ...props}) {
       zIndex={[100, 2]}
       position={['absolute', 'relative']}
       direction="column"
-      visibility={isOpen ? 'visible' : 'hidden'}
-      transform={isOpen ? 'translateX(0)' : 'translateX(100%)'}
+      visibility={[isOpen ? 'visible' : 'hidden', 'visible']}
+      transform={[isOpen ? 'translateX(0)' : 'translateX(100%)', 'none']}
       transition="0.3s"
       {...props}
     >
       <Flex justifyContent="space-between" alignItems="flex-start">
         <ApiStatus />
-        <CloseButton onClick={onClose} size="md" />
+        <CloseButton
+          onClick={onClose}
+          size="md"
+          visibility={['visible', 'hidden']}
+        />
       </Flex>
 
       <Logo />
