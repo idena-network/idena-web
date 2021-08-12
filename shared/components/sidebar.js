@@ -103,26 +103,25 @@ function Sidebar({isOpen, onClose, ...props}) {
 function ApiStatus() {
   const settings = useSettingsState()
   const epoch = useEpoch()
-  const chakraTheme = useTheme()
 
-  let bg = chakraTheme.colors.xwhite['010']
-  let color = chakraTheme.colors.gray['300']
+  let bg = 'xwhite.010'
+  let color = 'gray.300'
   let text = 'Loading...'
 
   if (settings.apiKeyState === apiKeyStates.OFFLINE) {
-    bg = chakraTheme.colors.red['020']
-    color = chakraTheme.colors.red['500']
+    bg = 'red.020'
+    color = 'red.500'
     text = 'Offline'
   } else if (settings.apiKeyState === apiKeyStates.EXPIRED) {
-    bg = chakraTheme.colors.warning['020']
-    color = chakraTheme.colors.warning['500']
+    bg = 'warning.020'
+    color = 'warning.500'
     text = 'Expiring'
   } else if (
     settings.apiKeyState === apiKeyStates.ONLINE ||
     settings.apiKeyState === apiKeyStates.EXTERNAL
   ) {
-    bg = chakraTheme.colors.green['020']
-    color = chakraTheme.colors.green['500']
+    bg = 'green.020'
+    color = 'green.500'
     text = 'Online'
   }
 
