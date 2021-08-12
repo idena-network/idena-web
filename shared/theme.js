@@ -1,5 +1,6 @@
 import {theme as chakraTheme} from '@chakra-ui/react'
 import {rem as remp, rgb, margin} from 'polished'
+import {createBreakpoints} from '@chakra-ui/theme-tools'
 
 const colors = {
   primary: 'rgb(87, 143, 255)',
@@ -112,8 +113,6 @@ export function rem(value) {
   return remp(value, baseFontSize)
 }
 
-const breakpoints = ['40em', '52em', '64em']
-
 export const uiTheme = {
   colors: {
     black: '#16161D',
@@ -127,6 +126,7 @@ export const uiTheme = {
     },
     gray: {
       50: 'rgb(245 246 247)',
+      '030': 'rgb(83 86 92 /0.30)',
       100: 'rgb(232 234 237)',
       200: 'rgb(210 212 217)',
       300: 'rgb(150 153 158)',
@@ -151,6 +151,7 @@ export const uiTheme = {
     },
     warning: {
       '016': 'rgba(255, 163, 102, 0.16)',
+      '020': 'rgba(255, 163, 102, 0.2)',
       100: 'rgba(255, 163, 102, 0.2)',
       400: 'rgb(255, 163, 102)',
       500: 'rgb(255, 163, 102)',
@@ -190,8 +191,10 @@ export const uiTheme = {
       '080': 'rgb(0 0 0 /0.8)',
     },
     xwhite: {
+      '010': 'rgba(255, 255, 255, 0.1)',
       '050': 'rgba(255, 255, 255, 0.5)',
       '080': 'rgba(255, 255, 255, 0.8)',
+      '500': 'rgba(255, 255, 255)',
     },
     graphite: {
       500: 'rgb(69 72 77)',
@@ -217,7 +220,14 @@ export const uiTheme = {
     lg: '18px',
     xl: '28px',
   },
-  breakpoints,
+  breakpoints: createBreakpoints({
+    base: '0px',
+    sm: '480px',
+    md: '9999px',
+    lg: '9999px',
+    xl: '9999px',
+    '2xl': '9999px',
+  }),
   space: {
     ...chakraTheme.space,
     '1/2': '2px',

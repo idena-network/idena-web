@@ -1,9 +1,11 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable no-nested-ternary */
 import React from 'react'
 import PropTypes from 'prop-types'
 import {useRouter} from 'next/router'
-import {margin, borderRadius, darken, transparentize, padding} from 'polished'
+import {margin, borderRadius, darken} from 'polished'
 import {Trans, useTranslation} from 'react-i18next'
+import NextLink from 'next/link'
 import {
   Button,
   Stack,
@@ -15,11 +17,17 @@ import {
   MenuList,
   MenuItem,
   Menu,
+  Flex,
+  Image,
+  List,
+  ListItem,
+  Link as ChakraLink,
+  CloseButton,
   Portal,
 } from '@chakra-ui/react'
 import {PlusSquareIcon} from '@chakra-ui/icons'
+import {useTheme} from '@emotion/react'
 import {Box, Link} from '.'
-import Flex from './flex'
 import theme, {rem} from '../theme'
 import {pluralize} from '../utils/string'
 import {parsePersistedValidationState} from '../../screens/validation/utils'
@@ -59,114 +67,107 @@ import {
   TimerIcon,
 } from './icons'
 
-function Sidebar() {
+function Sidebar({isOpen, onClose, ...props}) {
   return (
-    <section>
-      <Flex direction="column" align="flex-start">
+    <Flex
+      backgroundColor="gray.500"
+      color="white"
+      height="100vh"
+      width={['100%', 200]}
+      px={[8, 4]}
+      py={[4, 2]}
+      zIndex={[100, 2]}
+      position={['absolute', 'relative']}
+      direction="column"
+      visibility={isOpen ? 'visible' : 'hidden'}
+      transform={isOpen ? 'translateX(0)' : 'translateX(100%)'}
+      transition="0.3s"
+      {...props}
+    >
+      <Flex justifyContent="space-between" alignItems="flex-start">
         <ApiStatus />
-        <Logo />
-        <Nav />
-        <ActionPanel />
+        <CloseButton onClick={onClose} size="md" />
       </Flex>
-      <style jsx>{`
-        section {
-          background: ${theme.colors.primary2};
-          color: ${theme.colors.white};
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-          height: 100vh;
-          overflow: hidden;
-          padding: ${rem(8)} ${rem(16)};
-          width: ${rem(200)};
-          position: relative;
-          z-index: 2;
-        }
-      `}</style>
-    </section>
+
+      <Logo />
+      <Nav />
+      <ActionPanel />
+    </Flex>
   )
 }
 
 function ApiStatus() {
   const settings = useSettingsState()
   const epoch = useEpoch()
+  const chakraTheme = useTheme()
 
-  let bg = theme.colors.white01
-  let color = theme.colors.muted
+  let bg = chakraTheme.colors.xwhite['010']
+  let color = chakraTheme.colors.gray['300']
   let text = 'Loading...'
 
   if (settings.apiKeyState === apiKeyStates.OFFLINE) {
-    bg = theme.colors.danger02
-    color = theme.colors.danger
+    bg = chakraTheme.colors.red['020']
+    color = chakraTheme.colors.red['500']
     text = 'Offline'
   } else if (settings.apiKeyState === apiKeyStates.EXPIRED) {
-    bg = theme.colors.warning02
-    color = theme.colors.warning
+    bg = chakraTheme.colors.warning['020']
+    color = chakraTheme.colors.warning['500']
     text = 'Expiring'
   } else if (
     settings.apiKeyState === apiKeyStates.ONLINE ||
     settings.apiKeyState === apiKeyStates.EXTERNAL
   ) {
-    bg = theme.colors.success02
-    color = theme.colors.success
+    bg = chakraTheme.colors.green['020']
+    color = chakraTheme.colors.green['500']
     text = 'Online'
   }
 
   return (
-    <Box
-      bg={bg}
-      css={{
-        borderRadius: rem(12),
-        ...margin(0, 0, 0, rem(-8)),
-        ...padding(rem(2), rem(12), rem(4), rem(12)),
-      }}
-    >
-      <Flex align="baseline">
-        {settings.apiKeyState === apiKeyStates.EXPIRED ? (
-          <Link href="/node/expired">
+    <Flex>
+      <Flex
+        bg={bg}
+        borderRadius="xl"
+        px={3}
+        py={[1, 1 / 2]}
+        fontSize={[16, 13]}
+      >
+        <Flex align="baseline">
+          {settings.apiKeyState === apiKeyStates.EXPIRED ? (
+            <Link href="/node/expired">
+              <Text color={color} fontWeight={500} lineHeight={rem(18)}>
+                {text}
+              </Text>
+            </Link>
+          ) : settings.apiKeyState === apiKeyStates.ONLINE ? (
+            <Tooltip
+              label={`Access to the shared node will be expired after the validation ceremony ${
+                epoch ? new Date(epoch.nextValidation).toLocaleString() : ''
+              }`}
+              placement="right"
+              zIndex={1010}
+              bg="graphite"
+              width={200}
+            >
+              <Text color={color} fontWeight={500} lineHeight={rem(18)}>
+                {text}
+              </Text>
+            </Tooltip>
+          ) : (
             <Text color={color} fontWeight={500} lineHeight={rem(18)}>
               {text}
             </Text>
-          </Link>
-        ) : settings.apiKeyState === apiKeyStates.ONLINE ? (
-          <Tooltip
-            label={`Access to the shared node will be expired after the validation ceremony ${
-              epoch ? new Date(epoch.nextValidation).toLocaleString() : ''
-            }`}
-            placement="right"
-            zIndex={1000}
-            bg="#45484d"
-            width={200}
-          >
-            <Text color={color} fontWeight={500} lineHeight={rem(18)}>
-              {text}
-            </Text>
-          </Tooltip>
-        ) : (
-          <Text color={color} fontWeight={500} lineHeight={rem(18)}>
-            {text}
-          </Text>
-        )}
+          )}
+        </Flex>
       </Flex>
-    </Box>
+    </Flex>
   )
 }
 
 export function Logo() {
   return (
-    <Box
-      css={{
-        alignSelf: 'center',
-        ...margin(rem(32), 0),
-      }}
-    >
-      <img src="/static/logo.svg" alt="Idena logo" />
-      <style jsx>{`
-        img {
-          width: ${rem(56)};
-        }
-      `}</style>
-    </Box>
+    <ChakraBox my={8} alignSelf="center">
+      <Image src="/static/logo.svg" alt="Idena logo" w={14} />
+    </ChakraBox>
   )
 }
 
@@ -175,98 +176,73 @@ function Nav() {
   const [{nickname}] = useIdentity()
   const {logout} = useAuthDispatch()
   return (
-    <nav>
-      <ul
-        style={{
-          listStyleType: 'none',
-          ...padding(0),
-          ...margin(0),
-          textAlign: 'left',
-        }}
-      >
-        <NavItem href="/" icon={<ProfileIcon boxSize={5} />}>
-          {t('My Idena') || nickname}
-        </NavItem>
-        <NavItem href="/wallets" icon={<WalletIcon boxSize={5} />}>
-          {t('Wallets')}
-        </NavItem>
-        <NavItem href="/flips/list" icon={<GalleryIcon boxSize={5} />}>
-          {t('Flips')}
-        </NavItem>
-        <NavItem href="/contacts" icon={<ContactsIcon boxSize={5} />}>
-          {t('Contacts')}
-        </NavItem>
-        <NavItem href="/settings" icon={<SettingsIcon boxSize={5} />}>
-          {t('Settings')}
-        </NavItem>
-        <NavItem href="" icon={<DeleteIcon boxSize={5} />} onClick={logout}>
-          {t('Logout')}
-        </NavItem>
-      </ul>
-      <style jsx>{`
-        nav {
-          align-self: stretch;
-        }
-        .icon {
-          margin-left: -4px;
-          margin-top: -4px;
-          margin-bottom: -3px;
-          position: relative;
-          top: 1px;
-        }
-      `}</style>
-    </nav>
+    <Flex alignSelf="stretch">
+      <List listStyleType="none" m={0} p={0} width="100%">
+        <NavItem
+          href="/"
+          icon={<ProfileIcon boxSize={[8, 5]} />}
+          text={t('My Idena') || nickname}
+        ></NavItem>
+        <NavItem
+          href="/wallets"
+          icon={<WalletIcon boxSize={[8, 5]} />}
+          text={t('Wallets')}
+        ></NavItem>
+        <NavItem
+          href="/flips/list"
+          icon={<GalleryIcon boxSize={[8, 5]} />}
+          text={t('Flips')}
+        ></NavItem>
+        <NavItem
+          href="/contacts"
+          icon={<ContactsIcon boxSize={[8, 5]} />}
+          text={t('Contacts')}
+        ></NavItem>
+        <NavItem
+          href="/settings"
+          icon={<SettingsIcon boxSize={[8, 5]} />}
+          text={t('Settings')}
+        ></NavItem>
+        <NavItem
+          href=""
+          icon={<DeleteIcon boxSize={[8, 5]} />}
+          onClick={logout}
+          text={t('Logout')}
+        ></NavItem>
+      </List>
+    </Flex>
   )
 }
 
 // eslint-disable-next-line react/prop-types
-function NavItem({href, icon, children, onClick}) {
+function NavItem({href, icon, text}) {
   const router = useRouter()
   const active = router.pathname === href
-  const bg = active ? transparentize(0.84, theme.colors.black0) : ''
-  const bgHover = active
-    ? transparentize(0.84, theme.colors.black0)
-    : transparentize(0.9, theme.colors.white)
-  const color = active ? theme.colors.white : theme.colors.white05
   return (
-    <li>
-      <Link
-        href={href}
-        color={color}
-        hoverColor={theme.colors.white}
-        fontWeight={500}
-        width="100%"
-        height="100%"
-        style={{
-          fontWeight: 500,
-          lineHeight: rem(20),
-          ...padding(rem(6), rem(8)),
-        }}
-        onClick={onClick}
-      >
-        <Flex align="center">
-          {React.cloneElement(icon, {
-            color,
-            fontSize: theme.fontSizes.normal,
-          })}
-          <Box w="8px" />
-          {children}
-        </Flex>
-      </Link>
-      <style jsx>{`
-        li {
-          background: ${bg};
-          border-radius: ${rem(6)};
-          color: ${theme.colors.white05};
-          cursor: pointer;
-          transition: background 0.3s ease;
-        }
-        li:hover {
-          border-radius: 4px;
-          background: ${bgHover};
-        }
-      `}</style>
-    </li>
+    <ListItem>
+      <NextLink href={href}>
+        <ChakraLink
+          transition="background 0.3s ease"
+          width="100%"
+          height="100%"
+          fontSize={[16, 13]}
+          color={active ? 'xwhite.500' : 'xwhite.050'}
+          _hover={{
+            color: 'xwhite.500',
+            bg: active ? 'xblack.016' : 'xwhite.010',
+          }}
+          bg={active ? 'xblack.016' : ''}
+          px={2}
+          py={[2, 3 / 2]}
+          display="flex"
+          alignItems="center"
+          borderRadius="md"
+        >
+          {icon}
+          <Text ml={2}>{text}</Text>
+        </ChakraLink>
+      </NextLink>
+    </ListItem>
   )
 }
 
@@ -530,28 +506,21 @@ function PulseFrame({isActive, children, ...props}) {
 
 function Block({title, children}) {
   return (
-    <Box
-      css={{
-        borderBottom: `solid 1px ${theme.colors.gray3}`,
-        ...margin(0, 0, rem(1)),
-        ...padding(rem(8), rem(12)),
-      }}
+    <ChakraFlex
+      borderBottom="solid 1px"
+      borderColor="gray.030"
+      py={[4, 2]}
+      px={[6, 3]}
+      direction="column"
+      justifySelf="stretch"
     >
-      <Text
-        color={theme.colors.white05}
-        fontWeight={500}
-        css={{lineHeight: rem(19)}}
-      >
+      <Text color="xwhite.050" fontWeight={500} fontSize={[14, 13]} mb={[1, 0]}>
         {title}
       </Text>
-      <Text
-        color={theme.colors.white}
-        fontWeight={500}
-        css={{display: 'block', lineHeight: rem(20)}}
-      >
+      <Text color="xwhite.500" fontWeight={500} fontSize={[16, 13]}>
         {children}
       </Text>
-    </Box>
+    </ChakraFlex>
   )
 }
 
@@ -581,9 +550,11 @@ function CurrentTask({epoch, period}) {
       switch (true) {
         case identity.canActivateInvite:
           return (
-            <Link href="/" color={theme.colors.white}>
-              {t('Activate invite')}
-            </Link>
+            <NextLink href="/">
+              <ChakraLink color="xwhite.500" fontSize={[16, 13]}>
+                {t('Activate invite')}
+              </ChakraLink>
+            </NextLink>
           )
 
         case currentOnboarding.matches(OnboardingStep.ActivateMining): {
@@ -667,9 +638,11 @@ function CurrentTask({epoch, period}) {
               return done ? (
                 t(`Wait for validation end`)
               ) : (
-                <Link href="/validation" color={theme.colors.white}>
-                  {t('Validate')}
-                </Link>
+                <NextLink href="/validation">
+                  <ChakraLink color="xwhite.500" fontSize={[16, 13]}>
+                    {t('Validate')}
+                  </ChakraLink>
+                </NextLink>
               )
 
             return isValidated
