@@ -1,9 +1,10 @@
+/* eslint-disable react/prop-types */
 /* eslint-disable no-nested-ternary */
 import React from 'react'
 import PropTypes from 'prop-types'
 import {useRouter} from 'next/router'
-import {margin, borderRadius, darken, transparentize, padding} from 'polished'
 import {Trans, useTranslation} from 'react-i18next'
+import NextLink from 'next/link'
 import {
   Button,
   Stack,
@@ -15,12 +16,18 @@ import {
   MenuList,
   MenuItem,
   Menu,
+  Flex,
+  Image,
+  List,
+  ListItem,
+  Link as ChakraLink,
+  CloseButton,
   Portal,
+  useBreakpointValue,
 } from '@chakra-ui/react'
 import {PlusSquareIcon} from '@chakra-ui/icons'
-import {Box, Link} from '.'
-import Flex from './flex'
-import theme, {rem} from '../theme'
+import {Link} from '.'
+import {rem} from '../theme'
 import {pluralize} from '../utils/string'
 import {parsePersistedValidationState} from '../../screens/validation/utils'
 import {useAuthDispatch} from '../providers/auth-context'
@@ -59,31 +66,34 @@ import {
   TimerIcon,
 } from './icons'
 
-function Sidebar() {
+function Sidebar({isOpen, onClose, ...props}) {
   return (
-    <section>
-      <Flex direction="column" align="flex-start">
+    <Flex
+      backgroundColor="gray.500"
+      color="white"
+      height="100vh"
+      width={['100%', 200]}
+      px={[10, 4]}
+      py={[4, 2]}
+      zIndex={[8, 2]}
+      position={['absolute', 'relative']}
+      direction="column"
+      display={[isOpen ? 'flex' : 'none', 'flex']}
+      {...props}
+    >
+      <Flex justifyContent="space-between" alignItems="center">
         <ApiStatus />
-        <Logo />
-        <Nav />
-        <ActionPanel />
+        <CloseButton
+          onClick={onClose}
+          boxSize={4}
+          visibility={['visible', 'hidden']}
+        />
       </Flex>
-      <style jsx>{`
-        section {
-          background: ${theme.colors.primary2};
-          color: ${theme.colors.white};
-          display: flex;
-          flex-direction: column;
-          justify-content: space-between;
-          height: 100vh;
-          overflow: hidden;
-          padding: ${rem(8)} ${rem(16)};
-          width: ${rem(200)};
-          position: relative;
-          z-index: 2;
-        }
-      `}</style>
-    </section>
+
+      <Logo />
+      <Nav onClose={onClose} />
+      <ActionPanel onClose={onClose} />
+    </Flex>
   )
 }
 
@@ -91,192 +101,168 @@ function ApiStatus() {
   const settings = useSettingsState()
   const epoch = useEpoch()
 
-  let bg = theme.colors.white01
-  let color = theme.colors.muted
+  let bg = 'xwhite.010'
+  let color = 'gray.300'
   let text = 'Loading...'
 
   if (settings.apiKeyState === apiKeyStates.OFFLINE) {
-    bg = theme.colors.danger02
-    color = theme.colors.danger
+    bg = 'red.020'
+    color = 'red.500'
     text = 'Offline'
   } else if (settings.apiKeyState === apiKeyStates.EXPIRED) {
-    bg = theme.colors.warning02
-    color = theme.colors.warning
+    bg = 'warning.020'
+    color = 'warning.500'
     text = 'Expiring'
   } else if (
     settings.apiKeyState === apiKeyStates.ONLINE ||
     settings.apiKeyState === apiKeyStates.EXTERNAL
   ) {
-    bg = theme.colors.success02
-    color = theme.colors.success
+    bg = 'green.020'
+    color = 'green.500'
     text = 'Online'
   }
 
   return (
-    <Box
-      bg={bg}
-      css={{
-        borderRadius: rem(12),
-        ...margin(0, 0, 0, rem(-8)),
-        ...padding(rem(2), rem(12), rem(4), rem(12)),
-      }}
-    >
-      <Flex align="baseline">
-        {settings.apiKeyState === apiKeyStates.EXPIRED ? (
-          <Link href="/node/expired">
+    <Flex>
+      <Flex
+        bg={bg}
+        borderRadius="xl"
+        px={3}
+        py={[1, 1 / 2]}
+        fontSize={[16, 13]}
+      >
+        <Flex align="baseline">
+          {settings.apiKeyState === apiKeyStates.EXPIRED ? (
+            <Link href="/node/expired">
+              <Text color={color} fontWeight={500} lineHeight={rem(18)}>
+                {text}
+              </Text>
+            </Link>
+          ) : settings.apiKeyState === apiKeyStates.ONLINE ? (
+            <Tooltip
+              label={`Access to the shared node will be expired after the validation ceremony ${
+                epoch ? new Date(epoch.nextValidation).toLocaleString() : ''
+              }`}
+              placement="right"
+              zIndex={1010}
+              bg="graphite"
+              width={200}
+            >
+              <Text color={color} fontWeight={500} lineHeight={rem(18)}>
+                {text}
+              </Text>
+            </Tooltip>
+          ) : (
             <Text color={color} fontWeight={500} lineHeight={rem(18)}>
               {text}
             </Text>
-          </Link>
-        ) : settings.apiKeyState === apiKeyStates.ONLINE ? (
-          <Tooltip
-            label={`Access to the shared node will be expired after the validation ceremony ${
-              epoch ? new Date(epoch.nextValidation).toLocaleString() : ''
-            }`}
-            placement="right"
-            zIndex={1000}
-            bg="#45484d"
-            width={200}
-          >
-            <Text color={color} fontWeight={500} lineHeight={rem(18)}>
-              {text}
-            </Text>
-          </Tooltip>
-        ) : (
-          <Text color={color} fontWeight={500} lineHeight={rem(18)}>
-            {text}
-          </Text>
-        )}
+          )}
+        </Flex>
       </Flex>
-    </Box>
+    </Flex>
   )
 }
 
 export function Logo() {
   return (
-    <Box
-      css={{
-        alignSelf: 'center',
-        ...margin(rem(32), 0),
-      }}
-    >
-      <img src="/static/logo.svg" alt="Idena logo" />
-      <style jsx>{`
-        img {
-          width: ${rem(56)};
-        }
-      `}</style>
-    </Box>
+    <ChakraBox my={8} alignSelf="center">
+      <Image
+        src="/static/logo.svg"
+        alt="Idena logo"
+        w={['88px', 14]}
+        ignoreFallback
+      />
+    </ChakraBox>
   )
 }
 
-function Nav() {
+function Nav({onClose}) {
   const {t} = useTranslation()
   const [{nickname}] = useIdentity()
   const {logout} = useAuthDispatch()
   return (
-    <nav>
-      <ul
-        style={{
-          listStyleType: 'none',
-          ...padding(0),
-          ...margin(0),
-          textAlign: 'left',
-        }}
-      >
-        <NavItem href="/" icon={<ProfileIcon boxSize={5} />}>
-          {t('My Idena') || nickname}
-        </NavItem>
-        <NavItem href="/wallets" icon={<WalletIcon boxSize={5} />}>
-          {t('Wallets')}
-        </NavItem>
-        <NavItem href="/flips/list" icon={<GalleryIcon boxSize={5} />}>
-          {t('Flips')}
-        </NavItem>
-        <NavItem href="/contacts" icon={<ContactsIcon boxSize={5} />}>
-          {t('Contacts')}
-        </NavItem>
-        <NavItem href="/settings" icon={<SettingsIcon boxSize={5} />}>
-          {t('Settings')}
-        </NavItem>
-        <NavItem href="" icon={<DeleteIcon boxSize={5} />} onClick={logout}>
-          {t('Logout')}
-        </NavItem>
-      </ul>
-      <style jsx>{`
-        nav {
-          align-self: stretch;
-        }
-        .icon {
-          margin-left: -4px;
-          margin-top: -4px;
-          margin-bottom: -3px;
-          position: relative;
-          top: 1px;
-        }
-      `}</style>
-    </nav>
+    <Flex alignSelf="stretch">
+      <List listStyleType="none" m={0} p={0} width="100%">
+        <NavItem
+          href="/"
+          icon={<ProfileIcon boxSize={[8, 5]} />}
+          text={t('My Idena') || nickname}
+        ></NavItem>
+        <NavItem
+          href="/wallets"
+          icon={<WalletIcon boxSize={[8, 5]} />}
+          text={t('Wallets')}
+        ></NavItem>
+        <NavItem
+          href="/flips/list"
+          icon={<GalleryIcon boxSize={[8, 5]} />}
+          text={t('Flips')}
+        ></NavItem>
+        <NavItem
+          href="/contacts"
+          icon={<ContactsIcon boxSize={[8, 5]} />}
+          text={t('Contacts')}
+        ></NavItem>
+        <NavItem
+          href="/settings"
+          icon={<SettingsIcon boxSize={[8, 5]} />}
+          text={t('Settings')}
+        ></NavItem>
+        <NavItem
+          href=""
+          icon={<DeleteIcon boxSize={[8, 5]} />}
+          onClick={() => {
+            onClose()
+            logout()
+          }}
+          text={t('Logout')}
+        ></NavItem>
+      </List>
+    </Flex>
   )
 }
 
 // eslint-disable-next-line react/prop-types
-function NavItem({href, icon, children, onClick}) {
+function NavItem({href, icon, text, onClick}) {
   const router = useRouter()
   const active = router.pathname === href
-  const bg = active ? transparentize(0.84, theme.colors.black0) : ''
-  const bgHover = active
-    ? transparentize(0.84, theme.colors.black0)
-    : transparentize(0.9, theme.colors.white)
-  const color = active ? theme.colors.white : theme.colors.white05
   return (
-    <li>
-      <Link
-        href={href}
-        color={color}
-        hoverColor={theme.colors.white}
-        fontWeight={500}
-        width="100%"
-        height="100%"
-        style={{
-          fontWeight: 500,
-          lineHeight: rem(20),
-          ...padding(rem(6), rem(8)),
-        }}
-        onClick={onClick}
-      >
-        <Flex align="center">
-          {React.cloneElement(icon, {
-            color,
-            fontSize: theme.fontSizes.normal,
-          })}
-          <Box w="8px" />
-          {children}
-        </Flex>
-      </Link>
-      <style jsx>{`
-        li {
-          background: ${bg};
-          border-radius: ${rem(6)};
-          color: ${theme.colors.white05};
-          cursor: pointer;
-          transition: background 0.3s ease;
-        }
-        li:hover {
-          border-radius: 4px;
-          background: ${bgHover};
-        }
-      `}</style>
-    </li>
+    <ListItem>
+      <NextLink href={href}>
+        <ChakraLink
+          transition="background 0.3s ease"
+          width="100%"
+          height="100%"
+          fontSize={[16, 13]}
+          color={active ? 'xwhite.500' : 'xwhite.050'}
+          _hover={{
+            color: 'xwhite.500',
+            bg: active ? 'xblack.016' : 'xwhite.010',
+          }}
+          bg={active ? 'xblack.016' : ''}
+          px={2}
+          py={[2, 3 / 2]}
+          display="flex"
+          alignItems="center"
+          borderRadius="md"
+          onClick={onClick}
+        >
+          {icon}
+          <Text ml={2}>{text}</Text>
+        </ChakraLink>
+      </NextLink>
+    </ListItem>
   )
 }
 
-function ActionPanel() {
+function ActionPanel({onClose}) {
   const {t} = useTranslation()
 
   const router = useRouter()
 
   const epoch = useEpoch()
   const [identity] = useIdentity()
+  const onboardingPopoverPlacement = useBreakpointValue(['top', 'right'])
 
   const [
     currentOnboarding,
@@ -310,20 +296,17 @@ function ActionPanel() {
         [IdentityStatus.Newbie].includes(identity.state)))
 
   return (
-    <Box
-      bg={theme.colors.white01}
-      css={{
-        minWidth: '100%',
-        ...borderRadius('top', rem(6)),
-        ...borderRadius('bottom', rem(6)),
-        ...margin(rem(24), 0, 0),
-      }}
-    >
+    <Stack spacing={[2, '1px']} mt={6}>
       {currentPeriod !== EpochPeriod.None && (
-        <Block title={t('Current period')}>{currentPeriod}</Block>
+        <Block
+          title={t('Current period')}
+          roundedTop="md"
+          roundedBottom={['md', 'none']}
+        >
+          {currentPeriod}
+        </Block>
       )}
       <ChakraBox
-        roundedTop="md"
         cursor={isPromotingNextOnboardingStep ? 'pointer' : 'default'}
         onClick={() => {
           if (
@@ -336,11 +319,38 @@ function ActionPanel() {
           if (eitherOnboardingState(OnboardingStep.CreateFlips))
             router.push('/flips/list')
 
+          if (
+            !eitherOnboardingState(
+              onboardingPromotingStep(OnboardingStep.Validate)
+            )
+          ) {
+            onClose()
+          }
           showCurrentTask()
         }}
       >
-        <PulseFrame isActive={isPromotingNextOnboardingStep}>
-          <Block title={t('My current task')}>
+        <PulseFrame
+          isActive={isPromotingNextOnboardingStep}
+          roundedTop={[
+            'md',
+            currentPeriod === EpochPeriod.None ? 'md' : 'none',
+          ]}
+          roundedBottom={[
+            'md',
+            currentPeriod !== EpochPeriod.None ? 'md' : 'none',
+          ]}
+        >
+          <Block
+            title={t('My current task')}
+            roundedTop={[
+              'md',
+              currentPeriod === EpochPeriod.None ? 'md' : 'none',
+            ]}
+            roundedBottom={[
+              'md',
+              currentPeriod !== EpochPeriod.None ? 'md' : 'none',
+            ]}
+          >
             <CurrentTask
               epoch={epoch.epoch}
               period={currentPeriod}
@@ -351,148 +361,149 @@ function ActionPanel() {
       </ChakraBox>
 
       {currentPeriod === EpochPeriod.None && (
-        <>
-          <OnboardingPopover
-            isOpen={eitherOnboardingState(
-              onboardingShowingStep(OnboardingStep.Validate)
-            )}
-            placement="right"
-            usePortal
-            zIndex="menu"
-          >
-            <PopoverTrigger>
-              <ChakraBox
+        <OnboardingPopover
+          isOpen={eitherOnboardingState(
+            onboardingShowingStep(OnboardingStep.Validate)
+          )}
+          placement={onboardingPopoverPlacement}
+          usePortal
+        >
+          <PopoverTrigger>
+            <ChakraBox
+              bg={
+                eitherOnboardingState(
+                  onboardingShowingStep(OnboardingStep.Validate)
+                )
+                  ? 'rgba(216, 216, 216, .1)'
+                  : 'transparent'
+              }
+              position="relative"
+              zIndex={9}
+            >
+              <Block
+                title={t('Next validation')}
                 roundedBottom="md"
-                bg={
-                  eitherOnboardingState(
-                    onboardingShowingStep(OnboardingStep.Validate)
-                  )
-                    ? 'rgba(216, 216, 216, .1)'
-                    : 'transparent'
-                }
-                position="relative"
-                zIndex={9}
+                roundedTop={['md', 'none']}
               >
-                <ChakraFlex justify="space-between" align="baseline" pr={1}>
-                  <Block title={t('Next validation')}>
-                    {formatValidationDate(nextValidation)}
-                  </Block>
-                  <Menu autoSelect={false} mr={1}>
-                    <MenuButton
-                      rounded="md"
-                      py={1.5}
-                      px="2px"
-                      mt="-6px"
-                      _expanded={{bg: 'brandGray.500'}}
-                      _focus={{outline: 0}}
-                    >
-                      <MoreIcon boxSize={5} />
-                    </MenuButton>
-                    <MenuList
-                      placement="bottom-end"
-                      border="none"
-                      shadow="0 4px 6px 0 rgba(83, 86, 92, 0.24), 0 0 2px 0 rgba(83, 86, 92, 0.2)"
-                      rounded="lg"
+                {formatValidationDate(nextValidation)}
+                <Menu autoSelect={false} mr={1}>
+                  <MenuButton
+                    rounded="md"
+                    _expanded={{bg: 'brandGray.500'}}
+                    _focus={{outline: 0}}
+                    position="absolute"
+                    top={1}
+                    right={1}
+                    py={1.5}
+                    px={1 / 2}
+                  >
+                    <MoreIcon boxSize={5} />
+                  </MenuButton>
+                  <MenuList
+                    placement="bottom-end"
+                    border="none"
+                    shadow="0 4px 6px 0 rgba(83, 86, 92, 0.24), 0 0 2px 0 rgba(83, 86, 92, 0.2)"
+                    rounded="lg"
+                    py={2}
+                    minWidth="145px"
+                  >
+                    <MenuItem
+                      color="brandGray.500"
+                      fontWeight={500}
+                      px={3}
                       py={2}
-                      minWidth="145px"
+                      _hover={{bg: 'gray.50'}}
+                      _focus={{bg: 'gray.50'}}
+                      _selected={{bg: 'gray.50'}}
+                      _active={{bg: 'gray.50'}}
+                      onClick={() => {
+                        openExternalUrl(
+                          buildNextValidationCalendarLink(nextValidation)
+                        )
+                      }}
                     >
-                      <MenuItem
-                        color="brandGray.500"
-                        fontWeight={500}
-                        px={3}
-                        py={2}
-                        _hover={{bg: 'gray.50'}}
-                        _focus={{bg: 'gray.50'}}
-                        _selected={{bg: 'gray.50'}}
-                        _active={{bg: 'gray.50'}}
-                        onClick={() => {
-                          openExternalUrl(
-                            buildNextValidationCalendarLink(nextValidation)
-                          )
-                        }}
-                      >
-                        <PlusSquareIcon
-                          boxSize={5}
-                          mr={3}
-                          color="brandBlue.500"
-                        />
-                        Add to calendar
-                      </MenuItem>
-                    </MenuList>
-                  </Menu>
-                </ChakraFlex>
-              </ChakraBox>
-            </PopoverTrigger>
-            <Portal>
-              <OnboardingPopoverContent
-                title={t('Schedule your next validation')}
-                maxW="sm"
-                additionFooterActions={
-                  <Button
-                    variant="unstyled"
-                    onClick={() => {
-                      openExternalUrl(
-                        'https://medium.com/idena/how-do-i-start-using-idena-c49418e01a06'
-                      )
-                    }}
-                  >
-                    {t('Read more')}
-                  </Button>
-                }
-                onDismiss={dismissCurrentTask}
-              >
-                <Stack spacing={5}>
-                  <OnboardingPopoverContentIconRow
-                    icon={<TelegramIcon boxSize={5} />}
-                  >
-                    <Trans i18nKey="onboardingValidateSubscribe" t={t}>
-                      <OnboardingLinkButton href="https://t.me/IdenaAnnouncements">
-                        Subscribe
-                      </OnboardingLinkButton>{' '}
-                      to the Idena Announcements (important updates only)
-                    </Trans>
-                  </OnboardingPopoverContentIconRow>
-                  <OnboardingPopoverContentIconRow
-                    icon={<SyncIcon boxSize={5} />}
-                  >
-                    {t(
-                      `Keep your node synchronized in 45-60 minutes before the validation starts.`
-                    )}
-                  </OnboardingPopoverContentIconRow>
-                  <OnboardingPopoverContentIconRow
-                    icon={<TimerIcon boxSize={5} />}
-                  >
-                    {t(
-                      `Solve the flips quickly when validation starts. The first 6 flips must be submitted in less than 2 minutes.`
-                    )}
-                  </OnboardingPopoverContentIconRow>
-                  <OnboardingPopoverContentIconRow
-                    icon={<GalleryIcon boxSize={5} />}
-                  >
-                    <Trans i18nKey="onboardingValidateTest" t={t}>
-                      <OnboardingLinkButton href="https://flips.idena.io/?pass=idena.io">
-                        Test yourself
-                      </OnboardingLinkButton>{' '}
-                      before the validation
-                    </Trans>
-                  </OnboardingPopoverContentIconRow>
-                </Stack>
-              </OnboardingPopoverContent>
-            </Portal>
-          </OnboardingPopover>
-        </>
+                      <PlusSquareIcon
+                        boxSize={5}
+                        mr={3}
+                        color="brandBlue.500"
+                      />
+                      Add to calendar
+                    </MenuItem>
+                  </MenuList>
+                </Menu>
+              </Block>
+            </ChakraBox>
+          </PopoverTrigger>
+          <Portal>
+            <OnboardingPopoverContent
+              title={t('Schedule your next validation')}
+              maxW="sm"
+              additionFooterActions={
+                <Button
+                  variant="unstyled"
+                  onClick={() => {
+                    openExternalUrl(
+                      'https://medium.com/idena/how-do-i-start-using-idena-c49418e01a06'
+                    )
+                  }}
+                >
+                  {t('Read more')}
+                </Button>
+              }
+              onDismiss={dismissCurrentTask}
+            >
+              <Stack spacing={5}>
+                <OnboardingPopoverContentIconRow
+                  icon={<TelegramIcon boxSize={5} />}
+                >
+                  <Trans i18nKey="onboardingValidateSubscribe" t={t}>
+                    <OnboardingLinkButton href="https://t.me/IdenaAnnouncements">
+                      Subscribe
+                    </OnboardingLinkButton>{' '}
+                    to the Idena Announcements (important updates only)
+                  </Trans>
+                </OnboardingPopoverContentIconRow>
+                <OnboardingPopoverContentIconRow
+                  icon={<SyncIcon boxSize={5} />}
+                >
+                  {t(
+                    `Keep your node synchronized in 45-60 minutes before the validation starts.`
+                  )}
+                </OnboardingPopoverContentIconRow>
+                <OnboardingPopoverContentIconRow
+                  icon={<TimerIcon boxSize={5} />}
+                >
+                  {t(
+                    `Solve the flips quickly when validation starts. The first 6 flips must be submitted in less than 2 minutes.`
+                  )}
+                </OnboardingPopoverContentIconRow>
+                <OnboardingPopoverContentIconRow
+                  icon={<GalleryIcon boxSize={5} />}
+                >
+                  <Trans i18nKey="onboardingValidateTest" t={t}>
+                    <OnboardingLinkButton href="https://flips.idena.io/?pass=idena.io">
+                      Test yourself
+                    </OnboardingLinkButton>{' '}
+                    before the validation
+                  </Trans>
+                </OnboardingPopoverContentIconRow>
+              </Stack>
+            </OnboardingPopoverContent>
+          </Portal>
+        </OnboardingPopover>
       )}
-    </Box>
+    </Stack>
   )
 }
 
 // eslint-disable-next-line react/prop-types
-function PulseFrame({isActive, children, ...props}) {
+function PulseFrame({isActive, children, roundedTop, roundedBottom, ...props}) {
   return (
-    <ChakraBox roundedTop="md" {...props}>
+    <ChakraBox {...props}>
       {isActive ? (
         <ChakraBox
-          roundedTop="md"
+          roundedTop={roundedTop}
+          roundedBottom={roundedBottom}
           shadow="inset 0 0 0 2px #578fff"
           animation="pulseFrame 1.2s infinite"
         >
@@ -528,30 +539,29 @@ function PulseFrame({isActive, children, ...props}) {
   )
 }
 
-function Block({title, children}) {
+function Block({title, children, ...props}) {
   return (
-    <Box
-      css={{
-        borderBottom: `solid 1px ${theme.colors.gray3}`,
-        ...margin(0, 0, rem(1)),
-        ...padding(rem(8), rem(12)),
-      }}
+    <ChakraFlex
+      bg="xwhite.010"
+      py={[4, 2]}
+      px={[6, 3]}
+      direction="column"
+      justifySelf="stretch"
+      position="relative"
+      {...props}
     >
       <Text
-        color={theme.colors.white05}
-        fontWeight={500}
-        css={{lineHeight: rem(19)}}
+        color="xwhite.050"
+        fontWeight={['normal', 500]}
+        fontSize={[14, 13]}
+        mb={[1, 0]}
       >
         {title}
       </Text>
-      <Text
-        color={theme.colors.white}
-        fontWeight={500}
-        css={{display: 'block', lineHeight: rem(20)}}
-      >
+      <Text color="xwhite.500" fontWeight={500} fontSize={[16, 13]}>
         {children}
       </Text>
-    </Box>
+    </ChakraFlex>
   )
 }
 
@@ -581,9 +591,11 @@ function CurrentTask({epoch, period}) {
       switch (true) {
         case identity.canActivateInvite:
           return (
-            <Link href="/" color={theme.colors.white}>
-              {t('Activate invite')}
-            </Link>
+            <NextLink href="/">
+              <ChakraLink color="xwhite.500" fontSize={[16, 13]}>
+                {t('Activate invite')}
+              </ChakraLink>
+            </NextLink>
           )
 
         case currentOnboarding.matches(OnboardingStep.ActivateMining): {
@@ -667,9 +679,11 @@ function CurrentTask({epoch, period}) {
               return done ? (
                 t(`Wait for validation end`)
               ) : (
-                <Link href="/validation" color={theme.colors.white}>
-                  {t('Validate')}
-                </Link>
+                <NextLink href="/validation">
+                  <ChakraLink color="xwhite.500" fontSize={[16, 13]}>
+                    {t('Validate')}
+                  </ChakraLink>
+                </NextLink>
               )
 
             return isValidated
@@ -695,47 +709,6 @@ function CurrentTask({epoch, period}) {
     default:
       return '...'
   }
-}
-
-function UpdateButton({text, version, ...props}) {
-  return (
-    <>
-      <button type="button" {...props}>
-        <span>{text}</span>
-        <br />
-        {version}
-      </button>
-      <style jsx>{`
-        button {
-          background: ${theme.colors.white};
-          border: none;
-          border-radius: 6px;
-          color: ${theme.colors.muted};
-          cursor: pointer;
-          padding: ${`0.5em 1em`};
-          outline: none;
-          transition: background 0.3s ease, color 0.3s ease;
-          width: 100%;
-          margin-bottom: ${theme.spacings.medium16};
-        }
-        button span {
-          color: ${theme.colors.text};
-        }
-        button:hover {
-          background: ${darken(0.1, theme.colors.white)};
-        }
-        button:disabled {
-          cursor: not-allowed;
-          opacity: 0.5;
-        }
-      `}</style>
-    </>
-  )
-}
-
-UpdateButton.propTypes = {
-  text: PropTypes.string,
-  version: PropTypes.string,
 }
 
 export default Sidebar

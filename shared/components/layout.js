@@ -1,12 +1,12 @@
 /* eslint-disable react/prop-types */
 import React from 'react'
 import {useRouter} from 'next/router'
-import {Flex} from '@chakra-ui/react'
+import {Flex, useDisclosure} from '@chakra-ui/react'
 import Sidebar from './sidebar'
 import Notifications from './notifications'
 import {shouldStartValidation} from '../../screens/validation/utils'
 import {ValidationToast} from '../../screens/validation/components'
-import {LayoutContainer} from '../../screens/app/components'
+import {Hamburger, LayoutContainer} from '../../screens/app/components'
 import {useAuthState} from '../providers/auth-context'
 import Auth from './auth'
 
@@ -16,12 +16,14 @@ import {useEpoch} from '../providers/epoch-context'
 
 export default function Layout(props) {
   const {auth} = useAuthState()
+  const {isOpen, onOpen, onClose} = useDisclosure()
 
   return (
     <LayoutContainer>
       {auth ? (
         <>
-          <Sidebar />
+          <Hamburger onClick={onOpen} />
+          <Sidebar isOpen={isOpen} onClose={onClose} />
           <NormalApp {...props} />
         </>
       ) : (
