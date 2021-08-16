@@ -27,8 +27,8 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react'
 import {PlusSquareIcon} from '@chakra-ui/icons'
-import {Box, Link} from '.'
-import theme, {rem} from '../theme'
+import {Link} from '.'
+import {rem} from '../theme'
 import {pluralize} from '../utils/string'
 import {parsePersistedValidationState} from '../../screens/validation/utils'
 import {useAuthDispatch} from '../providers/auth-context'
@@ -74,7 +74,7 @@ function Sidebar({isOpen, onClose, ...props}) {
       color="white"
       height="100vh"
       width={['100%', 200]}
-      px={[8, 4]}
+      px={[10, 4]}
       py={[4, 2]}
       zIndex={[8, 2]}
       position={['absolute', 'relative']}
@@ -82,11 +82,11 @@ function Sidebar({isOpen, onClose, ...props}) {
       display={[isOpen ? 'flex' : 'none', 'flex']}
       {...props}
     >
-      <Flex justifyContent="space-between" alignItems="flex-start">
+      <Flex justifyContent="space-between" alignItems="center">
         <ApiStatus />
         <CloseButton
           onClick={onClose}
-          size="md"
+          boxSize={4}
           visibility={['visible', 'hidden']}
         />
       </Flex>
@@ -167,7 +167,7 @@ function ApiStatus() {
 export function Logo() {
   return (
     <ChakraBox my={8} alignSelf="center">
-      <Image src="/static/logo.svg" alt="Idena logo" w={14} />
+      <Image src="/static/logo.svg" alt="Idena logo" w={['88px', 14]} />
     </ChakraBox>
   )
 }
@@ -288,20 +288,17 @@ function ActionPanel({onClose}) {
         [IdentityStatus.Newbie].includes(identity.state)))
 
   return (
-    <Box
-      bg={theme.colors.white01}
-      css={{
-        minWidth: '100%',
-        ...borderRadius('top', rem(6)),
-        ...borderRadius('bottom', rem(6)),
-        ...margin(rem(24), 0, 0),
-      }}
-    >
+    <Stack spacing={[2, '1px']} mt={6}>
       {currentPeriod !== EpochPeriod.None && (
-        <Block title={t('Current period')}>{currentPeriod}</Block>
+        <Block
+          title={t('Current period')}
+          roundedTop="md"
+          roundedBottom={['md', 'none']}
+        >
+          {currentPeriod}
+        </Block>
       )}
       <ChakraBox
-        roundedTop="md"
         cursor={isPromotingNextOnboardingStep ? 'pointer' : 'default'}
         onClick={() => {
           if (
@@ -324,8 +321,28 @@ function ActionPanel({onClose}) {
           showCurrentTask()
         }}
       >
-        <PulseFrame isActive={isPromotingNextOnboardingStep}>
-          <Block title={t('My current task')}>
+        <PulseFrame
+          isActive={isPromotingNextOnboardingStep}
+          roundedTop={[
+            'md',
+            currentPeriod === EpochPeriod.None ? 'md' : 'none',
+          ]}
+          roundedBottom={[
+            'md',
+            currentPeriod !== EpochPeriod.None ? 'md' : 'none',
+          ]}
+        >
+          <Block
+            title={t('My current task')}
+            roundedTop={[
+              'md',
+              currentPeriod === EpochPeriod.None ? 'md' : 'none',
+            ]}
+            roundedBottom={[
+              'md',
+              currentPeriod !== EpochPeriod.None ? 'md' : 'none',
+            ]}
+          >
             <CurrentTask
               epoch={epoch.epoch}
               period={currentPeriod}
@@ -345,7 +362,6 @@ function ActionPanel({onClose}) {
         >
           <PopoverTrigger>
             <ChakraBox
-              roundedBottom="md"
               bg={
                 eitherOnboardingState(
                   onboardingShowingStep(OnboardingStep.Validate)
@@ -356,18 +372,22 @@ function ActionPanel({onClose}) {
               position="relative"
               zIndex={9}
             >
-              <ChakraFlex justify="space-between" align="baseline" pr={1}>
-                <Block title={t('Next validation')}>
-                  {formatValidationDate(nextValidation)}
-                </Block>
+              <Block
+                title={t('Next validation')}
+                roundedBottom="md"
+                roundedTop={['md', 'none']}
+              >
+                {formatValidationDate(nextValidation)}
                 <Menu autoSelect={false} mr={1}>
                   <MenuButton
                     rounded="md"
-                    py={1.5}
-                    px="2px"
-                    mt="-6px"
                     _expanded={{bg: 'brandGray.500'}}
                     _focus={{outline: 0}}
+                    position="absolute"
+                    top={1}
+                    right={1}
+                    py={1.5}
+                    px={1 / 2}
                   >
                     <MoreIcon boxSize={5} />
                   </MenuButton>
@@ -403,7 +423,7 @@ function ActionPanel({onClose}) {
                     </MenuItem>
                   </MenuList>
                 </Menu>
-              </ChakraFlex>
+              </Block>
             </ChakraBox>
           </PopoverTrigger>
           <Portal>
@@ -464,17 +484,18 @@ function ActionPanel({onClose}) {
           </Portal>
         </OnboardingPopover>
       )}
-    </Box>
+    </Stack>
   )
 }
 
 // eslint-disable-next-line react/prop-types
-function PulseFrame({isActive, children, ...props}) {
+function PulseFrame({isActive, children, roundedTop, roundedBottom, ...props}) {
   return (
-    <ChakraBox roundedTop="md" {...props}>
+    <ChakraBox {...props}>
       {isActive ? (
         <ChakraBox
-          roundedTop="md"
+          roundedTop={roundedTop}
+          roundedBottom={roundedBottom}
           shadow="inset 0 0 0 2px #578fff"
           animation="pulseFrame 1.2s infinite"
         >
@@ -510,17 +531,23 @@ function PulseFrame({isActive, children, ...props}) {
   )
 }
 
-function Block({title, children}) {
+function Block({title, children, ...props}) {
   return (
     <ChakraFlex
-      borderBottom="solid 1px"
-      borderColor="gray.030"
+      bg="xwhite.010"
       py={[4, 2]}
       px={[6, 3]}
       direction="column"
       justifySelf="stretch"
+      position="relative"
+      {...props}
     >
-      <Text color="xwhite.050" fontWeight={500} fontSize={[14, 13]} mb={[1, 0]}>
+      <Text
+        color="xwhite.050"
+        fontWeight={['normal', 500]}
+        fontSize={[14, 13]}
+        mb={[1, 0]}
+      >
         {title}
       </Text>
       <Text color="xwhite.500" fontWeight={500} fontSize={[16, 13]}>
