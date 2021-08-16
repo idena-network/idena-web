@@ -9,13 +9,7 @@ import {
   transparentize,
   rgba,
 } from 'polished'
-import {
-  FiCheck,
-  FiXCircle,
-  FiChevronLeft,
-  FiChevronRight,
-  FiClock,
-} from 'react-icons/fi'
+import {FiCheck, FiXCircle, FiChevronLeft, FiChevronRight} from 'react-icons/fi'
 import {
   Box as ChakraBox,
   Flex as ChakraFlex,
@@ -61,7 +55,7 @@ import {
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import useNodeTiming from '../../shared/hooks/use-node-timing'
 import {useInterval} from '../../shared/hooks/use-interval'
-import {BlockIcon, TickIcon} from '../../shared/components/icons'
+import {BlockIcon, TickIcon, TimerIcon} from '../../shared/components/icons'
 
 export function ValidationScene(props) {
   return (
@@ -699,17 +693,6 @@ export function ValidationTimer({validationStart, duration}) {
 
 export function Timer(props) {
   return <Flex align="center" {...props} />
-}
-
-export function TimerIcon({color}) {
-  return (
-    <FiClock
-      size={rem(20)}
-      color={color}
-      style={{marginRight: rem(theme.spacings.small8)}}
-      width={rem(20)}
-    />
-  )
 }
 
 export function TimerClock({duration, color}) {
