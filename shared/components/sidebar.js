@@ -3,7 +3,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {useRouter} from 'next/router'
-import {margin, borderRadius} from 'polished'
 import {Trans, useTranslation} from 'react-i18next'
 import NextLink from 'next/link'
 import {
