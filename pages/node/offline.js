@@ -43,7 +43,7 @@ export default function Offline() {
   const {coinbase, privateKey} = useAuthState()
   const router = useRouter()
 
-  const [unavailableProvider, setUnavailableProvider] = useState()
+  const [unavailableProvider, setUnavailableProvider] = useState(null)
   const [state, setState] = useState(options.BUY)
 
   const [identityState, setIdentityState] = useState('')
@@ -126,9 +126,9 @@ export default function Offline() {
       try {
         const result = await checkKey(apiKey)
         const res = await getProvider(result.provider)
-        setUnavailableProvider(res.data.ownerName)
+        setUnavailableProvider({name: res.data.ownerName, url: res.data.url})
       } catch (e) {
-        setUnavailableProvider('')
+        setUnavailableProvider(null)
       }
     }
 
@@ -289,19 +289,30 @@ export default function Offline() {
             maxWidth={rem(480)}
             mt={2}
           >
-            <Flex direction="column" w={rem(480)}>
-              <Flex fontSize={rem(14)}>
-                {t('The node is unavailable. Please contact the node owner:', {
-                  nsSeparator: '|',
-                })}
+            <Flex direction="column" w={rem(480)} fontSize={rem(14)}>
+              <Flex>
+                <Flex>
+                  {t('The node is unavailable:', {
+                    nsSeparator: '|',
+                  })}
+                </Flex>
+                <Flex ml={1}>{unavailableProvider.url}</Flex>
               </Flex>
-              <Link
-                href={`https://t.me/${unavailableProvider}`}
-                target="_blank"
-              >
-                {unavailableProvider}
-                {' >'}
-              </Link>
+              <Flex>
+                <Flex>
+                  {t('Please contact the node owner:', {
+                    nsSeparator: '|',
+                  })}
+                </Flex>
+                <Link
+                  href={`https://t.me/${unavailableProvider.name}`}
+                  target="_blank"
+                  ml={1}
+                >
+                  {unavailableProvider.name}
+                  {' >'}
+                </Link>
+              </Flex>
             </Flex>
           </Alert>
         )}
