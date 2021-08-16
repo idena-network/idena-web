@@ -1,17 +1,14 @@
 /* eslint-disable react/prop-types */
-/* eslint-disable jsx-a11y/no-static-element-interactions */
 import React, {useRef, useCallback, useEffect, useState} from 'react'
 import PropTypes from 'prop-types'
 import {rem, position} from 'polished'
 import {FaCircle} from 'react-icons/fa'
 import {FiCircle} from 'react-icons/fi'
-
 import {useTranslation} from 'react-i18next'
 import {Stack, Flex as ChakraFlex, Box as ChakraBox} from '@chakra-ui/react'
 import {CopyIcon, DeleteIcon} from '@chakra-ui/icons'
 import useClickOutside from '../../../shared/hooks/use-click-outside'
 import {Menu, MenuItem} from '../../../shared/components/menu'
-
 import {FlatButton, IconButton} from '../../../shared/components/button'
 import {Box, Absolute} from '../../../shared/components'
 import Divider from '../../../shared/components/divider'
@@ -409,7 +406,7 @@ export function ImageEraseEditor({
           overflow: 'hidden',
         }}
       >
-        <div
+        <Box
           style={{
             width: '100%',
             height: '100%',
@@ -430,7 +427,7 @@ export function ImageEraseEditor({
             ref={canvasRef}
             onMouseMove={e => handleMouseMove(e)}
           ></canvas>
-        </div>
+        </Box>
       </Absolute>
     </Box>
   )
