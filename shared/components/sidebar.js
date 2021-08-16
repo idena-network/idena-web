@@ -78,8 +78,7 @@ function Sidebar({isOpen, onClose, ...props}) {
       zIndex={[100, 2]}
       position={['absolute', 'relative']}
       direction="column"
-      transform={[isOpen ? 'translateX(0)' : 'translateX(100%)', 'none']}
-      transition="0.3s"
+      display={[isOpen ? 'flex' : 'none', 'flex']}
       {...props}
     >
       <Flex justifyContent="space-between" alignItems="flex-start">
