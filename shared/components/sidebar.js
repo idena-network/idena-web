@@ -26,7 +26,6 @@ import {
   Portal,
 } from '@chakra-ui/react'
 import {PlusSquareIcon} from '@chakra-ui/icons'
-import {useTheme} from '@emotion/react'
 import {Box, Link} from '.'
 import theme, {rem} from '../theme'
 import {pluralize} from '../utils/string'
@@ -79,7 +78,6 @@ function Sidebar({isOpen, onClose, ...props}) {
       zIndex={[100, 2]}
       position={['absolute', 'relative']}
       direction="column"
-      visibility={[isOpen ? 'visible' : 'hidden', 'visible']}
       transform={[isOpen ? 'translateX(0)' : 'translateX(100%)', 'none']}
       transition="0.3s"
       {...props}
@@ -95,7 +93,7 @@ function Sidebar({isOpen, onClose, ...props}) {
 
       <Logo />
       <Nav />
-      <ActionPanel />
+      <ActionPanel onClose={onClose} />
     </Flex>
   )
 }
@@ -249,7 +247,7 @@ function NavItem({href, icon, text}) {
   )
 }
 
-function ActionPanel() {
+function ActionPanel({onClose}) {
   const {t} = useTranslation()
 
   const router = useRouter()
@@ -315,6 +313,7 @@ function ActionPanel() {
           if (eitherOnboardingState(OnboardingStep.CreateFlips))
             router.push('/flips/list')
 
+          onClose()
           showCurrentTask()
         }}
       >
@@ -671,47 +670,6 @@ function CurrentTask({epoch, period}) {
     default:
       return '...'
   }
-}
-
-function UpdateButton({text, version, ...props}) {
-  return (
-    <>
-      <button type="button" {...props}>
-        <span>{text}</span>
-        <br />
-        {version}
-      </button>
-      <style jsx>{`
-        button {
-          background: ${theme.colors.white};
-          border: none;
-          border-radius: 6px;
-          color: ${theme.colors.muted};
-          cursor: pointer;
-          padding: ${`0.5em 1em`};
-          outline: none;
-          transition: background 0.3s ease, color 0.3s ease;
-          width: 100%;
-          margin-bottom: ${theme.spacings.medium16};
-        }
-        button span {
-          color: ${theme.colors.text};
-        }
-        button:hover {
-          background: ${darken(0.1, theme.colors.white)};
-        }
-        button:disabled {
-          cursor: not-allowed;
-          opacity: 0.5;
-        }
-      `}</style>
-    </>
-  )
-}
-
-UpdateButton.propTypes = {
-  text: PropTypes.string,
-  version: PropTypes.string,
 }
 
 export default Sidebar
