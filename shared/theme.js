@@ -241,6 +241,7 @@ export const uiTheme = {
     ...chakraTheme.radii,
     sm: '0.25rem',
     md: rem(6),
+    lg: rem(8),
     xl: '0.75rem',
   },
   components: {
@@ -259,6 +260,13 @@ export const uiTheme = {
       baseStyle: {fontWeight: 500},
       sizes: {
         md: {h: 8},
+        lg: {
+          h: 12,
+          px: 3,
+          borderRadius: 'lg',
+          fontSize: '15px',
+          fontWeight: '400',
+        },
       },
       variants: {
         primary: {
@@ -328,6 +336,14 @@ export const uiTheme = {
             px: 3,
             borderRadius: 'md',
             fontSize: 'md',
+          },
+        },
+        lg: {
+          field: {
+            h: 12,
+            px: 3,
+            borderRadius: 'lg',
+            fontSize: '15px',
           },
         },
       },

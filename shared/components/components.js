@@ -132,12 +132,13 @@ export function PasswordInput({width, ...props}) {
     >
       <Input type={show ? 'text' : 'password'} {...props} />
       <Box
+        mt={['5px', '-3px']}
         style={{
           ...borderRadius('right', rem(6)),
           cursor: 'pointer',
           fontSize: rem(20),
           position: 'absolute',
-          top: rem(-3),
+          top: rem(0),
           height: '100%',
           right: rem(10),
           zIndex: 5,

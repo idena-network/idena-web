@@ -227,58 +227,48 @@ export default function Auth() {
 
 export function AuthLayout({children}) {
   return (
-    <>
-      <section>{children}</section>
-      <style jsx>{`
-        section {
-          background: ${theme.colors.darkGraphite};
-          color: white;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          flex: 1;
-          height: 100vh;
-        }
-      `}</style>
-    </>
+    <Flex
+      background="graphite.500"
+      color="white"
+      direction="column"
+      align="center"
+      justify={['flex-start', 'center']}
+      flex="1"
+      height="100vh"
+      pt={[rem(80), '0']}
+    >
+      {children}
+    </Flex>
   )
 }
 
 // eslint-disable-next-line react/display-name
 AuthLayout.Normal = function({children}) {
   return (
-    <>
-      <div>{children}</div>
-      <style jsx>{`
-        div {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          flex-direction: column;
-          width: ${rem(480)};
-        }
-      `}</style>
-    </>
+    <Flex
+      align="center"
+      justify={['start', 'space-between']}
+      direction="column"
+      w={[rem(279), rem(480)]}
+      textAlign={['center', 'initial']}
+    >
+      {children}
+    </Flex>
   )
 }
 // eslint-disable-next-line react/display-name
 AuthLayout.Small = function({children}) {
   return (
-    <>
-      <div>{children}</div>
-      <style jsx>{`
-        div {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          flex-direction: column;
-          width: ${rem(360)};
-          background-color: rgba(0, 0, 0, 0.16);
-          padding: 52px 40px 36px;
-          border-radius: 8px;
-        }
-      `}</style>
-    </>
+    <Flex
+      align-items="center"
+      justify="space-between"
+      direction="column"
+      w={rem(360)}
+      background-color="rgba(0, 0, 0, 0.16)"
+      padding="52px 40px 36px"
+      border-radius="8px"
+    >
+      {children}
+    </Flex>
   )
 }
