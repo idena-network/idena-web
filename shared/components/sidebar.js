@@ -3,7 +3,7 @@
 import React from 'react'
 import PropTypes from 'prop-types'
 import {useRouter} from 'next/router'
-import {margin, borderRadius, darken} from 'polished'
+import {margin, borderRadius} from 'polished'
 import {Trans, useTranslation} from 'react-i18next'
 import NextLink from 'next/link'
 import {
@@ -24,6 +24,7 @@ import {
   Link as ChakraLink,
   CloseButton,
   Portal,
+  useBreakpointValue,
 } from '@chakra-ui/react'
 import {PlusSquareIcon} from '@chakra-ui/icons'
 import {Box, Link} from '.'
@@ -75,7 +76,7 @@ function Sidebar({isOpen, onClose, ...props}) {
       width={['100%', 200]}
       px={[8, 4]}
       py={[4, 2]}
-      zIndex={[100, 2]}
+      zIndex={[8, 2]}
       position={['absolute', 'relative']}
       direction="column"
       display={[isOpen ? 'flex' : 'none', 'flex']}
@@ -253,6 +254,7 @@ function ActionPanel({onClose}) {
 
   const epoch = useEpoch()
   const [identity] = useIdentity()
+  const onboardingPopoverPlacement = useBreakpointValue(['top', 'right'])
 
   const [
     currentOnboarding,
@@ -312,7 +314,13 @@ function ActionPanel({onClose}) {
           if (eitherOnboardingState(OnboardingStep.CreateFlips))
             router.push('/flips/list')
 
-          onClose()
+          if (
+            !eitherOnboardingState(
+              onboardingPromotingStep(OnboardingStep.Validate)
+            )
+          ) {
+            onClose()
+          }
           showCurrentTask()
         }}
       >
@@ -328,136 +336,133 @@ function ActionPanel({onClose}) {
       </ChakraBox>
 
       {currentPeriod === EpochPeriod.None && (
-        <>
-          <OnboardingPopover
-            isOpen={eitherOnboardingState(
-              onboardingShowingStep(OnboardingStep.Validate)
-            )}
-            placement="right"
-            usePortal
-            zIndex="menu"
-          >
-            <PopoverTrigger>
-              <ChakraBox
-                roundedBottom="md"
-                bg={
-                  eitherOnboardingState(
-                    onboardingShowingStep(OnboardingStep.Validate)
-                  )
-                    ? 'rgba(216, 216, 216, .1)'
-                    : 'transparent'
-                }
-                position="relative"
-                zIndex={9}
-              >
-                <ChakraFlex justify="space-between" align="baseline" pr={1}>
-                  <Block title={t('Next validation')}>
-                    {formatValidationDate(nextValidation)}
-                  </Block>
-                  <Menu autoSelect={false} mr={1}>
-                    <MenuButton
-                      rounded="md"
-                      py={1.5}
-                      px="2px"
-                      mt="-6px"
-                      _expanded={{bg: 'brandGray.500'}}
-                      _focus={{outline: 0}}
-                    >
-                      <MoreIcon boxSize={5} />
-                    </MenuButton>
-                    <MenuList
-                      placement="bottom-end"
-                      border="none"
-                      shadow="0 4px 6px 0 rgba(83, 86, 92, 0.24), 0 0 2px 0 rgba(83, 86, 92, 0.2)"
-                      rounded="lg"
+        <OnboardingPopover
+          isOpen={eitherOnboardingState(
+            onboardingShowingStep(OnboardingStep.Validate)
+          )}
+          placement={onboardingPopoverPlacement}
+          usePortal
+        >
+          <PopoverTrigger>
+            <ChakraBox
+              roundedBottom="md"
+              bg={
+                eitherOnboardingState(
+                  onboardingShowingStep(OnboardingStep.Validate)
+                )
+                  ? 'rgba(216, 216, 216, .1)'
+                  : 'transparent'
+              }
+              position="relative"
+              zIndex={9}
+            >
+              <ChakraFlex justify="space-between" align="baseline" pr={1}>
+                <Block title={t('Next validation')}>
+                  {formatValidationDate(nextValidation)}
+                </Block>
+                <Menu autoSelect={false} mr={1}>
+                  <MenuButton
+                    rounded="md"
+                    py={1.5}
+                    px="2px"
+                    mt="-6px"
+                    _expanded={{bg: 'brandGray.500'}}
+                    _focus={{outline: 0}}
+                  >
+                    <MoreIcon boxSize={5} />
+                  </MenuButton>
+                  <MenuList
+                    placement="bottom-end"
+                    border="none"
+                    shadow="0 4px 6px 0 rgba(83, 86, 92, 0.24), 0 0 2px 0 rgba(83, 86, 92, 0.2)"
+                    rounded="lg"
+                    py={2}
+                    minWidth="145px"
+                  >
+                    <MenuItem
+                      color="brandGray.500"
+                      fontWeight={500}
+                      px={3}
                       py={2}
-                      minWidth="145px"
+                      _hover={{bg: 'gray.50'}}
+                      _focus={{bg: 'gray.50'}}
+                      _selected={{bg: 'gray.50'}}
+                      _active={{bg: 'gray.50'}}
+                      onClick={() => {
+                        openExternalUrl(
+                          buildNextValidationCalendarLink(nextValidation)
+                        )
+                      }}
                     >
-                      <MenuItem
-                        color="brandGray.500"
-                        fontWeight={500}
-                        px={3}
-                        py={2}
-                        _hover={{bg: 'gray.50'}}
-                        _focus={{bg: 'gray.50'}}
-                        _selected={{bg: 'gray.50'}}
-                        _active={{bg: 'gray.50'}}
-                        onClick={() => {
-                          openExternalUrl(
-                            buildNextValidationCalendarLink(nextValidation)
-                          )
-                        }}
-                      >
-                        <PlusSquareIcon
-                          boxSize={5}
-                          mr={3}
-                          color="brandBlue.500"
-                        />
-                        Add to calendar
-                      </MenuItem>
-                    </MenuList>
-                  </Menu>
-                </ChakraFlex>
-              </ChakraBox>
-            </PopoverTrigger>
-            <Portal>
-              <OnboardingPopoverContent
-                title={t('Schedule your next validation')}
-                maxW="sm"
-                additionFooterActions={
-                  <Button
-                    variant="unstyled"
-                    onClick={() => {
-                      openExternalUrl(
-                        'https://medium.com/idena/how-do-i-start-using-idena-c49418e01a06'
-                      )
-                    }}
-                  >
-                    {t('Read more')}
-                  </Button>
-                }
-                onDismiss={dismissCurrentTask}
-              >
-                <Stack spacing={5}>
-                  <OnboardingPopoverContentIconRow
-                    icon={<TelegramIcon boxSize={5} />}
-                  >
-                    <Trans i18nKey="onboardingValidateSubscribe" t={t}>
-                      <OnboardingLinkButton href="https://t.me/IdenaAnnouncements">
-                        Subscribe
-                      </OnboardingLinkButton>{' '}
-                      to the Idena Announcements (important updates only)
-                    </Trans>
-                  </OnboardingPopoverContentIconRow>
-                  <OnboardingPopoverContentIconRow
-                    icon={<SyncIcon boxSize={5} />}
-                  >
-                    {t(
-                      `Keep your node synchronized in 45-60 minutes before the validation starts.`
-                    )}
-                  </OnboardingPopoverContentIconRow>
-                  <OnboardingPopoverContentIconRow
-                    icon={<TimerIcon boxSize={5} />}
-                  >
-                    {t(
-                      `Solve the flips quickly when validation starts. The first 6 flips must be submitted in less than 2 minutes.`
-                    )}
-                  </OnboardingPopoverContentIconRow>
-                  <OnboardingPopoverContentIconRow
-                    icon={<GalleryIcon boxSize={5} />}
-                  >
-                    <Trans i18nKey="onboardingValidateTest" t={t}>
-                      <OnboardingLinkButton href="https://flips.idena.io/?pass=idena.io">
-                        Test yourself
-                      </OnboardingLinkButton>{' '}
-                      before the validation
-                    </Trans>
-                  </OnboardingPopoverContentIconRow>
-                </Stack>
-              </OnboardingPopoverContent>
-            </Portal>
-          </OnboardingPopover>
-        </>
+                      <PlusSquareIcon
+                        boxSize={5}
+                        mr={3}
+                        color="brandBlue.500"
+                      />
+                      Add to calendar
+                    </MenuItem>
+                  </MenuList>
+                </Menu>
+              </ChakraFlex>
+            </ChakraBox>
+          </PopoverTrigger>
+          <Portal>
+            <OnboardingPopoverContent
+              title={t('Schedule your next validation')}
+              maxW="sm"
+              additionFooterActions={
+                <Button
+                  variant="unstyled"
+                  onClick={() => {
+                    openExternalUrl(
+                      'https://medium.com/idena/how-do-i-start-using-idena-c49418e01a06'
+                    )
+                  }}
+                >
+                  {t('Read more')}
+                </Button>
+              }
+              onDismiss={dismissCurrentTask}
+            >
+              <Stack spacing={5}>
+                <OnboardingPopoverContentIconRow
+                  icon={<TelegramIcon boxSize={5} />}
+                >
+                  <Trans i18nKey="onboardingValidateSubscribe" t={t}>
+                    <OnboardingLinkButton href="https://t.me/IdenaAnnouncements">
+                      Subscribe
+                    </OnboardingLinkButton>{' '}
+                    to the Idena Announcements (important updates only)
+                  </Trans>
+                </OnboardingPopoverContentIconRow>
+                <OnboardingPopoverContentIconRow
+                  icon={<SyncIcon boxSize={5} />}
+                >
+                  {t(
+                    `Keep your node synchronized in 45-60 minutes before the validation starts.`
+                  )}
+                </OnboardingPopoverContentIconRow>
+                <OnboardingPopoverContentIconRow
+                  icon={<TimerIcon boxSize={5} />}
+                >
+                  {t(
+                    `Solve the flips quickly when validation starts. The first 6 flips must be submitted in less than 2 minutes.`
+                  )}
+                </OnboardingPopoverContentIconRow>
+                <OnboardingPopoverContentIconRow
+                  icon={<GalleryIcon boxSize={5} />}
+                >
+                  <Trans i18nKey="onboardingValidateTest" t={t}>
+                    <OnboardingLinkButton href="https://flips.idena.io/?pass=idena.io">
+                      Test yourself
+                    </OnboardingLinkButton>{' '}
+                    before the validation
+                  </Trans>
+                </OnboardingPopoverContentIconRow>
+              </Stack>
+            </OnboardingPopoverContent>
+          </Portal>
+        </OnboardingPopover>
       )}
     </Box>
   )
