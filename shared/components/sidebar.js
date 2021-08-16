@@ -92,7 +92,7 @@ function Sidebar({isOpen, onClose, ...props}) {
       </Flex>
 
       <Logo />
-      <Nav />
+      <Nav onClose={onClose} />
       <ActionPanel onClose={onClose} />
     </Flex>
   )
@@ -167,12 +167,17 @@ function ApiStatus() {
 export function Logo() {
   return (
     <ChakraBox my={8} alignSelf="center">
-      <Image src="/static/logo.svg" alt="Idena logo" w={['88px', 14]} />
+      <Image
+        src="/static/logo.svg"
+        alt="Idena logo"
+        w={['88px', 14]}
+        ignoreFallback
+      />
     </ChakraBox>
   )
 }
 
-function Nav() {
+function Nav({onClose}) {
   const {t} = useTranslation()
   const [{nickname}] = useIdentity()
   const {logout} = useAuthDispatch()
@@ -207,7 +212,10 @@ function Nav() {
         <NavItem
           href=""
           icon={<DeleteIcon boxSize={[8, 5]} />}
-          onClick={logout}
+          onClick={() => {
+            onClose()
+            logout()
+          }}
           text={t('Logout')}
         ></NavItem>
       </List>
@@ -216,7 +224,7 @@ function Nav() {
 }
 
 // eslint-disable-next-line react/prop-types
-function NavItem({href, icon, text}) {
+function NavItem({href, icon, text, onClick}) {
   const router = useRouter()
   const active = router.pathname === href
   return (
@@ -238,6 +246,7 @@ function NavItem({href, icon, text}) {
           display="flex"
           alignItems="center"
           borderRadius="md"
+          onClick={onClick}
         >
           {icon}
           <Text ml={2}>{text}</Text>
