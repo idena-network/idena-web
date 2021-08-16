@@ -9,13 +9,7 @@ import {
   transparentize,
   rgba,
 } from 'polished'
-import {
-  FiCheck,
-  FiXCircle,
-  FiChevronLeft,
-  FiChevronRight,
-  FiClock,
-} from 'react-icons/fi'
+import {FiCheck, FiXCircle, FiChevronLeft, FiChevronRight} from 'react-icons/fi'
 import {
   Box as ChakraBox,
   Flex as ChakraFlex,
@@ -33,6 +27,7 @@ import {
   Modal,
   ModalOverlay,
   ModalContent,
+  Icon,
 } from '@chakra-ui/react'
 import {useMachine} from '@xstate/react'
 import {Trans, useTranslation} from 'react-i18next'
@@ -701,14 +696,16 @@ export function Timer(props) {
   return <Flex align="center" {...props} />
 }
 
-export function TimerIcon({color}) {
+export function TimerIcon({color, ...props}) {
   return (
-    <FiClock
-      size={rem(20)}
-      color={color}
-      style={{marginRight: rem(theme.spacings.small8)}}
-      width={rem(20)}
-    />
+    <Icon viewBox="0 0 20 20" {...props}>
+      <path
+        fill={color || 'currentColor'}
+        fillRule="evenodd"
+        d="M10 1c4.97 0 9 4.03 9 9s-4.03 9-9 9-9-4.03-9-9 4.03-9 9-9zm5.454 3.732c-.121-.213-.376-.303-.6-.224l-.082.038L9.07 7.804c-.177.102-.34.226-.483.37-.895.895-.895 2.345 0 3.24.144.144.306.268.483.37 1.051.6 2.378.277 3.04-.714l.087-.14 3.258-5.702c.088-.154.088-.343 0-.496z"
+        transform="translate(-222 -526) translate(192 384) translate(30 142)"
+      />
+    </Icon>
   )
 }
 
