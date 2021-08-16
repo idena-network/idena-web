@@ -27,7 +27,6 @@ import {
   Modal,
   ModalOverlay,
   ModalContent,
-  Icon,
 } from '@chakra-ui/react'
 import {useMachine} from '@xstate/react'
 import {Trans, useTranslation} from 'react-i18next'
@@ -56,7 +55,7 @@ import {
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import useNodeTiming from '../../shared/hooks/use-node-timing'
 import {useInterval} from '../../shared/hooks/use-interval'
-import {BlockIcon, TickIcon} from '../../shared/components/icons'
+import {BlockIcon, TickIcon, TimerIcon} from '../../shared/components/icons'
 
 export function ValidationScene(props) {
   return (
@@ -694,19 +693,6 @@ export function ValidationTimer({validationStart, duration}) {
 
 export function Timer(props) {
   return <Flex align="center" {...props} />
-}
-
-export function TimerIcon({color, ...props}) {
-  return (
-    <Icon viewBox="0 0 20 20" {...props}>
-      <path
-        fill={color || 'currentColor'}
-        fillRule="evenodd"
-        d="M10 1c4.97 0 9 4.03 9 9s-4.03 9-9 9-9-4.03-9-9 4.03-9 9-9zm5.454 3.732c-.121-.213-.376-.303-.6-.224l-.082.038L9.07 7.804c-.177.102-.34.226-.483.37-.895.895-.895 2.345 0 3.24.144.144.306.268.483.37 1.051.6 2.378.277 3.04-.714l.087-.14 3.258-5.702c.088-.154.088-.343 0-.496z"
-        transform="translate(-222 -526) translate(192 384) translate(30 142)"
-      />
-    </Icon>
-  )
 }
 
 export function TimerClock({duration, color}) {

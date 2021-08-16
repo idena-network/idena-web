@@ -56,8 +56,8 @@ import {
   SyncIcon,
   TelegramIcon,
   WalletIcon,
+  TimerIcon,
 } from './icons'
-import {TimerIcon} from '../../screens/validation/components'
 
 function Sidebar() {
   return (
