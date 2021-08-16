@@ -590,13 +590,7 @@ function CurrentTask({epoch, period}) {
 
       switch (true) {
         case identity.canActivateInvite:
-          return (
-            <NextLink href="/">
-              <ChakraLink color="xwhite.500" fontSize={[16, 13]}>
-                {t('Activate invite')}
-              </ChakraLink>
-            </NextLink>
-          )
+          return t('Activate invite')
 
         case currentOnboarding.matches(OnboardingStep.ActivateMining): {
           return t('Activate mining status')
