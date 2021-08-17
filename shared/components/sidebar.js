@@ -234,6 +234,7 @@ function NavItem({href, icon, text, onClick}) {
           width="100%"
           height="100%"
           fontSize={[16, 13]}
+          fontWeight={500}
           color={active ? 'xwhite.500' : 'xwhite.050'}
           _hover={{
             color: 'xwhite.500',
@@ -590,13 +591,7 @@ function CurrentTask({epoch, period}) {
 
       switch (true) {
         case identity.canActivateInvite:
-          return (
-            <NextLink href="/">
-              <ChakraLink color="xwhite.500" fontSize={[16, 13]}>
-                {t('Activate invite')}
-              </ChakraLink>
-            </NextLink>
-          )
+          return t('Activate invite')
 
         case currentOnboarding.matches(OnboardingStep.ActivateMining): {
           return t('Activate mining status')
