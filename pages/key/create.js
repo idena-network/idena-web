@@ -49,6 +49,7 @@ const steps = {
 export default function CreateKey() {
   const {t} = useTranslation()
   const size = useBreakpointValue(['lg', 'md'])
+  const variant = useBreakpointValue(['mobile', 'initial'])
 
   const router = useRouter()
   const [state, setState] = useState({
@@ -374,6 +375,7 @@ export default function CreateKey() {
                 </Flex>
                 <Flex>
                   <Checkbox
+                    variant={variant}
                     textAlign={['left', 'initial']}
                     value={state.understand1}
                     isChecked={state.understand1}
@@ -393,6 +395,7 @@ export default function CreateKey() {
                   }}
                 >
                   <Checkbox
+                    variant={variant}
                     textAlign={['left', 'initial']}
                     value={state.understand2}
                     isChecked={state.understand2}

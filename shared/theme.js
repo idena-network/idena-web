@@ -256,6 +256,14 @@ export const uiTheme = {
         },
       },
     },
+    Checkbox: {
+      variants: {
+        mobile: {
+          control: {h: 5, w: 5},
+          label: {fontSize: 'md'},
+        },
+      },
+    },
     Button: {
       baseStyle: {fontWeight: 500},
       sizes: {
