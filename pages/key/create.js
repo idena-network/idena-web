@@ -302,13 +302,17 @@ export default function CreateKey() {
       {state.step === steps.BACKUP && (
         <AuthLayout>
           <AuthLayout.Normal>
-            <Flex width="100%">
+            <Flex
+              direction={['column', 'initial']}
+              align={['center', 'initial']}
+              width="100%"
+            >
               <Avatar address={state.address} />
               <Flex
                 direction="column"
                 justify="center"
                 flex="1"
-                style={{marginLeft: rem(20)}}
+                m={['48px 0 0 0', '0 0 0 20px']}
               >
                 <SubHeading color="white">
                   {t('Backup your private key')}
@@ -360,6 +364,7 @@ export default function CreateKey() {
                   style={{marginBottom: rem(20), position: 'relative'}}
                 >
                   <Input
+                    size={size}
                     value={state.encryptedPrivateKey}
                     borderColor="xblack.008"
                     backgroundColor="xblack.016"
@@ -369,6 +374,7 @@ export default function CreateKey() {
                 </Flex>
                 <Flex>
                   <Checkbox
+                    textAlign={['left', 'initial']}
                     value={state.understand1}
                     isChecked={state.understand1}
                     onChange={e =>
@@ -387,6 +393,7 @@ export default function CreateKey() {
                   }}
                 >
                   <Checkbox
+                    textAlign={['left', 'initial']}
                     value={state.understand2}
                     isChecked={state.understand2}
                     onChange={e =>
@@ -406,6 +413,7 @@ export default function CreateKey() {
                   justify="space-between"
                 >
                   <FlatButton
+                    display={['none', 'inherit']}
                     color="white"
                     _hover={{color: 'xwhite.080'}}
                     onClick={() => {
@@ -419,16 +427,27 @@ export default function CreateKey() {
                     ></ArrowUpIcon>
                     {t('Back')}
                   </FlatButton>
-                  <Flex>
+                  <Flex
+                    w={['100%', 'initial']}
+                    direction={['column', 'initial']}
+                  >
                     <SecondaryButton
+                      size={size}
+                      w={['100%', 'initial']}
                       type="button"
-                      mr={rem(10)}
-                      fontSize={rem(13)}
+                      m={['0 0 16px 0', '0 10px 0 0']}
+                      fontSize={['15px', '13px']}
                       onClick={() => setState({...state, showQrDialog: true})}
                     >
                       {t('Show QR code')}
                     </SecondaryButton>
-                    <PrimaryButton type="submit">{t('Next')}</PrimaryButton>
+                    <PrimaryButton
+                      w={['100%', 'initial']}
+                      size={size}
+                      type="submit"
+                    >
+                      {t('Next')}
+                    </PrimaryButton>
                   </Flex>
                 </Flex>
                 {error && (
@@ -491,7 +510,7 @@ export default function CreateKey() {
                   <Avatar address={state.address} />
                 </div>
               </Flex>
-              <Flex textAlign="center" marginTop={rem(30)}>
+              <Flex justify="center" marginTop={rem(30)}>
                 <SubHeading color="white">
                   {t('Successfully created!')}
                 </SubHeading>

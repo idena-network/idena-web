@@ -273,7 +273,6 @@ export const uiTheme = {
           bg: 'blue.500',
           color: 'white',
           borderRadius: 6,
-          h: 8,
           px: 4,
           _hover: {
             bg: 'rgb(68, 124, 235)',
@@ -289,7 +288,6 @@ export const uiTheme = {
           bg: 'blue.012',
           color: 'blue.500',
           borderRadius: 6,
-          h: 8,
           px: 4,
           _hover: {
             bg: 'blue.024',
