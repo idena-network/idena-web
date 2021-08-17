@@ -234,6 +234,7 @@ function NavItem({href, icon, text, onClick}) {
           width="100%"
           height="100%"
           fontSize={[16, 13]}
+          fontWeight={500}
           color={active ? 'xwhite.500' : 'xwhite.050'}
           _hover={{
             color: 'xwhite.500',
