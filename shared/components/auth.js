@@ -303,7 +303,7 @@ AuthLayout.Small = function({children}) {
       justify="space-between"
       direction="column"
       w={rem(360)}
-      background-color="rgba(0, 0, 0, 0.16)"
+      background="rgba(0, 0, 0, 0.16)"
       padding="52px 40px 36px"
       border-radius="8px"
     >

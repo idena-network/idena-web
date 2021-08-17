@@ -1,8 +1,14 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/no-static-element-interactions */
-import {Checkbox, Flex, Text, useClipboard} from '@chakra-ui/react'
+import {
+  Checkbox,
+  Flex,
+  Text,
+  useBreakpointValue,
+  useClipboard,
+} from '@chakra-ui/react'
 import {rem, margin} from 'polished'
-import {useState, useEffect} from 'react'
+import React, {useState, useEffect} from 'react'
 import {useRouter} from 'next/router'
 import QRCode from 'qrcode.react'
 import {saveAs} from 'file-saver'
@@ -31,6 +37,7 @@ import {
 } from '../../shared/utils/crypto'
 import {AuthLayout} from '../../shared/components/auth'
 import {ArrowUpIcon, RefreshIcon} from '../../shared/components/icons'
+import {Box} from '../../shared/components'
 
 const steps = {
   AVATAR: 0,
@@ -41,6 +48,7 @@ const steps = {
 
 export default function CreateKey() {
   const {t} = useTranslation()
+  const size = useBreakpointValue(['lg', 'md'])
 
   const router = useRouter()
   const [state, setState] = useState({
@@ -103,7 +111,7 @@ export default function CreateKey() {
                 </div>
               </Flex>
 
-              <Flex textAlign="center">
+              <Flex justify="center">
                 <SubHeading color="white">{t('Your address')}</SubHeading>
               </Flex>
 
@@ -149,20 +157,31 @@ export default function CreateKey() {
       {state.step === steps.PASSWORD && (
         <AuthLayout>
           <AuthLayout.Normal>
-            <Flex width="100%">
+            <Flex
+              direction={['column', 'initial']}
+              align={['center', 'initial']}
+              width="100%"
+            >
               <Avatar address={state.address} />
               <Flex
                 direction="column"
+                align={['center', 'initial']}
                 justify="center"
                 flex="1"
                 style={{marginLeft: rem(20)}}
               >
-                <SubHeading color="white">
-                  {t('Create password to encrypt your account')}
-                </SubHeading>
+                <Box display={['none', 'inherit']}>
+                  <SubHeading color="white">
+                    {t('Create password to encrypt your account')}
+                  </SubHeading>
+                </Box>
 
-                <Flex justify="space-between">
-                  <Text color="xwhite.050" fontSize={rem(14)}>
+                <Flex justify="space-between" w={['85%', '100%']}>
+                  <Text
+                    wordBreak={['break-all', 'initial']}
+                    color="xwhite.050"
+                    fontSize={rem(14)}
+                  >
                     {state.address}
                   </Text>
                 </Flex>
@@ -193,6 +212,7 @@ export default function CreateKey() {
                 >
                   <PasswordInput
                     id="password"
+                    size={size}
                     value={state.password}
                     width="100%"
                     borderColor="xblack.008"
@@ -218,6 +238,7 @@ export default function CreateKey() {
                 <Flex width="100%" style={{position: 'relative'}}>
                   <PasswordInput
                     id="passwordConfirm"
+                    size={size}
                     value={state.passwordConfirm}
                     width="100%"
                     borderColor="xblack.008"
@@ -238,6 +259,7 @@ export default function CreateKey() {
                   justify="space-between"
                 >
                   <FlatButton
+                    display={['none', 'inherit']}
                     color="white"
                     _hover={{color: 'xwhite.080'}}
                     onClick={() => setStep(steps.AVATAR)}
@@ -248,7 +270,13 @@ export default function CreateKey() {
                     ></ArrowUpIcon>
                     {t('Back')}
                   </FlatButton>
-                  <PrimaryButton type="submit">{t('Next')}</PrimaryButton>
+                  <PrimaryButton
+                    size={size}
+                    w={['100%', 'initial']}
+                    type="submit"
+                  >
+                    {t('Next')}
+                  </PrimaryButton>
                 </Flex>
                 {error && (
                   <Flex
