@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import {Flex, Text} from '@chakra-ui/react'
+import {Flex, Box, Text, useBreakpointValue} from '@chakra-ui/react'
 import {margin} from 'polished'
 import React, {useState} from 'react'
 import {FiChevronRight} from 'react-icons/fi'
@@ -26,6 +26,7 @@ function RestoreKey() {
   const [password, setPassword] = useState('')
   const {login, removeKey} = useAuthDispatch()
   const {coinbase} = useSettingsState()
+  const size = useBreakpointValue(['lg', 'md'])
   const [error, setError] = useState()
 
   const dnaAppUrl = useDnaUrl()
@@ -33,7 +34,11 @@ function RestoreKey() {
   return (
     <AuthLayout>
       <AuthLayout.Normal>
-        <Flex width="100%">
+        <Flex
+          direction={['column', 'initial']}
+          align={['center', 'initial']}
+          width="100%"
+        >
           <Avatar address={coinbase} borderRadius={rem(20)} />
           <Flex
             direction="column"
@@ -42,16 +47,22 @@ function RestoreKey() {
             style={{marginLeft: rem(20)}}
           >
             <SubHeading color="white">
-              Enter password to unlock your account
+              <Box display={['none', 'inherit']}>
+                Enter password to unlock your account
+              </Box>
             </SubHeading>
 
-            <Flex justify="space-between">
-              <Text color="xwhite.050" fontSize={rem(14)}>
+            <Flex justify={['center', 'space-between']}>
+              <Text
+                color="xwhite.050"
+                w={['60%', 'inherit']}
+                fontSize={rem(14)}
+              >
                 {coinbase}
               </Text>
             </Flex>
 
-            <Flex justify="space-between">
+            <Flex display={['none', 'inherit']} justify="space-between">
               <FlatButton
                 onClick={() => showWarning(true)}
                 style={{
@@ -73,6 +84,7 @@ function RestoreKey() {
         </Flex>
         <Flex
           width="100%"
+          direction={['column', 'initial']}
           style={{
             ...margin(theme.spacings.normal, 0, 0, 0),
           }}
@@ -90,6 +102,7 @@ function RestoreKey() {
             }}
           >
             <FormLabel
+              display={['none', 'inherit']}
               htmlFor="password"
               style={{
                 color: 'white',
@@ -98,8 +111,22 @@ function RestoreKey() {
             >
               Password
             </FormLabel>
-            <Flex width="100%">
+            <Box display={['inherit', 'none']}>
+              <SubHeading
+                css={{
+                  marginTop: rem(50),
+                  marginBottom: '28px',
+                  fontWeight: '400',
+                }}
+                color="white"
+              >
+                Password
+              </SubHeading>
+            </Box>
+
+            <Flex width="100%" direction={['column', 'initial']}>
               <PasswordInput
+                size={size}
                 width="100%"
                 value={password}
                 borderColor="xblack.008"
@@ -108,9 +135,10 @@ function RestoreKey() {
                 placeholder="Enter your password"
               />
               <PrimaryButton
+                size={size}
                 type="submit"
                 isDisabled={!password}
-                style={{marginLeft: rem(10)}}
+                m={['16px 0 0 0', '0 0 0 10px']}
               >
                 Proceed
               </PrimaryButton>
@@ -132,6 +160,17 @@ function RestoreKey() {
               </Flex>
             )}
           </form>
+          <Flex w="100%" justify="center" display={['inherit', 'none']}>
+            <FlatButton
+              onClick={() => showWarning(true)}
+              style={{
+                marginTop: rem(31),
+                fontSize: rem(15),
+              }}
+            >
+              <span>Change an account</span>
+            </FlatButton>
+          </Flex>
         </Flex>
 
         {dnaAppUrl && <DnaAppUrl url={dnaAppUrl} />}
