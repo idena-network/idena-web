@@ -44,31 +44,27 @@ function RestoreKey() {
             direction="column"
             justify="center"
             flex="1"
-            style={{marginLeft: rem(20)}}
+            w={['80%', 'inherit']}
+            m={['20px 0 0 0', '0 0 0 20px']}
           >
-            <SubHeading color="white">
-              <Box display={['none', 'inherit']}>
-                Enter password to unlock your account
-              </Box>
+            <SubHeading color="white" css={{lineHeight: '21px'}}>
+              Enter password to unlock your account
             </SubHeading>
 
             <Flex justify={['center', 'space-between']}>
-              <Text
-                color="xwhite.050"
-                w={['60%', 'inherit']}
-                fontSize={rem(14)}
-              >
+              <Text wordBreak="break-all" color="xwhite.050" fontSize={rem(14)}>
                 {coinbase}
               </Text>
             </Flex>
 
-            <Flex display={['none', 'inherit']} justify="space-between">
+            <Flex justify="space-between">
               <FlatButton
                 onClick={() => showWarning(true)}
                 style={{
                   marginBottom: rem(19),
-                  fontSize: rem(13),
                 }}
+                fontSize={['15px', '13px']}
+                m={['21px 0 0 0', '0']}
               >
                 <span>Remove private key from this computer</span>
 
@@ -102,27 +98,14 @@ function RestoreKey() {
             }}
           >
             <FormLabel
-              display={['none', 'inherit']}
+              fontSize={['18px', '13px']}
               htmlFor="password"
               style={{
                 color: 'white',
-                fontSize: rem(13),
               }}
             >
               Password
             </FormLabel>
-            <Box display={['inherit', 'none']}>
-              <SubHeading
-                css={{
-                  marginTop: rem(50),
-                  marginBottom: '28px',
-                  fontWeight: '400',
-                }}
-                color="white"
-              >
-                Password
-              </SubHeading>
-            </Box>
 
             <Flex width="100%" direction={['column', 'initial']}>
               <PasswordInput
@@ -160,17 +143,6 @@ function RestoreKey() {
               </Flex>
             )}
           </form>
-          <Flex w="100%" justify="center" display={['inherit', 'none']}>
-            <FlatButton
-              onClick={() => showWarning(true)}
-              style={{
-                marginTop: rem(31),
-                fontSize: rem(15),
-              }}
-            >
-              <span>Change an account</span>
-            </FlatButton>
-          </Flex>
         </Flex>
 
         {dnaAppUrl && <DnaAppUrl url={dnaAppUrl} />}
