@@ -44,7 +44,7 @@ function RestoreKey() {
             direction="column"
             justify="center"
             flex="1"
-            w={['80%', 'inherit']}
+            w={['70%', 'inherit']}
             m={['20px 0 0 0', '0 0 0 20px']}
           >
             <SubHeading color="white" css={{lineHeight: '21px'}}>
@@ -63,17 +63,20 @@ function RestoreKey() {
                 style={{
                   marginBottom: rem(19),
                 }}
+                whiteSpace="break-spaces"
                 fontSize={['15px', '13px']}
                 m={['21px 0 0 0', '0']}
               >
                 <span>Remove private key from this computer</span>
 
-                <FiChevronRight
-                  style={{
-                    display: 'inline-block',
-                  }}
-                  fontSize={rem(19)}
-                />
+                <Box display={['none', 'initial']}>
+                  <FiChevronRight
+                    style={{
+                      display: 'inline-block',
+                    }}
+                    fontSize={rem(19)}
+                  />
+                </Box>
               </FlatButton>
             </Flex>
           </Flex>
