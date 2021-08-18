@@ -3,6 +3,7 @@
 import {
   Checkbox,
   Flex,
+  Box,
   Text,
   useBreakpointValue,
   useClipboard,
@@ -37,7 +38,6 @@ import {
 } from '../../shared/utils/crypto'
 import {AuthLayout} from '../../shared/components/auth'
 import {ArrowUpIcon, RefreshIcon} from '../../shared/components/icons'
-import {Box} from '../../shared/components'
 
 const steps = {
   AVATAR: 0,
@@ -96,8 +96,18 @@ export default function CreateKey() {
               <Flex justifyContent="center">
                 <div style={{position: 'relative'}}>
                   <Avatar address={state.address} />
-                  <div
-                    className="refresh-avatar"
+                  <Box
+                    color="#ffffff"
+                    position="absolute"
+                    w={8}
+                    h={8}
+                    opacity="0.8"
+                    bottom="5px"
+                    right="5px"
+                    borderRadius="6px"
+                    background="#53565c"
+                    padding="3px 2px 2px 5px"
+                    cursor="pointer"
                     onClick={() => generateNewAddress()}
                   >
                     <RefreshIcon
@@ -108,7 +118,7 @@ export default function CreateKey() {
                         transform: 'scaleX(-1) rotate(90deg)',
                       }}
                     ></RefreshIcon>
-                  </div>
+                  </Box>
                 </div>
               </Flex>
 
@@ -117,11 +127,12 @@ export default function CreateKey() {
               </Flex>
 
               <Flex
+                mt="5px"
+                mb="45px"
+                fontSize="mdx"
                 style={{
-                  ...margin(5, 0, 45),
                   opacity: 0.5,
                   textAlign: 'center',
-                  fontSize: rem(14),
                   wordBreak: 'break-all',
                 }}
               >
@@ -137,21 +148,6 @@ export default function CreateKey() {
                 </FlatButton>
               </Flex>
             </Flex>
-            <style jsx>{`
-              .refresh-avatar {
-                color: #ffffff;
-                position: absolute;
-                width: ${rem(32)};
-                height: ${rem(32)};
-                opacity: 0.8;
-                bottom: ${rem(5)};
-                right: ${rem(5)};
-                border-radius: ${rem(6)};
-                background-color: #53565c;
-                padding: 3px 2px 2px 5px;
-                cursor: pointer;
-              }
-            `}</style>
           </AuthLayout.Small>
         </AuthLayout>
       )}
@@ -169,7 +165,7 @@ export default function CreateKey() {
                 align={['center', 'initial']}
                 justify="center"
                 flex="1"
-                style={{marginLeft: rem(20)}}
+                ml={5}
               >
                 <Box display={['none', 'inherit']}>
                   <SubHeading color="white">
@@ -181,19 +177,14 @@ export default function CreateKey() {
                   <Text
                     wordBreak={['break-all', 'initial']}
                     color="xwhite.050"
-                    fontSize={rem(14)}
+                    fontSize="mdx"
                   >
                     {state.address}
                   </Text>
                 </Flex>
               </Flex>
             </Flex>
-            <Flex
-              width="100%"
-              style={{
-                ...margin(theme.spacings.medium24, 0, 0, 0),
-              }}
-            >
+            <Flex width="100%" mt={6}>
               <form
                 onSubmit={e => {
                   e.preventDefault()
@@ -203,14 +194,11 @@ export default function CreateKey() {
               >
                 <FormLabel
                   htmlFor="key"
-                  style={{color: 'white', fontSize: rem(13)}}
+                  style={{color: 'white', fontSize: '13px'}}
                 >
                   {t('Password')}
                 </FormLabel>
-                <Flex
-                  width="100%"
-                  style={{marginBottom: rem(20), position: 'relative'}}
-                >
+                <Flex width="100%" mb={5} style={{position: 'relative'}}>
                   <PasswordInput
                     id="password"
                     size={size}
@@ -231,7 +219,7 @@ export default function CreateKey() {
                   htmlFor="key"
                   style={{
                     color: 'white',
-                    fontSize: rem(13),
+                    fontSize: '13px',
                   }}
                 >
                   {t('Confirm password')}
@@ -253,12 +241,7 @@ export default function CreateKey() {
                     placeholder={t('Enter password again')}
                   />
                 </Flex>
-                <Flex
-                  style={{
-                    ...margin(theme.spacings.xlarge, 0, 0, 0),
-                  }}
-                  justify="space-between"
-                >
+                <Flex mt="2em" justify="space-between">
                   <FlatButton
                     display={['none', 'inherit']}
                     color="white"
@@ -281,16 +264,11 @@ export default function CreateKey() {
                 </Flex>
                 {error && (
                   <Flex
-                    style={{
-                      marginTop: rem(30, theme.fontSizes.base),
-                      backgroundColor: theme.colors.danger,
-                      borderRadius: rem(9, theme.fontSizes.base),
-                      fontSize: rem(14, theme.fontSizes.base),
-                      padding: `${rem(18, theme.fontSizes.base)} ${rem(
-                        24,
-                        theme.fontSizes.base
-                      )}`,
-                    }}
+                    mt="30px"
+                    background="rgb(255, 102, 102)"
+                    borderRadius="9px"
+                    fontSize="mdx"
+                    p="18px 24px"
                   >
                     {error}
                   </Flex>
@@ -313,14 +291,15 @@ export default function CreateKey() {
                 direction="column"
                 justify="center"
                 flex="1"
-                m={['48px 0 0 0', '0 0 0 20px']}
+                mt={[12, 0]}
+                ml={[0, 5]}
               >
                 <SubHeading color="white">
                   {t('Backup your private key')}
                 </SubHeading>
 
                 <Flex justify="space-between">
-                  <Text color="xwhite.050" fontSize={rem(14)}>
+                  <Text color="xwhite.050" fontSize="mdx">
                     {t(
                       'Make a photo of QR code or save your encrypted private key.'
                     )}
@@ -328,12 +307,7 @@ export default function CreateKey() {
                 </Flex>
               </Flex>
             </Flex>
-            <Flex
-              width="100%"
-              style={{
-                ...margin(theme.spacings.medium24, 0, 0, 0),
-              }}
-            >
+            <Flex width="100%" mt={6}>
               <form
                 onSubmit={e => {
                   e.preventDefault()
@@ -347,23 +321,20 @@ export default function CreateKey() {
                 style={{width: '100%'}}
               >
                 <Flex justify="space-between">
-                  <FormLabel style={{color: 'white', fontSize: rem(13)}}>
+                  <FormLabel style={{color: 'white', fontSize: 'md'}}>
                     {t('Your encrypted private key')}
                   </FormLabel>
                   {hasCopied ? (
-                    <FormLabel style={{color: 'white', fontSize: rem(13)}}>
+                    <FormLabel style={{color: 'white', fontSize: 'md'}}>
                       {t('Copied!')}
                     </FormLabel>
                   ) : (
-                    <FlatButton onClick={onCopy} marginBottom={rem(10)}>
+                    <FlatButton onClick={onCopy} marginBottom="10px">
                       {t('Copy')}
                     </FlatButton>
                   )}
                 </Flex>
-                <Flex
-                  width="100%"
-                  style={{marginBottom: rem(20), position: 'relative'}}
-                >
+                <Flex width="100%" mb={5} style={{position: 'relative'}}>
                   <Input
                     size={size}
                     value={state.encryptedPrivateKey}
@@ -389,11 +360,7 @@ export default function CreateKey() {
                     )}
                   </Checkbox>
                 </Flex>
-                <Flex
-                  style={{
-                    ...margin(theme.spacings.small8, 0, 0, 0),
-                  }}
-                >
+                <Flex mt={2}>
                   <Checkbox
                     variant={variant}
                     textAlign={['left', 'initial']}
@@ -409,12 +376,7 @@ export default function CreateKey() {
                     )}
                   </Checkbox>
                 </Flex>
-                <Flex
-                  style={{
-                    ...margin(theme.spacings.xlarge, 0, 0, 0),
-                  }}
-                  justify="space-between"
-                >
+                <Flex mt="2em" justify="space-between">
                   <FlatButton
                     display={['none', 'inherit']}
                     color="white"
@@ -455,15 +417,13 @@ export default function CreateKey() {
                 </Flex>
                 {error && (
                   <Flex
+                    mt="30px"
+                    p="18px 24px"
+                    background="rgb(255, 102, 102)"
+                    borderRadius="9px"
+                    fontSyze="mdx"
                     style={{
-                      marginTop: rem(30, theme.fontSizes.base),
-                      backgroundColor: theme.colors.danger,
-                      borderRadius: rem(9, theme.fontSizes.base),
-                      fontSize: rem(14, theme.fontSizes.base),
-                      padding: `${rem(18, theme.fontSizes.base)} ${rem(
-                        24,
-                        theme.fontSizes.base
-                      )}`,
+                      fontSize: '14px',
                     }}
                   >
                     {error}
@@ -513,18 +473,19 @@ export default function CreateKey() {
                   <Avatar address={state.address} />
                 </div>
               </Flex>
-              <Flex justify="center" marginTop={rem(30)}>
+              <Flex justify="center" marginTop={7.5}>
                 <SubHeading color="white">
                   {t('Successfully created!')}
                 </SubHeading>
               </Flex>
 
               <Flex
+                mt="5px"
+                mb="45px"
+                fontSize="mdx"
                 style={{
-                  ...margin(5, 0, 45),
                   opacity: 0.5,
                   textAlign: 'center',
-                  fontSize: rem(14),
                   wordBreak: 'break-all',
                 }}
               >
