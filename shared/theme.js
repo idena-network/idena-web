@@ -192,6 +192,7 @@ export const uiTheme = {
     },
     xwhite: {
       '010': 'rgba(255, 255, 255, 0.1)',
+      '016': 'rgba(255, 255, 255, 0.16)',
       '050': 'rgba(255, 255, 255, 0.5)',
       '080': 'rgba(255, 255, 255, 0.8)',
       '500': 'rgba(255, 255, 255)',
@@ -216,6 +217,7 @@ export const uiTheme = {
     sm: '11px',
     md: '13px',
     mdx: '14px',
+    mobile: '15px',
     base: '16px',
     lg: '18px',
     xl: '28px',
@@ -243,6 +245,7 @@ export const uiTheme = {
     md: rem(6),
     lg: rem(8),
     xl: '0.75rem',
+    mobile: '28px',
   },
   components: {
     Radio: {
@@ -366,6 +369,21 @@ export const uiTheme = {
             _disabled: {
               bg: 'gray.50',
               color: 'muted',
+            },
+          },
+        },
+        mobile: {
+          field: {
+            borderColor: 'gray.100',
+            _hover: {
+              borderColor: 'gray.100',
+            },
+            _placeholder: {
+              color: 'muted',
+            },
+            _disabled: {
+              bg: 'xblack.016',
+              color: 'xwhite.016',
             },
           },
         },

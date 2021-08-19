@@ -37,7 +37,12 @@ import {
   privateKeyToAddress,
 } from '../../shared/utils/crypto'
 import {AuthLayout} from '../../shared/components/auth'
-import {ArrowUpIcon, RefreshIcon} from '../../shared/components/icons'
+import {
+  ArrowBackIcon,
+  ArrowUpIcon,
+  CopyIcon,
+  RefreshIcon,
+} from '../../shared/components/icons'
 
 const steps = {
   AVATAR: 0,
@@ -97,20 +102,21 @@ export default function CreateKey() {
                 <div style={{position: 'relative'}}>
                   <Avatar address={state.address} />
                   <Box
-                    color="#ffffff"
+                    color={['xblack.016', 'xwhite.500']}
+                    opacity={[1, '0.8']}
                     position="absolute"
                     w={8}
                     h={8}
-                    opacity="0.8"
-                    bottom="5px"
-                    right="5px"
+                    bottom={['28px', '5px']}
+                    right={['-40px', '5px']}
                     borderRadius="6px"
-                    background="#53565c"
+                    background="gray.500"
                     padding="3px 2px 2px 5px"
                     cursor="pointer"
                     onClick={() => generateNewAddress()}
                   >
                     <RefreshIcon
+                      color={['xwhite.500', 'inherit']}
                       boxSize={5}
                       fill="white"
                       style={{
@@ -122,7 +128,7 @@ export default function CreateKey() {
                 </div>
               </Flex>
 
-              <Flex justify="center">
+              <Flex mt={[5, 0]} justify="center">
                 <SubHeading color="white">{t('Your address')}</SubHeading>
               </Flex>
 
@@ -138,7 +144,10 @@ export default function CreateKey() {
               >
                 {state.address}
               </Flex>
-              <PrimaryButton onClick={() => setStep(steps.PASSWORD)}>
+              <PrimaryButton
+                size={size}
+                onClick={() => setStep(steps.PASSWORD)}
+              >
                 {t('Proceed')}
               </PrimaryButton>
 
@@ -153,6 +162,13 @@ export default function CreateKey() {
       )}
       {state.step === steps.PASSWORD && (
         <AuthLayout>
+          <Box w="100%" h={6} position="absolute" top="40px">
+            <ArrowBackIcon
+              boxSize={6}
+              ml={4}
+              onClick={() => setStep(steps.AVATAR)}
+            ></ArrowBackIcon>
+          </Box>
           <AuthLayout.Normal>
             <Flex
               direction={['column', 'initial']}
@@ -165,15 +181,17 @@ export default function CreateKey() {
                 align={['center', 'initial']}
                 justify="center"
                 flex="1"
-                ml={5}
+                w={['75%', '100%']}
+                mt={[5, 0]}
+                ml={[0, 5]}
               >
-                <Box display={['none', 'inherit']}>
+                <Box>
                   <SubHeading color="white">
                     {t('Create password to encrypt your account')}
                   </SubHeading>
                 </Box>
 
-                <Flex justify="space-between" w={['85%', '100%']}>
+                <Flex justify="space-between">
                   <Text
                     wordBreak={['break-all', 'initial']}
                     color="xwhite.050"
@@ -193,12 +211,13 @@ export default function CreateKey() {
                 style={{width: '100%'}}
               >
                 <FormLabel
+                  display={['none', 'inherit']}
                   htmlFor="key"
                   style={{color: 'white', fontSize: '13px'}}
                 >
                   {t('Password')}
                 </FormLabel>
-                <Flex width="100%" mb={5} style={{position: 'relative'}}>
+                <Flex width="100%" mb={[3, 5]} style={{position: 'relative'}}>
                   <PasswordInput
                     id="password"
                     size={size}
@@ -216,6 +235,7 @@ export default function CreateKey() {
                   />
                 </Flex>
                 <FormLabel
+                  display={['none', 'inherit']}
                   htmlFor="key"
                   style={{
                     color: 'white',
@@ -241,7 +261,7 @@ export default function CreateKey() {
                     placeholder={t('Enter password again')}
                   />
                 </Flex>
-                <Flex mt="2em" justify="space-between">
+                <Flex mt={[4, 8]} justify="space-between">
                   <FlatButton
                     display={['none', 'inherit']}
                     color="white"
@@ -280,6 +300,13 @@ export default function CreateKey() {
       )}
       {state.step === steps.BACKUP && (
         <AuthLayout>
+          <Box w="100%" h={6} position="absolute" top="40px">
+            <ArrowBackIcon
+              boxSize={6}
+              ml={4}
+              onClick={() => setStep(steps.PASSWORD)}
+            ></ArrowBackIcon>
+          </Box>
           <AuthLayout.Normal>
             <Flex
               direction={['column', 'initial']}
@@ -291,7 +318,7 @@ export default function CreateKey() {
                 direction="column"
                 justify="center"
                 flex="1"
-                mt={[12, 0]}
+                mt={[4, 0]}
                 ml={[0, 5]}
               >
                 <SubHeading color="white">
@@ -320,7 +347,7 @@ export default function CreateKey() {
                 }}
                 style={{width: '100%'}}
               >
-                <Flex justify="space-between">
+                <Flex display={['none', 'flex']} justify="space-between">
                   <FormLabel style={{color: 'white', fontSize: 'md'}}>
                     {t('Your encrypted private key')}
                   </FormLabel>
@@ -334,18 +361,30 @@ export default function CreateKey() {
                     </FlatButton>
                   )}
                 </Flex>
-                <Flex width="100%" mb={5} style={{position: 'relative'}}>
+                <Flex width="100%" mb={[0, 5]} style={{position: 'relative'}}>
                   <Input
                     size={size}
+                    variant={variant}
                     value={state.encryptedPrivateKey}
                     borderColor="xblack.008"
-                    backgroundColor="xblack.016"
+                    backgroundColor={['gray.500', 'xblack.016']}
                     width="100%"
+                    pr={10}
                     disabled
                   />
+                  <Box
+                    display={['initial', 'none']}
+                    position="absolute"
+                    top={3}
+                    right={3}
+                  >
+                    <CopyIcon boxSize={6} onClick={() => {}}></CopyIcon>
+                  </Box>
                 </Flex>
-                <Flex>
+                <Flex direction="column">
                   <Checkbox
+                    order={[2, 1]}
+                    mt={[9, 0]}
                     variant={variant}
                     textAlign={['left', 'initial']}
                     value={state.understand1}
@@ -359,9 +398,9 @@ export default function CreateKey() {
                       'I understand that Idena cannot recover the private key for me.'
                     )}
                   </Checkbox>
-                </Flex>
-                <Flex mt={2}>
                   <Checkbox
+                    order={[3, 2]}
+                    mt={2}
                     variant={variant}
                     textAlign={['left', 'initial']}
                     value={state.understand2}
@@ -375,44 +414,47 @@ export default function CreateKey() {
                       'I understand the risk of compromising my private key backup.'
                     )}
                   </Checkbox>
-                </Flex>
-                <Flex mt="2em" justify="space-between">
-                  <FlatButton
-                    display={['none', 'inherit']}
-                    color="white"
-                    _hover={{color: 'xwhite.080'}}
-                    onClick={() => {
-                      setError('')
-                      setStep(steps.PASSWORD)
-                    }}
-                  >
-                    <ArrowUpIcon
-                      boxSize={5}
-                      style={{transform: 'rotate(-90deg)', marginTop: -3}}
-                    ></ArrowUpIcon>
-                    {t('Back')}
-                  </FlatButton>
-                  <Flex
-                    w={['100%', 'initial']}
-                    direction={['column', 'initial']}
-                  >
-                    <SecondaryButton
-                      size={size}
-                      w={['100%', 'initial']}
-                      type="button"
-                      m={['0 0 16px 0', '0 10px 0 0']}
-                      fontSize={['15px', '13px']}
-                      onClick={() => setState({...state, showQrDialog: true})}
+                  <Flex order={[1, 3]} mt={[4, 8]} justify="space-between">
+                    <FlatButton
+                      display={['none', 'inherit']}
+                      color="white"
+                      _hover={{color: 'xwhite.080'}}
+                      onClick={() => {
+                        setError('')
+                        setStep(steps.PASSWORD)
+                      }}
                     >
-                      {t('Show QR code')}
-                    </SecondaryButton>
-                    <PrimaryButton
+                      <ArrowUpIcon
+                        boxSize={5}
+                        style={{transform: 'rotate(-90deg)', marginTop: -3}}
+                      ></ArrowUpIcon>
+                      {t('Back')}
+                    </FlatButton>
+                    <Flex
                       w={['100%', 'initial']}
-                      size={size}
-                      type="submit"
+                      direction={['column', 'initial']}
                     >
-                      {t('Next')}
-                    </PrimaryButton>
+                      <SecondaryButton
+                        order={[2, 1]}
+                        size={size}
+                        w={['100%', 'initial']}
+                        type="button"
+                        mt={[4, 0]}
+                        mr={[0, 2.5]}
+                        fontSize={['15px', '13px']}
+                        onClick={() => setState({...state, showQrDialog: true})}
+                      >
+                        {t('Show QR code')}
+                      </SecondaryButton>
+                      <PrimaryButton
+                        order={[1, 2]}
+                        w={['100%', 'initial']}
+                        size={size}
+                        type="submit"
+                      >
+                        {t('Next')}
+                      </PrimaryButton>
+                    </Flex>
                   </Flex>
                 </Flex>
                 {error && (
@@ -491,10 +533,10 @@ export default function CreateKey() {
               >
                 {state.address}
               </Flex>
-              <PrimaryButton onClick={() => router.push('/key/import')}>
+              <PrimaryButton size={size} onClick={() => router.push('/key/import')}>
                 {t('Sign in')}
               </PrimaryButton>
-              <Flex justifyContent="center">
+              <Flex display={['none', 'flex']} justifyContent="center">
                 <FlatButton onClick={() => setStep(steps.BACKUP)} mt={5}>
                   {t('Back')}
                 </FlatButton>

@@ -243,13 +243,15 @@ export function AuthLayout({children}) {
   return (
     <Flex
       background="graphite.500"
+      backgroundPosition="top center"
+      backgroundSize="cover"
+      backgroundAttachment="fixed"
       color="white"
       direction="column"
       align="center"
       justify={['flex-start', 'center']}
       flex="1"
       height="100vh"
-      pt={[rem(80), '0']}
     >
       {children}
     </Flex>
@@ -264,6 +266,7 @@ AuthLayout.Normal = function({children}) {
       justify={['start', 'space-between']}
       direction="column"
       w={[rem(279), rem(480)]}
+      pt={[rem(80), '0']}
       textAlign={['center', 'initial']}
     >
       {children}
@@ -273,16 +276,18 @@ AuthLayout.Normal = function({children}) {
 // eslint-disable-next-line react/display-name
 AuthLayout.Small = function({children}) {
   return (
-    <Flex
-      align-items="center"
-      justify="space-between"
-      direction="column"
-      w={rem(360)}
-      background="rgba(0, 0, 0, 0.16)"
-      padding="52px 40px 36px"
-      border-radius="8px"
-    >
-      {children}
+    <Flex direction="column" justify="center" height="100%">
+      <Flex
+        align-items="center"
+        justify="space-between"
+        direction="column"
+        w={rem(360)}
+        background="rgba(0, 0, 0, 0.16)"
+        padding="52px 40px 36px"
+        borderRadius="8px"
+      >
+        {children}
+      </Flex>
     </Flex>
   )
 }

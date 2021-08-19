@@ -130,9 +130,10 @@ export function PasswordInput({width, ...props}) {
         width,
       }}
     >
-      <Input type={show ? 'text' : 'password'} {...props} />
+      <Input type={show ? 'text' : 'password'} opacity={[0.8, 1]} {...props} />
       <Box
         mt={['5px', '-3px']}
+        opacity={[0.16, 1]}
         style={{
           ...borderRadius('right', rem(6)),
           cursor: 'pointer',
@@ -155,17 +156,17 @@ export function PasswordInput({width, ...props}) {
   )
 }
 
-export function Avatar({address, size = rem(80), ...props}) {
+export function Avatar({address, size = ['88px', '80px'], ...props}) {
   return address ? (
     <ChakraAvatar
       boxSize={size}
       src={`https://robohash.idena.io/${address}`}
       bg="gray.50"
-      borderRadius="lg"
+      borderRadius={['mobile', 'lg']}
       {...props}
     />
   ) : (
-    <Box w={size} h={size} bg="gray.50" rounded="lg"></Box>
+    <Box w={size} h={size} bg="gray.50" rounded={['mobile', 'lg']}></Box>
   )
 }
 
