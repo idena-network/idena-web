@@ -1,10 +1,8 @@
 /* eslint-disable react/prop-types */
 import {Flex, Box, Text, useBreakpointValue} from '@chakra-ui/react'
-import {margin} from 'polished'
 import React, {useState} from 'react'
 import {FiChevronRight} from 'react-icons/fi'
 import Router from 'next/router'
-import theme, {rem} from '../theme'
 import {
   Avatar,
   Dialog,
@@ -39,7 +37,7 @@ function RestoreKey() {
           align={['center', 'initial']}
           width="100%"
         >
-          <Avatar address={coinbase} borderRadius={rem(20)} />
+          <Avatar address={coinbase} borderRadius={['mobile', '20px']} />
           <Flex
             direction="column"
             justify="center"
@@ -52,7 +50,7 @@ function RestoreKey() {
             </SubHeading>
 
             <Flex justify={['center', 'space-between']}>
-              <Text wordBreak="break-all" color="xwhite.050" fontSize={rem(14)}>
+              <Text wordBreak="break-all" color="xwhite.050" fontSize="mdx">
                 {coinbase}
               </Text>
             </Flex>
@@ -61,7 +59,7 @@ function RestoreKey() {
               <FlatButton
                 onClick={() => showWarning(true)}
                 style={{
-                  marginBottom: rem(19),
+                  marginBottom: '19px',
                 }}
                 whiteSpace="break-spaces"
                 fontSize={['15px', '13px']}
@@ -74,20 +72,14 @@ function RestoreKey() {
                     style={{
                       display: 'inline-block',
                     }}
-                    fontSize={rem(19)}
+                    fontSize="19px"
                   />
                 </Box>
               </FlatButton>
             </Flex>
           </Flex>
         </Flex>
-        <Flex
-          width="100%"
-          direction={['column', 'initial']}
-          style={{
-            ...margin(theme.spacings.normal, 0, 0, 0),
-          }}
-        >
+        <Flex w="100%" mt={['24px', '13px']} direction={['column', 'initial']}>
           <form
             style={{width: '100%'}}
             onSubmit={e => {
@@ -101,6 +93,7 @@ function RestoreKey() {
             }}
           >
             <FormLabel
+              display={['none', 'inherit']}
               fontSize={['18px', '13px']}
               htmlFor="password"
               style={{
@@ -131,15 +124,12 @@ function RestoreKey() {
             </Flex>
             {error && (
               <Flex
+                mt="30px"
+                fontSize="mdx"
+                background="red.500"
                 style={{
-                  marginTop: rem(30, theme.fontSizes.base),
-                  backgroundColor: theme.colors.danger,
-                  borderRadius: rem(9, theme.fontSizes.base),
-                  fontSize: rem(14, theme.fontSizes.base),
-                  padding: `${rem(18, theme.fontSizes.base)} ${rem(
-                    24,
-                    theme.fontSizes.base
-                  )}`,
+                  borderRadius: '9px',
+                  padding: `18px 24px`,
                 }}
               >
                 {error}
@@ -182,42 +172,43 @@ function RestoreKey() {
 
 function Init() {
   const dnaAppUrl = useDnaUrl()
+  const size = useBreakpointValue(['lg', 'md'])
 
   return (
     <AuthLayout>
       <AuthLayout.Small>
         <Flex width="100%" direction="column">
-          <Flex justifyContent="center" marginBottom={rem(35)}>
+          <Flex justify="center" mb="35px">
             <img
               src="/static/idena-logo-round-white.svg"
               alt="logo"
-              style={{width: rem(80), height: rem(80), color: 'red'}}
+              style={{width: '80px', height: '80px', color: 'red'}}
             />
           </Flex>
 
-          <Flex textAlign="center">
+          <Flex justify="center">
             <SubHeading color="white">Proof-Of-Person Blockchain</SubHeading>
           </Flex>
 
           <Text
             color="xwhite.050"
-            fontSize={rem(14)}
+            fontSize="mdx"
             textAlign="center"
-            marginBottom={rem(45)}
+            marginBottom="45px"
           >
             Join the mining of the first human-centric cryptocurrency
           </Text>
 
-          <PrimaryButton onClick={() => Router.push('/key/create')}>
+          <PrimaryButton size={size} onClick={() => Router.push('/key/create')}>
             Create an account
           </PrimaryButton>
 
           <Flex justifyContent="center">
             <FlatButton
+              mt={5}
+              fontSize={['15px', '13px']}
               onClick={() => Router.push('/key/import')}
               style={{
-                marginTop: rem(20),
-                fontSize: rem(13),
                 textAlign: 'center',
               }}
             >
@@ -242,10 +233,7 @@ export default function Auth() {
 export function AuthLayout({children}) {
   return (
     <Flex
-      background="graphite.500"
-      backgroundPosition="top center"
-      backgroundSize="cover"
-      backgroundAttachment="fixed"
+      background={['gray.500', 'graphite.500']}
       color="white"
       direction="column"
       align="center"
@@ -265,8 +253,8 @@ AuthLayout.Normal = function({children}) {
       align="center"
       justify={['start', 'space-between']}
       direction="column"
-      w={[rem(279), rem(480)]}
-      pt={[rem(80), '0']}
+      w={['279px', '480px']}
+      pt={['80px', '0']}
       textAlign={['center', 'initial']}
     >
       {children}
@@ -281,7 +269,7 @@ AuthLayout.Small = function({children}) {
         align-items="center"
         justify="space-between"
         direction="column"
-        w={rem(360)}
+        w="360px"
         background="rgba(0, 0, 0, 0.16)"
         padding="52px 40px 36px"
         borderRadius="8px"
