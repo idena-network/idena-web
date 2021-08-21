@@ -34,10 +34,14 @@ import {
   useTheme,
   Divider,
   Text,
+  Link,
 } from '@chakra-ui/react'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
+import NextLink from 'next/link'
 import {rem} from '../theme'
+import {ChevronDownIcon} from './icons'
+import {openExternalUrl} from '../utils/utils'
 
 export function FloatDebug({children, ...props}) {
   return (
@@ -317,4 +321,39 @@ export const VDivider = React.forwardRef(function VDivider(props, ref) {
 
 export function SmallText(props) {
   return <Text color="muted" fontSize="sm" {...props} />
+}
+
+export function ExternalLink({href, children, ...props}) {
+  return (
+    <Button
+      variant="link"
+      color="blue.500"
+      fontWeight={500}
+      alignSelf="flex-start"
+      _hover={{background: 'transparent', textDecoration: 'underline'}}
+      _focus={{
+        outline: 'none',
+      }}
+      onClick={() => {
+        const win = openExternalUrl(href)
+        win.focus()
+      }}
+      {...props}
+    >
+      <Text as="span" lineHeight="short" mt="-2px">
+        {children || href}
+      </Text>
+      <ChevronDownIcon boxSize={4} transform="rotate(-90deg)" />
+    </Button>
+  )
+}
+
+export function TextLink({href, children, ...props}) {
+  return (
+    <NextLink href={href} passHref>
+      <Link href={href} color="blue.500" {...props}>
+        {children}
+      </Link>
+    </NextLink>
+  )
 }
