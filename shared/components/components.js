@@ -198,22 +198,22 @@ export function Toast({
   return (
     <Alert
       status={status}
-      bg="white"
+      bg={['gray.900', 'white']}
       boxShadow="0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)"
-      color="brandGray.500"
+      color={['white', 'brandGray.500']}
       fontSize="md"
       pl={4}
       pr={actionContent ? 2 : 5}
-      pt={rem(10)}
+      pt={2.5}
       pb={3}
       mb={5}
-      minH={rem(44)}
+      minH="44px"
       rounded="lg"
       {...props}
     >
-      <AlertIcon name={icon} size={5} />
+      <AlertIcon display={['none', 'initial']} name={icon} size={5} />
       <Flex direction="column" align="flex-start" maxW="sm">
-        <AlertTitle fontWeight={500} lineHeight="base">
+        <AlertTitle fontWeight={[400, 500]} lineHeight="base">
           {title}
         </AlertTitle>
         <AlertDescription color="muted" lineHeight="base">

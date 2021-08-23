@@ -23,6 +23,7 @@ import {
   FormLabel,
   Input,
   PasswordInput,
+  Toast,
 } from '../../shared/components/components'
 import {SubHeading} from '../../shared/components/typo'
 import theme from '../../shared/theme'
@@ -43,6 +44,7 @@ import {
   CopyIcon,
   RefreshIcon,
 } from '../../shared/components/icons'
+import {useSuccessToast} from '../../shared/hooks/use-toast'
 
 const steps = {
   AVATAR: 0,
@@ -55,6 +57,7 @@ export default function CreateKey() {
   const {t} = useTranslation()
   const size = useBreakpointValue(['lg', 'md'])
   const variant = useBreakpointValue(['mobile', 'initial'])
+  const successToast = useSuccessToast()
 
   const router = useRouter()
   const [state, setState] = useState({
@@ -378,7 +381,16 @@ export default function CreateKey() {
                     top={3}
                     right={3}
                   >
-                    <CopyIcon boxSize={6} onClick={() => {}}></CopyIcon>
+                    <CopyIcon
+                      boxSize={6}
+                      onClick={() => {
+                        onCopy()
+                        successToast({
+                          title: 'Private key copied!',
+                          duration: '5000',
+                        })
+                      }}
+                    ></CopyIcon>
                   </Box>
                 </Flex>
                 <Flex direction="column">
@@ -533,7 +545,10 @@ export default function CreateKey() {
               >
                 {state.address}
               </Flex>
-              <PrimaryButton size={size} onClick={() => router.push('/key/import')}>
+              <PrimaryButton
+                size={size}
+                onClick={() => router.push('/key/import')}
+              >
                 {t('Sign in')}
               </PrimaryButton>
               <Flex display={['none', 'flex']} justifyContent="center">
