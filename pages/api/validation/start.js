@@ -5,7 +5,7 @@ import {faunaClient} from '../../../shared/utils/faunadb'
 
 export default async (req, res) => {
   try {
-    const {coinbase} = req.body
+    const {type, coinbase} = req.body
 
     const {data} = await faunaClient.query(
       q.Paginate(q.Match(q.Index('flip_hashes')), {size: 500})
@@ -45,6 +45,7 @@ export default async (req, res) => {
       time: dt.setMinutes(dt.getMinutes() + 1),
       shortFlips,
       longFlips,
+      type,
     }
 
     await faunaClient.query(

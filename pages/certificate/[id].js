@@ -60,7 +60,7 @@ export default function Certificate() {
       >
         <CertificateTypeLabel type={isLoading ? null : data?.type} />
         <Stack spacing={8} alignItems="center" px={10}>
-          <Image ignoreFallback src="/static/idena-logo-round.svg" w={16} />
+          <Image ignoreFallback src="/static/idena-logo-round.svg" h={16} />
           <Heading fontSize="lg" fontWeight="500">
             Certificate
           </Heading>
