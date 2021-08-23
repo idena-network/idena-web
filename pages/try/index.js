@@ -71,6 +71,7 @@ export default function Try() {
               description={t(
                 'Try to pass the validation ceremony immediately.'
               )}
+              id={testValidationState.validations[CertificateType.Beginner].id}
               type={CertificateType.Beginner}
               actionType={
                 testValidationState.validations[CertificateType.Beginner]

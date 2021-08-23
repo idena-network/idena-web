@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import {Divider, Flex, Heading, Text} from '@chakra-ui/react'
+import {useRouter} from 'next/router'
 import {useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {
@@ -25,6 +26,7 @@ function CertificateCardPanelItem({name, value}) {
 }
 
 export function CertificateCard({
+  id,
   title,
   description,
   type,
@@ -34,6 +36,7 @@ export function CertificateCard({
   const {t} = useTranslation()
   const {coinbase} = useAuthState()
   const [waiting, setWaiting] = useState(false)
+  const router = useRouter()
 
   const {scheduleValidation} = useTestValidationDispatch()
 
@@ -94,7 +97,10 @@ export function CertificateCard({
           <SuccessAlert>{t('Passed successfully')}</SuccessAlert>
           <Flex mt={6}>
             <Flex ml="auto">
-              <IconButton icon={<CertificateIcon boxSize={5} />}>
+              <IconButton
+                icon={<CertificateIcon boxSize={5} />}
+                onClick={() => router.push(`/certificate/${id}`)}
+              >
                 {t('Show certificate')}
               </IconButton>
               <Divider borderColor="gray.100" orientation="vertical" mr={4} />
