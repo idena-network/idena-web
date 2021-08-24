@@ -2,6 +2,7 @@ import {Flex, Checkbox, Text, useBreakpointValue, Box} from '@chakra-ui/react'
 import React, {useState} from 'react'
 import Router from 'next/router'
 import {useTranslation} from 'react-i18next'
+import dynamic from 'next/dynamic'
 import {SubHeading} from '../../shared/components'
 import {
   FormLabel,
@@ -35,6 +36,11 @@ export default function ImportKey() {
   const {setNewKey, decryptKey} = useAuthDispatch()
   const [error, setError] = useState()
   const [step, setStep] = useState(steps.KEY)
+  const [isScanningQr, setIsScanningQr] = useState(false)
+
+  const QrReader = dynamic(() => import('react-qr-reader'), {
+    ssr: false,
+  })
 
   const addKey = async () => {
     const key = decryptKey(state.key, state.password)
@@ -129,7 +135,12 @@ export default function ImportKey() {
                     }}
                     onClick={() => {}}
                   >
-                    <QrScanIcon boxSize="28px" onClick={() => {}}></QrScanIcon>
+                    <QrScanIcon
+                      boxSize="28px"
+                      onClick={() => {
+                        setIsScanningQr(true)
+                      }}
+                    ></QrScanIcon>
                   </Box>
                 </Flex>
                 <FormLabel
@@ -212,6 +223,22 @@ export default function ImportKey() {
               </form>
             </Flex>
           </AuthLayout.Normal>
+          {isScanningQr && (
+            <Box position="absolute" top="0" h="100%" w="100%" zIndex="10">
+              <QrReader
+                delay={300}
+                onError={err => {
+                  setIsScanningQr(false)
+                }}
+                onScan={key => {
+                  if (key) {
+                    setState({key})
+                    setIsScanningQr(false)
+                  }
+                }}
+              />
+            </Box>
+          )}
         </AuthLayout>
       )}
       {step === steps.INVITATION && (
