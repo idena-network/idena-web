@@ -293,13 +293,13 @@ export function QrScanner({isOpen, onScan, onClose}) {
   })
 
   return (
-    <Modal isOpen={isOpen} isCentered size="sm">
+    <Modal variant="mobile" isOpen={isOpen} size="sm">
       <ModalOverlay bg="gray.980" />
       <ModalContent bg="white" color="brandGray.500" fontSize="md" rounded="lg">
         <Heading fontSize="20px" margin="20px 0 20px 24px">
           Scan QR code
         </Heading>
-        <QrReader delay={300} onScan={onScan} />
+        <QrReader style={{color: 'blue'}} delay={300} onScan={onScan} />
         <Flex w="100%" justify="center">
           <FlatButton syze="lg" mt="26px" mb="26px" onClick={onClose}>
             Cancel

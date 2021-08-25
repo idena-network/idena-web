@@ -390,5 +390,12 @@ export const uiTheme = {
         },
       },
     },
+    Modal: {
+      variants: {
+        mobile: {
+          dialogContainer: {alignItems: 'flex-end'},
+        },
+      },
+    },
   },
 }
