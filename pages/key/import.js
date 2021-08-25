@@ -1,13 +1,23 @@
-import {Flex, Checkbox, Text, useBreakpointValue, Box} from '@chakra-ui/react'
+import {
+  Flex,
+  Checkbox,
+  Text,
+  useBreakpointValue,
+  Box,
+  ModalOverlay,
+  ModalContent,
+  ModalCloseButton,
+  Modal,
+} from '@chakra-ui/react'
 import React, {useState} from 'react'
 import Router from 'next/router'
 import {useTranslation} from 'react-i18next'
-import dynamic from 'next/dynamic'
 import {SubHeading} from '../../shared/components'
 import {
   FormLabel,
   Input,
   PasswordInput,
+  QrScanner,
 } from '../../shared/components/components'
 import {useAuthDispatch} from '../../shared/providers/auth-context'
 import theme from '../../shared/theme'
@@ -15,7 +25,11 @@ import {ActivateInvite} from '../../screens/key/components'
 import {AuthLayout} from '../../shared/components/auth'
 import {fetchIdentity} from '../../shared/api'
 import {privateKeyToAddress} from '../../shared/utils/crypto'
-import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
+import {
+  FlatButton,
+  PrimaryButton,
+  SecondaryButton,
+} from '../../shared/components/button'
 import {ArrowBackIcon, QrScanIcon} from '../../shared/components/icons'
 
 const steps = {
@@ -37,10 +51,6 @@ export default function ImportKey() {
   const [error, setError] = useState()
   const [step, setStep] = useState(steps.KEY)
   const [isScanningQr, setIsScanningQr] = useState(false)
-
-  const QrReader = dynamic(() => import('react-qr-reader'), {
-    ssr: false,
-  })
 
   const addKey = async () => {
     const key = decryptKey(state.key, state.password)
@@ -224,27 +234,16 @@ export default function ImportKey() {
             </Flex>
           </AuthLayout.Normal>
           {isScanningQr && (
-            <Box position="absolute" top="0" h="100%" w="100%" zIndex="10">
-              <Flex direction="column">
-                <ArrowBackIcon
-                  boxSize={6}
-                  ml={4}
-                  onClick={() => setIsScanningQr(false)}
-                ></ArrowBackIcon>
-                <QrReader
-                  delay={300}
-                  onError={err => {
-                    setIsScanningQr(false)
-                  }}
-                  onScan={key => {
-                    if (key) {
-                      setState({key})
-                      setIsScanningQr(false)
-                    }
-                  }}
-                />
-              </Flex>
-            </Box>
+            <QrScanner
+              isOpen={isScanningQr}
+              onScan={key => {
+                if (key) {
+                  setState({key})
+                  setIsScanningQr(false)
+                }
+              }}
+              onClose={() => setIsScanningQr(false)}
+            />
           )}
         </AuthLayout>
       )}
