@@ -16,7 +16,7 @@ import {AuthLayout} from '../../shared/components/auth'
 import {fetchIdentity} from '../../shared/api'
 import {privateKeyToAddress} from '../../shared/utils/crypto'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
-import {QrScanIcon} from '../../shared/components/icons'
+import {ArrowBackIcon, QrScanIcon} from '../../shared/components/icons'
 
 const steps = {
   KEY: 0,
@@ -225,18 +225,25 @@ export default function ImportKey() {
           </AuthLayout.Normal>
           {isScanningQr && (
             <Box position="absolute" top="0" h="100%" w="100%" zIndex="10">
-              <QrReader
-                delay={300}
-                onError={err => {
-                  setIsScanningQr(false)
-                }}
-                onScan={key => {
-                  if (key) {
-                    setState({key})
+              <Flex direction="column">
+                <ArrowBackIcon
+                  boxSize={6}
+                  ml={4}
+                  onClick={() => setIsScanningQr(false)}
+                ></ArrowBackIcon>
+                <QrReader
+                  delay={300}
+                  onError={err => {
                     setIsScanningQr(false)
-                  }
-                }}
-              />
+                  }}
+                  onScan={key => {
+                    if (key) {
+                      setState({key})
+                      setIsScanningQr(false)
+                    }
+                  }}
+                />
+              </Flex>
             </Box>
           )}
         </AuthLayout>
