@@ -7,7 +7,9 @@ const TEST_LONG_FLIPS_COUNT = 18
 const TEST_REPORTS_COUNT = 6
 
 export default async (req, res) => {
-  const {id} = req.query
+  const {id, full} = req.query
+
+  const isFull = parseInt(full)
 
   if (!id) {
     return res.status(400).send('id is missing')
@@ -25,7 +27,7 @@ export default async (req, res) => {
       return res.status(400).send('validation failed')
     }
 
-    return res.status(200).json({
+    const result = {
       shortScore: validation.data.result.shortPoints / TEST_SHORT_FLIPS_COUNT,
       longScore: validation.data.result.longPoints / TEST_LONG_FLIPS_COUNT,
       reportScore: validation.data.result.reports / TEST_REPORTS_COUNT,
@@ -33,7 +35,14 @@ export default async (req, res) => {
       coinbase: validation.data.coinbase,
       timestamp: validation.data.time,
       type: validation.data.type,
-    })
+    }
+
+    if (isFull) {
+      result.shortFlips = validation.data.shortAnswers
+      result.longFlips = validation.data.longAnswers
+    }
+
+    return res.status(200).json(result)
   } catch (e) {
     return res.status(400).send('validation missing')
   }

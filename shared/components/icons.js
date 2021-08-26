@@ -734,3 +734,35 @@ export const CertificateIcon = createIcon({
     </g>
   ),
 })
+
+export const CertificateStarIcon = createIcon({
+  displayName: 'CertificateStarIcon',
+  viewBox: '0 0 16 16',
+  path: (
+    <g stroke="none" strokeWidth="1" fill="none" fillRule="evenodd">
+      <g transform="translate(-322.000000, -570.000000)">
+        <g transform="translate(280.000000, 528.000000)">
+          <g transform="translate(40.000000, 40.000000)">
+            <g transform="translate(2.000000, 2.000000)">
+              <rect
+                fill="#D8D8D8"
+                opacity="0"
+                x="0"
+                y="0"
+                width="16"
+                height="16"
+              ></rect>
+              <g
+                transform="translate(1.000000, 1.000000)"
+                fill="currentColor"
+                fillRule="nonzero"
+              >
+                <path d="M7,0 C10.8659932,0 14,3.13400675 14,7 C14,10.8659932 10.8659932,14 7,14 C3.13400675,14 0,10.8659932 0,7 C0,3.13400675 3.13400675,0 7,0 Z M7,2 L5.67772919,5.18005036 L2.24471742,5.45491503 L4.86052088,7.69515891 L4.06107374,11.045085 L7,9.24958147 L9.93892626,11.045085 L9.13947912,7.69515891 L11.7552826,5.45491503 L8.32227081,5.18005036 L7,2 Z"></path>
+              </g>
+            </g>
+          </g>
+        </g>
+      </g>
+    </g>
+  ),
+})

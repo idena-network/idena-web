@@ -1,6 +1,5 @@
 import {CloseButton, Flex, Heading, Stack} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
-import {rem} from 'polished'
 import {useTranslation} from 'react-i18next'
 import {Page} from '../../screens/app/components'
 import {CertificateCard} from '../../screens/try/components'
@@ -34,7 +33,7 @@ export default function Try() {
             justify="space-between"
             my={8}
           >
-            <Stack isInline spacing={6} align="center" width={rem(480)}>
+            <Stack isInline spacing={6} align="center" width="480px">
               <Avatar address={coinbase} />
               <Stack spacing={1}>
                 <Heading
@@ -65,7 +64,7 @@ export default function Try() {
               }}
             />
           </Flex>
-          <Stack width={rem(480)}>
+          <Stack width="480px">
             <CertificateCard
               title={t('Beginner')}
               description={t(

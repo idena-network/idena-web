@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import {Divider, Flex, Heading, Text} from '@chakra-ui/react'
+import {Divider, Flex, Heading, Td, Text, Th} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {useState} from 'react'
 import {useTranslation} from 'react-i18next'
@@ -9,10 +9,14 @@ import {
   SecondaryButton,
 } from '../../shared/components/button'
 import {ErrorAlert, SuccessAlert} from '../../shared/components/components'
-import {CertificateIcon, TimerIcon} from '../../shared/components/icons'
+import {
+  CertificateIcon,
+  CertificateStarIcon,
+  TimerIcon,
+} from '../../shared/components/icons'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useTestValidationDispatch} from '../../shared/providers/test-validation-context'
-import {CertificateActionType} from '../../shared/types'
+import {CertificateActionType, CertificateType} from '../../shared/types'
 
 function CertificateCardPanelItem({name, value}) {
   return (
@@ -23,6 +27,19 @@ function CertificateCardPanelItem({name, value}) {
       </Text>
     </Flex>
   )
+}
+
+function GetColor(type) {
+  switch (type) {
+    case CertificateType.Beginner:
+      return 'red.500'
+    case CertificateType.Master:
+      return 'gray.500'
+    case CertificateType.Expert:
+      return 'orange.500'
+    default:
+      return 'red.500'
+  }
 }
 
 export function CertificateCard({
@@ -51,6 +68,8 @@ export function CertificateCard({
     }
   }
 
+  const color = GetColor(type)
+
   return (
     <Flex
       alignSelf="stretch"
@@ -59,12 +78,22 @@ export function CertificateCard({
       p={10}
       borderRadius="lg"
       borderTop="4px solid"
-      borderTopColor="red.500"
+      borderTopColor={color}
       {...props}
     >
-      <Heading as="h2" fontSize="lg" fontWeight={500} lineHeight="short" mb={2}>
-        {title}
-      </Heading>
+      <Flex alignItems="center" mb={2}>
+        <CertificateStarIcon boxSize={4} color={color} />
+        <Heading
+          as="h2"
+          fontSize="lg"
+          fontWeight={500}
+          verticalAlign="center"
+          ml={1}
+        >
+          {title}
+        </Heading>
+      </Flex>
+
       <Flex>
         <Text color="muted">{description}</Text>
       </Flex>
@@ -147,4 +176,31 @@ export function CertificateCard({
       )}
     </Flex>
   )
+}
+
+export function FlipsTh(props) {
+  return (
+    <Th
+      textTransform="none"
+      fontSize="md"
+      fontWeight={400}
+      color="muted"
+      py={2}
+      px={3}
+      borderBottom="none"
+      letterSpacing={0}
+      {...props}
+    />
+  )
+}
+
+export function FlipsValueTd(props) {
+  return <Td color="gray.500" fontWeight="500" px={3} py={3} {...props} />
+}
+
+export function GetReasonDesc(reason) {
+  switch (reason) {
+    default:
+      return '—'
+  }
 }

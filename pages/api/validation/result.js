@@ -22,7 +22,7 @@ async function getFlip(hash) {
 }
 
 async function checkShortAnswers(shortAnswers = []) {
-  let correctAnswers = 0
+  const res = {}
 
   await Promise.all(
     shortAnswers.map(async ({hash, answer}) => {
@@ -30,35 +30,39 @@ async function checkShortAnswers(shortAnswers = []) {
       if (!flip) {
         return
       }
-      if (answer === flip.answer) {
-        correctAnswers += 1
+
+      res[hash] = {
+        hash,
+        answer,
+        correct: answer === flip.answer,
       }
     })
   )
 
-  return {correctAnswers}
+  return shortAnswers.map(({hash}) => res[hash])
 }
 
 async function checkLongAnswers(longAnswers = []) {
-  let correctAnswers = 0
-  let correctReports = 0
+  const res = {}
+
   await Promise.all(
     longAnswers.map(async ({hash, answer, wrongWords}) => {
       const flip = await getFlip(hash)
       if (!flip) {
         return
       }
-      if (answer === flip.answer) {
-        correctAnswers += 1
-      }
-      if (flip.isReported) {
-        if (wrongWords) {
-          correctReports += 1
-        }
+      res[hash] = {
+        hash,
+        answer,
+        wrongWords,
+        correct: answer === flip.answer,
+        reason: flip.isReported,
+        correctReport: flip.isReported && wrongWords,
       }
     })
   )
-  return {correctAnswers, correctReports}
+
+  return longAnswers.map(({hash}) => res[hash])
 }
 
 export default async (req, res) => {
@@ -76,13 +80,14 @@ export default async (req, res) => {
       return res.status(200).json(validation.data.result)
     }
 
-    const {correctAnswers: correctShortAnswers} = await checkShortAnswers(
-      validation.data.shortAnswers
-    )
-    const {
-      correctAnswers: correctLongAnswers,
-      correctReports,
-    } = await checkLongAnswers(validation.data.longAnswers)
+    const shortAnswers = await checkShortAnswers(validation.data.shortAnswers)
+    const longAnswers = await checkLongAnswers(validation.data.longAnswers)
+
+    const correctShortAnswers = shortAnswers.filter(x => x.correct).length
+    const correctLongAnswers = longAnswers.filter(x => x.correct).length
+    const correctReports = longAnswers
+      .filter(x => x.reason)
+      .filter(x => x.correctReport).length
 
     let actionType = CertificateActionType.Passed
     if (
@@ -96,6 +101,8 @@ export default async (req, res) => {
     const updated = await faunaClient.query(
       q.Update(validation.ref, {
         data: {
+          shortAnswers,
+          longAnswers,
           result: {
             shortPoints: correctShortAnswers,
             longPoints: correctLongAnswers,
