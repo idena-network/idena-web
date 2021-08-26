@@ -50,20 +50,18 @@ export function SubHeading({
   children,
 }) {
   return (
-    <h2 style={css}>
+    <Heading
+      as="h2"
+      style={css}
+      fontSize={fontSize}
+      color={color}
+      fontWeight={fontWeight}
+      m={margin}
+      margin="0.25em 0"
+      w="100%"
+    >
       {children}
-      <style jsx>{`
-        h2 {
-          display: inline-block;
-          color: ${color};
-          font-size: ${fontSize};
-          font-weight: ${fontWeight};
-          ${margin};
-          margin: 0.25em 0;
-          width: 100%;
-        }
-      `}</style>
-    </h2>
+    </Heading>
   )
 }
 

@@ -1,10 +1,8 @@
 /* eslint-disable react/prop-types */
-import {Flex, Text} from '@chakra-ui/react'
-import {margin} from 'polished'
+import {Flex, Box, Text, useBreakpointValue} from '@chakra-ui/react'
 import React, {useState} from 'react'
 import {FiChevronRight} from 'react-icons/fi'
 import Router from 'next/router'
-import theme, {rem} from '../theme'
 import {
   Avatar,
   Dialog,
@@ -26,6 +24,7 @@ function RestoreKey() {
   const [password, setPassword] = useState('')
   const {login, removeKey} = useAuthDispatch()
   const {coinbase} = useSettingsState()
+  const size = useBreakpointValue(['lg', 'md'])
   const [error, setError] = useState()
 
   const dnaAppUrl = useDnaUrl()
@@ -33,20 +32,25 @@ function RestoreKey() {
   return (
     <AuthLayout>
       <AuthLayout.Normal>
-        <Flex width="100%">
-          <Avatar address={coinbase} borderRadius={rem(20)} />
+        <Flex
+          direction={['column', 'initial']}
+          align={['center', 'initial']}
+          width="100%"
+        >
+          <Avatar address={coinbase} borderRadius={['mobile', '20px']} />
           <Flex
             direction="column"
             justify="center"
             flex="1"
-            style={{marginLeft: rem(20)}}
+            w={['70%', 'inherit']}
+            m={['20px 0 0 0', '0 0 0 20px']}
           >
-            <SubHeading color="white">
+            <SubHeading color="white" css={{lineHeight: '21px'}}>
               Enter password to unlock your account
             </SubHeading>
 
-            <Flex justify="space-between">
-              <Text color="xwhite.050" fontSize={rem(14)}>
+            <Flex justify={['center', 'space-between']}>
+              <Text wordBreak="break-all" color="xwhite.050" fontSize="mdx">
                 {coinbase}
               </Text>
             </Flex>
@@ -55,28 +59,27 @@ function RestoreKey() {
               <FlatButton
                 onClick={() => showWarning(true)}
                 style={{
-                  marginBottom: rem(19),
-                  fontSize: rem(13),
+                  marginBottom: '19px',
                 }}
+                whiteSpace="break-spaces"
+                fontSize={['15px', '13px']}
+                m={['21px 0 0 0', '0']}
               >
                 <span>Remove private key from this computer</span>
 
-                <FiChevronRight
-                  style={{
-                    display: 'inline-block',
-                  }}
-                  fontSize={rem(19)}
-                />
+                <Box display={['none', 'initial']}>
+                  <FiChevronRight
+                    style={{
+                      display: 'inline-block',
+                    }}
+                    fontSize="19px"
+                  />
+                </Box>
               </FlatButton>
             </Flex>
           </Flex>
         </Flex>
-        <Flex
-          width="100%"
-          style={{
-            ...margin(theme.spacings.normal, 0, 0, 0),
-          }}
-        >
+        <Flex w="100%" mt={['24px', '13px']} direction={['column', 'initial']}>
           <form
             style={{width: '100%'}}
             onSubmit={e => {
@@ -90,16 +93,19 @@ function RestoreKey() {
             }}
           >
             <FormLabel
+              display={['none', 'inherit']}
+              fontSize={['18px', '13px']}
               htmlFor="password"
               style={{
                 color: 'white',
-                fontSize: rem(13),
               }}
             >
               Password
             </FormLabel>
-            <Flex width="100%">
+
+            <Flex width="100%" direction={['column', 'initial']}>
               <PasswordInput
+                size={size}
                 width="100%"
                 value={password}
                 borderColor="xblack.008"
@@ -108,24 +114,22 @@ function RestoreKey() {
                 placeholder="Enter your password"
               />
               <PrimaryButton
+                size={size}
                 type="submit"
                 isDisabled={!password}
-                style={{marginLeft: rem(10)}}
+                m={['16px 0 0 0', '0 0 0 10px']}
               >
                 Proceed
               </PrimaryButton>
             </Flex>
             {error && (
               <Flex
+                mt="30px"
+                fontSize="mdx"
+                background="red.500"
                 style={{
-                  marginTop: rem(30, theme.fontSizes.base),
-                  backgroundColor: theme.colors.danger,
-                  borderRadius: rem(9, theme.fontSizes.base),
-                  fontSize: rem(14, theme.fontSizes.base),
-                  padding: `${rem(18, theme.fontSizes.base)} ${rem(
-                    24,
-                    theme.fontSizes.base
-                  )}`,
+                  borderRadius: '9px',
+                  padding: `18px 24px`,
                 }}
               >
                 {error}
@@ -168,42 +172,43 @@ function RestoreKey() {
 
 function Init() {
   const dnaAppUrl = useDnaUrl()
+  const size = useBreakpointValue(['lg', 'md'])
 
   return (
     <AuthLayout>
       <AuthLayout.Small>
         <Flex width="100%" direction="column">
-          <Flex justifyContent="center" marginBottom={rem(35)}>
+          <Flex justify="center" mb="35px">
             <img
               src="/static/idena-logo-round-white.svg"
               alt="logo"
-              style={{width: rem(80), height: rem(80), color: 'red'}}
+              style={{width: '80px', height: '80px', color: 'red'}}
             />
           </Flex>
 
-          <Flex textAlign="center">
+          <Flex justify="center">
             <SubHeading color="white">Proof-Of-Person Blockchain</SubHeading>
           </Flex>
 
           <Text
             color="xwhite.050"
-            fontSize={rem(14)}
+            fontSize="mdx"
             textAlign="center"
-            marginBottom={rem(45)}
+            marginBottom="45px"
           >
             Join the mining of the first human-centric cryptocurrency
           </Text>
 
-          <PrimaryButton onClick={() => Router.push('/key/create')}>
+          <PrimaryButton size={size} onClick={() => Router.push('/key/create')}>
             Create an account
           </PrimaryButton>
 
           <Flex justifyContent="center">
             <FlatButton
+              mt={5}
+              fontSize={['15px', '13px']}
               onClick={() => Router.push('/key/import')}
               style={{
-                marginTop: rem(20),
-                fontSize: rem(13),
                 textAlign: 'center',
               }}
             >
@@ -227,58 +232,50 @@ export default function Auth() {
 
 export function AuthLayout({children}) {
   return (
-    <>
-      <section>{children}</section>
-      <style jsx>{`
-        section {
-          background: ${theme.colors.darkGraphite};
-          color: white;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          flex: 1;
-          height: 100vh;
-        }
-      `}</style>
-    </>
+    <Flex
+      background={['gray.500', 'graphite.500']}
+      color="white"
+      direction="column"
+      align="center"
+      justify={['flex-start', 'center']}
+      flex="1"
+      height="100vh"
+    >
+      {children}
+    </Flex>
   )
 }
 
 // eslint-disable-next-line react/display-name
 AuthLayout.Normal = function({children}) {
   return (
-    <>
-      <div>{children}</div>
-      <style jsx>{`
-        div {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          flex-direction: column;
-          width: ${rem(480)};
-        }
-      `}</style>
-    </>
+    <Flex
+      align="center"
+      justify={['start', 'space-between']}
+      direction="column"
+      w={['279px', '480px']}
+      pt={['80px', '0']}
+      textAlign={['center', 'initial']}
+    >
+      {children}
+    </Flex>
   )
 }
 // eslint-disable-next-line react/display-name
 AuthLayout.Small = function({children}) {
   return (
-    <>
-      <div>{children}</div>
-      <style jsx>{`
-        div {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          flex-direction: column;
-          width: ${rem(360)};
-          background-color: rgba(0, 0, 0, 0.16);
-          padding: 52px 40px 36px;
-          border-radius: 8px;
-        }
-      `}</style>
-    </>
+    <Flex direction="column" justify="center" height="100%">
+      <Flex
+        align-items="center"
+        justify="space-between"
+        direction="column"
+        w="360px"
+        background="rgba(0, 0, 0, 0.16)"
+        padding="52px 40px 36px"
+        borderRadius="8px"
+      >
+        {children}
+      </Flex>
+    </Flex>
   )
 }

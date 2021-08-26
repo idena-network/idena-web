@@ -1,6 +1,15 @@
-import {Flex, Checkbox, Text} from '@chakra-ui/react'
-import {rem, margin} from 'polished'
-import {useState} from 'react'
+import {
+  Flex,
+  Checkbox,
+  Text,
+  useBreakpointValue,
+  Box,
+  ModalOverlay,
+  ModalContent,
+  ModalCloseButton,
+  Modal,
+} from '@chakra-ui/react'
+import React, {useState} from 'react'
 import Router from 'next/router'
 import {useTranslation} from 'react-i18next'
 import {SubHeading} from '../../shared/components'
@@ -8,6 +17,7 @@ import {
   FormLabel,
   Input,
   PasswordInput,
+  QrScanner,
 } from '../../shared/components/components'
 import {useAuthDispatch} from '../../shared/providers/auth-context'
 import theme from '../../shared/theme'
@@ -15,7 +25,12 @@ import {ActivateInvite} from '../../screens/key/components'
 import {AuthLayout} from '../../shared/components/auth'
 import {fetchIdentity} from '../../shared/api'
 import {privateKeyToAddress} from '../../shared/utils/crypto'
-import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
+import {
+  FlatButton,
+  PrimaryButton,
+  SecondaryButton,
+} from '../../shared/components/button'
+import {ArrowBackIcon, QrScanIcon} from '../../shared/components/icons'
 
 const steps = {
   KEY: 0,
@@ -23,6 +38,9 @@ const steps = {
 }
 
 export default function ImportKey() {
+  const size = useBreakpointValue(['lg', 'md'])
+  const logoSize = useBreakpointValue(['88px', '80px'])
+  const variant = useBreakpointValue(['mobile', 'initial'])
   const {t} = useTranslation()
   const [state, setState] = useState({
     key: '',
@@ -32,6 +50,7 @@ export default function ImportKey() {
   const {setNewKey, decryptKey} = useAuthDispatch()
   const [error, setError] = useState()
   const [step, setStep] = useState(steps.KEY)
+  const [isScanningQr, setIsScanningQr] = useState(false)
 
   const addKey = async () => {
     const key = decryptKey(state.key, state.password)
@@ -59,23 +78,29 @@ export default function ImportKey() {
       {step === steps.KEY && (
         <AuthLayout>
           <AuthLayout.Normal>
-            <Flex width="100%">
+            <Flex
+              direction={['column', 'initial']}
+              align={['center', 'initial']}
+              width="100%"
+            >
               <img
-                src="/static/idena_white.svg"
+                src="/static/idena-logo-circle.svg"
                 alt="logo"
-                style={{width: rem(80), height: rem(80)}}
+                width={logoSize}
+                height={logoSize}
               />
               <Flex
                 direction="column"
                 justify="center"
                 flex="1"
-                style={{marginLeft: rem(20)}}
+                w={['85%', '100%']}
+                m={['48px 0 0 0', '0 0 0 20px']}
               >
                 <SubHeading color="white">
                   {t('Import your private key backup to sign in')}
                 </SubHeading>
                 <Flex justify="space-between">
-                  <Text color="xwhite.050" fontSize={rem(14)}>
+                  <Text color="xwhite.050" fontSize="mdx">
                     {t(
                       'Enter your private key backup. You can export your private key from Idena app (see Settings page).'
                     )}
@@ -83,12 +108,7 @@ export default function ImportKey() {
                 </Flex>
               </Flex>
             </Flex>
-            <Flex
-              width="100%"
-              style={{
-                ...margin(theme.spacings.medium24, 0, 0, 0),
-              }}
-            >
+            <Flex w="100%" mt="24px">
               <form
                 onSubmit={async e => {
                   e.preventDefault()
@@ -97,32 +117,55 @@ export default function ImportKey() {
                 style={{width: '100%'}}
               >
                 <FormLabel
+                  display={['none', 'inherit']}
                   htmlFor="key"
-                  style={{color: 'white', fontSize: rem(13)}}
+                  style={{color: 'white', fontSize: 'md'}}
                 >
                   {t('Encrypted private key')}
                 </FormLabel>
-                <Flex width="100%" style={{marginBottom: rem(20)}}>
+                <Flex w="100%" mb={[3, 5]} style={{position: 'relative'}}>
                   <Input
                     id="key"
+                    opacity={[0.8, 1]}
+                    size={size}
                     value={state.key}
                     borderColor="xblack.008"
                     backgroundColor="xblack.016"
                     onChange={e => setState({...state, key: e.target.value})}
                     placeholder={t('Enter your private key backup')}
                   />
+                  <Box
+                    display={['initial', 'none']}
+                    style={{
+                      cursor: 'pointer',
+                      position: 'absolute',
+                      top: '10px',
+                      right: '6px',
+                      zIndex: 5,
+                    }}
+                    onClick={() => {}}
+                  >
+                    <QrScanIcon
+                      boxSize="28px"
+                      onClick={() => {
+                        setIsScanningQr(true)
+                      }}
+                    ></QrScanIcon>
+                  </Box>
                 </Flex>
                 <FormLabel
+                  display={['none', 'inherit']}
                   htmlFor="key"
                   style={{
                     color: 'white',
-                    fontSize: rem(13),
+                    fontSize: 'md',
                   }}
                 >
                   {t('Password')}
                 </FormLabel>
                 <Flex width="100%">
                   <PasswordInput
+                    size={size}
                     value={state.password}
                     width="100%"
                     borderColor="xblack.008"
@@ -137,12 +180,14 @@ export default function ImportKey() {
                   />
                 </Flex>
                 <Flex
-                  style={{
-                    ...margin(theme.spacings.xlarge, 0, 0, 0),
-                  }}
+                  mt={[4, 8]}
+                  direction={['column', 'initial']}
                   justify="space-between"
                 >
                   <Checkbox
+                    pt={[7, 0]}
+                    order={[2, 1]}
+                    variant={variant}
                     value={state.saveKey}
                     isChecked={state.saveKey}
                     onChange={e =>
@@ -152,30 +197,34 @@ export default function ImportKey() {
                   >
                     {t('Save the encrypted key on this computer')}
                   </Checkbox>
-                  <Flex>
+                  <Flex order={[1, 2]}>
                     <SecondaryButton
+                      isFullWidth={[true, false]}
+                      display={['none', 'initial']}
                       variant="secondary"
-                      css={{marginRight: rem(10)}}
+                      css={{marginRight: '10px'}}
                       onClick={() => Router.push('/')}
                     >
                       {t('Cancel')}
                     </SecondaryButton>
-                    <PrimaryButton type="submit" disabled={!state.key}>
+                    <PrimaryButton
+                      size={size}
+                      isFullWidth={[true, false]}
+                      type="submit"
+                      disabled={!state.key}
+                    >
                       {t('Import')}
                     </PrimaryButton>
                   </Flex>
                 </Flex>
                 {error && (
                   <Flex
+                    mt="30px"
+                    fontSize="mdx"
                     style={{
-                      marginTop: rem(30, theme.fontSizes.base),
                       backgroundColor: theme.colors.danger,
-                      borderRadius: rem(9, theme.fontSizes.base),
-                      fontSize: rem(14, theme.fontSizes.base),
-                      padding: `${rem(18, theme.fontSizes.base)} ${rem(
-                        24,
-                        theme.fontSizes.base
-                      )}`,
+                      borderRadius: '9px',
+                      padding: `18px 24px`,
                     }}
                   >
                     {error}
@@ -184,6 +233,18 @@ export default function ImportKey() {
               </form>
             </Flex>
           </AuthLayout.Normal>
+          {isScanningQr && (
+            <QrScanner
+              isOpen={isScanningQr}
+              onScan={key => {
+                if (key) {
+                  setState({key})
+                  setIsScanningQr(false)
+                }
+              }}
+              onClose={() => setIsScanningQr(false)}
+            />
+          )}
         </AuthLayout>
       )}
       {step === steps.INVITATION && (

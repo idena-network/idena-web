@@ -36,7 +36,7 @@ export function FlatButton({children, ...props}) {
   return (
     <ChakraButton
       size="sm"
-      fontSize="md"
+      fontSize={['mobile', 'md']}
       variant="link"
       colorScheme="brandBlue"
       color="brandBlue.500"
