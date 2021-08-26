@@ -96,9 +96,16 @@ export function UserInlineCard({address, state, ...props}) {
   )
 }
 
-export function UserStatList(props) {
+export function UserStatList({title, children, ...props}) {
   return (
-    <Stack spacing={4} bg="gray.50" px={10} py={8} rounded="lg" {...props} />
+    <Stack spacing={4} {...props}>
+      <Heading as="h4" fontSize="lg" fontWeight={500}>
+        {title}
+      </Heading>
+      <Stack spacing={4} bg="gray.50" px={10} py={8} rounded="lg">
+        {children}
+      </Stack>
+    </Stack>
   )
 }
 
@@ -165,16 +172,12 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
 
   const {addError} = useNotificationDispatch()
 
-  const [identity, {waitStateUpdate}] = useIdentity()
+  const [{state}, {waitStateUpdate}] = useIdentity()
   const {coinbase, privateKey} = useAuthState()
 
   const [code, setCode] = React.useState('')
 
   const [{mining}, setHash] = useTx()
-
-  if (!identity.canActivateInvite) {
-    return null
-  }
 
   const sendActivateInviteTx = async () => {
     const trimmedCode = code.trim()
@@ -222,67 +225,60 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
       {...props}
     >
       <Stack spacing={6}>
-        <FormControl>
-          <Stack spacing={2}>
-            <Flex justify="space-between" align="center">
-              <FormLabel htmlFor="code" color="muted">
-                {t('Invitation code')}
-              </FormLabel>
-              <Button
-                variant="ghost"
-                isDisabled={mining || identity.state === IdentityStatus.Invite}
-                bg="unset"
-                color="muted"
-                h="unset"
-                p={0}
-                _hover={{bg: 'unset'}}
-                _active={{bg: 'unset'}}
-                _focus={{boxShadow: 'none'}}
-                onClick={() =>
-                  navigator.clipboard.readText().then(text => setCode(text))
+        {state === IdentityStatus.Undefined && (
+          <FormControl>
+            <Stack spacing={3}>
+              <Flex justify="space-between" align="center">
+                <FormLabel htmlFor="code" p={0}>
+                  {t('Invitation code')}
+                </FormLabel>
+                <Button
+                  variant="ghost"
+                  isDisabled={mining}
+                  bg="unset"
+                  color="muted"
+                  fontWeight={500}
+                  h="unset"
+                  p={0}
+                  _hover={{bg: 'unset'}}
+                  _active={{bg: 'unset'}}
+                  _focus={{boxShadow: 'none'}}
+                  onClick={() =>
+                    navigator.clipboard.readText().then(text => setCode(text))
+                  }
+                >
+                  {t('Paste')}
+                </Button>
+              </Flex>
+              <Input
+                id="code"
+                value={code}
+                isDisabled={mining}
+                placeholder={
+                  state === IdentityStatus.Invite
+                    ? 'Click the button to activate invitation'
+                    : ''
                 }
-              >
-                {t('Paste')}
-              </Button>
-            </Flex>
-            <Textarea
-              id="code"
-              value={code}
-              borderColor="gray.100"
-              px={3}
-              pt={1.5}
-              pb={2}
-              bg="white"
-              isDisabled={mining || identity.state === IdentityStatus.Invite}
-              minH={rem(50)}
-              placeholder={
-                identity.state === IdentityStatus.Invite
-                  ? 'Click the button to activate invitation'
-                  : undefined
-              }
-              _disabled={{
-                bg: 'gray.50',
-              }}
-              _placeholder={{
-                color: 'muted',
-              }}
-              _hover={{
-                borderColor: 'gray.100',
-              }}
-              onChange={e => setCode(e.target.value)}
-            />
-          </Stack>
-        </FormControl>
-        <Flex>
-          <Spacer />
-          <PrimaryButton
-            isLoading={mining}
-            loadingText={t('Mining...')}
-            type="submit"
-          >
-            {t('Activate invite')}
-          </PrimaryButton>
-        </Flex>
+                resize="none"
+                _disabled={{
+                  bg: 'gray.50',
+                }}
+                _placeholder={{
+                  color: 'muted',
+                }}
+                onChange={e => setCode(e.target.value)}
+              />
+            </Stack>
+          </FormControl>
+        )}
+        <PrimaryButton
+          isLoading={mining}
+          loadingText={t('Mining...')}
+          type="submit"
+          ml="auto"
+        >
+          {t('Activate invite')}
+        </PrimaryButton>
       </Stack>
     </Box>
   )
