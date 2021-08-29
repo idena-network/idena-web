@@ -20,6 +20,7 @@ import {
 } from '../../shared/providers/test-validation-context'
 import {getFlip, getHashes, submitAnswers} from '../../shared/api/self'
 import {RelevanceType, SessionType} from '../../shared/types'
+import {toBlob} from '../../shared/utils/utils'
 
 export default function TrainingPage() {
   const {auth, privateKey, coinbase} = useAuthState()
@@ -174,8 +175,6 @@ function ValidationSession({
     />
   )
 }
-
-const toBlob = base64 => fetch(base64).then(res => res.blob())
 
 async function loadWords(flips) {
   return Promise.resolve(flips.map(x => ({hash: x.hash, words: x.keywords})))

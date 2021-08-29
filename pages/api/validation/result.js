@@ -57,7 +57,7 @@ async function checkLongAnswers(longAnswers = []) {
         wrongWords,
         correct: answer === flip.answer,
         reason: flip.isReported,
-        correctReport: flip.isReported && wrongWords,
+        correctReport: Boolean(flip.isReported && wrongWords),
       }
     })
   )

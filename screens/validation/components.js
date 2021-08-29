@@ -707,7 +707,7 @@ export function ValidationTimer({validationStart, duration}) {
 
   return (
     <Timer>
-      <TimerIcon color={theme.colors.danger} />
+      <TimerIcon color={theme.colors.danger} mr={1} />
       <TimerClock duration={adjustedDuration} color={theme.colors.danger} />
     </Timer>
   )
@@ -916,7 +916,7 @@ export function TestValidationRunningToast({validationStart}) {
         type={NotificationType.Info}
         title={<TimerClock duration={duration} color={theme.colors.white} />}
         body={t(`Idena test validation is in progress`)}
-        action={() => router.push('/validation/training')}
+        action={() => router.push('/try/validation')}
         actionName={t('Validate')}
       />
     </Snackbar>

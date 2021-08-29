@@ -18,6 +18,15 @@ export async function getFlip(hash) {
   return data
 }
 
+export async function getFlipCache(hash) {
+  const {data} = await axios.get('/api/validation/flip-cache', {
+    params: {
+      hash,
+    },
+  })
+  return data
+}
+
 export async function getHashes(id, type) {
   const {data} = await axios.get('/api/validation/hashes', {
     params: {

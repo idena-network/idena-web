@@ -12,7 +12,7 @@ const TestVlidationDispatchContext = createContext()
 
 export const TEST_FLIP_LOTTERY_INTERVAL_SEC = 300
 export const TEST_SHORT_SESSION_INTERVAL_SEC = 120
-export const TEST_LONG_SESSION_INTERVAL_SEC = 300
+export const TEST_LONG_SESSION_INTERVAL_SEC = 30 * 60
 
 const initValue = {actionType: CertificateActionType.None}
 

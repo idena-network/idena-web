@@ -79,7 +79,7 @@ export default function Certificate() {
                 {isLoading ? (
                   <Skeleton w={10} h={4} />
                 ) : (
-                  data && toPercent(data.shortScore)
+                  data && toPercent(data.shortScore / 6)
                 )}
               </Box>
             </Flex>
@@ -89,7 +89,7 @@ export default function Certificate() {
                 {isLoading ? (
                   <Skeleton w={10} h={4} />
                 ) : (
-                  data && toPercent(data.longScore)
+                  data && toPercent(data.longScore / 18)
                 )}
               </Box>
             </Flex>
@@ -99,7 +99,7 @@ export default function Certificate() {
                 {isLoading ? (
                   <Skeleton w={10} h={4} />
                 ) : (
-                  data && toPercent(data.reportScore)
+                  data && toPercent(data.reportScore / 6)
                 )}
               </Box>
             </Flex>
