@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import {Divider, Flex, Heading, Td, Text, Th} from '@chakra-ui/react'
+import {Box, Divider, Flex, Heading, Td, Text, Th} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {useState} from 'react'
 import {useTranslation} from 'react-i18next'
@@ -123,7 +123,12 @@ export function CertificateCard({
       )}
       {actionType === CertificateActionType.Passed && (
         <>
-          <SuccessAlert>{t('Passed successfully')}</SuccessAlert>
+          <SuccessAlert>
+            <Flex justifyContent="space-between" flex={1}>
+              <Box>{t('Passed successfully')}</Box>
+              <Box></Box>
+            </Flex>
+          </SuccessAlert>
           <Flex mt={6}>
             <Flex ml="auto">
               <IconButton
@@ -198,8 +203,18 @@ export function FlipsValueTd(props) {
   return <Td color="gray.500" fontWeight="500" px={3} py={3} {...props} />
 }
 
-export function GetReasonDesc(reason) {
+export function GetReasonDesc(t, reason) {
   switch (reason) {
+    case 1:
+      return t('One/both keywords are not relevant')
+    case 2:
+      return t('Numbers/letters/labels indicating the order')
+    case 3:
+      return t('Sequence of enumerated objects')
+    case 4:
+      return t('Text necessary to read to solve the flip')
+    case 5:
+      return t('Inappropriate content')
     default:
       return '—'
   }

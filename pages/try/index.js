@@ -19,14 +19,7 @@ export default function Try() {
   return (
     <Layout>
       <Page p={0}>
-        <Flex
-          direction="column"
-          flex={1}
-          alignSelf="stretch"
-          px={20}
-          pb="36px"
-          overflowY="auto"
-        >
+        <Flex direction="column" flex={1} alignSelf="stretch">
           <Flex
             align="center"
             alignSelf="stretch"

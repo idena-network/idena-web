@@ -46,9 +46,9 @@ export async function getResult(id) {
   return data
 }
 
-export async function getCertificate(id) {
+export async function getCertificate(id, full = false) {
   const {data} = await axios.get('/api/validation/certificate', {
-    params: {id},
+    params: {id, full: full ? 1 : 0},
   })
 
   return data

@@ -12,15 +12,17 @@ import {
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
-import {Page, PageTitle} from '../../screens/app/components'
+import {useQuery} from 'react-query'
+import {Page, PageTitle} from '../../../screens/app/components'
 import {
   FlipsTh,
   FlipsValueTd,
   GetReasonDesc,
-} from '../../screens/try/components'
-import Layout from '../../shared/components/layout'
-import {useAuthState} from '../../shared/providers/auth-context'
-import {AnswerType} from '../../shared/types'
+} from '../../../screens/try/components'
+import {getCertificate} from '../../../shared/api/self'
+import Layout from '../../../shared/components/layout'
+import {useAuthState} from '../../../shared/providers/auth-context'
+import {AnswerType} from '../../../shared/types'
 
 const temp = [
   {
@@ -58,6 +60,20 @@ const temp = [
 export default function Details() {
   const {t} = useTranslation()
   const router = useRouter()
+
+  const {id} = router.query
+
+  const {data, isLoading: certificateIsLoading, isError} = useQuery(
+    ['get-certificate-full', id],
+    () => getCertificate(id, 1),
+    {
+      enabled: !!id,
+      retry: false,
+      refetchOnWindowFocus: false,
+    }
+  )
+
+  console.log(data)
 
   return (
     <Layout>
@@ -171,7 +187,7 @@ export default function Details() {
                       <FlipsValueTd>
                         {wrongWords ? t('Reported') : t('Not reported')}
                       </FlipsValueTd>
-                      <FlipsValueTd>{GetReasonDesc(reason)}</FlipsValueTd>
+                      <FlipsValueTd>{GetReasonDesc(t, reason)}</FlipsValueTd>
                     </Tr>
                   ))}
                 </Tbody>
