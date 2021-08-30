@@ -35,6 +35,7 @@ import {
   Divider,
   Text,
   Link,
+  keyframes,
 } from '@chakra-ui/react'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
@@ -420,5 +421,27 @@ export function ErrorAlert({children, ...props}) {
       <AlertIcon name="info" color="red.500" size={5} mr={3}></AlertIcon>
       {children}
     </Alert>
+  )
+}
+
+export function Spinner({size = 8}) {
+  const spin = keyframes`
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+`
+
+  return (
+    <>
+      <Box
+        display="inline-block"
+        border="4px solid"
+        borderColor="blackAlpha.100"
+        borderLeftColor="blue.500"
+        borderRadius="50%"
+        w={size}
+        h={size}
+        animation={`${spin} 1.2s linear infinite`}
+      ></Box>
+    </>
   )
 }

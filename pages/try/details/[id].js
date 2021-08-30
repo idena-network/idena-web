@@ -10,6 +10,7 @@ import {
   Tr,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
+import {useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
 import {Page, PageTitle} from '../../../screens/app/components'
@@ -17,6 +18,7 @@ import {
   DetailsPoints,
   FlipsTh,
   FlipsValueTd,
+  FlipView,
   GetReasonDesc,
   LongFlipWithIcon,
   ShortFlipWithIcon,
@@ -30,6 +32,10 @@ import {AnswerType} from '../../../shared/types'
 export default function Details() {
   const {t} = useTranslation()
   const router = useRouter()
+
+  const [flipView, setFlipView] = useState({
+    isOpen: false,
+  })
 
   const {id} = router.query
 
@@ -46,6 +52,25 @@ export default function Details() {
       },
     }
   )
+
+  const openFlipView = (
+    hash,
+    answer,
+    isCorrect,
+    withWords,
+    isCorrectReport,
+    shouldBeReported
+  ) => {
+    setFlipView({
+      isOpen: true,
+      hash,
+      answer,
+      isCorrect,
+      withWords,
+      isCorrectReport,
+      shouldBeReported,
+    })
+  }
 
   return (
     <Layout>
@@ -119,7 +144,12 @@ export default function Details() {
                     : data.shortFlips.map(({hash, answer, correct}) => (
                         <Tr key={hash}>
                           <FlipsValueTd>
-                            <ShortFlipWithIcon hash={hash} />
+                            <ShortFlipWithIcon
+                              hash={hash}
+                              onClick={() =>
+                                openFlipView(hash, answer, correct)
+                              }
+                            />
                           </FlipsValueTd>
                           <FlipsValueTd>
                             <Flex alignItems="center">
@@ -173,7 +203,19 @@ export default function Details() {
                         }) => (
                           <Tr key={hash}>
                             <FlipsValueTd>
-                              <LongFlipWithIcon hash={hash} />
+                              <LongFlipWithIcon
+                                hash={hash}
+                                onClick={() =>
+                                  openFlipView(
+                                    hash,
+                                    answer,
+                                    correct,
+                                    true,
+                                    correctReport,
+                                    reason !== 0
+                                  )
+                                }
+                              />
                             </FlipsValueTd>
                             <FlipsValueTd>
                               <Flex alignItems="center">
@@ -191,7 +233,7 @@ export default function Details() {
                             </FlipsValueTd>
                             <FlipsValueTd>
                               <Flex alignItems="center">
-                                {correctReport || !reason ? (
+                                {correctReport ? (
                                   <RightIcon color="green.500" boxSize={5} />
                                 ) : (
                                   <WrongIcon color="red.500" boxSize={5} />
@@ -214,6 +256,7 @@ export default function Details() {
             </Flex>
           </Stack>
         </Flex>
+        <FlipView {...flipView} onClose={() => setFlipView({isOpen: false})} />
       </Page>
     </Layout>
   )

@@ -1,23 +1,31 @@
 /* eslint-disable react/prop-types */
+import {InfoIcon, WarningIcon} from '@chakra-ui/icons'
 import {
   Avatar,
   Box,
   Divider,
   Flex,
   Heading,
+  Image,
   Stack,
   Td,
   Text,
   Th,
+  useTheme,
 } from '@chakra-ui/react'
 import {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
-import {getFlipCache} from '../../shared/api/self'
+import {getFlip, getFlipCache} from '../../shared/api/self'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {
+  Dialog,
+  DialogBody,
+  DialogFooter,
+  DialogHeader,
   ErrorAlert,
   Skeleton,
+  Spinner,
   SuccessAlert,
   TextLink,
 } from '../../shared/components/components'
@@ -25,11 +33,18 @@ import {
   CertificateIcon,
   CertificateStarIcon,
   EmptyFlipIcon,
+  RightIcon,
   TimerIcon,
+  WrongIcon,
 } from '../../shared/components/icons'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useTestValidationDispatch} from '../../shared/providers/test-validation-context'
-import {CertificateActionType, CertificateType} from '../../shared/types'
+import {
+  AnswerType,
+  CertificateActionType,
+  CertificateType,
+} from '../../shared/types'
+import {reorderList} from '../../shared/utils/arr'
 import {keywords} from '../../shared/utils/keywords'
 import {capitalize} from '../../shared/utils/string'
 import {toBlob} from '../../shared/utils/utils'
@@ -375,5 +390,273 @@ export function LongFlipWithIcon({hash, onClick}) {
         </Flex>
       </Flex>
     </>
+  )
+}
+
+function FlipHolder({isSelected, ...props}) {
+  const theme = useTheme()
+
+  return (
+    <Flex
+      position="relative"
+      justify="center"
+      direction="column"
+      borderRadius="lg"
+      border="2px solid"
+      borderColor={isSelected ? 'blue.500' : 'brandBlue.025'}
+      boxShadow={
+        isSelected ? `0 0 2px 3px ${theme.colors.brandBlue['025']}` : 'none'
+      }
+      opacity={isSelected ? 1 : 0.3}
+      p={1 / 2}
+      w={140}
+      h={450}
+      {...props}
+    />
+  )
+}
+
+function LoadingFlip() {
+  return (
+    <FlipHolder css={{cursor: 'not-allowed'}} opacity={1}>
+      <Flex
+        position="absolute"
+        top={0}
+        left={0}
+        right={0}
+        bottom={0}
+        alignItems="center"
+        justifyContent="center"
+      >
+        <Spinner />
+      </Flex>
+    </FlipHolder>
+  )
+}
+
+function Flip({isLoading, images, orders, answer, variant}) {
+  const isSelected = answer === variant
+
+  if (isLoading) return <LoadingFlip />
+
+  return (
+    <FlipHolder isSelected={isSelected}>
+      {reorderList(images, orders[variant - 1]).map((src, idx) => (
+        <Box
+          key={idx}
+          height="100%"
+          position="relative"
+          overflow="hidden"
+          roundedTop={idx === 0 ? 'lg' : 0}
+          roundedBottom={idx === images.length - 1 ? 'lg' : 0}
+        >
+          <Box
+            background={`center center / cover no-repeat url(${src})`}
+            filter="blur(6px)"
+            zIndex={1}
+            position="absolute"
+            top={0}
+            left={0}
+            right={0}
+            bottom={0}
+          ></Box>
+          <Image
+            ignoreFallback
+            src={src}
+            alt="current-flip"
+            height="100%"
+            width="100%"
+            objectFit="fit"
+            objectPosition="center"
+            textAlign="center"
+            position="relative"
+            zIndex={2}
+          />
+        </Box>
+      ))}
+    </FlipHolder>
+  )
+}
+
+function ReportAlert({text, icon, ...props}) {
+  return (
+    <Flex
+      border="solid 1px"
+      borderColor="blue.050"
+      bg="blue.010"
+      px={3}
+      py={5 / 2}
+      align="center"
+      borderRadius="lg"
+      {...props}
+    >
+      {icon}
+      <Text fontWeight={500} ml={2}>
+        {text}
+      </Text>
+    </Flex>
+  )
+}
+
+function FlipWords({
+  isLoading,
+  words,
+  isCorrectReport,
+  shouldBeReported,
+  ...props
+}) {
+  const {t} = useTranslation()
+  return (
+    <Flex direction="column" {...props}>
+      <Flex
+        direction="column"
+        borderRadius="lg"
+        backgroundColor="gray.50"
+        px={10}
+        py={8}
+        lineHeight={5}
+        mb={4}
+      >
+        <Text color="gray.500" fontWeight={500}>
+          {isLoading ? (
+            <Skeleton h={5} w={20} />
+          ) : (
+            capitalize(keywords[words[0]].name)
+          )}
+        </Text>
+        <Text color="muted" mt={1 / 2}>
+          {!isLoading && capitalize(keywords[words[0]].desc)}
+        </Text>
+        <Text color="gray.500" fontWeight={500} mt={3}>
+          {isLoading ? (
+            <Skeleton h={5} w={20} />
+          ) : (
+            capitalize(keywords[words[1]].name)
+          )}
+        </Text>
+        <Text color="muted" mt={1 / 2}>
+          {!isLoading && capitalize(keywords[words[1]].desc)}
+        </Text>
+      </Flex>
+      {isCorrectReport && shouldBeReported && (
+        <ReportAlert
+          icon={<RightIcon color="blue.500" boxSize={5}></RightIcon>}
+          text={t('Reported successfully')}
+        />
+      )}
+      {isCorrectReport && !shouldBeReported && (
+        <ReportAlert
+          icon={<RightIcon color="blue.500" boxSize={5}></RightIcon>}
+          text={t('You marked this flip as correct')}
+        />
+      )}
+      {!isCorrectReport && shouldBeReported && (
+        <ReportAlert
+          bg="red.010"
+          borderColor="red.050"
+          icon={<WarningIcon color="red.500" boxSize={5}></WarningIcon>}
+          text={t('The flip must have been reported')}
+        />
+      )}
+      {!isCorrectReport && !shouldBeReported && (
+        <ReportAlert
+          bg="orange.010"
+          borderColor="orange.050"
+          icon={<WarningIcon color="orange.500" boxSize={5}></WarningIcon>}
+          text={t('You should not have reported it')}
+        />
+      )}
+    </Flex>
+  )
+}
+
+export function FlipView({
+  hash,
+  answer,
+  isCorrect,
+  isCorrectReport,
+  shouldBeReported,
+  withWords,
+  onClose,
+  ...props
+}) {
+  const {t} = useTranslation()
+
+  const {data, isFetching} = useQuery(
+    ['get-flip', hash],
+    () =>
+      getFlip(hash).then(async flip => {
+        const images = await Promise.all(flip.images.map(toBlob))
+        return {
+          images: images.map(URL.createObjectURL),
+          orders: flip.orders,
+          keywords: flip.keywords,
+        }
+      }),
+    {
+      enabled: !!hash,
+      retry: false,
+      refetchOnWindowFocus: false,
+      initialData: {
+        images: [],
+        orders: [[], []],
+      },
+    }
+  )
+
+  return (
+    <Dialog onClose={onClose} {...props} size={withWords ? '2xl' : 'sm'}>
+      <DialogHeader>
+        <Flex direction="column">
+          <Flex alignItems="center">
+            {answer === AnswerType.Left ? t('Left') : t('Right')}
+            {isCorrect ? (
+              <RightIcon boxSize={5} color="green.500" ml={1} />
+            ) : (
+              <WrongIcon boxSize={5} color="red.500" ml={1} />
+            )}
+          </Flex>
+          <Flex color="muted" fontSize="md">
+            {t('Your answer')}
+          </Flex>
+        </Flex>
+      </DialogHeader>
+      <DialogBody>
+        <Flex mt={8}>
+          <Flex
+            position="relative"
+            justify="space-between"
+            w={300}
+            align="center"
+          >
+            <Flip
+              {...data}
+              variant={AnswerType.Left}
+              answer={answer}
+              isLoading={isFetching}
+            />
+            <Flip
+              {...data}
+              variant={AnswerType.Right}
+              answer={answer}
+              isLoading={isFetching}
+            />
+          </Flex>
+          {withWords && (
+            <FlipWords
+              isLoading={isFetching}
+              isCorrectReport={isCorrectReport}
+              shouldBeReported={shouldBeReported}
+              words={data.keywords}
+              flex={1}
+              ml={8}
+            />
+          )}
+        </Flex>
+      </DialogBody>
+      <DialogFooter>
+        <SecondaryButton onClick={onClose}>Close</SecondaryButton>
+      </DialogFooter>
+    </Dialog>
   )
 }

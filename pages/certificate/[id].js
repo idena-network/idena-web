@@ -7,6 +7,7 @@ import {fetchIdentity} from '../../shared/api'
 import {getCertificate} from '../../shared/api/self'
 import {Avatar, Skeleton} from '../../shared/components/components'
 import {TelegramIcon} from '../../shared/components/icons'
+import {CertificateActionType} from '../../shared/types'
 import {mapIdentityToFriendlyStatus, toPercent} from '../../shared/utils/utils'
 
 export default function Certificate() {
@@ -36,8 +37,9 @@ export default function Certificate() {
   const isLoading = certificateIsLoading || identityIsLoading
 
   useEffect(() => {
-    if (isError) router.push('/')
-  }, [isError, router])
+    if (isError || (data && data.actionType !== CertificateActionType.Passed))
+      router.push('/')
+  }, [data, isError, router])
 
   return (
     <Flex
