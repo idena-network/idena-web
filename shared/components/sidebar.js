@@ -24,6 +24,7 @@ import {
   CloseButton,
   Portal,
   useBreakpointValue,
+  Box,
 } from '@chakra-ui/react'
 import {PlusSquareIcon} from '@chakra-ui/icons'
 import {rem} from '../theme'
@@ -572,17 +573,17 @@ function Block({title, children, ...props}) {
       position="relative"
       {...props}
     >
-      <Text
+      <Box
         color="xwhite.050"
         fontWeight={['normal', 500]}
         fontSize={[14, 13]}
         mb={[1, 0]}
       >
         {title}
-      </Text>
-      <Text color="xwhite.500" fontWeight={500} fontSize={[16, 13]}>
+      </Box>
+      <Box color="xwhite.500" fontWeight={500} fontSize={[16, 13]}>
         {children}
-      </Text>
+      </Box>
     </ChakraFlex>
   )
 }

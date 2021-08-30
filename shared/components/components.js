@@ -378,13 +378,15 @@ export function ExternalLink({href, children, ...props}) {
 }
 
 // eslint-disable-next-line react/display-name
-export const TextLink = React.forwardRef(({href, children, ...props}, ref) => (
-  <NextLink href={href} passHref>
-    <Link href={href} color="blue.500" ref={ref} {...props}>
-      {children}
-    </Link>
-  </NextLink>
-))
+export const TextLink = React.forwardRef(
+  ({href, as, children, ...props}, ref) => (
+    <NextLink href={href} as={as} passHref>
+      <Link href={href} color="blue.500" ref={ref} {...props}>
+        {children}
+      </Link>
+    </NextLink>
+  )
+)
 
 export function SuccessAlert({children, ...props}) {
   return (

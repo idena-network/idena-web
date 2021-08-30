@@ -157,7 +157,11 @@ export function CertificateCard({
             <Flex justifyContent="space-between" flex={1}>
               <Box>{t('Passed successfully')}</Box>
               <Box>
-                <TextLink href={`/try/details/${id}`} color="green.500">
+                <TextLink
+                  href="/try/details/[id]"
+                  as={`/try/details/${id}`}
+                  color="green.500"
+                >
                   Details
                 </TextLink>
               </Box>
@@ -166,7 +170,8 @@ export function CertificateCard({
           <Flex mt={6}>
             <Flex ml="auto" alignItems="center">
               <TextLink
-                href={`/certificate/${id}`}
+                href="/certificate/[id]"
+                as={`/certificate/${id}`}
                 fontWeight={500}
                 mr={4}
                 target="_blank"
@@ -174,12 +179,6 @@ export function CertificateCard({
                 <CertificateIcon boxSize={5} mr={1} />
                 {t('Show certificate')}
               </TextLink>
-              {/* <IconButton
-                icon={<CertificateIcon boxSize={5} />}
-                onClick={() => router.push(`/certificate/${id}`)}
-              >
-                {t('Show certificate')}
-              </IconButton> */}
               <Divider borderColor="gray.100" orientation="vertical" mr={4} />
               <SecondaryButton
                 onClick={() => schedule()}
@@ -198,7 +197,11 @@ export function CertificateCard({
             <Flex justifyContent="space-between" flex={1}>
               <Box>{t('Validation failed!')}</Box>
               <Box>
-                <TextLink href={`/try/details/${id}`} color="red.500">
+                <TextLink
+                  href="/try/details/[id]"
+                  as={`/try/details/${id}`}
+                  color="red.500"
+                >
                   Details
                 </TextLink>
               </Box>
