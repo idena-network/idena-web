@@ -178,7 +178,7 @@ export default function Details() {
                 <Thead bg="gray.50">
                   <Tr>
                     <FlipsTh w="35%">Flips</FlipsTh>
-                    <FlipsTh>Answers</FlipsTh>
+                    <FlipsTh w={28}>Answers</FlipsTh>
                     <FlipsTh>Qualification</FlipsTh>
                     <FlipsTh>Reason</FlipsTh>
                   </Tr>
