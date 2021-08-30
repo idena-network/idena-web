@@ -39,7 +39,7 @@ export default function Details() {
 
   const {id} = router.query
 
-  const {data, isLoading} = useQuery(
+  const {data, isFetching} = useQuery(
     ['get-certificate-full', id],
     () => getCertificate(id, 1),
     {
@@ -102,19 +102,19 @@ export default function Details() {
             >
               <DetailsPoints
                 title={t('Short score')}
-                isLoading={isLoading}
+                isLoading={isFetching}
                 value={`${data.shortScore || 0}/6`}
                 isFailed={data.shortScore < 4}
               />
               <DetailsPoints
                 title={t('Long score')}
-                isLoading={isLoading}
+                isLoading={isFetching}
                 value={`${data.longScore || 0}/18`}
                 isFailed={data.longScore < 14}
               />
               <DetailsPoints
                 title={t('Reporting score')}
-                isLoading={isLoading}
+                isLoading={isFetching}
                 value={`${data.reportScore || 0}/6`}
                 isFailed={data.reportScore < 4}
               />
@@ -133,7 +133,7 @@ export default function Details() {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {isLoading
+                  {isFetching
                     ? new Array(6).fill(0).map(() => (
                         <Tr>
                           <Td colSpan={2} px={0} py={2}>
@@ -184,7 +184,7 @@ export default function Details() {
                   </Tr>
                 </Thead>
                 <Tbody>
-                  {isLoading
+                  {isFetching
                     ? new Array(6).fill(0).map(() => (
                         <Tr>
                           <Td colSpan={4} px={0} py={2}>
