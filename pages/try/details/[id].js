@@ -134,8 +134,8 @@ export default function Details() {
                 </Thead>
                 <Tbody>
                   {isFetching
-                    ? new Array(6).fill(0).map(() => (
-                        <Tr>
+                    ? new Array(6).fill(0).map((_, idx) => (
+                        <Tr key={idx}>
                           <Td colSpan={2} px={0} py={2}>
                             <Skeleton h={7} />
                           </Td>
@@ -185,8 +185,8 @@ export default function Details() {
                 </Thead>
                 <Tbody>
                   {isFetching
-                    ? new Array(6).fill(0).map(() => (
-                        <Tr>
+                    ? new Array(6).fill(0).map((_, idx) => (
+                        <Tr key={idx}>
                           <Td colSpan={4} px={0} py={2}>
                             <Skeleton h={7} />
                           </Td>

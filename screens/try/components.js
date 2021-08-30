@@ -509,6 +509,7 @@ function FlipWords({
   ...props
 }) {
   const {t} = useTranslation()
+
   return (
     <Flex direction="column" {...props}>
       <Flex
@@ -520,26 +521,26 @@ function FlipWords({
         lineHeight={5}
         mb={4}
       >
-        <Text color="gray.500" fontWeight={500}>
+        <Box color="gray.500" fontWeight={500}>
           {isLoading ? (
             <Skeleton h={5} w={20} />
           ) : (
             capitalize(keywords[words[0]].name)
           )}
-        </Text>
-        <Text color="muted" mt={1 / 2}>
+        </Box>
+        <Box color="muted" mt={1 / 2}>
           {!isLoading && capitalize(keywords[words[0]].desc)}
-        </Text>
-        <Text color="gray.500" fontWeight={500} mt={3}>
+        </Box>
+        <Box color="gray.500" fontWeight={500} mt={3}>
           {isLoading ? (
             <Skeleton h={5} w={20} />
           ) : (
             capitalize(keywords[words[1]].name)
           )}
-        </Text>
-        <Text color="muted" mt={1 / 2}>
+        </Box>
+        <Box color="muted" mt={1 / 2}>
           {!isLoading && capitalize(keywords[words[1]].desc)}
-        </Text>
+        </Box>
       </Flex>
       {isCorrectReport && shouldBeReported && (
         <ReportAlert
