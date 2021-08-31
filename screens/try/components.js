@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import {InfoIcon, WarningIcon} from '@chakra-ui/icons'
+import {WarningIcon} from '@chakra-ui/icons'
 import {
   Avatar,
   Box,
@@ -244,11 +244,29 @@ export function FlipsTh(props) {
       textTransform="none"
       fontSize="md"
       fontWeight={400}
+      bg="gray.50"
       color="muted"
       py={2}
       px={3}
       borderBottom="none"
       letterSpacing={0}
+      {...props}
+    />
+  )
+}
+
+export function RoundedFlipsTh(props) {
+  return <FlipsTh bg="none" position="relative" {...props} />
+}
+
+export function FlipsThCorner(props) {
+  return (
+    <Box
+      position="absolute"
+      inset={0}
+      bg="gray.50"
+      w="full"
+      zIndex="hide"
       {...props}
     />
   )

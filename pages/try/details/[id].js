@@ -17,10 +17,12 @@ import {Page, PageTitle} from '../../../screens/app/components'
 import {
   DetailsPoints,
   FlipsTh,
+  FlipsThCorner,
   FlipsValueTd,
   FlipView,
   GetReasonDesc,
   LongFlipWithIcon,
+  RoundedFlipsTh,
   ShortFlipWithIcon,
 } from '../../../screens/try/components'
 import {getCertificate} from '../../../shared/api/self'
@@ -124,12 +126,16 @@ export default function Details() {
             </Heading>
             <Flex>
               <Table>
-                <Thead bg="gray.50">
+                <Thead>
                   <Tr>
-                    <FlipsTh>Flips</FlipsTh>
-                    <FlipsTh textAlign="right" w={20}>
+                    <RoundedFlipsTh>
+                      Flips
+                      <FlipsThCorner borderLeftRadius="md" />
+                    </RoundedFlipsTh>
+                    <RoundedFlipsTh textAlign="right" w={20}>
                       Answers
-                    </FlipsTh>
+                      <FlipsThCorner borderRightRadius="md" />
+                    </RoundedFlipsTh>
                   </Tr>
                 </Thead>
                 <Tbody>
@@ -175,12 +181,18 @@ export default function Details() {
             </Heading>
             <Flex>
               <Table style={{tableLayout: 'fixed'}}>
-                <Thead bg="gray.50">
+                <Thead>
                   <Tr>
-                    <FlipsTh w="35%">Flips</FlipsTh>
+                    <RoundedFlipsTh w="35%">
+                      Flips
+                      <FlipsThCorner borderLeftRadius="md" />
+                    </RoundedFlipsTh>
                     <FlipsTh w={28}>Answers</FlipsTh>
                     <FlipsTh>Qualification</FlipsTh>
-                    <FlipsTh>Reason</FlipsTh>
+                    <RoundedFlipsTh>
+                      Reason
+                      <FlipsThCorner borderRightRadius="md" />
+                    </RoundedFlipsTh>
                   </Tr>
                 </Thead>
                 <Tbody>
