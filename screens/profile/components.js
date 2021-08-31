@@ -11,7 +11,6 @@ import {
   FormControl,
   Box,
   Flex,
-  Textarea,
   Button,
   Text,
   Switch,
@@ -22,7 +21,7 @@ import {
   useToast,
   Link,
   RadioGroup,
-  Spacer,
+  Divider,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
@@ -39,6 +38,7 @@ import {
   DrawerFooter,
   Toast,
   FormControlWithLabel,
+  TextLink,
 } from '../../shared/components/components'
 import {rem} from '../../shared/theme'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
@@ -72,7 +72,11 @@ import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {activateMiningMachine} from './machines'
 import {fetchBalance} from '../../shared/api/wallet'
-import {LaptopIcon, UserIcon} from '../../shared/components/icons'
+import {
+  LaptopIcon,
+  TestValidationIcon,
+  UserIcon,
+} from '../../shared/components/icons'
 
 export function UserInlineCard({address, state, ...props}) {
   return (
@@ -271,14 +275,22 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
             </Stack>
           </FormControl>
         )}
-        <PrimaryButton
-          isLoading={mining}
-          loadingText={t('Mining...')}
-          type="submit"
-          ml="auto"
-        >
-          {t('Activate invite')}
-        </PrimaryButton>
+        <Flex>
+          <Flex ml="auto" alignItems="center">
+            <TextLink href="/try" fontWeight={500} mr={4}>
+              <TestValidationIcon boxSize={5} mr={1} />
+              {t('Test validation')}
+            </TextLink>
+            <Divider borderColor="gray.100" orientation="vertical" mr={4} />
+            <PrimaryButton
+              isLoading={mining}
+              loadingText={t('Mining...')}
+              type="submit"
+            >
+              {t('Activate invite')}
+            </PrimaryButton>
+          </Flex>
+        </Flex>
       </Stack>
     </Box>
   )
