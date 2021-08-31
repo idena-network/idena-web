@@ -233,8 +233,8 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
           <FormControl>
             <Stack spacing={3}>
               <Flex justify="space-between" align="center">
-                <FormLabel htmlFor="code" p={0}>
-                  {t('Invitation code')}
+                <FormLabel htmlFor="code" p={0} m={0}>
+                  {t('Enter invitation code')}
                 </FormLabel>
                 <Button
                   variant="ghost"
