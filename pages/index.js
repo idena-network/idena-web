@@ -180,7 +180,7 @@ export default function ProfilePage() {
       <Page>
         <PageTitle mb={8}>{t('Profile')}</PageTitle>
         <Stack isInline spacing={10}>
-          <Stack spacing={8} w="md" ref={activateInviteRef}>
+          <Stack spacing={8} w={480} ref={activateInviteRef}>
             <UserInlineCard address={coinbase} state={state} h={24} />
             {canActivateInvite && (
               <Box>
@@ -354,8 +354,8 @@ export default function ProfilePage() {
               </UserStat>
             </UserStatList>
           </Stack>
-          <Stack spacing={10} w={48}>
-            <Box minH={62} mt={4}>
+          <Stack spacing={10} w={200}>
+            <Box minH={62} mt={6}>
               <OnboardingPopover
                 isOpen={eitherOnboardingState(
                   onboardingShowingStep(OnboardingStep.ActivateMining)
@@ -401,6 +401,12 @@ export default function ProfilePage() {
             </Box>
             <Stack spacing={1} align="flex-start">
               <IconButton
+                onClick={() => router.push('/try')}
+                icon={<TestValidationIcon boxSize={5} />}
+              >
+                {t('Test validation')}
+              </IconButton>
+              <IconButton
                 onClick={() => router.push('/flips/new')}
                 icon={<PhotoIcon boxSize={5} />}
               >
@@ -412,12 +418,6 @@ export default function ProfilePage() {
                 icon={<AddUserIcon boxSize={5} />}
               >
                 {t('Invite')}
-              </IconButton>
-              <IconButton
-                onClick={() => router.push('/try')}
-                icon={<TestValidationIcon boxSize={5} />}
-              >
-                {t('Test validation')}
               </IconButton>
               <IconButton
                 isDisabled={!canTerminate}
