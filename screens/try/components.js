@@ -388,7 +388,7 @@ export function LongFlipWithIcon({hash, onClick}) {
             {isLoading ? <Skeleton w={10} h={3} /> : getWords()}
           </Flex>
           <Flex color="blue.500" fontWeight={500}>
-            {hash}
+            <Text isTruncated>{hash}</Text>
           </Flex>
         </Flex>
       </Flex>
