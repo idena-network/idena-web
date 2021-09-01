@@ -37,11 +37,13 @@ export function useLocalStorageLogger(name) {
 
   const info = data => {
     try {
-      logs.push(JSON.stringify(redact(data)))
-      localStorage.setItem(name, JSON.stringify(logs))
+      const newLogs = [...logs, JSON.stringify(redact(data))]
+      localStorage.setItem(name, JSON.stringify(newLogs))
+      setLogs(newLogs)
     } catch {
       console.error('cannot write logs to localStorage')
     }
   }
+
   return info
 }
