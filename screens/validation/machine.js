@@ -457,6 +457,10 @@ export const createValidationMachine = ({
                                 }),
                               ],
                             },
+                            onError: {
+                              target: 'fetching',
+                              actions: log(),
+                            },
                           },
                         },
                       },
