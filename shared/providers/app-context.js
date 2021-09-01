@@ -27,6 +27,19 @@ export function AppProvider(props) {
 
   const epoch = useEpoch()
 
+  // clear old validation logs
+  useEffect(() => {
+    if (epoch) {
+      try {
+        for (let i = epoch.epoch - 10; i < epoch.epoch - 1; i += 1) {
+          localStorage.removeItem(`logs-validation-${i}`)
+        }
+      } catch (e) {
+        console.error(e)
+      }
+    }
+  }, [epoch])
+
   useEffect(() => {
     if (epoch && didValidate(epoch.epoch) && !didArchiveFlips(epoch.epoch)) {
       archiveFlips()
