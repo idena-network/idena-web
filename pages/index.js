@@ -308,6 +308,28 @@ export default function ProfilePage() {
                       </UserStatValue>
                     </AnnotatedUserStat>
                   )}
+
+                  {stake > 0 && (
+                    <AnnotatedUserStat
+                      annotation={t(
+                        'You need to get Verified status to be able to terminate your identity and withdraw the stake'
+                      )}
+                      label={t('Stake')}
+                      value={toDna(
+                        stake * (state === IdentityStatus.Newbie ? 0.25 : 1)
+                      )}
+                    />
+                  )}
+
+                  {stake > 0 && state === IdentityStatus.Newbie && (
+                    <AnnotatedUserStat
+                      annotation={t(
+                        'You need to get Verified status to get the locked funds into the normal wallet'
+                      )}
+                      label={t('Locked')}
+                      value={toDna(stake * 0.75)}
+                    />
+                  )}
                 </UserStatList>
               )}
             <UserStatList title={t('Wallets')}>
@@ -329,28 +351,6 @@ export default function ProfilePage() {
                   </Stack>
                 </TextLink>
               </UserStat>
-
-              {stake > 0 && (
-                <AnnotatedUserStat
-                  annotation={t(
-                    'You need to get Verified status to be able to terminate your identity and withdraw the stake'
-                  )}
-                  label={t('Stake')}
-                  value={toDna(
-                    stake * (state === IdentityStatus.Newbie ? 0.25 : 1)
-                  )}
-                />
-              )}
-
-              {stake > 0 && state === IdentityStatus.Newbie && (
-                <AnnotatedUserStat
-                  annotation={t(
-                    'You need to get Verified status to get the locked funds into the normal wallet'
-                  )}
-                  label={t('Locked')}
-                  value={toDna(stake * 0.75)}
-                />
-              )}
             </UserStatList>
           </Stack>
           <Stack spacing={10} w={48}>
