@@ -1,8 +1,9 @@
 import axios from 'axios'
 
-export async function requestTestValidation(type, coinbase) {
+export async function requestTestValidation(signature, coinbase, type) {
   const {data} = await axios.post('/api/validation/start', {
     type,
+    signature,
     coinbase,
   })
 
@@ -37,11 +38,12 @@ export async function getHashes(id, type) {
   return data
 }
 
-export async function submitAnswers(id, type, answers) {
+export async function submitAnswers(signature, id, type, answers) {
   const {data} = await axios.post('/api/validation/submit', {
     id,
     type,
     answers,
+    signature,
   })
 
   return data
@@ -58,6 +60,24 @@ export async function getResult(id) {
 export async function getCertificate(id, full = false) {
   const {data} = await axios.get('/api/validation/certificate', {
     params: {id, full: full ? 1 : 0},
+  })
+
+  return data
+}
+
+export async function persistTestValidation(signature, coinbase, data) {
+  await axios.post('/api/validation/storage/persist', {
+    data,
+    signature,
+    coinbase,
+  })
+
+  return data
+}
+
+export async function restoreTestValidation(signature, coinbase) {
+  const {data} = await axios.get('/api/validation/storage/restore', {
+    params: {signature, coinbase},
   })
 
   return data

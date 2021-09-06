@@ -1,11 +1,17 @@
 import {query as q} from 'faunadb'
 import {v4 as uuidv4} from 'uuid'
 import {shuffle} from '../../../shared/utils/arr'
+import {checkSignature} from '../../../shared/utils/crypto'
 import {faunaClient} from '../../../shared/utils/faunadb'
 
 export default async (req, res) => {
   try {
-    const {type, coinbase} = req.body
+    const {type, coinbase, signature} = req.body
+
+    const recoveredCoinbase = checkSignature(coinbase, signature)?.toLowerCase()
+
+    if (!recoveredCoinbase || coinbase !== recoveredCoinbase)
+      throw new Error('signature is invalid')
 
     const {data} = await faunaClient.query(
       q.Paginate(q.Match(q.Index('flip_hashes')), {size: 500})

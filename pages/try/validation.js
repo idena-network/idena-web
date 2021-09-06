@@ -21,6 +21,8 @@ import {
 import {getFlip, getHashes, submitAnswers} from '../../shared/api/self'
 import {RelevanceType, SessionType} from '../../shared/types'
 import {toBlob} from '../../shared/utils/utils'
+import {signMessage} from '../../shared/utils/crypto'
+import {toHexString} from '../../shared/utils/buffers'
 
 export default function TrainingPage() {
   const {auth, privateKey, coinbase} = useAuthState()
@@ -144,7 +146,14 @@ function ValidationSession({
           hash,
         }))
 
-        return submitAnswers(id, SessionType.Short, answers)
+        const signature = signMessage(id, privateKey)
+
+        return submitAnswers(
+          toHexString(signature),
+          id,
+          SessionType.Short,
+          answers
+        )
       },
       submitLongAnswers: ({longFlips}) => {
         const answers = longFlips.map(
@@ -155,7 +164,14 @@ function ValidationSession({
           })
         )
 
-        return submitAnswers(id, SessionType.Long, answers)
+        const signature = signMessage(id, privateKey)
+
+        return submitAnswers(
+          toHexString(signature),
+          id,
+          SessionType.Long,
+          answers
+        )
       },
     },
   })

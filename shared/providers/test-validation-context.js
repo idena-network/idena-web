@@ -1,11 +1,19 @@
 import dayjs from 'dayjs'
 import {useContext, createContext, useState, useEffect} from 'react'
-import {getResult, requestTestValidation} from '../api/self'
+import {
+  getResult,
+  persistTestValidation,
+  requestTestValidation,
+  restoreTestValidation,
+} from '../api/self'
 import {useInterval} from '../hooks/use-interval'
 
 import {usePersistence} from '../hooks/use-persistent-state'
 import {CertificateActionType, CertificateType, EpochPeriod} from '../types'
+import {toHexString} from '../utils/buffers'
+import {signMessage} from '../utils/crypto'
 import {loadPersistentState} from '../utils/persist'
+import {useAuthState} from './auth-context'
 
 const TestValidationStateContext = createContext()
 const TestVlidationDispatchContext = createContext()
@@ -54,12 +62,17 @@ const getEpochPeriod = time => {
   return EpochPeriod.None
 }
 
+const localStorageKey = coinbase => `test-validation-${coinbase}`
+
 // eslint-disable-next-line react/prop-types
 function TestValidationProvider({children}) {
+  const {coinbase, privateKey} = useAuthState()
+
   const [state, setState] = usePersistence(
     useState(
       () =>
-        loadPersistentState('test-validation') || {
+        loadPersistentState(localStorageKey(coinbase)) || {
+          timestamp: 0,
           validations: {
             [CertificateType.Beginner]: initValue,
             [CertificateType.Master]: initValue,
@@ -67,14 +80,56 @@ function TestValidationProvider({children}) {
           },
         }
     ),
-    'test-validation'
+    localStorageKey(coinbase)
   )
+
+  useEffect(() => {
+    async function persist() {
+      try {
+        const signature = signMessage(coinbase, privateKey)
+        await persistTestValidation(toHexString(signature), coinbase, state)
+      } catch (e) {
+        console.error('cannot persist test validation', e)
+      }
+    }
+
+    if (coinbase && state.timestamp && state.shouldPersist) {
+      persist()
+    }
+  }, [coinbase, privateKey, state])
+
+  useEffect(() => {
+    async function load() {
+      try {
+        const signature = signMessage(coinbase, privateKey)
+        const persistedState = await restoreTestValidation(
+          toHexString(signature),
+          coinbase
+        )
+
+        if (persistedState) {
+          setState(prevState => {
+            if (prevState.timestamp <= persistedState.timestamp)
+              return {...persistedState, shouldPersist: false}
+            return {...prevState, shouldPersist: false}
+          })
+        }
+        // eslint-disable-next-line no-empty
+      } catch {}
+    }
+
+    if (coinbase) {
+      load()
+    }
+  }, [coinbase, privateKey, setState])
 
   const checkValidation = async id => {
     const result = await getResult(id)
 
     setState(prevState => ({
       ...prevState,
+      timestamp: new Date().getTime(),
+      shouldPersist: true,
       current: null,
       validations: {
         ...prevState.validations,
@@ -86,10 +141,17 @@ function TestValidationProvider({children}) {
     }))
   }
 
-  const scheduleValidation = async (type, coinbase) => {
-    const {id, startTime} = await requestTestValidation(type, coinbase)
+  const scheduleValidation = async type => {
+    const signature = signMessage(coinbase, privateKey)
+    const {id, startTime} = await requestTestValidation(
+      toHexString(signature),
+      coinbase,
+      type
+    )
     setState(prevState => ({
       ...prevState,
+      timestamp: new Date().getTime(),
+      shouldPersist: true,
       current: {
         period: EpochPeriod.None,
         type,
@@ -113,6 +175,8 @@ function TestValidationProvider({children}) {
       if (newPeriod !== state.current.period) {
         setState({
           ...state,
+          timestamp: new Date().getTime(),
+          shouldPersist: true,
           current: {
             ...state.current,
             period: newPeriod,
@@ -134,6 +198,8 @@ function TestValidationProvider({children}) {
 
       setState(prevState => ({
         ...prevState,
+        timestamp: new Date().getTime(),
+        shouldPersist: true,
         current: null,
         validations: {
           ...prevState.validations,

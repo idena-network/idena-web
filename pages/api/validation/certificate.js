@@ -1,5 +1,4 @@
 import {query as q} from 'faunadb'
-import {CertificateActionType} from '../../../shared/types'
 import {faunaClient} from '../../../shared/utils/faunadb'
 
 export default async (req, res) => {

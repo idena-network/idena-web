@@ -723,7 +723,6 @@ export function TimerClock({duration, color}) {
   )
 
   React.useEffect(() => {
-    console.log('SET TIMER CLOCK UPDATE', duration)
     send('DURATION_UPDATE', {duration})
   }, [duration, send])
 

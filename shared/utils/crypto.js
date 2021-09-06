@@ -19,6 +19,10 @@ export function privateKeyToPublicKey(key) {
   return toHexString(pubKey, true)
 }
 
+function pubKeyToAddr(pubKey) {
+  return toHexString(sha3.keccak_256.array(pubKey.slice(1)).slice(12), true)
+}
+
 export function privateKeyToAddress(key) {
   if (!key) {
     return '0x0000000000000000000000000000000000000000'
@@ -28,7 +32,7 @@ export function privateKeyToAddress(key) {
     .getPublic()
     .encode('array')
 
-  return toHexString(sha3.keccak_256.array(pubKey.slice(1)).slice(12), true)
+  return pubKeyToAddr(pubKey)
 }
 
 export function generatePrivateKey() {
@@ -215,4 +219,27 @@ export function signMessage(data, key) {
   )
 
   return Buffer.from([...signature, recid])
+}
+
+export function checkSignature(data, signature) {
+  try {
+    const hash = sha3.keccak_256.array(data)
+
+    const sigArr =
+      typeof signature === 'string'
+        ? hexToUint8Array(signature)
+        : new Uint8Array(signature)
+
+    const pubKey = secp256k1.ecdsaRecover(
+      sigArr.slice(0, sigArr.length - 1),
+      sigArr[sigArr.length - 1],
+      new Uint8Array(hash),
+      false
+    )
+
+    return pubKeyToAddr(pubKey)
+  } catch (e) {
+    console.log(e)
+    return null
+  }
 }

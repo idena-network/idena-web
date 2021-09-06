@@ -82,7 +82,6 @@ export function CertificateCard({
   ...props
 }) {
   const {t} = useTranslation()
-  const {coinbase} = useAuthState()
   const [waiting, setWaiting] = useState(false)
 
   const {scheduleValidation} = useTestValidationDispatch()
@@ -90,7 +89,7 @@ export function CertificateCard({
   const schedule = async () => {
     try {
       setWaiting(true)
-      await scheduleValidation(type, coinbase)
+      await scheduleValidation(type)
     } catch (e) {
       console.error(e)
     } finally {
