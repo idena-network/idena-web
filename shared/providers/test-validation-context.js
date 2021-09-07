@@ -84,7 +84,7 @@ function TestValidationProvider({children}) {
     if (coinbase) {
       const prevState = loadPersistentState(localStorageKey(coinbase))
       if (prevState) {
-        setState(prevState)
+        setState({...prevState, shouldPersist: false})
       }
     }
   }, [coinbase, setState])
