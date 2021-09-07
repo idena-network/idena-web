@@ -1,12 +1,13 @@
 import {CloseButton, Flex, Heading, Stack} from '@chakra-ui/react'
+import dayjs from 'dayjs'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
 import {Page} from '../../screens/app/components'
 import {CertificateCard} from '../../screens/try/components'
+import {GetNextUTCValidationDate} from '../../screens/try/utils'
 import {Avatar} from '../../shared/components/components'
 import Layout from '../../shared/components/layout'
 import {useAuthState} from '../../shared/providers/auth-context'
-import {useTestValidationState} from '../../shared/providers/test-validation-context'
 import {CertificateType} from '../../shared/types'
 
 export default function Try() {
@@ -14,12 +15,10 @@ export default function Try() {
   const router = useRouter()
   const {coinbase} = useAuthState()
 
-  const testValidationState = useTestValidationState()
-
   return (
     <Layout>
       <Page p={0}>
-        <Flex direction="column" flex={1} alignSelf="stretch">
+        <Flex direction="column" flex={1} alignSelf="stretch" pb={10}>
           <Flex
             align="center"
             alignSelf="stretch"
@@ -57,18 +56,38 @@ export default function Try() {
               }}
             />
           </Flex>
-          <Stack width="480px">
+          <Stack width="480px" spacing={5}>
             <CertificateCard
               title={t('Beginner')}
               description={t(
                 'Try to pass the validation ceremony immediately.'
               )}
-              id={testValidationState.validations[CertificateType.Beginner].id}
+              trustLevel={t('Low')}
+              scheduleText={t('Immediately')}
               type={CertificateType.Beginner}
-              actionType={
-                testValidationState.validations[CertificateType.Beginner]
-                  .actionType
-              }
+              certificateColor="red.500"
+            />
+            <CertificateCard
+              title={t('Expert')}
+              description={t(
+                'Schedule your next validation ceremony and join exactly on time.'
+              )}
+              trustLevel={t('Middle')}
+              scheduleText={t('In 1 hour')}
+              type={CertificateType.Expert}
+              certificateColor="gray.500"
+            />
+            <CertificateCard
+              title={t('Master')}
+              description={t(
+                'Plan your validation in advance and join on certain time universal for all network participants.'
+              )}
+              trustLevel={t('High')}
+              scheduleText={`${dayjs(GetNextUTCValidationDate()).format(
+                'D MMM HH:mm'
+              )} UTC`}
+              type={CertificateType.Master}
+              certificateColor="orange.500"
             />
           </Stack>
         </Flex>

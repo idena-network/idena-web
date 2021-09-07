@@ -87,8 +87,8 @@ export const OnboardingStep = {
 
 export const CertificateType = {
   Beginner: 0,
-  Master: 1,
-  Expert: 2,
+  Expert: 1,
+  Master: 2,
 }
 
 export const CertificateActionType = {

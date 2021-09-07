@@ -69,19 +69,25 @@ function TestValidationProvider({children}) {
   const {coinbase, privateKey} = useAuthState()
 
   const [state, setState] = usePersistence(
-    useState(
-      () =>
-        loadPersistentState(localStorageKey(coinbase)) || {
-          timestamp: 0,
-          validations: {
-            [CertificateType.Beginner]: initValue,
-            [CertificateType.Master]: initValue,
-            [CertificateType.Expert]: initValue,
-          },
-        }
-    ),
+    useState({
+      timestamp: 0,
+      validations: {
+        [CertificateType.Beginner]: initValue,
+        [CertificateType.Master]: initValue,
+        [CertificateType.Expert]: initValue,
+      },
+    }),
     localStorageKey(coinbase)
   )
+
+  useEffect(() => {
+    if (coinbase) {
+      const prevState = loadPersistentState(localStorageKey(coinbase))
+      if (prevState) {
+        setState(prevState)
+      }
+    }
+  }, [coinbase, setState])
 
   useEffect(() => {
     async function persist() {
@@ -168,6 +174,21 @@ function TestValidationProvider({children}) {
     }))
   }
 
+  const cancelValidation = async type => {
+    setState(prevState => ({
+      ...prevState,
+      timestamp: new Date().getTime(),
+      shouldPersist: true,
+      current: null,
+      validations: {
+        ...prevState.validations,
+        [type]: {
+          actionType: CertificateActionType.None,
+        },
+      },
+    }))
+  }
+
   useInterval(
     () => {
       if (!state.current) return
@@ -226,7 +247,7 @@ function TestValidationProvider({children}) {
   return (
     <TestValidationStateContext.Provider value={{...state, epoch}}>
       <TestVlidationDispatchContext.Provider
-        value={{scheduleValidation, checkValidation}}
+        value={{scheduleValidation, checkValidation, cancelValidation}}
       >
         {children}
       </TestVlidationDispatchContext.Provider>

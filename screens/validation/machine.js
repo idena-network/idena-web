@@ -1528,7 +1528,6 @@ export const createValidationMachine = ({
               return translations
             }, translations),
         }),
-        onValidationFailed: () => {},
       },
       guards: {
         didFetchShortFlips: ({shortFlips}) => {

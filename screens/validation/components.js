@@ -826,7 +826,7 @@ export function ValidationToast({
       return (
         <ValidationSoonToast
           validationStart={nextValidation}
-          isTestValidation
+          isTestValidation={isTestValidation}
         />
       )
     case EpochPeriod.ShortSession:

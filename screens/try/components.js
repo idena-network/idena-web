@@ -1,8 +1,16 @@
 /* eslint-disable react/prop-types */
-import {WarningIcon} from '@chakra-ui/icons'
+import {LockIcon, WarningIcon} from '@chakra-ui/icons'
 import {
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogCloseButton,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
   Avatar,
   Box,
+  Button,
   Divider,
   Flex,
   Heading,
@@ -11,9 +19,11 @@ import {
   Td,
   Text,
   Th,
+  useDisclosure,
   useTheme,
 } from '@chakra-ui/react'
-import {useEffect, useState} from 'react'
+import {useMachine} from '@xstate/react'
+import {useEffect, useMemo, useRef, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
 import {getFlip, getFlipCache} from '../../shared/api/self'
@@ -37,58 +47,87 @@ import {
   TimerIcon,
   WrongIcon,
 } from '../../shared/components/icons'
-import {useAuthState} from '../../shared/providers/auth-context'
-import {useTestValidationDispatch} from '../../shared/providers/test-validation-context'
+import {createTimerMachine} from '../../shared/machines'
+import {useNotificationDispatch} from '../../shared/providers/notification-context'
 import {
-  AnswerType,
-  CertificateActionType,
-  CertificateType,
-} from '../../shared/types'
+  useTestValidationDispatch,
+  useTestValidationState,
+} from '../../shared/providers/test-validation-context'
+import {AnswerType, CertificateActionType} from '../../shared/types'
 import {reorderList} from '../../shared/utils/arr'
 import {keywords} from '../../shared/utils/keywords'
 import {capitalize} from '../../shared/utils/string'
 import {toBlob} from '../../shared/utils/utils'
 
-function CertificateCardPanelItem({name, value}) {
+function CertificateCardPanelItem({title, children}) {
   return (
-    <Flex direction="column">
-      <Text color="muted">{name}</Text>
+    <Flex direction="column" flex={1}>
+      <Text color="muted">{title}</Text>
       <Text fontSize="base" fontWeight={500}>
-        {value}
+        {children}
       </Text>
     </Flex>
   )
 }
 
-function GetColor(type) {
-  switch (type) {
-    case CertificateType.Beginner:
-      return 'red.500'
-    case CertificateType.Master:
-      return 'gray.500'
-    case CertificateType.Expert:
-      return 'orange.500'
-    default:
-      return 'red.500'
-  }
+function Countdown({validationTime = 0}) {
+  const duration = Math.floor(
+    Math.max(validationTime - new Date().getTime(), 0) / 1000
+  )
+
+  const [state] = useMachine(
+    useMemo(() => createTimerMachine(duration), [duration])
+  )
+
+  return (
+    <Text fontSize="base" fontWeight={500}>
+      {state.matches('stopped') && '00:00:00'}
+      {state.matches('running') &&
+        [
+          Math.floor(duration / 3600),
+          Math.floor((duration % 3600) / 60),
+          duration % 60,
+        ]
+          .map(t => t.toString().padStart(2, 0))
+          .join(':')}
+    </Text>
+  )
 }
 
 export function CertificateCard({
-  id,
   title,
   description,
   type,
-  actionType,
+  trustLevel,
+  scheduleText,
+  certificateColor,
   ...props
 }) {
   const {t} = useTranslation()
   const [waiting, setWaiting] = useState(false)
 
-  const {scheduleValidation} = useTestValidationDispatch()
+  const {isOpen, onOpen, onClose} = useDisclosure()
+  const cancelRef = useRef()
+
+  const testValidationState = useTestValidationState()
+  const {scheduleValidation, cancelValidation} = useTestValidationDispatch()
+  const {addError} = useNotificationDispatch()
+
+  const {
+    validations: {[type]: cardValue},
+    current,
+  } = testValidationState
+
+  const isStarted = type === current?.type
 
   const schedule = async () => {
     try {
       setWaiting(true)
+      if (current) {
+        return addError({
+          title: 'Another validation is already requested!',
+        })
+      }
       await scheduleValidation(type)
     } catch (e) {
       console.error(e)
@@ -96,8 +135,6 @@ export function CertificateCard({
       setWaiting(false)
     }
   }
-
-  const color = GetColor(type)
 
   return (
     <Flex
@@ -107,11 +144,11 @@ export function CertificateCard({
       p={10}
       borderRadius="lg"
       borderTop="4px solid"
-      borderTopColor={color}
+      borderTopColor={certificateColor}
       {...props}
     >
       <Flex alignItems="center" mb={2}>
-        <CertificateStarIcon boxSize={4} color={color} />
+        <CertificateStarIcon boxSize={4} color={certificateColor} />
         <Heading
           as="h2"
           fontSize="lg"
@@ -126,19 +163,19 @@ export function CertificateCard({
       <Flex>
         <Text color="muted">{description}</Text>
       </Flex>
-      <Flex
-        bg="gray.50"
-        px={6}
-        py={5}
-        mt={6}
-        mb={2}
-        rounded="lg"
-        justifyContent="space-between"
-      >
-        <CertificateCardPanelItem name={t('Schedule')} value="Immediately" />
-        <CertificateCardPanelItem name={t('Trust level')} value="Low" />
+      <Flex bg="gray.50" px={6} py={5} mt={6} mb={2} rounded="lg">
+        <CertificateCardPanelItem title={t('Schedule')}>
+          {isStarted ? (
+            <Countdown validationTime={current?.startTime} />
+          ) : (
+            scheduleText
+          )}
+        </CertificateCardPanelItem>
+        <CertificateCardPanelItem title={t('Trust level')}>
+          {trustLevel}
+        </CertificateCardPanelItem>
       </Flex>
-      {actionType === CertificateActionType.None && (
+      {cardValue.actionType === CertificateActionType.None && (
         <Flex mt={4}>
           <PrimaryButton
             ml="auto"
@@ -150,7 +187,7 @@ export function CertificateCard({
           </PrimaryButton>
         </Flex>
       )}
-      {actionType === CertificateActionType.Passed && (
+      {cardValue.actionType === CertificateActionType.Passed && (
         <>
           <SuccessAlert>
             <Flex justifyContent="space-between" flex={1}>
@@ -158,7 +195,7 @@ export function CertificateCard({
               <Box>
                 <TextLink
                   href="/try/details/[id]"
-                  as={`/try/details/${id}`}
+                  as={`/try/details/${cardValue.id}`}
                   color="green.500"
                 >
                   Details
@@ -170,7 +207,7 @@ export function CertificateCard({
             <Flex ml="auto" alignItems="center">
               <TextLink
                 href="/certificate/[id]"
-                as={`/certificate/${id}`}
+                as={`/certificate/${cardValue.id}`}
                 fontWeight={500}
                 mr={4}
                 target="_blank"
@@ -190,7 +227,7 @@ export function CertificateCard({
           </Flex>
         </>
       )}
-      {actionType === CertificateActionType.Failed && (
+      {cardValue.actionType === CertificateActionType.Failed && (
         <>
           <ErrorAlert>
             <Flex justifyContent="space-between" flex={1}>
@@ -198,7 +235,7 @@ export function CertificateCard({
               <Box>
                 <TextLink
                   href="/try/details/[id]"
-                  as={`/try/details/${id}`}
+                  as={`/try/details/${cardValue.id}`}
                   color="red.500"
                 >
                   Details
@@ -219,7 +256,7 @@ export function CertificateCard({
           </Flex>
         </>
       )}
-      {actionType === CertificateActionType.Requested && (
+      {cardValue.actionType === CertificateActionType.Requested && (
         <Flex
           align="center"
           borderWidth="1px"
@@ -228,11 +265,65 @@ export function CertificateCard({
           rounded="md"
           bg="gray.50"
           p={2}
+          justify="space-between"
         >
-          <TimerIcon boxSize={4} color="muted" ml={1} mr={2} />
-          <Text>{t('Test was requested...')}</Text>
+          <Flex>
+            <TimerIcon boxSize={4} color="muted" ml={1} mr={2} />
+            <Text>{t('Test was requested...')}</Text>
+          </Flex>
+          <Button
+            onClick={onOpen}
+            isLoading={waiting}
+            loadingText={t('Canceling...')}
+            variant="outline"
+            fontWeight={500}
+            color="red.500"
+            border="none"
+            borderColor="transparent"
+            borderRadius="md"
+            justifyContent="flex-start"
+            _hover={{
+              bg: 'red.100',
+            }}
+          >
+            {t('Cancel')}
+          </Button>
         </Flex>
       )}
+
+      <AlertDialog
+        motionPreset="slideInBottom"
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+        isOpen={isOpen}
+        isCentered
+      >
+        <AlertDialogOverlay />
+
+        <AlertDialogContent>
+          <AlertDialogHeader>{t('Cancel validation?')}</AlertDialogHeader>
+          <AlertDialogCloseButton />
+          <AlertDialogBody>
+            {t('Are you shure you want to cancel scheduled validation?')}
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <SecondaryButton ref={cancelRef} onClick={onClose}>
+              No
+            </SecondaryButton>
+            <PrimaryButton
+              variant="solid"
+              colorScheme="red"
+              ml={3}
+              onClick={() => {
+                cancelValidation(type)
+                onClose()
+              }}
+            >
+              Yes
+            </PrimaryButton>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Flex>
   )
 }

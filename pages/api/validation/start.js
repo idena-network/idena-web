@@ -1,8 +1,25 @@
 import {query as q} from 'faunadb'
 import {v4 as uuidv4} from 'uuid'
+import {CertificateType} from '../../../shared/types'
 import {shuffle} from '../../../shared/utils/arr'
 import {checkSignature} from '../../../shared/utils/crypto'
 import {faunaClient} from '../../../shared/utils/faunadb'
+
+function calcValidationStart(type) {
+  const dt = new Date()
+  switch (type) {
+    case CertificateType.Beginner:
+      return dt.setMinutes(dt.getMinutes() + 1)
+    case CertificateType.Expert:
+      return dt.setHours(dt.getHours() + 1)
+    case CertificateType.Master: {
+      dt.setDate(dt.getDate() + 1)
+      return dt.setUTCHours(13, 0, 0, 0)
+    }
+    default:
+      return 0
+  }
+}
 
 export default async (req, res) => {
   try {
@@ -43,12 +60,10 @@ export default async (req, res) => {
         .concat(c.slice(0, 3))
     )
 
-    const dt = new Date()
-
     const result = {
       id: uuidv4(),
       coinbase,
-      time: dt.setMinutes(dt.getMinutes() + 1),
+      time: calcValidationStart(type),
       shortFlips,
       longFlips,
       type,
