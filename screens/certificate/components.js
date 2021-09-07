@@ -31,18 +31,19 @@ export function CertificateTypeLabel({type}) {
           Beginner
         </CertificateTypeLabelLayout>
       )
-    case CertificateType.Master:
-      return (
-        <CertificateTypeLabelLayout bg="gray.500">
-          Master
-        </CertificateTypeLabelLayout>
-      )
     case CertificateType.Expert:
       return (
-        <CertificateTypeLabelLayout bg="orange.500">
+        <CertificateTypeLabelLayout bg="gray.500">
           Expert
         </CertificateTypeLabelLayout>
       )
+    case CertificateType.Master:
+      return (
+        <CertificateTypeLabelLayout bg="orange.500">
+          Master
+        </CertificateTypeLabelLayout>
+      )
+
     default:
       return (
         <Skeleton
