@@ -85,7 +85,7 @@ export default function Try() {
               trustLevel={t('High')}
               scheduleText={`${dayjs(GetNextUTCValidationDate()).format(
                 'D MMM HH:mm'
-              )} UTC`}
+              )}`}
               type={CertificateType.Master}
               certificateColor="orange.500"
             />

@@ -123,3 +123,5 @@ export const openExternalUrl = href => {
 }
 
 export const toBlob = base64 => fetch(base64).then(res => res.blob())
+
+export const isVercelProduction = process.env.VERCEL_ENV === 'production'

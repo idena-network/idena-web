@@ -191,7 +191,12 @@ function TestValidationProvider({children}) {
 
   useInterval(
     () => {
-      if (!state.current) return
+      if (
+        !state.current ||
+        state.current.startTime - TEST_FLIP_LOTTERY_INTERVAL_SEC * 1000 >
+          new Date().getTime()
+      )
+        return
       const newPeriod = getEpochPeriod(state.current.startTime)
       if (newPeriod !== state.current.period) {
         setState({
@@ -205,11 +210,7 @@ function TestValidationProvider({children}) {
         })
       }
     },
-    state.current &&
-      state.current.startTime - TEST_FLIP_LOTTERY_INTERVAL_SEC * 1000 <
-        new Date().getTime()
-      ? 1000
-      : null,
+    state.current ? 1000 : null,
     false
   )
 

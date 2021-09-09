@@ -1,9 +1,25 @@
 import {query as q} from 'faunadb'
 import {v4 as uuidv4} from 'uuid'
+import {GetNextUTCValidationDate} from '../../../screens/try/utils'
 import {CertificateType} from '../../../shared/types'
 import {shuffle} from '../../../shared/utils/arr'
 import {checkSignature} from '../../../shared/utils/crypto'
 import {faunaClient} from '../../../shared/utils/faunadb'
+import {isVercelProduction} from '../../../shared/utils/utils'
+
+function calcDevValidationStart(type) {
+  const dt = new Date()
+  switch (type) {
+    case CertificateType.Beginner:
+      return dt.setMinutes(dt.getMinutes() + 1)
+    case CertificateType.Expert:
+      return dt.setMinutes(dt.getMinutes() + 30)
+    case CertificateType.Master:
+      return dt.setHours(dt.getHours() + 1)
+    default:
+      return 0
+  }
+}
 
 function calcValidationStart(type) {
   const dt = new Date()
@@ -13,8 +29,7 @@ function calcValidationStart(type) {
     case CertificateType.Expert:
       return dt.setHours(dt.getHours() + 1)
     case CertificateType.Master: {
-      dt.setDate(dt.getDate() + 1)
-      return dt.setUTCHours(13, 0, 0, 0)
+      return GetNextUTCValidationDate().getTime()
     }
     default:
       return 0
@@ -63,16 +78,35 @@ export default async (req, res) => {
     const result = {
       id: uuidv4(),
       coinbase,
-      time: calcValidationStart(type),
+      time: isVercelProduction
+        ? calcValidationStart(type)
+        : calcDevValidationStart(type),
       shortFlips,
       longFlips,
       type,
+      active: true,
     }
 
     await faunaClient.query(
-      q.Create(q.Collection('validations'), {
-        data: result,
-      })
+      q.Do(
+        q.Map(
+          q.Paginate(
+            q.Match(
+              q.Index('validation_by_coinbase_type_active'),
+              coinbase,
+              type,
+              true
+            ),
+            {
+              size: 10,
+            }
+          ),
+          q.Lambda('ref', q.Update(q.Var('ref'), {data: {active: false}}))
+        ),
+        q.Create(q.Collection('validations'), {
+          data: result,
+        })
+      )
     )
 
     return res.status(200).json({id: result.id, startTime: result.time})

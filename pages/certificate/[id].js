@@ -1,45 +1,22 @@
+/* eslint-disable react/prop-types */
 import {Box, Divider, Flex, Heading, Image, Stack} from '@chakra-ui/react'
-import {useRouter} from 'next/router'
-import {useEffect} from 'react'
 import {useQuery} from 'react-query'
 import {CertificateTypeLabel} from '../../screens/certificate/components'
 import {fetchIdentity} from '../../shared/api'
-import {getCertificate} from '../../shared/api/self'
 import {Avatar, Skeleton} from '../../shared/components/components'
 import {TelegramIcon} from '../../shared/components/icons'
-import {CertificateActionType} from '../../shared/types'
 import {mapIdentityToFriendlyStatus, toPercent} from '../../shared/utils/utils'
+import {getCertificateData} from '../api/validation/certificate'
 
-export default function Certificate() {
-  const router = useRouter()
-  const {id} = router.query
-
-  const {data, isLoading: certificateIsLoading, isError} = useQuery(
-    ['get-certificate', id],
-    () => getCertificate(id),
-    {
-      enabled: !!id,
-      retry: false,
-      refetchOnWindowFocus: false,
-    }
-  )
-
+export default function Certificate({certificate}) {
   const {data: identity, isLoading: identityIsLoading} = useQuery(
-    ['fetch-identity', data?.coinbase],
-    () => fetchIdentity(data.coinbase, true),
+    ['fetch-identity', certificate.coinbase],
+    () => fetchIdentity(certificate.coinbase, true),
     {
-      enabled: !!data?.coinbase,
       retry: false,
       refetchOnWindowFocus: false,
     }
   )
-
-  const isLoading = certificateIsLoading || identityIsLoading
-
-  useEffect(() => {
-    if (isError || (data && data.actionType !== CertificateActionType.Passed))
-      router.push('/')
-  }, [data, isError, router])
 
   return (
     <Flex
@@ -60,7 +37,7 @@ export default function Certificate() {
         overflow="hidden"
         position="relative"
       >
-        <CertificateTypeLabel type={isLoading ? null : data?.type} />
+        <CertificateTypeLabel type={certificate.type} />
         <Stack spacing={8} alignItems="center" px={10}>
           <Image ignoreFallback src="/static/idena-logo-round.svg" h={16} />
           <Heading fontSize="lg" fontWeight="500">
@@ -77,58 +54,43 @@ export default function Certificate() {
           >
             <Flex justifyContent="space-between">
               <Box>Short session score</Box>
-              <Box>
-                {isLoading ? (
-                  <Skeleton w={10} h={4} />
-                ) : (
-                  data && toPercent(data.shortScore / 6)
-                )}
-              </Box>
+              <Box>{toPercent(certificate.shortScore / 6)}</Box>
             </Flex>
             <Flex justifyContent="space-between">
               <Box>Long session score</Box>
-              <Box>
-                {isLoading ? (
-                  <Skeleton w={10} h={4} />
-                ) : (
-                  data && toPercent(data.longScore / 18)
-                )}
-              </Box>
+              <Box>{toPercent(certificate.longScore / 18)}</Box>
             </Flex>
             <Flex justifyContent="space-between">
               <Box>Reporting score</Box>
-              <Box>
-                {isLoading ? (
-                  <Skeleton w={10} h={4} />
-                ) : (
-                  data && toPercent(data.reportScore / 6)
-                )}
-              </Box>
+              <Box>{toPercent(certificate.reportScore / 6)}</Box>
             </Flex>
           </Stack>
-          {isLoading ? (
-            <Skeleton w={240} h={8} />
-          ) : (
-            <Stack isInline spacing={3} align="center" w={240}>
-              <Avatar size={8} address={data?.coinbase} />
-              <Stack spacing={0} overflow="hidden" w="100%">
-                <Heading fontSize="md" fontWeight={500}>
-                  {mapIdentityToFriendlyStatus(identity?.state)}
+
+          <Stack isInline spacing={3} align="center" w={240}>
+            <Avatar size={8} address={certificate.coinbase} />
+
+            <Stack spacing={0} overflow="hidden" w="100%">
+              {identityIsLoading ? (
+                <Skeleton h={4} w={20}></Skeleton>
+              ) : (
+                <Heading fontSize="md" fontWeight={500} lineHeight={4}>
+                  {mapIdentityToFriendlyStatus(identity?.state || 'Undefined')}
                 </Heading>
-                <Heading
-                  fontSize="sm"
-                  textOverflow="ellipsis"
-                  overflow="hidden"
-                  whiteSpace="nowrap"
-                  fontWeight={500}
-                  color="muted"
-                  lineHeight="shorter"
-                >
-                  {data?.coinbase}
-                </Heading>
-              </Stack>
+              )}
+              <Heading
+                fontSize="sm"
+                textOverflow="ellipsis"
+                overflow="hidden"
+                whiteSpace="nowrap"
+                fontWeight={500}
+                color="muted"
+                lineHeight="shorter"
+              >
+                {certificate.coinbase}
+              </Heading>
             </Stack>
-          )}
+          </Stack>
+
           <Divider></Divider>
         </Stack>
         <Flex
@@ -138,11 +100,7 @@ export default function Certificate() {
           alignItems="center"
         >
           <Box fontSize="md" color="muted" lineHeight={4}>
-            {isLoading ? (
-              <Skeleton w={20} h={4} />
-            ) : (
-              new Date(data?.timestamp).toLocaleDateString()
-            )}
+            {new Date(certificate.timestamp).toLocaleDateString()}
           </Box>
           <Flex>
             <TelegramIcon boxSize={4}></TelegramIcon>
@@ -151,4 +109,22 @@ export default function Certificate() {
       </Flex>
     </Flex>
   )
+}
+
+export async function getServerSideProps({params}) {
+  try {
+    const certificate = await getCertificateData(params.id)
+    if (!certificate.active) {
+      throw new Error('ceriticate is expired')
+    }
+    return {
+      props: {
+        certificate,
+      },
+    }
+  } catch {
+    return {
+      notFound: true,
+    }
+  }
 }
