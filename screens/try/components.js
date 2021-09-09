@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import {LockIcon, WarningIcon} from '@chakra-ui/icons'
+import {WarningIcon} from '@chakra-ui/icons'
 import {
   AlertDialog,
   AlertDialogBody,
@@ -10,7 +10,6 @@ import {
   AlertDialogOverlay,
   Avatar,
   Box,
-  Button,
   Divider,
   Flex,
   Heading,
@@ -23,6 +22,7 @@ import {
   useTheme,
 } from '@chakra-ui/react'
 import {useMachine} from '@xstate/react'
+import dayjs from 'dayjs'
 import {useEffect, useMemo, useRef, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
@@ -33,10 +33,8 @@ import {
   DialogBody,
   DialogFooter,
   DialogHeader,
-  ErrorAlert,
   Skeleton,
   Spinner,
-  SuccessAlert,
   TextLink,
 } from '../../shared/components/components'
 import {
@@ -91,6 +89,24 @@ function Countdown({validationTime = 0}) {
           .map(t => t.toString().padStart(2, 0))
           .join(':')}
     </Text>
+  )
+}
+
+function AlertBox(props) {
+  return (
+    <Flex
+      align="center"
+      borderWidth="1px"
+      borderColor="green.050"
+      fontWeight={500}
+      rounded="md"
+      bg="green.010"
+      px={3}
+      py={2}
+      mt={2}
+      justify="space-between"
+      {...props}
+    />
   )
 }
 
@@ -163,48 +179,77 @@ export function CertificateCard({
       <Flex>
         <Text color="muted">{description}</Text>
       </Flex>
-      <Flex bg="gray.50" px={6} py={5} mt={6} mb={2} rounded="lg">
+      <Flex bg="gray.50" px={6} py={5} mt={6} rounded="lg">
         <CertificateCardPanelItem title={t('Schedule')}>
-          {isStarted ? (
-            <Countdown validationTime={current?.startTime} />
-          ) : (
-            scheduleText
-          )}
+          {isStarted
+            ? dayjs(current.startTime).format('D MMM HH:mm')
+            : scheduleText}
         </CertificateCardPanelItem>
+        {isStarted && (
+          <CertificateCardPanelItem title={t('Time left')}>
+            <Countdown validationTime={current.startTime} />
+          </CertificateCardPanelItem>
+        )}
         <CertificateCardPanelItem title={t('Trust level')}>
           {trustLevel}
         </CertificateCardPanelItem>
       </Flex>
-      {cardValue.actionType === CertificateActionType.None && (
-        <Flex mt={4}>
-          <PrimaryButton
-            ml="auto"
-            onClick={() => schedule()}
-            isLoading={waiting}
-            loadingText={t('Scheduling...')}
-          >
-            {t('Schedule')}
-          </PrimaryButton>
-        </Flex>
-      )}
       {cardValue.actionType === CertificateActionType.Passed && (
-        <>
-          <SuccessAlert>
-            <Flex justifyContent="space-between" flex={1}>
-              <Box>{t('Passed successfully')}</Box>
-              <Box>
-                <TextLink
-                  href="/try/details/[id]"
-                  as={`/try/details/${cardValue.id}`}
-                  color="green.500"
-                >
-                  Details
-                </TextLink>
-              </Box>
-            </Flex>
-          </SuccessAlert>
-          <Flex mt={6}>
-            <Flex ml="auto" alignItems="center">
+        <AlertBox>
+          <Flex align="center">
+            <RightIcon boxSize={4} color="green.500" mr={2} />
+            <Text fontWeight={500}>{t('Passed successfully')}</Text>
+          </Flex>
+          <Box>
+            <TextLink
+              href="/try/details/[id]"
+              as={`/try/details/${cardValue.id}`}
+              color="green.500"
+            >
+              Details
+            </TextLink>
+          </Box>
+        </AlertBox>
+      )}
+      {cardValue.actionType === CertificateActionType.Failed && (
+        <AlertBox borderColor="red.050" bg="red.010">
+          <Flex align="center">
+            <WarningIcon boxSize={4} color="red.500" mr={2} />
+            <Text fontWeight={500}>{t('Failed. Please try again')}</Text>
+          </Flex>
+          <Box>
+            <TextLink
+              href="/try/details/[id]"
+              as={`/try/details/${cardValue.id}`}
+              color="red.500"
+            >
+              Details
+            </TextLink>
+          </Box>
+        </AlertBox>
+      )}
+      {cardValue.actionType === CertificateActionType.Requested && (
+        <AlertBox borderColor="gray.200" bg="gray.50">
+          <Flex align="center">
+            <TimerIcon boxSize={4} color="blue.500" mr={2} />
+            <Text fontWeight={500}>{t('Test was requested...')}</Text>
+          </Flex>
+          <TextLink
+            href="#"
+            onClick={e => {
+              e.preventDefault()
+              onOpen()
+            }}
+          >
+            {t('Cancel')}
+          </TextLink>
+        </AlertBox>
+      )}
+
+      <Flex mt={6}>
+        <Flex ml="auto" alignItems="center">
+          {cardValue.actionType === CertificateActionType.Passed && (
+            <>
               <TextLink
                 href="/certificate/[id]"
                 as={`/certificate/${cardValue.id}`}
@@ -216,80 +261,19 @@ export function CertificateCard({
                 {t('Show certificate')}
               </TextLink>
               <Divider borderColor="gray.100" orientation="vertical" mr={4} />
-              <SecondaryButton
-                onClick={() => schedule()}
-                isLoading={waiting}
-                loadingText={t('Scheduling...')}
-              >
-                {t('Retry')}
-              </SecondaryButton>
-            </Flex>
-          </Flex>
-        </>
-      )}
-      {cardValue.actionType === CertificateActionType.Failed && (
-        <>
-          <ErrorAlert>
-            <Flex justifyContent="space-between" flex={1}>
-              <Box>{t('Validation failed!')}</Box>
-              <Box>
-                <TextLink
-                  href="/try/details/[id]"
-                  as={`/try/details/${cardValue.id}`}
-                  color="red.500"
-                >
-                  Details
-                </TextLink>
-              </Box>
-            </Flex>
-          </ErrorAlert>
-          <Flex mt={6}>
-            <Flex ml="auto">
-              <SecondaryButton
-                onClick={() => schedule()}
-                isLoading={waiting}
-                loadingText={t('Scheduling...')}
-              >
-                {t('Retry')}
-              </SecondaryButton>
-            </Flex>
-          </Flex>
-        </>
-      )}
-      {cardValue.actionType === CertificateActionType.Requested && (
-        <Flex
-          align="center"
-          borderWidth="1px"
-          borderColor="gray.200"
-          fontWeight={500}
-          rounded="md"
-          bg="gray.50"
-          p={2}
-          justify="space-between"
-        >
-          <Flex>
-            <TimerIcon boxSize={4} color="muted" ml={1} mr={2} />
-            <Text>{t('Test was requested...')}</Text>
-          </Flex>
-          <Button
-            onClick={onOpen}
+            </>
+          )}
+
+          <PrimaryButton
+            isDisabled={isStarted}
+            onClick={() => schedule()}
             isLoading={waiting}
-            loadingText={t('Canceling...')}
-            variant="outline"
-            fontWeight={500}
-            color="red.500"
-            border="none"
-            borderColor="transparent"
-            borderRadius="md"
-            justifyContent="flex-start"
-            _hover={{
-              bg: 'red.100',
-            }}
+            loadingText={t('Scheduling...')}
           >
-            {t('Cancel')}
-          </Button>
+            {t('Schedule')}
+          </PrimaryButton>
         </Flex>
-      )}
+      </Flex>
 
       <AlertDialog
         motionPreset="slideInBottom"
