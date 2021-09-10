@@ -85,7 +85,7 @@ export default function Details() {
             mt={8}
             mb={4}
           >
-            <PageTitle>Validation certificate</PageTitle>
+            <PageTitle>{t('Training validation report')}</PageTitle>
             <CloseButton
               alignSelf="flex-start"
               onClick={() => {

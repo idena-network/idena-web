@@ -5,6 +5,7 @@ import {CertificateTypeLabel} from '../../screens/certificate/components'
 import {fetchIdentity} from '../../shared/api'
 import {Avatar, Skeleton} from '../../shared/components/components'
 import {TelegramIcon} from '../../shared/components/icons'
+import {CertificateActionType} from '../../shared/types'
 import {mapIdentityToFriendlyStatus, toPercent} from '../../shared/utils/utils'
 import {getCertificateData} from '../api/validation/certificate'
 
@@ -116,6 +117,9 @@ export async function getServerSideProps({params}) {
     const certificate = await getCertificateData(params.id)
     if (!certificate.active) {
       throw new Error('ceriticate is expired')
+    }
+    if (certificate.actionType !== CertificateActionType.Passed) {
+      throw new Error('bad certificate')
     }
     return {
       props: {

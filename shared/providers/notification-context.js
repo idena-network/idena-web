@@ -1,3 +1,4 @@
+import dayjs from 'dayjs'
 import React from 'react'
 import {useInterval} from '../hooks/use-interval'
 
@@ -17,31 +18,61 @@ export function NotificationProvider(props) {
 
   useInterval(
     () => {
-      setNotifications(notifications.slice(1))
+      const current = dayjs()
+      setNotifications(notifications.filter(x => x.expired.isAfter(current)))
     },
-    notifications.length > 0 ? NOTIFICATION_DELAY : null
+    notifications.length > 0 ? 100 : null
   )
 
   const addNotificationWithAction = React.useCallback(
     ({title, body, type = NotificationType.Info, action, actionName}) => {
-      setNotifications(n => [...n, {title, body, type, action, actionName}])
+      setNotifications(n => [
+        ...n,
+        {
+          title,
+          body,
+          type,
+          action,
+          actionName,
+          expired: dayjs().add(NOTIFICATION_DELAY, 'ms'),
+        },
+      ])
     },
     []
   )
 
   const addNotification = React.useCallback(
     ({title, body, type = NotificationType.Info}) => {
-      setNotifications(n => [...n, {title, body, type}])
+      setNotifications(n => [
+        ...n,
+        {title, body, type, expired: dayjs().add(NOTIFICATION_DELAY, 'ms')},
+      ])
     },
     []
   )
 
   const addError = React.useCallback(({title, body}) => {
-    setNotifications(n => [...n, {title, body, type: NotificationType.Error}])
+    setNotifications(n => [
+      ...n,
+      {
+        title,
+        body,
+        type: NotificationType.Error,
+        expired: dayjs().add(NOTIFICATION_DELAY, 'ms'),
+      },
+    ])
   }, [])
 
   const addAlert = React.useCallback(({title, body}) => {
-    setAlerts(a => [...a, {title, body, type: NotificationType.Error}])
+    setAlerts(a => [
+      ...a,
+      {
+        title,
+        body,
+        type: NotificationType.Error,
+        expired: dayjs().add(NOTIFICATION_DELAY, 'ms'),
+      },
+    ])
   }, [])
 
   return (

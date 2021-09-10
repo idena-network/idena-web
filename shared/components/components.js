@@ -189,6 +189,11 @@ export function Tooltip(props) {
   )
 }
 
+const escape = keyframes`
+  from { right: 0; }
+  to { right: 100%; }
+`
+
 export function Toast({
   title,
   description,
@@ -196,31 +201,39 @@ export function Toast({
   status = 'info',
   actionContent,
   actionColor = status === 'error' ? 'red.500' : 'brandBlue.500',
+  color = status === 'error' ? 'red.500' : 'brandBlue.500',
   onAction,
+  duration,
   ...props
 }) {
   return (
     <Alert
       status={status}
-      bg={['gray.900', 'white']}
+      bg="white"
       boxShadow="0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)"
-      color={['white', 'brandGray.500']}
+      color="brandGray.500"
       fontSize="md"
       pl={4}
       pr={actionContent ? 2 : 5}
-      pt={2.5}
+      pt={rem(10)}
       pb={3}
       mb={5}
-      minH="44px"
+      minH={rem(44)}
       rounded="lg"
       {...props}
     >
-      <AlertIcon display={['none', 'initial']} name={icon} size={5} />
+      <AlertIcon name={icon} size={5} color={color || 'blue.500'} />
       <Flex direction="column" align="flex-start" maxW="sm">
-        <AlertTitle fontWeight={[400, 500]} lineHeight="base">
+        <AlertTitle fontWeight={500} lineHeight="base">
           {title}
         </AlertTitle>
-        <AlertDescription color="muted" lineHeight="base">
+        <AlertDescription
+          color={color || 'muted'}
+          lineHeight="base"
+          textAlign="left"
+          w="full"
+          isTruncated
+        >
           {description}
         </AlertDescription>
       </Flex>
@@ -231,7 +244,7 @@ export function Toast({
           fontWeight={500}
           lineHeight="base"
           px={3}
-          py={1.5}
+          py="3/2"
           _hover={{bg: 'unset'}}
           _active={{bg: 'unset'}}
           _focus={{boxShadow: 'none'}}
@@ -240,6 +253,16 @@ export function Toast({
           {actionContent}
         </Button>
       )}
+      <Box
+        bg="gray.100"
+        height="3px"
+        roundedBottom={2}
+        pos="absolute"
+        bottom={0}
+        left={0}
+        right={0}
+        animation={`${escape} ${duration}ms linear forwards`}
+      />
     </Alert>
   )
 }

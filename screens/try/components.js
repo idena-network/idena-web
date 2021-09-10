@@ -45,8 +45,9 @@ import {
   TimerIcon,
   WrongIcon,
 } from '../../shared/components/icons'
+import {useFailToast} from '../../shared/hooks/use-toast'
 import {createTimerMachine} from '../../shared/machines'
-import {useNotificationDispatch} from '../../shared/providers/notification-context'
+import {useEpoch} from '../../shared/providers/epoch-context'
 import {
   useTestValidationDispatch,
   useTestValidationState,
@@ -56,6 +57,7 @@ import {reorderList} from '../../shared/utils/arr'
 import {keywords} from '../../shared/utils/keywords'
 import {capitalize} from '../../shared/utils/string'
 import {toBlob} from '../../shared/utils/utils'
+import {canScheduleValidation} from './utils'
 
 function CertificateCardPanelItem({title, children}) {
   return (
@@ -125,9 +127,12 @@ export function CertificateCard({
   const {isOpen, onOpen, onClose} = useDisclosure()
   const cancelRef = useRef()
 
+  const failToast = useFailToast()
+
   const testValidationState = useTestValidationState()
   const {scheduleValidation, cancelValidation} = useTestValidationDispatch()
-  const {addError} = useNotificationDispatch()
+
+  const epochState = useEpoch()
 
   const {
     validations: {[type]: cardValue},
@@ -140,9 +145,12 @@ export function CertificateCard({
     try {
       setWaiting(true)
       if (current) {
-        return addError({
-          title: 'Another validation is already requested!',
-        })
+        return failToast(t('Another validation is already requested!'))
+      }
+      if (!canScheduleValidation(type, epochState?.nextValidation)) {
+        return failToast(
+          t('Test validation cannot be started due to the real one')
+        )
       }
       await scheduleValidation(type)
     } catch (e) {
