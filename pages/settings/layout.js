@@ -2,10 +2,9 @@ import React from 'react'
 import PropTypes from 'prop-types'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
-import {Button, Stack} from '@chakra-ui/react'
+import {Box, Button, Stack} from '@chakra-ui/react'
 import Layout from '../../shared/components/layout'
-import {Box, PageTitle} from '../../shared/components'
-import theme from '../../shared/theme'
+import {Page, PageTitle} from '../../screens/app/components'
 
 function SettingsLayout({children}) {
   const router = useRouter()
@@ -13,7 +12,7 @@ function SettingsLayout({children}) {
 
   return (
     <Layout canRedirect={false}>
-      <Box px={theme.spacings.xxxlarge} py={theme.spacings.large}>
+      <Page>
         <Box>
           <PageTitle>{t('Settings')}</PageTitle>
           <Stack spacing={2} isInline>
@@ -34,7 +33,7 @@ function SettingsLayout({children}) {
           </Stack>
         </Box>
         {children}
-      </Box>
+      </Page>
     </Layout>
   )
 }

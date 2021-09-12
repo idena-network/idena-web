@@ -76,7 +76,7 @@ export default function Details() {
 
   return (
     <Layout>
-      <Page p={0}>
+      <Page py={0}>
         <Flex direction="column" flex={1} alignSelf="stretch" pb={10}>
           <Flex
             align="center"
