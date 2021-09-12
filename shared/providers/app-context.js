@@ -26,7 +26,7 @@ const TIME_DRIFT_THRESHOLD = 10
 const IDENA_ACTIVE_TAB = 'IDENA_ACTTIVE_TAB'
 
 // eslint-disable-next-line react/prop-types
-export function AppProvider({appId, ...props}) {
+export function AppProvider({tabId, ...props}) {
   const {t} = useTranslation()
 
   const router = useRouter()
@@ -41,12 +41,12 @@ export function AppProvider({appId, ...props}) {
       }
     }
 
-    localStorage.setItem(IDENA_ACTIVE_TAB, appId)
+    localStorage.setItem(IDENA_ACTIVE_TAB, tabId)
 
     window.addEventListener('storage', onStorage)
 
     return () => window.removeEventListener('storage', onStorage)
-  }, [appId, router])
+  }, [tabId, router])
 
   // clear old validation logs
   useEffect(() => {

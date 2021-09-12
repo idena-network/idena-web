@@ -88,14 +88,14 @@ export default class MyApp extends App {
 const queryClient = new QueryClient()
 
 // eslint-disable-next-line react/prop-types
-function AppProviders({appId, ...props}) {
+function AppProviders({tabId, ...props}) {
   return (
     <QueryClientProvider client={queryClient}>
       <SettingsProvider>
         <AuthProvider>
           <EpochProvider>
             <IdentityProvider>
-              <AppProvider appId={appId}>
+              <AppProvider tabId={tabId}>
                 <Flips />
                 <OnboardingProvider>
                   <NotificationProvider {...props} />
@@ -132,6 +132,6 @@ function IdenaApp(props) {
   return router.pathname === '/too-many-tabs' ? (
     <div {...props} />
   ) : (
-    <AppProviders appId={id.current} {...props} />
+    <AppProviders tabId={id.current} {...props} />
   )
 }
