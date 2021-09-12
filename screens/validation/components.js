@@ -875,7 +875,7 @@ export function ValidationSoonToast({validationStart, isTestValidation}) {
         title={<TimerClock duration={duration} color={theme.colors.white} />}
         body={
           isTestValidation
-            ? t('Idena test validation will start soon')
+            ? t('Idena training validation will start soon')
             : t('Idena validation will start soon')
         }
       />
@@ -914,7 +914,7 @@ export function TestValidationRunningToast({validationStart}) {
         pinned
         type={NotificationType.Info}
         title={<TimerClock duration={duration} color={theme.colors.white} />}
-        body={t(`Idena test validation is in progress`)}
+        body={t(`Idena training validation is in progress`)}
         action={() => router.push('/try/validation')}
         actionName={t('Validate')}
       />

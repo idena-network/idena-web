@@ -279,7 +279,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
           <Flex ml="auto" alignItems="center">
             <TextLink href="/try" fontWeight={500} mr={4}>
               <TestValidationIcon boxSize={5} mr={1} />
-              {t('Test validation')}
+              {t('Training validation')}
             </TextLink>
             <Divider borderColor="gray.100" orientation="vertical" mr={4} />
             <PrimaryButton

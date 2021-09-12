@@ -95,7 +95,7 @@ function TestValidationProvider({children}) {
         const signature = signMessage(coinbase, privateKey)
         await persistTestValidation(toHexString(signature), coinbase, state)
       } catch (e) {
-        console.error('cannot persist test validation', e)
+        console.error('cannot persist training validation', e)
       }
     }
 

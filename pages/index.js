@@ -209,7 +209,7 @@ export default function ProfilePage() {
                                 'You have been invited to join the upcoming validation ceremony. Click the button below to accept the invitation.'
                               )
                             : t(
-                                'To quickly get an invite code, we recommend that you get a certificate of trust by passing a test validation'
+                                'To quickly get an invite code, we recommend that you get a certificate of trust by passing a training validation'
                               )}
                         </Text>
                       </Stack>
@@ -404,7 +404,7 @@ export default function ProfilePage() {
                 onClick={() => router.push('/try')}
                 icon={<TestValidationIcon boxSize={5} />}
               >
-                {t('Test validation')}
+                {t('Training validation')}
               </IconButton>
               <IconButton
                 onClick={() => router.push('/flips/new')}
