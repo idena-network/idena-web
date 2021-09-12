@@ -50,7 +50,7 @@ export default function ContactsPage() {
   return (
     <InviteProvider>
       <Layout>
-        <Page p={0}>
+        <Page px={0} py={0}>
           <Flex w="full">
             <ContactListSidebar
               selectedContactId={selectedContact?.id}

@@ -256,7 +256,7 @@ function ContactListItem({
       cursor="pointer"
       {...props}
     >
-      <ContactAvatar address={receiver} w={8} h={8} borderRadius="lg" />
+      <ContactAvatar address={receiver} size={8} borderRadius="lg" />
       <Box fontWeight={500}>
         <Text maxW={180} isTruncated>
           {fullName || receiver || t('...')}

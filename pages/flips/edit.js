@@ -143,7 +143,7 @@ export default function EditFlipPage() {
 
   return (
     <Layout>
-      <Page p={0}>
+      <Page px={0} py={0}>
         <Flex
           direction="column"
           flex={1}
