@@ -1,10 +1,11 @@
 import {InfoOutlineIcon} from '@chakra-ui/icons'
-import {Alert, Flex, Link, Radio, RadioGroup, Stack} from '@chakra-ui/react'
+import {Alert, Flex, Link, RadioGroup, Stack} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {padding} from 'polished'
 import {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
+import {ChooseItemRadio} from '../../screens/node/components'
 import {
   getCandidateKey,
   checkKey,
@@ -200,44 +201,40 @@ export default function Offline() {
             <Flex marginTop={rem(15)}>
               <RadioGroup>
                 <Stack direction="column" spacing={3}>
-                  <Radio
+                  <ChooseItemRadio
                     isChecked={state === options.BUY}
                     onChange={() => setState(options.BUY)}
-                    borderColor="white"
                   >
                     <Text color={theme.colors.white} fontSize={rem(13)}>
                       {t('Rent a shared node')}
                     </Text>
-                  </Radio>
-                  <Radio
+                  </ChooseItemRadio>
+                  <ChooseItemRadio
                     isChecked={state === options.ENTER_KEY}
                     onChange={() => setState(options.ENTER_KEY)}
-                    borderColor="white"
                   >
                     <Text color={theme.colors.white} fontSize={rem(13)}>
                       {t('Enter shared node API key')}
                     </Text>
-                  </Radio>
-                  <Radio
+                  </ChooseItemRadio>
+                  <ChooseItemRadio
                     isChecked={state === options.ACTIVATE}
                     onChange={() => setState(options.ACTIVATE)}
-                    borderColor="white"
                     isDisabled={identityState !== IdentityStatus.Undefined}
                   >
                     <Text color={theme.colors.white} fontSize={rem(13)}>
                       {t('Activate invite')}
                     </Text>
-                  </Radio>
-                  <Radio
+                  </ChooseItemRadio>
+                  <ChooseItemRadio
                     isChecked={state === options.CANDIDATE}
                     onChange={() => setState(options.CANDIDATE)}
-                    borderColor="white"
                     isDisabled={identityState !== IdentityStatus.Candidate}
                   >
                     <Text color={theme.colors.white} fontSize={rem(13)}>
                       {t('Get free access (only for Candidates)')}
                     </Text>
-                  </Radio>
+                  </ChooseItemRadio>
                 </Stack>
               </RadioGroup>
             </Flex>
