@@ -1,10 +1,12 @@
 import {Flex, Heading, Image, Stack, Text} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
+import {useTranslation} from 'react-i18next'
 import {IconButton} from '../shared/components/button'
 import {RefreshIcon} from '../shared/components/icons'
 
 export default function ManyTabs() {
   const router = useRouter()
+  const {t} = useTranslation()
 
   return (
     <Flex
@@ -27,17 +29,18 @@ export default function ManyTabs() {
             w={16}
           />
           <Heading fontSize="lg" fontWeight={500} color="gray.500">
-            Error, many tabs…
+            {t('Error, many tabs…')}
           </Heading>
           <Text color="muted" w="320px" textAlign="center">
-            Idena supports only one active tab with the app. Please reload this
-            page to continue using this tab or close it.
+            {t(
+              'Idena supports only one active tab with the app. Please reload this page to continue using this tab or close it.'
+            )}
           </Text>
           <IconButton
             onClick={() => router.reload()}
             rightIcon={<RefreshIcon boxSize={5} />}
           >
-            Reload page
+            {t('Reload page')}
           </IconButton>
         </Stack>
       </Flex>
