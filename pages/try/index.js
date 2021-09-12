@@ -34,7 +34,7 @@ export default function Try() {
                   fontWeight={500}
                   lineHeight="short"
                 >
-                  {t('Test validation')}
+                  {t('Training validation')}
                 </Heading>
                 <Heading
                   as="h3"
@@ -44,7 +44,7 @@ export default function Try() {
                   lineHeight="shorter"
                 >
                   {t(
-                    'Complete the training and get a certificate. It will help you to get an invite code. Better to start with a Beginner.'
+                    'Learn about the validation process and get a certificate. You can provide it as a proof to a validated person to get an invitation code.'
                   )}
                 </Heading>
               </Stack>
@@ -59,9 +59,7 @@ export default function Try() {
           <Stack width="480px" spacing={5}>
             <CertificateCard
               title={t('Beginner')}
-              description={t(
-                'Try to pass the validation ceremony immediately.'
-              )}
+              description={t('Pass the training validation immediately.')}
               trustLevel={t('Low')}
               scheduleText={t('Immediately')}
               type={CertificateType.Beginner}
@@ -70,7 +68,7 @@ export default function Try() {
             <CertificateCard
               title={t('Expert')}
               description={t(
-                'Schedule your next validation ceremony and join exactly on time.'
+                'Schedule your next training validation and join exactly on time.'
               )}
               trustLevel={t('Middle')}
               scheduleText={t('In 1 hour')}
@@ -80,7 +78,7 @@ export default function Try() {
             <CertificateCard
               title={t('Master')}
               description={t(
-                'Plan your validation in advance and join on certain time universal for all network participants.'
+                'Train your time management skills. Validation requires participants to join exactly on time.'
               )}
               trustLevel={t('High')}
               scheduleText={`${dayjs(GetNextUTCValidationDate()).format(
