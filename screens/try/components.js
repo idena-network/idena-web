@@ -299,25 +299,24 @@ export function CertificateCard({
         <AlertDialogOverlay />
 
         <AlertDialogContent>
-          <AlertDialogHeader>{t('Cancel validation?')}</AlertDialogHeader>
+          <AlertDialogHeader fontSize="lg">
+            {t('Cancel validation?')}
+          </AlertDialogHeader>
           <AlertDialogCloseButton />
-          <AlertDialogBody>
-            {t('Are you shure you want to cancel scheduled validation?')}
+          <AlertDialogBody fontSize="md">
+            {t('Are you sure you want to cancel the scheduled validation?')}
           </AlertDialogBody>
           <AlertDialogFooter>
-            <SecondaryButton ref={cancelRef} onClick={onClose}>
-              No
-            </SecondaryButton>
-            <PrimaryButton
-              variant="solid"
-              colorScheme="red"
-              ml={3}
+            <SecondaryButton
               onClick={() => {
                 cancelValidation(type)
                 onClose()
               }}
             >
               Yes
+            </SecondaryButton>
+            <PrimaryButton ref={cancelRef} onClick={onClose} ml={2}>
+              No
             </PrimaryButton>
           </AlertDialogFooter>
         </AlertDialogContent>
