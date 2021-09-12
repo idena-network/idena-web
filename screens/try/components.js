@@ -149,7 +149,9 @@ export function CertificateCard({
       }
       if (!canScheduleValidation(type, epochState?.nextValidation)) {
         return failToast(
-          t('Test validation cannot be started due to the real one')
+          t(
+            'Can not schedule the training validation because it overlaps with the real validation ceremony.'
+          )
         )
       }
       await scheduleValidation(type)
