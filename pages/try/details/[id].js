@@ -25,11 +25,11 @@ import {
   RoundedFlipsTh,
   ShortFlipWithIcon,
 } from '../../../screens/try/components'
+import {GetAnswerTitle} from '../../../screens/try/utils'
 import {getCertificate} from '../../../shared/api/self'
 import {Skeleton} from '../../../shared/components/components'
 import {RightIcon, WrongIcon} from '../../../shared/components/icons'
 import Layout from '../../../shared/components/layout'
-import {AnswerType} from '../../../shared/types'
 
 export default function Details() {
   const {t} = useTranslation()
@@ -164,11 +164,7 @@ export default function Details() {
                               ) : (
                                 <WrongIcon color="red.500" boxSize={5} />
                               )}
-                              <Flex ml={2}>
-                                {answer === AnswerType.Left
-                                  ? t('Left')
-                                  : t('Right')}
-                              </Flex>
+                              <Flex ml={2}>{GetAnswerTitle(t, answer)}</Flex>
                             </Flex>
                           </FlipsValueTd>
                         </Tr>
@@ -236,11 +232,7 @@ export default function Details() {
                                 ) : (
                                   <WrongIcon color="red.500" boxSize={5} />
                                 )}
-                                <Flex ml={2}>
-                                  {answer === AnswerType.Left
-                                    ? t('Left')
-                                    : t('Right')}
-                                </Flex>
+                                <Flex ml={2}>{GetAnswerTitle(t, answer)}</Flex>
                               </Flex>
                             </FlipsValueTd>
                             <FlipsValueTd>

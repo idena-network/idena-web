@@ -1,5 +1,5 @@
 import dayjs from 'dayjs'
-import {CertificateType} from '../../shared/types'
+import {AnswerType, CertificateType} from '../../shared/types'
 
 export function GetNextUTCValidationDate() {
   const dt = new Date()
@@ -24,5 +24,16 @@ export function canScheduleValidation(type, nextValidationDate) {
     }
     default:
       return false
+  }
+}
+
+export function GetAnswerTitle(t, answer) {
+  switch (answer) {
+    case AnswerType.Left:
+      return t('Left')
+    case AnswerType.Right:
+      return t('Right')
+    default:
+      return t('No answer')
   }
 }
