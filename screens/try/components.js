@@ -145,7 +145,11 @@ export function CertificateCard({
     try {
       setWaiting(true)
       if (current) {
-        return failToast(t('Another validation is already requested!'))
+        return failToast(
+          t(
+            'Can not schedule the training validation. Another validation is already requested.'
+          )
+        )
       }
       if (!canScheduleValidation(type, epochState?.nextValidation)) {
         return failToast(
