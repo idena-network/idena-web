@@ -1,9 +1,9 @@
-import {Flex, Link, Radio, RadioGroup, Stack} from '@chakra-ui/react'
+import {Flex, Link, RadioGroup, Stack} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {padding} from 'polished'
 import {useEffect, useState} from 'react'
 import {useQuery} from 'react-query'
-import {BuySharedNodeForm} from '../../screens/node/components'
+import {BuySharedNodeForm, ChooseItemRadio} from '../../screens/node/components'
 import {getProvider} from '../../shared/api'
 
 import {SubHeading, Text} from '../../shared/components'
@@ -116,35 +116,32 @@ export default function Expired() {
             <Flex marginTop={rem(15)}>
               <RadioGroup>
                 <Stack direction="column" spacing={3}>
-                  <Radio
+                  <ChooseItemRadio
                     isChecked={state === options.PROLONG}
                     onChange={() => setState(options.PROLONG)}
-                    borderColor="white"
                     isDisabled={provider && !provider.slots}
                   >
                     <Text color={theme.colors.white} fontSize={rem(13)}>
                       Prolong node access{' '}
                       {provider ? `(${provider.data.price} iDNA)` : ''}
                     </Text>
-                  </Radio>
-                  <Radio
+                  </ChooseItemRadio>
+                  <ChooseItemRadio
                     isChecked={state === options.BUY}
                     onChange={() => setState(options.BUY)}
-                    borderColor="white"
                   >
                     <Text color={theme.colors.white} fontSize={rem(13)}>
                       Rent another shared node
                     </Text>
-                  </Radio>
-                  <Radio
+                  </ChooseItemRadio>
+                  <ChooseItemRadio
                     isChecked={state === options.ENTER_KEY}
                     onChange={() => setState(options.ENTER_KEY)}
-                    borderColor="white"
                   >
                     <Text color={theme.colors.white} fontSize={rem(13)}>
                       Enter shared node API key
                     </Text>
-                  </Radio>
+                  </ChooseItemRadio>
                 </Stack>
               </RadioGroup>
             </Flex>

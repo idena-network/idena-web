@@ -5,6 +5,7 @@ import {
   FormControl,
   FormHelperText,
   Heading,
+  Radio,
   Stack,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
@@ -194,5 +195,28 @@ function CustomFormControl({label, children, ...props}) {
       </FormLabel>
       {children}
     </FormControl>
+  )
+}
+
+export function ChooseItemRadio({isChecked, onChange, ...props}) {
+  return (
+    <Radio
+      isChecked={isChecked}
+      onChange={onChange}
+      borderColor="white"
+      sx={{
+        '&[data-checked]': {
+          color: 'gray.500',
+        },
+      }}
+      _focus={{
+        boxShadow: 'none',
+      }}
+      _disabled={{
+        bg: 'none',
+        borderColor: 'gray.300',
+      }}
+      {...props}
+    />
   )
 }
