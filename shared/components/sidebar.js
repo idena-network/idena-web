@@ -144,8 +144,8 @@ function ApiStatus() {
                 epoch ? new Date(epoch.nextValidation).toLocaleString() : ''
               }`}
               placement="right"
-              zIndex={1010}
-              bg="graphite"
+              zIndex="tooltip"
+              bg="graphite.500"
               width={200}
             >
               <Text color={color} fontWeight={500} lineHeight={rem(18)}>
