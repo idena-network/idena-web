@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from 'react'
 import {useToast} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
+import {useRouter} from 'next/router'
 import {useInterval} from '../hooks/use-interval'
 
 import {
@@ -22,10 +23,30 @@ const AppContext = React.createContext()
 
 const TIME_DRIFT_THRESHOLD = 10
 
-export function AppProvider(props) {
+const IDENA_ACTIVE_TAB = 'IDENA_ACTTIVE_TAB'
+
+// eslint-disable-next-line react/prop-types
+export function AppProvider({appId, ...props}) {
   const {t} = useTranslation()
 
+  const router = useRouter()
+
   const epoch = useEpoch()
+
+  // make only one tab active
+  useEffect(() => {
+    function onStorage(e) {
+      if (e.key === IDENA_ACTIVE_TAB) {
+        return router.push('/too-many-tabs', router.pathname)
+      }
+    }
+
+    localStorage.setItem(IDENA_ACTIVE_TAB, appId)
+
+    window.addEventListener('storage', onStorage)
+
+    return () => window.removeEventListener('storage', onStorage)
+  }, [appId, router])
 
   // clear old validation logs
   useEffect(() => {
