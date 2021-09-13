@@ -1,11 +1,11 @@
-import React, {useEffect} from 'react'
+import React, {useEffect, useRef} from 'react'
 import App from 'next/app'
-import Router, {useRouter} from 'next/router'
+import {useRouter} from 'next/router'
 import Head from 'next/head'
-import NProgress from 'nprogress'
 import GoogleFonts from 'next-google-fonts'
 import {QueryClient, QueryClientProvider} from 'react-query'
 import ReactGA from 'react-ga'
+import {v4 as uuidv4} from 'uuid'
 
 import '../i18n'
 import 'focus-visible/dist/focus-visible'
@@ -75,9 +75,9 @@ export default class MyApp extends App {
           ></script>
         </Head>
         <ChakraProvider theme={extendTheme(uiTheme)}>
-          <AppProviders>
+          <IdenaApp>
             <Component {...{...pageProps, err}} />
-          </AppProviders>
+          </IdenaApp>
         </ChakraProvider>
       </>
     )
@@ -87,8 +87,32 @@ export default class MyApp extends App {
 // Create a client
 const queryClient = new QueryClient()
 
-function AppProviders(props) {
+// eslint-disable-next-line react/prop-types
+function AppProviders({tabId, ...props}) {
+  return (
+    <QueryClientProvider client={queryClient}>
+      <SettingsProvider>
+        <AuthProvider>
+          <EpochProvider>
+            <IdentityProvider>
+              <AppProvider tabId={tabId}>
+                <Flips />
+                <OnboardingProvider>
+                  <NotificationProvider {...props} />
+                </OnboardingProvider>
+              </AppProvider>
+            </IdentityProvider>
+          </EpochProvider>
+        </AuthProvider>
+      </SettingsProvider>
+    </QueryClientProvider>
+  )
+}
+
+function IdenaApp(props) {
   const router = useRouter()
+
+  const id = useRef(uuidv4())
 
   useEffect(() => {
     ReactGA.initialize('UA-139651161-3')
@@ -105,26 +129,9 @@ function AppProviders(props) {
     }
   }, [router.events])
 
-  return (
-    <QueryClientProvider client={queryClient}>
-      <SettingsProvider>
-        <AuthProvider>
-          <EpochProvider>
-            <IdentityProvider>
-              <AppProvider>
-                <Flips />
-                <OnboardingProvider>
-                  <NotificationProvider {...props} />
-                </OnboardingProvider>
-              </AppProvider>
-            </IdentityProvider>
-          </EpochProvider>
-        </AuthProvider>
-      </SettingsProvider>
-    </QueryClientProvider>
+  return router.pathname === '/too-many-tabs' ? (
+    <div {...props} />
+  ) : (
+    <AppProviders tabId={id.current} {...props} />
   )
 }
-
-Router.events.on('routeChangeStart', NProgress.start)
-Router.events.on('routeChangeComplete', NProgress.done)
-Router.events.on('routeChangeError', NProgress.done)
