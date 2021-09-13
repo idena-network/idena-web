@@ -27,6 +27,7 @@ import {useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
 import {useMachine} from '@xstate/react'
 import {useQuery} from 'react-query'
+import {InfoIcon} from '@chakra-ui/icons'
 import {
   Avatar,
   Tooltip,
@@ -38,7 +39,6 @@ import {
   DrawerFooter,
   Toast,
   FormControlWithLabel,
-  TextLink,
 } from '../../shared/components/components'
 import {rem} from '../../shared/theme'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
@@ -72,11 +72,7 @@ import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {activateMiningMachine} from './machines'
 import {fetchBalance} from '../../shared/api/wallet'
-import {
-  LaptopIcon,
-  TestValidationIcon,
-  UserIcon,
-} from '../../shared/components/icons'
+import {LaptopIcon, UserIcon} from '../../shared/components/icons'
 
 export function UserInlineCard({address, state, ...props}) {
   return (
@@ -277,11 +273,17 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
         )}
         <Flex>
           <Flex ml="auto" alignItems="center">
-            <TextLink href="/try" fontWeight={500} mr={4}>
-              <TestValidationIcon boxSize={5} mr={1} />
-              {t('Training validation')}
-            </TextLink>
-            <Divider borderColor="gray.100" orientation="vertical" mr={4} />
+            <Button
+              variant="link"
+              leftIcon={<InfoIcon boxSize={4} />}
+              onClick={props.onHowToGetInvitation}
+              colorScheme="blue"
+              _active={{}}
+              fontWeight={500}
+            >
+              {t('How to get an invitation?')}
+            </Button>
+            <Divider borderColor="gray.100" orientation="vertical" mx={4} />
             <PrimaryButton
               isLoading={mining}
               loadingText={t('Mining...')}
