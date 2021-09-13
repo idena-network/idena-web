@@ -26,13 +26,12 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react'
 import {PlusSquareIcon} from '@chakra-ui/icons'
-import {Link} from '.'
 import {rem} from '../theme'
 import {pluralize} from '../utils/string'
 import {parsePersistedValidationState} from '../../screens/validation/utils'
 import {useAuthDispatch} from '../providers/auth-context'
 import {apiKeyStates, useSettingsState} from '../providers/settings-context'
-import {Tooltip} from './components'
+import {TextLink, Tooltip} from './components'
 import {EpochPeriod, IdentityStatus, OnboardingStep} from '../types'
 import {useIdentity} from '../providers/identity-context'
 import {useEpoch} from '../providers/epoch-context'
@@ -99,27 +98,28 @@ function Sidebar({isOpen, onClose, ...props}) {
 
 function ApiStatus() {
   const settings = useSettingsState()
+  const {t} = useTranslation()
   const epoch = useEpoch()
 
   let bg = 'xwhite.010'
   let color = 'gray.300'
-  let text = 'Loading...'
+  let text = t('Loading...')
 
   if (settings.apiKeyState === apiKeyStates.OFFLINE) {
     bg = 'red.020'
     color = 'red.500'
-    text = 'Offline'
-  } else if (settings.apiKeyState === apiKeyStates.EXPIRED) {
+    text = t('Offline')
+  } else if (settings.apiKeyState === apiKeyStates.RESTRICTED) {
     bg = 'warning.020'
     color = 'warning.500'
-    text = 'Expiring'
+    text = t('Restricted')
   } else if (
     settings.apiKeyState === apiKeyStates.ONLINE ||
     settings.apiKeyState === apiKeyStates.EXTERNAL
   ) {
     bg = 'green.020'
     color = 'green.500'
-    text = 'Online'
+    text = t('Online')
   }
 
   return (
@@ -132,17 +132,38 @@ function ApiStatus() {
         fontSize={[16, 13]}
       >
         <Flex align="baseline">
-          {settings.apiKeyState === apiKeyStates.EXPIRED ? (
-            <Link href="/node/expired">
-              <Text color={color} fontWeight={500} lineHeight={rem(18)}>
+          {settings.apiKeyState === apiKeyStates.RESTRICTED ? (
+            <Tooltip
+              label={t(
+                'You cannot use the shared node for the upcoming validation ceremony.'
+              )}
+              placement="right"
+              zIndex="tooltip"
+              bg="graphite.500"
+              width={200}
+            >
+              <TextLink
+                href="/node/restricted"
+                color={color}
+                fontWeight={500}
+                lineHeight={rem(18)}
+                _hover={{
+                  textDecoration: 'none',
+                }}
+              >
                 {text}
-              </Text>
-            </Link>
+              </TextLink>
+            </Tooltip>
           ) : settings.apiKeyState === apiKeyStates.ONLINE ? (
             <Tooltip
-              label={`Access to the shared node will be expired after the validation ceremony ${
-                epoch ? new Date(epoch.nextValidation).toLocaleString() : ''
-              }`}
+              label={t(
+                'Access to the shared node will be expired after the validation ceremony {{date}}',
+                {
+                  date: epoch
+                    ? new Date(epoch.nextValidation).toLocaleString()
+                    : '',
+                }
+              )}
               placement="right"
               zIndex="tooltip"
               bg="graphite.500"

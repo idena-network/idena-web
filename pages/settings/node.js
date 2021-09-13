@@ -74,7 +74,7 @@ function Settings() {
   return (
     <SettingsLayout>
       <Stack spacing={5} mt={rem(20)} width={rem(480)}>
-        {settingsState.apiKeyState === apiKeyStates.EXPIRED && (
+        {settingsState.apiKeyState === apiKeyStates.RESTRICTED && (
           <Alert
             status="error"
             bg="red.010"
@@ -87,7 +87,7 @@ function Settings() {
           >
             <AlertIcon name="info" color="red.500" size={5} mr={3}></AlertIcon>
             {t(
-              'API key is expired. You cannot use the node for the upcoming validation ceremony'
+              'The shared node access is restricted. You cannot use the node for the upcoming validation ceremony.'
             )}
           </Alert>
         )}
@@ -125,7 +125,7 @@ function Settings() {
                 fontSize={rem(13)}
                 style={{fontWeight: 500}}
               >
-                Rent a new node {'>'}
+                {t('Rent a new node')} {'>'}
               </Link>
             </Flex>
           </Flex>

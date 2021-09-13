@@ -25,7 +25,7 @@ export const apiKeyStates = {
   NONE: 0,
   OFFLINE: 1,
   ONLINE: 2,
-  EXPIRED: 3,
+  RESTRICTED: 3,
   EXTERNAL: 4,
 }
 
@@ -96,7 +96,7 @@ const SettingsDispatchContext = createContext()
 const DEFAULT_NODE_URL = 'https://node.idena.io/'
 
 const API_KEY_CHECK_INTERVAL = 5 * 60 * 1000
-const EXPIRED_INTERVAL = 5 * 60 * 1000
+const RESTRICTED_CHECK_INTERVAL = 5 * 60 * 1000
 
 // eslint-disable-next-line react/prop-types
 function SettingsProvider({children}) {
@@ -136,7 +136,7 @@ function SettingsProvider({children}) {
             dispatch({
               type: SET_API_KEY_STATE,
               data: {
-                apiKeyState: apiKeyStates.EXPIRED,
+                apiKeyState: apiKeyStates.RESTRICTED,
                 apiKeyData: result,
               },
             })
@@ -183,12 +183,14 @@ function SettingsProvider({children}) {
   useInterval(
     () => {
       if (
-        router.pathname !== '/node/expired' &&
+        router.pathname !== '/node/restricted' &&
         router.pathname !== '/validation'
       )
-        router.push('/node/expired')
+        router.push('/node/restricted')
     },
-    state.apiKeyState === apiKeyStates.EXPIRED ? EXPIRED_INTERVAL : null
+    state.apiKeyState === apiKeyStates.RESTRICTED
+      ? RESTRICTED_CHECK_INTERVAL
+      : null
   )
 
   const saveEncryptedKey = (coinbase, key) => {
