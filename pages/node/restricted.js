@@ -2,6 +2,7 @@ import {Flex, Link, RadioGroup, Stack} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {padding} from 'polished'
 import {useEffect, useState} from 'react'
+import {Trans, useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
 import {BuySharedNodeForm, ChooseItemRadio} from '../../screens/node/components'
 import {getProvider} from '../../shared/api'
@@ -23,11 +24,12 @@ const options = {
   ENTER_KEY: 2,
 }
 
-export default function Expired() {
+export default function Restricted() {
   const {apiKeyState, apiKeyData} = useSettingsState()
   const {coinbase} = useAuthState()
   const auth = useAuthState()
   const router = useRouter()
+  const {t} = useTranslation()
 
   const [state, setState] = useState(options.PROLONG)
 
@@ -100,7 +102,9 @@ export default function Expired() {
           >
             <Flex>
               <Text color={theme.colors.white} fontSize={rem(18)}>
-                Your access to the shared node will be expired soon
+                {t(
+                  'You cannot use the shared node for the upcoming validation ceremony'
+                )}
               </Text>
             </Flex>
 
@@ -110,7 +114,7 @@ export default function Expired() {
                 fontSize={rem(11)}
                 css={{opacity: 0.5}}
               >
-                Choose an option
+                {t('Choose an option')}
               </Text>
             </Flex>
             <Flex marginTop={rem(15)}>
@@ -122,7 +126,7 @@ export default function Expired() {
                     isDisabled={provider && !provider.slots}
                   >
                     <Text color={theme.colors.white} fontSize={rem(13)}>
-                      Prolong node access{' '}
+                      {t('Prolong node access')}{' '}
                       {provider ? `(${provider.data.price} iDNA)` : ''}
                     </Text>
                   </ChooseItemRadio>
@@ -131,7 +135,7 @@ export default function Expired() {
                     onChange={() => setState(options.BUY)}
                   >
                     <Text color={theme.colors.white} fontSize={rem(13)}>
-                      Rent another shared node
+                      {t('Rent another shared node')}
                     </Text>
                   </ChooseItemRadio>
                   <ChooseItemRadio
@@ -139,7 +143,7 @@ export default function Expired() {
                     onChange={() => setState(options.ENTER_KEY)}
                   >
                     <Text color={theme.colors.white} fontSize={rem(13)}>
-                      Enter shared node API key
+                      {t('Enter shared node API key')}
                     </Text>
                   </ChooseItemRadio>
                 </Stack>
@@ -151,26 +155,28 @@ export default function Expired() {
                 fontSize={rem(14)}
                 css={{marginTop: rem(theme.spacings.small12)}}
               >
-                <span style={{opacity: 0.5}}>
-                  You can run your own node for free at your desktop computer.
-                  Download it{' '}
-                </span>{' '}
-                <Link
-                  href="https://idena.io/download"
-                  target="_blank"
-                  rel="noreferrer"
-                  color="brandBlue.100"
-                >
-                  here
-                </Link>
-                .
+                <Trans i18nKey="restrictedDownloadNode" t={t}>
+                  <span style={{opacity: 0.5}}>
+                    You can run your own node for free at your desktop computer.
+                    Download it{' '}
+                  </span>{' '}
+                  <Link
+                    href="https://idena.io/download"
+                    target="_blank"
+                    rel="noreferrer"
+                    color="brandBlue.100"
+                  >
+                    here
+                  </Link>
+                  .
+                </Trans>
               </Text>
             </Flex>
             <Flex marginTop={rem(30)} style={{marginLeft: 'auto'}}>
               <SecondaryButton onClick={() => router.back()} mr={2}>
-                Not now
+                {t('Not now')}
               </SecondaryButton>
-              <PrimaryButton onClick={process}>Continue</PrimaryButton>
+              <PrimaryButton onClick={process}>{t('Continue')}</PrimaryButton>
             </Flex>
           </Flex>
         </Flex>
