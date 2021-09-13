@@ -14,22 +14,32 @@ export default async (req, res) => {
 
   if (!coinbase) throw new Error('signature is invalid')
 
-  const data = {}
-
-  if (type === SessionType.Short) {
-    data.shortAnswers = answers
-  } else {
-    data.longAnswers = answers
-  }
-
   try {
-    await faunaClient.query(
-      q.Update(
-        q.Select('ref', q.Get(q.Match(q.Index('validation_by_id'), id))),
+    const data = {}
+
+    const field = type === SessionType.Short ? 'shortFlips' : 'longFlips'
+
+    const {ref, flips} = await faunaClient.query(
+      q.Let(
         {
-          data,
+          validation: q.Get(q.Match(q.Index('validation_by_id'), id)),
+        },
+        {
+          ref: q.Select('ref', q.Var('validation')),
+          flips: q.Select(['data', field], q.Var('validation')),
         }
       )
+    )
+
+    data[field] = flips.map(x => ({
+      ...x,
+      ...answers.find(y => y.hash === x.hash),
+    }))
+
+    await faunaClient.query(
+      q.Update(ref, {
+        data,
+      })
     )
 
     return res.status(200).end()

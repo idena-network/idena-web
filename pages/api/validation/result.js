@@ -2,71 +2,6 @@ import {query as q} from 'faunadb'
 import {CertificateActionType} from '../../../shared/types'
 import {faunaClient} from '../../../shared/utils/faunadb'
 
-async function getFlip(hash) {
-  try {
-    const {data} = await faunaClient.query(
-      q.Paginate(
-        q.Match(q.Index('flips_by_hash_with_answer_isReported'), hash),
-        {size: 1}
-      )
-    )
-
-    const [answer, isReported] = data[0]
-    return {
-      answer,
-      isReported,
-    }
-  } catch (e) {
-    return null
-  }
-}
-
-async function checkShortAnswers(shortAnswers = []) {
-  const res = {}
-
-  await Promise.all(
-    shortAnswers.map(async ({hash, answer}) => {
-      const flip = await getFlip(hash)
-      if (!flip) {
-        return
-      }
-
-      res[hash] = {
-        hash,
-        answer,
-        correct: answer === flip.answer,
-      }
-    })
-  )
-
-  return shortAnswers.map(({hash}) => res[hash])
-}
-
-async function checkLongAnswers(longAnswers = []) {
-  const res = {}
-
-  await Promise.all(
-    longAnswers.map(async ({hash, answer, wrongWords}) => {
-      const flip = await getFlip(hash)
-      if (!flip) {
-        return
-      }
-      res[hash] = {
-        hash,
-        answer,
-        wrongWords,
-        correct: answer === flip.answer,
-        reason: flip.isReported,
-        correctReport: Boolean(
-          (flip.isReported && wrongWords) || (!flip.isReported && !wrongWords)
-        ),
-      }
-    })
-  )
-
-  return longAnswers.map(({hash}) => res[hash])
-}
-
 export default async (req, res) => {
   const {id} = req.body
 
@@ -82,12 +17,22 @@ export default async (req, res) => {
       return res.status(200).json(validation.data.result)
     }
 
-    const shortAnswers = await checkShortAnswers(validation.data.shortAnswers)
-    const longAnswers = await checkLongAnswers(validation.data.longAnswers)
+    const shortFlips = validation.data.shortFlips.map(x => ({
+      ...x,
+      correct: x.rightAnswer === x.answer,
+    }))
 
-    const correctShortAnswers = shortAnswers.filter(x => x.correct).length
-    const correctLongAnswers = longAnswers.filter(x => x.correct).length
-    const correctReports = longAnswers
+    const longFlips = validation.data.longFlips.map(x => ({
+      ...x,
+      correct: x.rightAnswer === x.answer,
+      correctReport: Boolean(
+        (x.reason && x.wrongWords) || (!x.reason && !x.wrongWords)
+      ),
+    }))
+
+    const correctShortAnswers = shortFlips.filter(x => x.correct).length
+    const correctLongAnswers = longFlips.filter(x => x.correct).length
+    const correctReports = longFlips
       .filter(x => x.reason)
       .filter(x => x.correctReport).length
 
@@ -103,8 +48,8 @@ export default async (req, res) => {
     const updated = await faunaClient.query(
       q.Update(validation.ref, {
         data: {
-          shortAnswers,
-          longAnswers,
+          shortFlips,
+          longFlips,
           result: {
             shortPoints: correctShortAnswers,
             longPoints: correctLongAnswers,

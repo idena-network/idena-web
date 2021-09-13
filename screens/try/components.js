@@ -57,7 +57,7 @@ import {reorderList} from '../../shared/utils/arr'
 import {keywords} from '../../shared/utils/keywords'
 import {capitalize} from '../../shared/utils/string'
 import {toBlob} from '../../shared/utils/utils'
-import {canScheduleValidation} from './utils'
+import {canScheduleValidation, GetAnswerTitle} from './utils'
 
 function CertificateCardPanelItem({title, children}) {
   return (
@@ -94,7 +94,7 @@ function Countdown({validationTime = 0}) {
   )
 }
 
-function AlertBox(props) {
+export function AlertBox(props) {
   return (
     <Flex
       align="center"
@@ -382,16 +382,18 @@ export function GetReasonDesc(t, reason) {
 
 export function DetailsPoints({title, value, isLoading, isFailed}) {
   return (
-    <Stack flex={1}>
-      <Flex color="muted">{title}</Flex>
-      <Flex
-        fontSize="base"
-        fontWeight="500"
-        color={isFailed ? 'red.500' : 'black'}
-      >
-        {isLoading ? <Skeleton mt={1} h={5} w={8} /> : value}
+    <Flex direction="column" lineHeight={5} mr={16}>
+      <Flex color="muted" fontSize="md">
+        {title}
       </Flex>
-    </Stack>
+      <Flex
+        fontSize="lg"
+        fontWeight="500"
+        color={isFailed ? 'red.500' : 'gray.500'}
+      >
+        {isLoading ? <Skeleton h={5} w={8} /> : value}
+      </Flex>
+    </Flex>
   )
 }
 
@@ -718,7 +720,7 @@ export function FlipView({
       <DialogHeader>
         <Flex direction="column">
           <Flex alignItems="center">
-            {answer === AnswerType.Left ? t('Left') : t('Right')}
+            {GetAnswerTitle(t, answer)}
             {isCorrect ? (
               <RightIcon boxSize={5} color="green.500" ml={1} />
             ) : (

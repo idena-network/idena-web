@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import {Box, Divider, Flex, Heading, Image, Stack} from '@chakra-ui/react'
+import {Box, Divider, Flex, Heading, Image, Stack, Text} from '@chakra-ui/react'
 import {useQuery} from 'react-query'
 import {CertificateTypeLabel} from '../../screens/certificate/components'
 import {fetchIdentity} from '../../shared/api'
@@ -39,19 +39,23 @@ export default function Certificate({certificate}) {
         position="relative"
       >
         <CertificateTypeLabel type={certificate.type} />
-        <Stack spacing={8} alignItems="center" px={10}>
+        <Flex direction="column" alignItems="center" px={5}>
           <Image ignoreFallback src="/static/idena-logo-round.svg" h={16} />
-          <Heading fontSize="lg" fontWeight="500">
+          <Heading fontSize="lg" fontWeight="500" mt="45px">
             Certificate
           </Heading>
+          <Text color="muted" fontSize="md" mt={2}>
+            Training validation is passed successfully
+          </Text>
           <Stack
+            mt={7}
             spacing={3 / 2}
             bg="gray.50"
             px={6}
             py={4}
             rounded="lg"
             fontSize="sm"
-            w={240}
+            w={280}
           >
             <Flex justifyContent="space-between">
               <Box>Short session score</Box>
@@ -67,7 +71,7 @@ export default function Certificate({certificate}) {
             </Flex>
           </Stack>
 
-          <Stack isInline spacing={3} align="center" w={240}>
+          <Stack isInline spacing={3} align="center" w={280} mt={8}>
             <Avatar size={8} address={certificate.coinbase} />
 
             <Stack spacing={0} overflow="hidden" w="100%">
@@ -92,8 +96,8 @@ export default function Certificate({certificate}) {
             </Stack>
           </Stack>
 
-          <Divider></Divider>
-        </Stack>
+          <Divider mt={7}></Divider>
+        </Flex>
         <Flex
           mt={82}
           justifyContent="space-between"

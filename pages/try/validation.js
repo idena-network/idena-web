@@ -26,14 +26,18 @@ import {toHexString} from '../../shared/utils/buffers'
 
 export default function TrainingPage() {
   const {auth, privateKey, coinbase} = useAuthState()
-  const {current} = useTestValidationState()
+  const {current, timestamp} = useTestValidationState()
   const router = useRouter()
 
+  // hack to redirect only when new page /try/validation is opened
+  // and do not redirect right after validation ends.
   useEffect(() => {
-    if (!current) {
-      router.push('/try')
+    if (timestamp && !current) {
+      if (Math.abs(timestamp - new Date().getTime()) > 3 * 1000) {
+        return router.push('/try')
+      }
     }
-  }, [current, router])
+  }, [current, router, timestamp])
 
   if (!auth) {
     return (
@@ -43,13 +47,13 @@ export default function TrainingPage() {
     )
   }
 
-  if (privateKey && coinbase && current)
+  if (privateKey && coinbase)
     return (
       <ValidationSession
-        id={current.id}
+        id={current?.id}
         coinbase={coinbase}
         privateKey={privateKey}
-        validationStart={current.startTime}
+        validationStart={current?.startTime}
         shortSessionDuration={TEST_SHORT_SESSION_INTERVAL_SEC}
         longSessionDuration={TEST_LONG_SESSION_INTERVAL_SEC}
       />
@@ -67,10 +71,11 @@ function ValidationSession({
   shortSessionDuration,
   longSessionDuration,
 }) {
-  const router = useRouter()
   const {checkValidation} = useTestValidationDispatch()
 
   const {i18n} = useTranslation()
+
+  const router = useRouter()
 
   const {
     isOpen: isExceededTooltipOpen,
@@ -107,8 +112,7 @@ function ValidationSession({
       },
       onValidationSucceeded: async () => {
         await checkValidation(id)
-
-        router.push('/try')
+        return router.push(`/try/details/${id}`)
       },
     },
     services: {
@@ -186,7 +190,7 @@ function ValidationSession({
       isExceededTooltipOpen={isExceededTooltipOpen}
       onValidationFailed={async () => {
         await checkValidation(id)
-        router.push('/try')
+        return router.push(`/try/details/${id}`)
       }}
     />
   )
@@ -197,7 +201,6 @@ async function loadWords(flips) {
 }
 
 async function fetchFlips(hashes, cb) {
-  console.log(hashes)
   return forEachAsync(hashes, async hash => {
     const flip = await getFlip(hash)
     if (flip) {

@@ -9,13 +9,13 @@ export default async (req, res) => {
     return res.status(400).send('id is missing')
   }
   try {
-    const {data} = await faunaClient.query(
-      q.Get(q.Match(q.Index('validation_by_id'), id))
+    const field = type === SessionType.Short ? 'shortFlips' : 'longFlips'
+
+    const flips = await faunaClient.query(
+      q.Select(['data', field], q.Get(q.Match(q.Index('validation_by_id'), id)))
     )
 
-    return res
-      .status(200)
-      .json(type === SessionType.Short ? data.shortFlips : data.longFlips)
+    return res.status(200).json(flips.map(x => x.hash))
   } catch (e) {
     return res.status(400).send(e.toString())
   }

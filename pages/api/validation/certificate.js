@@ -22,8 +22,8 @@ export async function getCertificateData(id, full) {
   }
 
   if (full) {
-    result.shortFlips = validation.data.shortAnswers
-    result.longFlips = validation.data.longAnswers
+    result.shortFlips = validation.data.shortFlips
+    result.longFlips = validation.data.longFlips
   }
 
   return result

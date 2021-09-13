@@ -1601,8 +1601,18 @@ export function ValidationScreen({
                           ? 'white'
                           : 'red.500'
                       }
-                      _hover={null}
-                      _active={null}
+                      _hover={{
+                        bg:
+                          currentFlip.relevance === RelevanceType.Irrelevant
+                            ? 'red.500'
+                            : 'red.020',
+                      }}
+                      _active={{
+                        bg:
+                          currentFlip.relevance === RelevanceType.Irrelevant
+                            ? 'red.500'
+                            : 'red.020',
+                      }}
                       _focus={{
                         boxShadow: '0 0 0 3px rgb(255 102 102 /0.50)',
                         outline: 'none',

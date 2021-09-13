@@ -1,11 +1,12 @@
+import {WarningIcon} from '@chakra-ui/icons'
 import {
   CloseButton,
   Flex,
   Heading,
-  Stack,
   Table,
   Tbody,
   Td,
+  Text,
   Thead,
   Tr,
 } from '@chakra-ui/react'
@@ -15,6 +16,7 @@ import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
 import {Page, PageTitle} from '../../../screens/app/components'
 import {
+  AlertBox,
   DetailsPoints,
   FlipsTh,
   FlipsThCorner,
@@ -27,9 +29,14 @@ import {
 } from '../../../screens/try/components'
 import {GetAnswerTitle} from '../../../screens/try/utils'
 import {getCertificate} from '../../../shared/api/self'
-import {Skeleton} from '../../../shared/components/components'
-import {RightIcon, WrongIcon} from '../../../shared/components/icons'
+import {Skeleton, TextLink} from '../../../shared/components/components'
+import {
+  CertificateIcon,
+  RightIcon,
+  WrongIcon,
+} from '../../../shared/components/icons'
 import Layout from '../../../shared/components/layout'
+import {CertificateActionType} from '../../../shared/types'
 
 export default function Details() {
   const {t} = useTranslation()
@@ -83,7 +90,6 @@ export default function Details() {
             alignSelf="stretch"
             justify="space-between"
             mt={8}
-            mb={4}
           >
             <PageTitle>{t('Training validation report')}</PageTitle>
             <CloseButton
@@ -93,38 +99,68 @@ export default function Details() {
               }}
             />
           </Flex>
-          <Stack width="720px" spacing={6}>
+          <Flex width="720px" direction="column">
+            {data.actionType === CertificateActionType.Passed && (
+              <AlertBox>
+                <Flex align="center">
+                  <RightIcon boxSize={4} color="green.500" mr={2} />
+                  <Text fontWeight={500}>{t('Passed successfully')}</Text>
+                </Flex>
+              </AlertBox>
+            )}
+            {data.actionType === CertificateActionType.Failed && (
+              <AlertBox borderColor="red.050" bg="red.010">
+                <Flex align="center">
+                  <WarningIcon boxSize={4} color="red.500" mr={2} />
+                  <Text fontWeight={500}>{t('Failed. Please try again')}</Text>
+                </Flex>
+              </AlertBox>
+            )}
             <Flex
-              bg="gray.50"
-              px={6}
-              py={5}
-              rounded="lg"
               justifyContent="space-between"
               fontSize="md"
+              align="center"
+              mt={8}
             >
-              <DetailsPoints
-                title={t('Short score')}
-                isLoading={isFetching}
-                value={`${data.shortScore || 0}/6`}
-                isFailed={data.shortScore < 4}
-              />
-              <DetailsPoints
-                title={t('Long score')}
-                isLoading={isFetching}
-                value={`${data.longScore || 0}/18`}
-                isFailed={data.longScore < 14}
-              />
-              <DetailsPoints
-                title={t('Reporting score')}
-                isLoading={isFetching}
-                value={`${data.reportScore || 0}/6`}
-                isFailed={data.reportScore < 4}
-              />
+              <Flex>
+                <DetailsPoints
+                  title={t('Short score')}
+                  isLoading={isFetching}
+                  value={`${data.shortScore || 0}/6`}
+                  isFailed={data.shortScore < 4}
+                />
+                <DetailsPoints
+                  title={t('Long score')}
+                  isLoading={isFetching}
+                  value={`${data.longScore || 0}/18`}
+                  isFailed={data.longScore < 14}
+                />
+                <DetailsPoints
+                  title={t('Reporting score')}
+                  isLoading={isFetching}
+                  value={`${data.reportScore || 0}/6`}
+                  isFailed={data.reportScore < 4}
+                />
+              </Flex>
+              {data.actionType === CertificateActionType.Passed && (
+                <Flex>
+                  <TextLink
+                    href="/certificate/[id]"
+                    as={`/certificate/${id}`}
+                    fontWeight={500}
+                    mr={4}
+                    target="_blank"
+                  >
+                    <CertificateIcon boxSize={5} mr={1} />
+                    {t('Show certificate')}
+                  </TextLink>
+                </Flex>
+              )}
             </Flex>
-            <Heading fontSize="lg" fontWeight="500">
+            <Heading fontSize="lg" fontWeight="500" mt={8}>
               Short session
             </Heading>
-            <Flex>
+            <Flex mt={5}>
               <Table>
                 <Thead>
                   <Tr>
@@ -132,7 +168,7 @@ export default function Details() {
                       Flips
                       <FlipsThCorner borderLeftRadius="md" />
                     </RoundedFlipsTh>
-                    <RoundedFlipsTh textAlign="right" w={20}>
+                    <RoundedFlipsTh w={32}>
                       Answers
                       <FlipsThCorner borderRightRadius="md" />
                     </RoundedFlipsTh>
@@ -172,10 +208,10 @@ export default function Details() {
                 </Tbody>
               </Table>
             </Flex>
-            <Heading fontSize="lg" fontWeight="500">
+            <Heading fontSize="lg" fontWeight="500" mt={8}>
               Long session
             </Heading>
-            <Flex>
+            <Flex mt={5}>
               <Table style={{tableLayout: 'fixed'}}>
                 <Thead>
                   <Tr>
@@ -183,7 +219,7 @@ export default function Details() {
                       Flips
                       <FlipsThCorner borderLeftRadius="md" />
                     </RoundedFlipsTh>
-                    <FlipsTh w={28}>Answers</FlipsTh>
+                    <FlipsTh w={32}>Answers</FlipsTh>
                     <FlipsTh>Qualification</FlipsTh>
                     <RoundedFlipsTh>
                       Reason
@@ -258,7 +294,7 @@ export default function Details() {
                 </Tbody>
               </Table>
             </Flex>
-          </Stack>
+          </Flex>
         </Flex>
         <FlipView {...flipView} onClose={() => setFlipView({isOpen: false})} />
       </Page>
