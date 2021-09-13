@@ -20,7 +20,7 @@ export function canScheduleValidation(type, nextValidationDate) {
       return current.add(1, 'h').isBefore(nextValidation)
     }
     case CertificateType.Master: {
-      return current.add(1, 'd').get('d') !== nextValidation.get('d')
+      return current.add(1, 'D').get('D') !== nextValidation.get('D')
     }
     default:
       return false
