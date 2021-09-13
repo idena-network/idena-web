@@ -5,7 +5,19 @@ CreateCollection({
 })
 
 CreateCollection({
+  name: "flips-cache",
+  history_days: 30,
+  ttl_days: null
+})
+
+CreateCollection({
   name: "validations",
+  history_days: 30,
+  ttl_days: null
+})
+
+CreateCollection({
+  name: "validations-storage",
   history_days: 30,
   ttl_days: null
 })
@@ -23,7 +35,7 @@ CreateIndex({
 })
 
 CreateIndex({
-  name: "flip_hashes",
+  name: "flip_hashes_with_answer_reason",
   unique: true,
   serialized: true,
   source: "flips",
@@ -31,23 +43,6 @@ CreateIndex({
     {
       field: ["data", "hash"]
     },
-    {
-      field: ["data", "isReported"]
-    }
-  ]
-})
-
-CreateIndex({
-  name: "flips_by_hash_with_answer_isReported",
-  unique: false,
-  serialized: true,
-  source: "flips",
-  terms: [
-    {
-      field: ["data", "hash"]
-    }
-  ],
-  values: [
     {
       field: ["data", "answer"]
     },
@@ -65,6 +60,48 @@ CreateIndex({
   terms: [
     {
       field: ["data", "id"]
+    }
+  ]
+})
+
+CreateIndex({
+  name: "flips-cache_by_hash",
+  unique: false,
+  serialized: true,
+  source: "flips-cache",
+  terms: [
+    {
+      field: ["data", "hash"]
+    }
+  ]
+})
+
+CreateIndex({
+  name: "validation_by_coinbase_type_active",
+  unique: false,
+  serialized: true,
+  source: "validations",
+  terms: [
+    {
+      field: ["data", "coinbase"]
+    },
+    {
+      field: ["data", "type"]
+    },
+    {
+      field: ["data", "active"]
+    }
+  ]
+})
+
+CreateIndex({
+  name: "validation-storage_by_coinbase",
+  unique: true,
+  serialized: true,
+  source: "validation-storage",
+  terms: [
+    {
+      field: ["data", "coinbase"]
     }
   ]
 })
