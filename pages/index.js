@@ -212,7 +212,7 @@ export default function ProfilePage() {
                                 'You have been invited to join the upcoming validation ceremony. Click the button below to accept the invitation.'
                               )
                             : t(
-                                'To quickly get an invite code, we recommend that you get a certificate of trust by passing a training validation'
+                                'To take part in the validation, you need an invitation code. Invitations can be provided by validated identities.'
                               )}
                         </Text>
                       </Stack>
