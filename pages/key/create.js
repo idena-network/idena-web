@@ -165,7 +165,13 @@ export default function CreateKey() {
       )}
       {state.step === steps.PASSWORD && (
         <AuthLayout>
-          <Box w="100%" h={6} position="absolute" top="40px">
+          <Box
+            w="100%"
+            h={6}
+            position="absolute"
+            top="40px"
+            display={['block', 'none']}
+          >
             <ArrowBackIcon
               boxSize={6}
               ml={4}
@@ -303,7 +309,13 @@ export default function CreateKey() {
       )}
       {state.step === steps.BACKUP && (
         <AuthLayout>
-          <Box w="100%" h={6} position="absolute" top="40px">
+          <Box
+            w="100%"
+            h={6}
+            position="absolute"
+            top="40px"
+            display={['block', 'none']}
+          >
             <ArrowBackIcon
               boxSize={6}
               ml={4}
@@ -372,7 +384,7 @@ export default function CreateKey() {
                     borderColor="xblack.008"
                     backgroundColor={['gray.500', 'xblack.016']}
                     width="100%"
-                    pr={10}
+                    pr={[10, 3]}
                     disabled
                   />
                   <Box
