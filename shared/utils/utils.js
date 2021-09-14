@@ -121,3 +121,7 @@ export function calculateInvitationRewardRatio(
 export const openExternalUrl = href => {
   if (typeof window !== 'undefined') return window.open(href, '_blank')
 }
+
+export const toBlob = base64 => fetch(base64).then(res => res.blob())
+
+export const isVercelProduction = process.env.VERCEL_ENV === 'production'

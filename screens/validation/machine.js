@@ -12,7 +12,7 @@ import {
   sendPublicEncryptionKey,
 } from '../../shared/api/validation'
 import {sendRawTx, getRawTx} from '../../shared/api/chain'
-import {SessionType} from '../../shared/types'
+import {RelevanceType, SessionType} from '../../shared/types'
 import {fetchFlipKeys, fetchRawFlip} from '../../shared/api'
 import {fetchWordsSeed, fetchIdentity} from '../../shared/api/dna'
 import apiClient from '../../shared/api/api-client'
@@ -758,25 +758,7 @@ export const createValidationMachine = ({
                         submitHash: {
                           entry: log('Submit short answers hash'),
                           invoke: {
-                            // eslint-disable-next-line no-shadow
-                            src: ({
-                              shortHashes,
-                              shortFlips,
-                              shortHashSubmitted,
-                            }) =>
-                              shortHashSubmitted
-                                ? Promise.resolve()
-                                : submitShortAnswersHashTx(
-                                    privateKey,
-                                    epoch,
-                                    shortHashes,
-                                    shortFlips.map(
-                                      ({option: answer = 0, hash}) => ({
-                                        answer,
-                                        hash,
-                                      })
-                                    )
-                                  ),
+                            src: 'submitHash',
                             onDone: {
                               target: '#validation.longSession',
                               actions: [
@@ -1187,7 +1169,7 @@ export const createValidationMachine = ({
                       states: {
                         requestWordsSeed: {
                           invoke: {
-                            src: () => fetchWordsSeed(),
+                            src: 'fetchWordsSeed',
                             onDone: {
                               target: 'submitLongAnswers',
                               actions: assign({
@@ -1208,34 +1190,7 @@ export const createValidationMachine = ({
                         submitLongAnswers: {
                           invoke: {
                             // eslint-disable-next-line no-shadow
-                            src: ({
-                              longHashes,
-                              longFlips,
-                              wordsSeed,
-                              longAnswersSubmitted,
-                            }) =>
-                              longAnswersSubmitted
-                                ? Promise.resolve()
-                                : submitLongAnswersTx(
-                                    privateKey,
-                                    longHashes,
-                                    longFlips.map(
-                                      ({
-                                        option: answer = 0,
-                                        hash,
-                                        relevance,
-                                      }) => ({
-                                        answer,
-                                        hash,
-                                        wrongWords:
-                                          relevance ===
-                                          // eslint-disable-next-line no-use-before-define
-                                          RelevanceType.Irrelevant,
-                                      })
-                                    ),
-                                    wordsSeed,
-                                    epoch
-                                  ),
+                            src: 'submitLongAnswers',
                             onDone: {
                               actions: [
                                 assign({
@@ -1265,24 +1220,24 @@ export const createValidationMachine = ({
                         },
                       },
                     },
-                    after: {
-                      LONG_SESSION_CHECK: [
-                        {
-                          target: '#validation.validationFailed',
-                          cond: ({longFlips}) => {
-                            const solvableFlips = filterSolvableFlips(longFlips)
-                            const answers = solvableFlips.filter(
-                              ({option}) => option
-                            )
-                            return (
-                              !solvableFlips.length ||
-                              (solvableFlips.length &&
-                                answers.length < solvableFlips.length / 2)
-                            )
-                          },
+                  },
+                  after: {
+                    LONG_SESSION_CHECK: [
+                      {
+                        target: '#validation.validationFailed',
+                        cond: ({longFlips}) => {
+                          const solvableFlips = filterSolvableFlips(longFlips)
+                          const answers = solvableFlips.filter(
+                            ({option}) => option
+                          )
+                          return (
+                            !solvableFlips.length ||
+                            (solvableFlips.length &&
+                              answers.length < solvableFlips.length / 2)
+                          )
                         },
-                      ],
-                    },
+                      },
+                    ],
                   },
                 },
               },
@@ -1298,7 +1253,7 @@ export const createValidationMachine = ({
                   states: {
                     requestWordsSeed: {
                       invoke: {
-                        src: () => fetchWordsSeed(),
+                        src: 'fetchWordsSeed',
                         onDone: {
                           target: 'submitShortAnswers',
                           actions: assign({
@@ -1319,25 +1274,7 @@ export const createValidationMachine = ({
                     submitShortAnswers: {
                       invoke: {
                         // eslint-disable-next-line no-shadow
-                        src: ({
-                          shortHashes,
-                          shortFlips,
-                          wordsSeed,
-                          shortAnswersSubmitted,
-                        }) =>
-                          shortAnswersSubmitted
-                            ? Promise.resolve()
-                            : submitShortAnswersTx(
-                                privateKey,
-                                shortHashes,
-                                shortFlips.map(
-                                  ({option: answer = 0, hash}) => ({
-                                    answer,
-                                    hash,
-                                  })
-                                ),
-                                wordsSeed
-                              ),
+                        src: 'submitShortAnswers',
                         onDone: {
                           target: 'done',
                           actions: assign({
@@ -1387,7 +1324,6 @@ export const createValidationMachine = ({
             },
           },
         },
-
         validationFailed: {
           type: 'final',
           entry: log('VALIDATION FAILED'),
@@ -1435,6 +1371,58 @@ export const createValidationMachine = ({
           loadWords(
             longFlips.filter(decodedWithoutKeywords).map(({hash}) => hash)
           ),
+        submitHash: ({shortHashes, shortFlips, shortHashSubmitted}) =>
+          shortHashSubmitted
+            ? Promise.resolve()
+            : submitShortAnswersHashTx(
+                privateKey,
+                epoch,
+                shortHashes,
+                shortFlips.map(({option: answer = 0, hash}) => ({
+                  answer,
+                  hash,
+                }))
+              ),
+        fetchWordsSeed: () => fetchWordsSeed(),
+        submitShortAnswers: ({
+          shortHashes,
+          shortFlips,
+          wordsSeed,
+          shortAnswersSubmitted,
+        }) =>
+          shortAnswersSubmitted
+            ? Promise.resolve()
+            : submitShortAnswersTx(
+                privateKey,
+                shortHashes,
+                shortFlips.map(({option: answer = 0, hash}) => ({
+                  answer,
+                  hash,
+                })),
+                wordsSeed
+              ),
+        submitLongAnswers: ({
+          longHashes,
+          longFlips,
+          wordsSeed,
+          longAnswersSubmitted,
+        }) =>
+          longAnswersSubmitted
+            ? Promise.resolve()
+            : submitLongAnswersTx(
+                privateKey,
+                longHashes,
+                longFlips.map(({option: answer = 0, hash, relevance}) => ({
+                  answer,
+                  hash,
+                  wrongWords:
+                    relevance ===
+                    // eslint-disable-next-line no-use-before-define
+                    RelevanceType.Irrelevant,
+                })),
+                wordsSeed,
+                epoch
+              ),
       },
       delays: {
         // eslint-disable-next-line no-shadow
@@ -1725,11 +1713,6 @@ async function fetchWords(hash) {
       id: 1,
     })
   ).data
-}
-
-export const RelevanceType = {
-  Relevant: 1,
-  Irrelevant: 2,
 }
 
 export function adjustDuration(validationStart, duration) {

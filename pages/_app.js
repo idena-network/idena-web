@@ -10,7 +10,7 @@ import {v4 as uuidv4} from 'uuid'
 import '../i18n'
 import 'focus-visible/dist/focus-visible'
 
-import {ChakraProvider, extendTheme} from '@chakra-ui/react'
+import {Box, ChakraProvider, extendTheme} from '@chakra-ui/react'
 import {uiTheme} from '../shared/theme'
 
 import {NotificationProvider} from '../shared/providers/notification-context'
@@ -24,6 +24,7 @@ import {AppProvider} from '../shared/providers/app-context'
 import {IdentityProvider} from '../shared/providers/identity-context'
 import {EpochProvider} from '../shared/providers/epoch-context'
 import {OnboardingProvider} from '../shared/providers/onboarding-context'
+import {TestValidationProvider} from '../shared/providers/test-validation-context'
 
 export default class MyApp extends App {
   render() {
@@ -93,16 +94,18 @@ function AppProviders({tabId, ...props}) {
     <QueryClientProvider client={queryClient}>
       <SettingsProvider>
         <AuthProvider>
-          <EpochProvider>
-            <IdentityProvider>
-              <AppProvider tabId={tabId}>
-                <Flips />
-                <OnboardingProvider>
-                  <NotificationProvider {...props} />
-                </OnboardingProvider>
-              </AppProvider>
-            </IdentityProvider>
-          </EpochProvider>
+          <TestValidationProvider>
+            <EpochProvider>
+              <IdentityProvider>
+                <AppProvider tabId={tabId}>
+                  <Flips />
+                  <OnboardingProvider>
+                    <NotificationProvider {...props} />
+                  </OnboardingProvider>
+                </AppProvider>
+              </IdentityProvider>
+            </EpochProvider>
+          </TestValidationProvider>
         </AuthProvider>
       </SettingsProvider>
     </QueryClientProvider>
@@ -129,8 +132,10 @@ function IdenaApp(props) {
     }
   }, [router.events])
 
-  return router.pathname === '/too-many-tabs' ? (
-    <div {...props} />
+  return ['/certificate/[id]', '/too-many-tabs'].includes(router.pathname) ? (
+    <QueryClientProvider client={queryClient}>
+      <Box {...props} />
+    </QueryClientProvider>
   ) : (
     <AppProviders tabId={id.current} {...props} />
   )

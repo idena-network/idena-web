@@ -84,3 +84,21 @@ export const OnboardingStep = {
   WaitingValidationResults: 'waitingValidationResults',
   ActivateMining: 'activateMining',
 }
+
+export const CertificateType = {
+  Beginner: 0,
+  Expert: 1,
+  Master: 2,
+}
+
+export const CertificateActionType = {
+  None: 0,
+  Requested: 1,
+  Passed: 2,
+  Failed: 3,
+}
+
+export const RelevanceType = {
+  Relevant: 1,
+  Irrelevant: 2,
+}

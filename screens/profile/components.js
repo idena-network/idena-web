@@ -11,7 +11,6 @@ import {
   FormControl,
   Box,
   Flex,
-  Textarea,
   Button,
   Text,
   Switch,
@@ -22,12 +21,13 @@ import {
   useToast,
   Link,
   RadioGroup,
-  Spacer,
+  Divider,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
 import {useMachine} from '@xstate/react'
 import {useQuery} from 'react-query'
+import {InfoIcon} from '@chakra-ui/icons'
 import {
   Avatar,
   Tooltip,
@@ -229,8 +229,8 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
           <FormControl>
             <Stack spacing={3}>
               <Flex justify="space-between" align="center">
-                <FormLabel htmlFor="code" p={0}>
-                  {t('Invitation code')}
+                <FormLabel htmlFor="code" p={0} m={0}>
+                  {t('Enter invitation code')}
                 </FormLabel>
                 <Button
                   variant="ghost"
@@ -271,14 +271,28 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
             </Stack>
           </FormControl>
         )}
-        <PrimaryButton
-          isLoading={mining}
-          loadingText={t('Mining...')}
-          type="submit"
-          ml="auto"
-        >
-          {t('Activate invite')}
-        </PrimaryButton>
+        <Flex>
+          <Flex ml="auto" alignItems="center">
+            <Button
+              variant="link"
+              leftIcon={<InfoIcon boxSize={4} />}
+              onClick={props.onHowToGetInvitation}
+              colorScheme="blue"
+              _active={{}}
+              fontWeight={500}
+            >
+              {t('How to get an invitation?')}
+            </Button>
+            <Divider borderColor="gray.100" orientation="vertical" mx={4} />
+            <PrimaryButton
+              isLoading={mining}
+              loadingText={t('Mining...')}
+              type="submit"
+            >
+              {t('Activate invite')}
+            </PrimaryButton>
+          </Flex>
+        </Flex>
       </Stack>
     </Box>
   )

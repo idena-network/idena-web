@@ -184,7 +184,8 @@ function SettingsProvider({children}) {
     () => {
       if (
         router.pathname !== '/node/restricted' &&
-        router.pathname !== '/validation'
+        router.pathname !== '/validation' &&
+        router.pathname !== '/try/validation'
       )
         router.push('/node/restricted')
     },

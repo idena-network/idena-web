@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react'
+import React, {useEffect, useState} from 'react'
 import {
   Box,
   Heading,
@@ -38,7 +38,7 @@ import {useIdentity} from '../shared/providers/identity-context'
 import {useEpoch} from '../shared/providers/epoch-context'
 import {fetchBalance} from '../shared/api/wallet'
 import {useAuthState} from '../shared/providers/auth-context'
-import {IconButton, PrimaryButton} from '../shared/components/button'
+import {IconButton} from '../shared/components/button'
 import {validDnaUrl} from '../shared/utils/dna-link'
 import {DnaSignInDialog} from '../screens/dna/containers'
 import {ExternalLink, TextLink, Toast} from '../shared/components/components'
@@ -55,6 +55,8 @@ import {
   ChevronDownIcon,
   DeleteIcon,
   PhotoIcon,
+  TelegramIcon,
+  TestValidationIcon,
 } from '../shared/components/icons'
 
 export default function ProfilePage() {
@@ -159,6 +161,7 @@ export default function ProfilePage() {
 
   React.useEffect(() => {
     if (
+      isOpenActivateInvitePopover ||
       eitherState(
         currentOnboarding,
         onboardingShowingStep(OnboardingStep.ActivateInvite)
@@ -169,6 +172,7 @@ export default function ProfilePage() {
     } else onCloseActivateInvitePopover()
   }, [
     currentOnboarding,
+    isOpenActivateInvitePopover,
     onCloseActivateInvitePopover,
     onOpenActivateInvitePopover,
     scrollToActivateInvite,
@@ -179,13 +183,13 @@ export default function ProfilePage() {
       <Page>
         <PageTitle mb={8}>{t('Profile')}</PageTitle>
         <Stack isInline spacing={10}>
-          <Stack spacing={8} w="md" ref={activateInviteRef}>
+          <Stack spacing={8} w={480} ref={activateInviteRef}>
             <UserInlineCard address={coinbase} state={state} h={24} />
             {canActivateInvite && (
               <Box>
                 <OnboardingPopover
                   isOpen={isOpenActivateInvitePopover}
-                  placement="top-start"
+                  placement="bottom"
                 >
                   <PopoverTrigger>
                     <Stack
@@ -208,18 +212,20 @@ export default function ProfilePage() {
                                 'You have been invited to join the upcoming validation ceremony. Click the button below to accept the invitation.'
                               )
                             : t(
-                                'To quickly get an invite code, we recommend that you get a certificate of trust by passing a test validation'
+                                'To take part in the validation, you need an invitation code. Invitations can be provided by validated identities.'
                               )}
                         </Text>
                       </Stack>
                       <Box>
-                        <ActivateInviteForm />
+                        <ActivateInviteForm
+                          onHowToGetInvitation={onOpenActivateInvitePopover}
+                        />
                       </Box>
                     </Stack>
                   </PopoverTrigger>
                   <OnboardingPopoverContent
                     gutter={10}
-                    title={t('Enter invitation code')}
+                    title={t('How to get an invitation code')}
                     zIndex={2}
                     onDismiss={() => {
                       dismissCurrentTask()
@@ -228,36 +234,66 @@ export default function ProfilePage() {
                   >
                     <Stack spacing={5}>
                       <Stack>
-                        <Text>
+                        <Text fontSize="sm">
                           {t(
-                            `An invitation can be provided by validated participants.`
+                            '1. Join the official Idena public Telegram group and follow instructions in the pinned message.'
                           )}
                         </Text>
-                        <Text>
-                          {t(`Join the official Idena public Telegram group and follow instructions in the
-                pinned message.`)}
-                        </Text>
-                        <OnboardingPopoverContentIconRow icon="telegram">
+                        <OnboardingPopoverContentIconRow
+                          icon={<TelegramIcon boxSize={5} />}
+                          _hover={{
+                            bg: '#689aff',
+                          }}
+                          px={4}
+                          py={2}
+                          cursor="pointer"
+                          onClick={() => {
+                            const win = openExternalUrl(
+                              'https://t.me/IdenaNetworkPublic'
+                            )
+                            win.focus()
+                          }}
+                          borderRadius="lg"
+                        >
                           <Box>
-                            <PrimaryButton
-                              variant="unstyled"
-                              p={0}
-                              py={0}
-                              h={18}
-                              onClick={() => {
-                                const win = openExternalUrl(
-                                  'https://t.me/IdenaNetworkPublic'
-                                )
-                                win.focus()
-                              }}
-                            >
+                            <Text p={0} py={0} h={18} fontSize="md">
                               https://t.me/IdenaNetworkPublic
-                            </PrimaryButton>
+                            </Text>
                             <Text
                               fontSize="sm"
                               color="rgba(255, 255, 255, 0.56)"
                             >
                               {t('Official group')}
+                            </Text>
+                          </Box>
+                        </OnboardingPopoverContentIconRow>
+                        <Text fontSize="sm">
+                          {t(
+                            '2. Pass the training validation and get a certificate which you can provide to a validated member to get an invitation code'
+                          )}
+                        </Text>
+                        <OnboardingPopoverContentIconRow
+                          icon={
+                            <TestValidationIcon boxSize={5} color="white" />
+                          }
+                          _hover={{
+                            bg: '#689aff',
+                          }}
+                          px={4}
+                          py={2}
+                          cursor="pointer"
+                          onClick={() => router.push('/try')}
+                          borderRadius="lg"
+                        >
+                          <Box>
+                            <Text p={0} py={0} h={18} fontSize="md">
+                              {t('Test yourself')}
+                            </Text>
+                            <Text
+                              fontSize="sm"
+                              color="rgba(255, 255, 255, 0.56)"
+                            >
+                              {t('Training validation')}
                             </Text>
                           </Box>
                         </OnboardingPopoverContentIconRow>
@@ -353,8 +389,8 @@ export default function ProfilePage() {
               </UserStat>
             </UserStatList>
           </Stack>
-          <Stack spacing={10} w={48}>
-            <Box minH={62} mt={4}>
+          <Stack spacing={10} w={200}>
+            <Box minH={62} mt={6}>
               <OnboardingPopover
                 isOpen={eitherOnboardingState(
                   onboardingShowingStep(OnboardingStep.ActivateMining)
@@ -399,6 +435,12 @@ export default function ProfilePage() {
               </OnboardingPopover>
             </Box>
             <Stack spacing={1} align="flex-start">
+              <IconButton
+                onClick={() => router.push('/try')}
+                icon={<TestValidationIcon boxSize={5} />}
+              >
+                {t('Training validation')}
+              </IconButton>
               <IconButton
                 onClick={() => router.push('/flips/new')}
                 icon={<PhotoIcon boxSize={5} />}

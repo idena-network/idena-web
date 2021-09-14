@@ -126,5 +126,5 @@ export function AppProvider({tabId, ...props}) {
       })
   }, [t, toast, wrongClientTime])
 
-  return <AppContext.Provider {...props} />
+  return <AppContext.Provider {...props} value={null} />
 }

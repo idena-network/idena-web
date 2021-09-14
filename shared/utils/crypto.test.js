@@ -4,6 +4,8 @@ import {
   serializeAnswers,
   generateShortAnswersSalt,
   privateKeyToAddress,
+  signMessage,
+  checkSignature,
 } from './crypto'
 import {toHexString} from './buffers'
 
@@ -139,5 +141,15 @@ describe('create answers attachment', () => {
     expect(privateKeyToAddress(key)).toBe(
       '0xa79b11814a162129a6dC136885C1c92EE1336Ffc'.toLowerCase()
     )
+  })
+
+  it('sign and check', () => {
+    const data = '0x010203'
+
+    const signature = signMessage(data, key)
+
+    const addr = checkSignature(data, signature)
+
+    expect(privateKeyToAddress(key)).toBe(addr)
   })
 })

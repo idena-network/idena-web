@@ -13,6 +13,8 @@ import Auth from './auth'
 import {apiKeyStates, useSettingsState} from '../providers/settings-context'
 import {useIdentity} from '../providers/identity-context'
 import {useEpoch} from '../providers/epoch-context'
+import {useTestValidationState} from '../providers/test-validation-context'
+import {EpochPeriod} from '../types'
 
 export default function Layout(props) {
   const {auth} = useAuthState()
@@ -40,18 +42,25 @@ function NormalApp({children, canRedirect = true}) {
   const [identity] = useIdentity()
   const settings = useSettingsState()
 
+  const {current, epoch: testValidationEpoch} = useTestValidationState()
+
   React.useEffect(() => {
     if (!canRedirect) return
     if (settings.apiKeyState === apiKeyStates.OFFLINE) {
       router.push('/node/offline')
     } else if (shouldStartValidation(epoch, identity))
       router.push('/validation')
-  }, [canRedirect, epoch, identity, router, settings.apiKeyState])
+    else if (current?.period === EpochPeriod.ShortSession)
+      router.push('/try/validation')
+  }, [canRedirect, current, epoch, identity, router, settings.apiKeyState])
 
   return (
     <Flex as="section" direction="column" flex={1} h="100vh" overflowY="auto">
       {children}
 
+      {current && (
+        <ValidationToast epoch={testValidationEpoch} isTestValidation />
+      )}
       {epoch && <ValidationToast epoch={epoch} identity={identity} />}
 
       <Notifications />
