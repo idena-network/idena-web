@@ -158,18 +158,18 @@ export default function Details() {
               )}
             </Flex>
             <Heading fontSize="lg" fontWeight="500" mt={8}>
-              Short session
+              {t('Short session')}
             </Heading>
             <Flex mt={5}>
               <Table>
                 <Thead>
                   <Tr>
                     <RoundedFlipsTh>
-                      Flips
+                      {t('Flips')}
                       <FlipsThCorner borderLeftRadius="md" />
                     </RoundedFlipsTh>
                     <RoundedFlipsTh w={32}>
-                      Answers
+                      {t('Answers')}
                       <FlipsThCorner borderRightRadius="md" />
                     </RoundedFlipsTh>
                   </Tr>
@@ -209,20 +209,20 @@ export default function Details() {
               </Table>
             </Flex>
             <Heading fontSize="lg" fontWeight="500" mt={8}>
-              Long session
+              {t('Long session')}
             </Heading>
             <Flex mt={5}>
               <Table style={{tableLayout: 'fixed'}}>
                 <Thead>
                   <Tr>
                     <RoundedFlipsTh w="35%">
-                      Flips
+                      {t('Flips')}
                       <FlipsThCorner borderLeftRadius="md" />
                     </RoundedFlipsTh>
-                    <FlipsTh w={32}>Answers</FlipsTh>
-                    <FlipsTh>Qualification</FlipsTh>
+                    <FlipsTh w={32}>{t('Answers')}</FlipsTh>
+                    <FlipsTh>{t('Qualification')}</FlipsTh>
                     <RoundedFlipsTh>
-                      Reason
+                      {t('Reporting reason')}
                       <FlipsThCorner borderRightRadius="md" />
                     </RoundedFlipsTh>
                   </Tr>

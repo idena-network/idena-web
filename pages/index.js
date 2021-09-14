@@ -269,7 +269,7 @@ export default function ProfilePage() {
                         </OnboardingPopoverContentIconRow>
                         <Text fontSize="sm">
                           {t(
-                            '2. Pass training validation and get a certificate which you can provide to a validated member to get an invitation code'
+                            '2. Pass the training validation and get a certificate which you can provide to a validated member to get an invitation code'
                           )}
                         </Text>
                         <OnboardingPopoverContentIconRow
