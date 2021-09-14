@@ -22,7 +22,14 @@ export const TEST_FLIP_LOTTERY_INTERVAL_SEC = 300
 export const TEST_SHORT_SESSION_INTERVAL_SEC = 120
 export const TEST_LONG_SESSION_INTERVAL_SEC = 30 * 60
 
-const initValue = {actionType: CertificateActionType.None}
+const initStateValue = {
+  timestamp: 0,
+  validations: {
+    [CertificateType.Beginner]: {actionType: CertificateActionType.None},
+    [CertificateType.Master]: {actionType: CertificateActionType.None},
+    [CertificateType.Expert]: {actionType: CertificateActionType.None},
+  },
+}
 
 const getEpochPeriod = time => {
   if (!time) {
@@ -69,14 +76,7 @@ function TestValidationProvider({children}) {
   const {coinbase, privateKey} = useAuthState()
 
   const [state, setState] = usePersistence(
-    useState({
-      timestamp: 0,
-      validations: {
-        [CertificateType.Beginner]: initValue,
-        [CertificateType.Master]: initValue,
-        [CertificateType.Expert]: initValue,
-      },
-    }),
+    useState(initStateValue),
     localStorageKey(coinbase)
   )
 
@@ -85,7 +85,11 @@ function TestValidationProvider({children}) {
       const prevState = loadPersistentState(localStorageKey(coinbase))
       if (prevState) {
         setState({...prevState, shouldPersist: false})
+      } else {
+        setState(initStateValue)
       }
+    } else {
+      setState(initStateValue)
     }
   }, [coinbase, setState])
 
