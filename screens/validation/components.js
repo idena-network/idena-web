@@ -1289,7 +1289,7 @@ function BadFlipPartFrame({flipCase, ...props}) {
   const framePosition = [
     {},
     {},
-    {top: `${100 * 3 - 4}px`, bottom: `${-4}px`},
+    {},
     {top: `${100 * 1 - 4}px`, bottom: `${100 * 2 - 4}px`},
     {top: `${100 * 1 - 4}px`, bottom: `${100 * 2 - 4}px`},
   ]
