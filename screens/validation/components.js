@@ -1184,7 +1184,7 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
                     setFlipCase(2)
                   }}
                 >
-                  {t('There are labels indicating the right order')}
+                  {t('There is a sequence of enumerated objects')}
                 </BadFlipListItem>
                 <BadFlipListItem
                   flipCase={3}
@@ -1289,7 +1289,7 @@ function BadFlipPartFrame({flipCase, ...props}) {
   const framePosition = [
     {},
     {},
-    {top: `${100 * 3 - 4}px`, bottom: `${-4}px`},
+    {},
     {top: `${100 * 1 - 4}px`, bottom: `${100 * 2 - 4}px`},
     {top: `${100 * 1 - 4}px`, bottom: `${100 * 2 - 4}px`},
   ]
