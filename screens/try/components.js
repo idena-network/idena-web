@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/prop-types */
 import {WarningIcon} from '@chakra-ui/icons'
 import {
@@ -14,7 +15,6 @@ import {
   Flex,
   Heading,
   Image,
-  Stack,
   Td,
   Text,
   Th,
@@ -503,9 +503,7 @@ export function LongFlipWithIcon({hash, onClick}) {
   )
 }
 
-function FlipHolder({isSelected, ...props}) {
-  const theme = useTheme()
-
+function FlipHolder(props) {
   return (
     <Flex
       position="relative"
@@ -513,11 +511,6 @@ function FlipHolder({isSelected, ...props}) {
       direction="column"
       borderRadius="lg"
       border="2px solid"
-      borderColor={isSelected ? 'blue.500' : 'brandBlue.025'}
-      boxShadow={
-        isSelected ? `0 0 2px 3px ${theme.colors.brandBlue['025']}` : 'none'
-      }
-      opacity={isSelected ? 1 : 0.3}
       p={1 / 2}
       w={140}
       h={450}
@@ -528,7 +521,11 @@ function FlipHolder({isSelected, ...props}) {
 
 function LoadingFlip() {
   return (
-    <FlipHolder css={{cursor: 'not-allowed'}} opacity={1}>
+    <FlipHolder
+      css={{cursor: 'not-allowed'}}
+      opacity={1}
+      borderColor="blue.025"
+    >
       <Flex
         position="absolute"
         top={0}
@@ -544,13 +541,26 @@ function LoadingFlip() {
   )
 }
 
-function Flip({isLoading, images, orders, answer, variant}) {
+function Flip({isLoading, images, orders, answer, variant, isCorrect}) {
+  const theme = useTheme()
   const isSelected = answer === variant
 
   if (isLoading) return <LoadingFlip />
 
   return (
-    <FlipHolder isSelected={isSelected}>
+    <FlipHolder
+      borderColor={
+        isSelected ? (isCorrect ? 'blue.500' : 'red.500') : 'blue.025'
+      }
+      boxShadow={
+        isSelected
+          ? `0 0 2px 3px ${
+              isCorrect ? theme.colors.blue['025'] : theme.colors.red['025']
+            }`
+          : 'none'
+      }
+      opacity={isSelected ? 1 : 0.3}
+    >
       {reorderList(images, orders[variant - 1]).map((src, idx) => (
         <Box
           key={idx}
@@ -666,7 +676,7 @@ function FlipWords({
           bg="red.010"
           borderColor="red.050"
           icon={<WarningIcon color="red.500" boxSize={5}></WarningIcon>}
-          text={t('The flip must have been reported')}
+          text={t('You had to report this flip')}
         />
       )}
       {!isCorrectReport && !shouldBeReported && (
@@ -674,7 +684,7 @@ function FlipWords({
           bg="orange.010"
           borderColor="orange.050"
           icon={<WarningIcon color="orange.500" boxSize={5}></WarningIcon>}
-          text={t('You should not have reported it')}
+          text={t('You reported this flip wrongly')}
         />
       )}
     </Flex>
@@ -745,12 +755,14 @@ export function FlipView({
               variant={AnswerType.Left}
               answer={answer}
               isLoading={isFetching}
+              isCorrect={isCorrect}
             />
             <Flip
               {...data}
               variant={AnswerType.Right}
               answer={answer}
               isLoading={isFetching}
+              isCorrect={isCorrect}
             />
           </Flex>
           {withWords && (
