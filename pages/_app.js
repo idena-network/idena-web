@@ -10,7 +10,7 @@ import {v4 as uuidv4} from 'uuid'
 import '../i18n'
 import 'focus-visible/dist/focus-visible'
 
-import {ChakraProvider, extendTheme} from '@chakra-ui/react'
+import {Box, ChakraProvider, extendTheme} from '@chakra-ui/react'
 import {uiTheme} from '../shared/theme'
 
 import {NotificationProvider} from '../shared/providers/notification-context'
@@ -132,8 +132,10 @@ function IdenaApp(props) {
     }
   }, [router.events])
 
-  return router.pathname === '/too-many-tabs' ? (
-    <div {...props} />
+  return ['/certificate/[id]', '/too-many-tabs'].includes(router.pathname) ? (
+    <QueryClientProvider client={queryClient}>
+      <Box {...props} />
+    </QueryClientProvider>
   ) : (
     <AppProviders tabId={id.current} {...props} />
   )
