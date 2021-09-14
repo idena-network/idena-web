@@ -80,7 +80,9 @@ export default async (req, res) => {
     const result = {
       id: uuidv4(),
       coinbase,
-      time: calcValidationStart(type),
+      time: isVercelProduction
+        ? calcValidationStart(type)
+        : calcDevValidationStart(type),
       shortFlips,
       longFlips,
       type,
