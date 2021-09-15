@@ -54,7 +54,12 @@ import {createTimerMachine} from '../../shared/machines'
 import {usePersistence} from '../../shared/hooks/use-persistent-state'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {Transaction} from '../../shared/models/transaction'
-import {activateKey, getAvailableProviders, getRawTx} from '../../shared/api'
+import {
+  activateKey,
+  getAvailableProviders,
+  getRawTx,
+  sendRawTx,
+} from '../../shared/api'
 import {
   privateKeyToAddress,
   privateKeyToPublicKey,
@@ -71,6 +76,7 @@ import {fetchBalance} from '../../shared/api/wallet'
 import {LaptopIcon, UserIcon} from '../../shared/components/icons'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
+import useTx from '../../shared/hooks/use-tx'
 
 export function UserInlineCard({address, state, ...props}) {
   return (
@@ -176,7 +182,9 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
   const [code, setCode] = React.useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const {isPurchasing, savePurchase} = useApikeyPurchasing()
+  const [{mining}, setHash] = useTx()
+
+  const {isPurchasing, needToPurchase, savePurchase} = useApikeyPurchasing()
 
   const sendActivateInviteTx = async () => {
     setSubmitting(true)
@@ -198,10 +206,18 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
       const tx = new Transaction().fromHex(rawTx)
       tx.sign(trimmedCode || privateKey)
 
-      const providers = await getAvailableProviders()
+      const hex = tx.toHex()
 
-      const result = await activateKey(coinbase, `0x${tx.toHex()}`, providers)
-      savePurchase(result.id, result.provider)
+      if (needToPurchase) {
+        const providers = await getAvailableProviders()
+
+        const result = await activateKey(coinbase, `0x${hex}`, providers)
+        savePurchase(result.id, result.provider)
+      } else {
+        const result = await sendRawTx(`0x${hex}`)
+        setHash(result)
+      }
+
       waitStateUpdate()
     } catch (e) {
       failToast(
@@ -214,7 +230,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
     }
   }
 
-  const waiting = submitting || isPurchasing
+  const waiting = submitting || isPurchasing || mining
 
   return (
     <Box
