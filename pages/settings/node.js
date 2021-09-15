@@ -16,16 +16,16 @@ import {
   Input,
   PasswordInput,
 } from '../../shared/components/components'
-import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
-import {checkKey, getKeyById, getProvider} from '../../shared/api'
+import {PrimaryButton} from '../../shared/components/button'
+import {checkKey, getProvider} from '../../shared/api'
 
 const BASIC_ERROR = 'Node is unavailable.'
 
 function Settings() {
   const {t} = useTranslation()
-  const {addNotification, addError} = useNotificationDispatch()
+  const {addNotification} = useNotificationDispatch()
   const settingsState = useSettingsState()
-  const {saveConnection, addPurchasedKey} = useSettingsDispatch()
+  const {saveConnection} = useSettingsDispatch()
 
   const [state, setState] = useState({
     url: settingsState.url || '',
@@ -43,16 +43,6 @@ function Settings() {
       title: 'Settings updated',
       body: `Connected to url ${state.url}`,
     })
-
-  const restorePurchase = async () => {
-    try {
-      const result = await getKeyById(settingsState.apiKeyId)
-      const provider = await getProvider(settingsState.apiKeyData.provider)
-      addPurchasedKey(provider.data.url, result.key, result.epoch)
-    } catch {
-      addError({title: 'Restore failed. Please, try again.'})
-    }
-  }
 
   useEffect(() => {
     async function check() {
@@ -147,11 +137,6 @@ function Settings() {
         </FormControl>
 
         <Flex justify="space-between">
-          {settingsState.apiKeyId && (
-            <SecondaryButton onClick={restorePurchase}>
-              {t('Restore purchase')}
-            </SecondaryButton>
-          )}
           <PrimaryButton
             onClick={() => {
               saveConnection(state.url, state.apiKey)

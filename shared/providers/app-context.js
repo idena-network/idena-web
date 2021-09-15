@@ -2,6 +2,7 @@ import React, {useState, useEffect} from 'react'
 import {useToast} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
+import {useQuery} from 'react-query'
 import {useInterval} from '../hooks/use-interval'
 
 import {
@@ -18,6 +19,9 @@ import {persistItem} from '../utils/persist'
 import {ntp, openExternalUrl} from '../utils/utils'
 import {Toast} from '../components/components'
 import {useEpoch} from './epoch-context'
+import {useSettingsDispatch, useSettingsState} from './settings-context'
+import {getKeyById, getProvider} from '../api'
+import {useIdentity} from './identity-context'
 
 const AppContext = React.createContext()
 
@@ -125,6 +129,41 @@ export function AppProvider({tabId, ...props}) {
         ),
       })
   }, [t, toast, wrongClientTime])
+
+  // api key purchasing
+  const {apiKeyId, apiKeyData} = useSettingsState()
+  const {addPurchasedKey} = useSettingsDispatch()
+  const [, {forceUpdate}] = useIdentity()
+
+  const {data} = useQuery(
+    ['get-key-by-id', apiKeyId],
+    () => getKeyById(apiKeyId),
+    {
+      enabled: !!apiKeyId,
+      retry: true,
+      retryDelay: 5000,
+    }
+  )
+
+  const {data: provider} = useQuery(
+    ['get-provider-by-id', apiKeyData?.provider],
+    () => getProvider(apiKeyData?.provider),
+    {
+      enabled: !!data && !!apiKeyData?.provider,
+      retry: true,
+    }
+  )
+
+  useEffect(() => {
+    if (provider && data) {
+      addPurchasedKey(provider.data.url, data.key, data.epoch)
+
+      // need to update identity asap, because key can be received by activating invite
+      forceUpdate()
+
+      router.push('/')
+    }
+  }, [addPurchasedKey, data, forceUpdate, provider, router])
 
   return <AppContext.Provider {...props} value={null} />
 }

@@ -8,7 +8,6 @@ import {
   useBreakpointValue,
   useClipboard,
 } from '@chakra-ui/react'
-import {rem, margin} from 'polished'
 import React, {useState, useEffect} from 'react'
 import {useRouter} from 'next/router'
 import QRCode from 'qrcode.react'
@@ -23,10 +22,8 @@ import {
   FormLabel,
   Input,
   PasswordInput,
-  Toast,
 } from '../../shared/components/components'
 import {SubHeading} from '../../shared/components/typo'
-import theme from '../../shared/theme'
 import {
   FlatButton,
   PrimaryButton,

@@ -4,7 +4,6 @@ import {useRouter} from 'next/router'
 import {padding} from 'polished'
 import {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
-import {useQuery} from 'react-query'
 import {ChooseItemRadio} from '../../screens/node/components'
 import {
   getCandidateKey,
@@ -12,18 +11,17 @@ import {
   fetchIdentity,
   getAvailableProviders,
   getProvider,
-  getKeyById,
 } from '../../shared/api'
 
 import {SubHeading, Text} from '../../shared/components'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {Avatar} from '../../shared/components/components'
 import Layout from '../../shared/components/layout'
+import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
+import {useFailToast} from '../../shared/hooks/use-toast'
 import {useAuthState} from '../../shared/providers/auth-context'
-import {useNotificationDispatch} from '../../shared/providers/notification-context'
 import {
   apiKeyStates,
-  useSettingsDispatch,
   useSettingsState,
 } from '../../shared/providers/settings-context'
 import theme, {rem} from '../../shared/theme'
@@ -50,37 +48,10 @@ export default function Offline() {
   const [identityState, setIdentityState] = useState('')
 
   const [submitting, setSubmitting] = useState(false)
-  const {addError} = useNotificationDispatch()
 
-  const {apiKeyId, apiKeyData} = useSettingsState()
+  const failToast = useFailToast()
 
-  const {addPurchase, addPurchasedKey} = useSettingsDispatch()
-
-  const {isLoading, data} = useQuery(
-    ['get-key-by-id', apiKeyId],
-    () => getKeyById(apiKeyId),
-    {
-      enabled: !!apiKeyId,
-      retry: true,
-      retryDelay: 5000,
-    }
-  )
-
-  const {data: provider} = useQuery(
-    ['get-provider-by-id', apiKeyData?.provider],
-    () => getProvider(apiKeyData?.provider),
-    {
-      enabled: !!data && !!apiKeyData?.provider,
-      retry: true,
-    }
-  )
-
-  useEffect(() => {
-    if (provider && data) {
-      addPurchasedKey(provider.data.url, data.key, data.epoch)
-      router.push('/')
-    }
-  }, [addPurchasedKey, data, provider, router])
+  const {isPurchasing, savePurchase} = useApikeyPurchasing()
 
   const getKeyForCandidate = async () => {
     setSubmitting(true)
@@ -93,12 +64,13 @@ export default function Offline() {
         toHexString(signature, true),
         providers
       )
-      addPurchase(result.id, result.provider)
+      savePurchase(result.id, result.provider)
     } catch (e) {
-      addError({
-        title: `Failed to get API key for Candidate`,
-        body: e.response ? e.response.data : 'unknown error',
-      })
+      failToast(
+        `Failed to get API key for Candidate: ${
+          e.response ? e.response.data : 'unknown error'
+        }`
+      )
     } finally {
       setSubmitting(false)
     }
@@ -147,7 +119,7 @@ export default function Offline() {
     load()
   }, [coinbase])
 
-  const waiting = submitting || isLoading
+  const waiting = submitting || isPurchasing
 
   return (
     <Layout canRedirect={false}>
