@@ -149,13 +149,9 @@ export const createRestrictedModalMachine = () =>
     {
       delays: {
         CHECK_INTERVAL: () =>
-          isVercelProduction ? 15 * 60 * 1000 : 1 * 60 * 1000,
+          isVercelProduction ? 15 * 60 * 1000 : 3 * 60 * 1000,
       },
       guards: {
-        needToRedirectImmediately: () => {
-          console.log('need to redirect now')
-          return false
-        },
         neetToRedirect: ({
           type,
           identityState,
