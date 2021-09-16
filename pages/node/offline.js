@@ -228,7 +228,12 @@ export default function Offline() {
                     <ChooseItemRadio
                       isChecked={state === options.ACTIVATE}
                       onChange={() => setState(options.ACTIVATE)}
-                      isDisabled={identityState !== IdentityStatus.Undefined}
+                      isDisabled={
+                        ![
+                          IdentityStatus.Undefined,
+                          IdentityStatus.Invite,
+                        ].includes(identityState)
+                      }
                     >
                       <Text color="white">{t('Activate invite')}</Text>
                     </ChooseItemRadio>
