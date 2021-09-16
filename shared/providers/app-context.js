@@ -1,8 +1,9 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useMemo} from 'react'
 import {useToast} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
 import {useQuery} from 'react-query'
+import {useMachine} from '@xstate/react'
 import {useInterval} from '../hooks/use-interval'
 
 import {
@@ -15,18 +16,23 @@ import {
   didArchiveFlips,
   markFlipsArchived,
 } from '../../screens/flips/utils'
-import {persistItem} from '../utils/persist'
+import {loadPersistentState, persistItem, persistState} from '../utils/persist'
 import {ntp, openExternalUrl} from '../utils/utils'
 import {Toast} from '../components/components'
 import {useEpoch} from './epoch-context'
-import {useSettingsDispatch, useSettingsState} from './settings-context'
+import {
+  useSettings,
+  useSettingsDispatch,
+  useSettingsState,
+} from './settings-context'
 import {getKeyById, getProvider} from '../api'
 import {useIdentity} from './identity-context'
+import {useAuthState} from './auth-context'
+import {createRestrictedModalMachine} from '../machines'
 
 const AppContext = React.createContext()
 
 const TIME_DRIFT_THRESHOLD = 10
-
 const IDENA_ACTIVE_TAB = 'IDENA_ACTTIVE_TAB'
 
 // eslint-disable-next-line react/prop-types
@@ -36,6 +42,11 @@ export function AppProvider({tabId, ...props}) {
   const router = useRouter()
 
   const epoch = useEpoch()
+
+  const [{state}] = useIdentity()
+  const [{apiKeyState}] = useSettings()
+
+  const {auth} = useAuthState()
 
   // make only one tab active
   useEffect(() => {
@@ -164,6 +175,43 @@ export function AppProvider({tabId, ...props}) {
       router.push('/')
     }
   }, [addPurchasedKey, data, forceUpdate, provider, router])
+
+  const restrictedModalMachine = useMemo(
+    () => createRestrictedModalMachine(),
+    []
+  )
+
+  const [, send] = useMachine(restrictedModalMachine, {
+    actions: {
+      onRedirect: () => {
+        router.push('/node/restricted')
+      },
+      persistModalState: ({storage}) => {
+        persistState('restricted-modal', storage)
+      },
+    },
+    services: {
+      getExternalData: () => cb => {
+        cb({
+          type: 'DATA',
+          data: {
+            pathname: router.pathname,
+            storage: loadPersistentState('restricted-modal'),
+          },
+        })
+      },
+    },
+  })
+
+  useEffect(() => {
+    if (epoch) send('NEW_EPOCH', {epoch: epoch.epoch})
+  }, [epoch, send])
+
+  useEffect(() => {
+    if (epoch && state && auth) {
+      send('RESTART', {epoch: epoch.epoch, identityState: state, apiKeyState})
+    }
+  }, [apiKeyState, auth, epoch, send, state])
 
   return <AppContext.Provider {...props} value={null} />
 }

@@ -14,6 +14,7 @@ import theme from '../../shared/theme'
 import {AuthLayout} from '../../shared/components/auth'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {QrScanIcon} from '../../shared/components/icons'
+import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
 
 export default function ImportKey() {
   const size = useBreakpointValue(['lg', 'md'])
@@ -29,12 +30,14 @@ export default function ImportKey() {
   const [error, setError] = useState()
   const [isScanningQr, setIsScanningQr] = useState(false)
   const router = useRouter()
+  const {setRestrictedKey} = useApikeyPurchasing()
 
   const addKey = () => {
     const key = decryptKey(state.key, state.password)
     if (key) {
       setError(null)
       setNewKey(state.key, state.password, state.saveKey)
+      setRestrictedKey()
       router.push('/')
     } else {
       setError(t('Key or password is invalid. Try again.'))

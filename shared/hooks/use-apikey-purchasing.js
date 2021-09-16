@@ -6,7 +6,11 @@ import {
 
 export default function useApikeyPurchasing() {
   const {apiKeyId, apiKeyState} = useSettingsState()
-  const {addPurchase} = useSettingsDispatch()
+  const {addPurchase, saveRestrictedConnection} = useSettingsDispatch()
+
+  const setRestrictedKey = () => {
+    saveRestrictedConnection()
+  }
 
   return {
     isPurchasing: !!apiKeyId,
@@ -16,5 +20,6 @@ export default function useApikeyPurchasing() {
       apiKeyStates.RESTRICTED,
     ].includes(apiKeyState),
     savePurchase: addPurchase,
+    setRestrictedKey,
   }
 }

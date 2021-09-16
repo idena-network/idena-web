@@ -42,7 +42,10 @@ function NormalApp({children, canRedirect = true}) {
   const [identity] = useIdentity()
   const settings = useSettingsState()
 
-  const {current, epoch: testValidationEpoch} = useTestValidationState()
+  const {
+    current: currentTrainingValidation,
+    epoch: testValidationEpoch,
+  } = useTestValidationState()
 
   React.useEffect(() => {
     if (!canRedirect) return
@@ -50,15 +53,22 @@ function NormalApp({children, canRedirect = true}) {
       router.push('/node/offline')
     } else if (shouldStartValidation(epoch, identity))
       router.push('/validation')
-    else if (current?.period === EpochPeriod.ShortSession)
+    else if (currentTrainingValidation?.period === EpochPeriod.ShortSession)
       router.push('/try/validation')
-  }, [canRedirect, current, epoch, identity, router, settings.apiKeyState])
+  }, [
+    canRedirect,
+    currentTrainingValidation,
+    epoch,
+    identity,
+    router,
+    settings.apiKeyState,
+  ])
 
   return (
     <Flex as="section" direction="column" flex={1} h="100vh" overflowY="auto">
       {children}
 
-      {current && (
+      {currentTrainingValidation && (
         <ValidationToast epoch={testValidationEpoch} isTestValidation />
       )}
       {epoch && <ValidationToast epoch={epoch} identity={identity} />}

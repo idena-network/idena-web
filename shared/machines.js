@@ -1,5 +1,9 @@
 import {Machine, assign} from 'xstate'
 import dayjs from 'dayjs'
+import {log} from 'xstate/lib/actions'
+import {IdentityStatus} from './types'
+import {isVercelProduction} from './utils/utils'
+import {apiKeyStates} from './providers/settings-context'
 
 export const createTimerMachine = duration =>
   Machine({
@@ -57,3 +61,144 @@ export const createTimerMachine = duration =>
       },
     },
   })
+
+const RestrictedTypes = {
+  Immediately: 0,
+  Timer: 1,
+}
+
+export const createRestrictedModalMachine = () =>
+  Machine(
+    {
+      id: 'restrictedMachine',
+      initial: 'idle',
+      context: {
+        storage: {epoch: 0, dontShow: false},
+      },
+      states: {
+        idle: {},
+        running: {
+          entry: log(),
+          initial: 'loadData',
+          states: {
+            loadData: {
+              entry: log('get data'),
+              invoke: {
+                src: 'getExternalData',
+              },
+              on: {
+                DATA: {
+                  actions: [
+                    assign({
+                      pathname: (_, {data}) => data.pathname,
+                      storage: ({storage}, {data}) => data.storage || storage,
+                    }),
+                    log(),
+                  ],
+                  target: 'check',
+                },
+              },
+            },
+            check: {
+              always: [
+                {
+                  actions: 'onRedirect',
+                  cond: 'neetToRedirect',
+                  target: 'idle',
+                },
+                {target: 'idle'},
+              ],
+            },
+            idle: {},
+          },
+        },
+      },
+      after: {
+        CHECK_INTERVAL: {
+          actions: assign({
+            type: RestrictedTypes.Timer,
+          }),
+          target: 'running',
+        },
+      },
+      on: {
+        NEW_EPOCH: [
+          {
+            cond: ({storage}, {epoch}) => !storage || storage.epoch !== epoch,
+            actions: [
+              assign((_, {epoch}) => ({
+                epoch,
+                storage: {epoch, dontShow: false},
+              })),
+              'persistModalState',
+            ],
+          },
+        ],
+        RESTART: {
+          target: '#restrictedMachine.running',
+          actions: assign({
+            type: RestrictedTypes.Immediately,
+            identityState: (_, {identityState}) => identityState,
+            currentEpoch: (_, {epoch}) => epoch,
+            prevApiKeyState: ({apiKeyState}) => apiKeyState,
+            apiKeyState: (_, {apiKeyState}) => apiKeyState,
+          }),
+        },
+      },
+    },
+    {
+      delays: {
+        CHECK_INTERVAL: () =>
+          isVercelProduction ? 15 * 60 * 1000 : 1 * 60 * 1000,
+      },
+      guards: {
+        needToRedirectImmediately: () => {
+          console.log('need to redirect now')
+          return false
+        },
+        neetToRedirect: ({
+          type,
+          identityState,
+          epoch,
+          storage,
+          pathname,
+          prevApiKeyState,
+          apiKeyState,
+        }) => {
+          if (apiKeyState !== apiKeyStates.RESTRICTED) {
+            return false
+          }
+
+          if (
+            ['/node/restricted', '/validation', '/try/validation'].includes(
+              pathname
+            )
+          ) {
+            return false
+          }
+
+          // we set dont show checkbox
+          if (storage.epoch === epoch && storage.dontShow) {
+            return false
+          }
+
+          if (
+            [IdentityStatus.Undefined, IdentityStatus.Invite].includes(
+              identityState
+            )
+          ) {
+            return false
+          }
+
+          if (
+            type === RestrictedTypes.Immediately &&
+            prevApiKeyState === apiKeyStates.OFFLINE
+          ) {
+            return false
+          }
+
+          return true
+        },
+      },
+    }
+  )

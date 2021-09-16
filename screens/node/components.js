@@ -184,9 +184,6 @@ export function ChooseItemRadio({isChecked, onChange, ...props}) {
           color: 'gray.500',
         },
       }}
-      _focus={{
-        boxShadow: 'none',
-      }}
       _disabled={{
         bg: 'none',
         borderColor: 'gray.300',

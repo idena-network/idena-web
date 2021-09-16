@@ -57,7 +57,7 @@ export default function Offline() {
 
   const failToast = useFailToast()
 
-  const {isPurchasing, savePurchase} = useApikeyPurchasing()
+  const {isPurchasing, savePurchase, setRestrictedKey} = useApikeyPurchasing()
 
   const getKeyForCandidate = async () => {
     setSubmitting(true)
@@ -118,18 +118,25 @@ export default function Offline() {
   }
 
   const process = async () => {
-    if (state === options.ENTER_KEY) {
-      return router.push('/settings/node')
-    }
-    if (state === options.BUY) return router.push('/node/rent')
-    if (state === options.ACTIVATE) {
-      if (identityState === IdentityStatus.Invite) {
-        await activateInvite()
-      } else {
+    switch (state) {
+      case options.ENTER_KEY:
+        return router.push('/settings/node')
+      case options.BUY:
+        return router.push('/node/rent')
+      case options.ACTIVATE: {
+        if (identityState === IdentityStatus.Invite) {
+          return activateInvite()
+        }
         return router.push('/node/activate')
       }
-    } else {
-      await getKeyForCandidate()
+      case options.CANDIDATE:
+        return getKeyForCandidate()
+      case options.RESTRICTED: {
+        console.log('go go go')
+        setRestrictedKey()
+        return router.push('/')
+      }
+      default:
     }
   }
 
@@ -225,27 +232,26 @@ export default function Offline() {
                         {t('Enter shared node API key')}
                       </Text>
                     </ChooseItemRadio>
-                    <ChooseItemRadio
-                      isChecked={state === options.ACTIVATE}
-                      onChange={() => setState(options.ACTIVATE)}
-                      isDisabled={
-                        ![
-                          IdentityStatus.Undefined,
-                          IdentityStatus.Invite,
-                        ].includes(identityState)
-                      }
-                    >
-                      <Text color="white">{t('Activate invite')}</Text>
-                    </ChooseItemRadio>
-                    <ChooseItemRadio
-                      isChecked={state === options.CANDIDATE}
-                      onChange={() => setState(options.CANDIDATE)}
-                      isDisabled={identityState !== IdentityStatus.Candidate}
-                    >
-                      <Text color="white">
-                        {t('Get free access (only for Candidates)')}
-                      </Text>
-                    </ChooseItemRadio>
+                    {[IdentityStatus.Undefined, IdentityStatus.Invite].includes(
+                      identityState
+                    ) && (
+                      <ChooseItemRadio
+                        isChecked={state === options.ACTIVATE}
+                        onChange={() => setState(options.ACTIVATE)}
+                      >
+                        <Text color="white">{t('Activate invite')}</Text>
+                      </ChooseItemRadio>
+                    )}
+                    {identityState === IdentityStatus.Candidate && (
+                      <ChooseItemRadio
+                        isChecked={state === options.CANDIDATE}
+                        onChange={() => setState(options.CANDIDATE)}
+                      >
+                        <Text color="white">
+                          {t('Get free access (only for Candidates)')}
+                        </Text>
+                      </ChooseItemRadio>
+                    )}
                     <ChooseItemRadio
                       isChecked={state === options.RESTRICTED}
                       onChange={() => setState(options.RESTRICTED)}

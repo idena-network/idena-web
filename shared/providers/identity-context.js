@@ -18,7 +18,6 @@ const NOT_WAITING = {
 }
 
 export function IdentityProvider(props) {
-  const queryClient = useQueryClient()
   const {apiKey, url} = useSettingsState()
   const {coinbase} = useAuthState()
   const epoch = useEpoch()
@@ -52,52 +51,62 @@ export function IdentityProvider(props) {
     setWaitForUpdate(NOT_WAITING)
   }
 
-  useEffect(() => {
-    if (epoch) queryClient.invalidateQueries('get-identity')
-  }, [epoch, queryClient])
+  const {refetch} = useQuery(
+    ['get-identity', apiKey, url],
+    () => fetchIdentity(coinbase),
+    {
+      retryDelay: 5 * 1000,
+      enabled: !!coinbase,
+      onSuccess: (nextIdentity = {}) => {
+        if (!deepEqual(identity, nextIdentity)) {
+          const state =
+            identity &&
+            identity.state === IdentityStatus.Terminating &&
+            nextIdentity &&
+            nextIdentity.state !== IdentityStatus.Undefined // still mining
+              ? identity.state
+              : nextIdentity.state
 
-  useQuery(['get-identity', apiKey, url], () => fetchIdentity(coinbase), {
-    retryDelay: 5 * 1000,
-    enabled: !!coinbase,
-    onSuccess: (nextIdentity = {}) => {
-      if (!deepEqual(identity, nextIdentity)) {
-        const state =
-          identity &&
-          identity.state === IdentityStatus.Terminating &&
-          nextIdentity &&
-          nextIdentity.state !== IdentityStatus.Undefined // still mining
-            ? identity.state
-            : nextIdentity.state
-
-        // we are waiting for some changes
-        if (
-          identity &&
-          state !== IdentityStatus.Terminating &&
-          waitForUpdate.until &&
-          waitForUpdate.fields.some(
-            field => !deepEqual(identity[field], nextIdentity[field])
-          )
-        ) {
+          // we are waiting for some changes
+          if (
+            identity &&
+            state !== IdentityStatus.Terminating &&
+            waitForUpdate.until &&
+            waitForUpdate.fields.some(
+              field => !deepEqual(identity[field], nextIdentity[field])
+            )
+          ) {
+            stopWaiting()
+          }
+          setIdentity({...nextIdentity, state})
+        }
+        if (waitForUpdate.until && new Date().getTime() > waitForUpdate.until) {
           stopWaiting()
         }
-        setIdentity({...nextIdentity, state})
-      }
-      if (waitForUpdate.until && new Date().getTime() > waitForUpdate.until) {
-        stopWaiting()
-      }
-    },
-  })
+      },
+    }
+  )
 
-  const forceUpdate = () => {
-    queryClient.invalidateQueries('get-identity')
-  }
+  // refetch when connection changes
+  useEffect(() => {
+    refetch()
+  }, [apiKey, refetch, url])
+
+  // refetch when epoch changes
+  useEffect(() => {
+    if (epoch) refetch()
+  }, [epoch, refetch])
 
   useInterval(
     () => {
-      queryClient.invalidateQueries('get-identity')
+      refetch()
     },
     waitForUpdate.until ? 10 * 1000 : null
   )
+
+  const forceUpdate = useCallback(() => {
+    refetch()
+  }, [refetch])
 
   const killMe = useCallback(
     async privateKey => {
