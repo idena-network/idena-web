@@ -1,7 +1,6 @@
-import {InfoOutlineIcon} from '@chakra-ui/icons'
-import {Alert, Flex, Link, RadioGroup, Stack} from '@chakra-ui/react'
+import {DownloadIcon} from '@chakra-ui/icons'
+import {Alert, Flex, Link, RadioGroup, Stack, Text} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
-import {padding} from 'polished'
 import {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {ChooseItemRadio} from '../../screens/node/components'
@@ -11,29 +10,36 @@ import {
   fetchIdentity,
   getAvailableProviders,
   getProvider,
+  getRawTx,
+  activateKey,
 } from '../../shared/api'
 
-import {SubHeading, Text} from '../../shared/components'
-import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
-import {Avatar} from '../../shared/components/components'
+import {SubHeading} from '../../shared/components'
+import {PrimaryButton} from '../../shared/components/button'
+import {Avatar, TextLink} from '../../shared/components/components'
 import Layout from '../../shared/components/layout'
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
 import {useFailToast} from '../../shared/hooks/use-toast'
+import {Transaction} from '../../shared/models/transaction'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {
   apiKeyStates,
   useSettingsState,
 } from '../../shared/providers/settings-context'
-import theme, {rem} from '../../shared/theme'
 import {IdentityStatus} from '../../shared/types'
 import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
-import {signMessage} from '../../shared/utils/crypto'
+import {
+  privateKeyToAddress,
+  privateKeyToPublicKey,
+  signMessage,
+} from '../../shared/utils/crypto'
 
 const options = {
   BUY: 0,
   ENTER_KEY: 1,
   ACTIVATE: 2,
   CANDIDATE: 3,
+  RESTRICTED: 4,
 }
 
 export default function Offline() {
@@ -76,14 +82,55 @@ export default function Offline() {
     }
   }
 
+  const activateInvite = async () => {
+    setSubmitting(true)
+
+    try {
+      const from = privateKeyToAddress(privateKey)
+
+      const rawTx = await getRawTx(
+        1,
+        from,
+        coinbase,
+        0,
+        0,
+        privateKeyToPublicKey(privateKey),
+        0,
+        true
+      )
+
+      const tx = new Transaction().fromHex(rawTx)
+      tx.sign(privateKey)
+
+      const providers = await getAvailableProviders()
+
+      const result = await activateKey(coinbase, `0x${tx.toHex()}`, providers)
+      savePurchase(result.id, result.provider)
+    } catch (e) {
+      failToast(
+        `Failed to activate invite: ${
+          e.response ? e.response.data : 'invitation is invalid'
+        }`
+      )
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
   const process = async () => {
     if (state === options.ENTER_KEY) {
       return router.push('/settings/node')
     }
     if (state === options.BUY) return router.push('/node/rent')
-    if (state === options.ACTIVATE) return router.push('/node/activate')
-
-    await getKeyForCandidate()
+    if (state === options.ACTIVATE) {
+      if (identityState === IdentityStatus.Invite) {
+        await activateInvite()
+      } else {
+        return router.push('/node/activate')
+      }
+    } else {
+      await getKeyForCandidate()
+    }
   }
 
   useEffect(() => {
@@ -124,7 +171,7 @@ export default function Offline() {
   return (
     <Layout canRedirect={false}>
       <Flex
-        style={{backgroundColor: theme.colors.darkGraphite}}
+        bg="graphite.500"
         alignItems="center"
         justifyContent="center"
         height="100%"
@@ -132,159 +179,155 @@ export default function Offline() {
         justify="center"
         flex="1"
       >
-        <Flex direction="column" maxWidth={rem(480)}>
-          <Flex>
-            <Avatar address={coinbase} />
+        <Flex flexGrow={1} align="center" justify="center" mt="44px">
+          <Flex direction="column" maxWidth="480px">
+            <Flex>
+              <Avatar address={coinbase} />
+              <Flex direction="column" justify="center" flex="1" ml={5}>
+                <SubHeading color="white" css={{wordBreak: 'break-word'}}>
+                  {coinbase}
+                </SubHeading>
+              </Flex>
+            </Flex>
             <Flex
               direction="column"
-              justify="center"
-              flex="1"
-              style={{marginLeft: rem(20)}}
+              mt={6}
+              bg="gray.500"
+              borderRadius="lg"
+              px={10}
+              py={7}
             >
-              <SubHeading color="white" css={{wordBreak: 'break-word'}}>
-                {coinbase}
-              </SubHeading>
-            </Flex>
-          </Flex>
-          <Flex
-            direction="column"
-            marginTop={rem(theme.spacings.medium24)}
-            style={{
-              backgroundColor: theme.colors.primary2,
-              borderRadius: rem(6),
-              ...padding(rem(27), rem(40)),
-            }}
-          >
-            <Flex>
-              <Text color={theme.colors.white} fontSize={rem(18)}>
-                {t('Connect to Idena node')}
-              </Text>
-            </Flex>
+              <Flex>
+                <Text color="white" fontSize="lg">
+                  {t('Connect to Idena node')}
+                </Text>
+              </Flex>
 
-            <Flex marginTop={rem(28)}>
-              <Text
-                color={theme.colors.white}
-                fontSize={rem(11)}
-                css={{opacity: 0.5}}
-              >
-                {t('Choose an option')}
-              </Text>
-            </Flex>
-            <Flex marginTop={rem(15)}>
-              <RadioGroup>
-                <Stack direction="column" spacing={3}>
-                  <ChooseItemRadio
-                    isChecked={state === options.BUY}
-                    onChange={() => setState(options.BUY)}
-                  >
-                    <Text color={theme.colors.white} fontSize={rem(13)}>
-                      {t('Rent a shared node')}
-                    </Text>
-                  </ChooseItemRadio>
-                  <ChooseItemRadio
-                    isChecked={state === options.ENTER_KEY}
-                    onChange={() => setState(options.ENTER_KEY)}
-                  >
-                    <Text color={theme.colors.white} fontSize={rem(13)}>
-                      {t('Enter shared node API key')}
-                    </Text>
-                  </ChooseItemRadio>
-                  <ChooseItemRadio
-                    isChecked={state === options.ACTIVATE}
-                    onChange={() => setState(options.ACTIVATE)}
-                    isDisabled={identityState !== IdentityStatus.Undefined}
-                  >
-                    <Text color={theme.colors.white} fontSize={rem(13)}>
-                      {t('Activate invite')}
-                    </Text>
-                  </ChooseItemRadio>
-                  <ChooseItemRadio
-                    isChecked={state === options.CANDIDATE}
-                    onChange={() => setState(options.CANDIDATE)}
-                    isDisabled={identityState !== IdentityStatus.Candidate}
-                  >
-                    <Text color={theme.colors.white} fontSize={rem(13)}>
-                      {t('Get free access (only for Candidates)')}
-                    </Text>
-                  </ChooseItemRadio>
-                </Stack>
-              </RadioGroup>
-            </Flex>
-            <Flex marginTop={rem(20)}>
-              <Text
-                color={theme.colors.white}
-                fontSize={rem(14)}
-                css={{marginTop: rem(theme.spacings.small12)}}
-              >
-                <Flex style={{opacity: 0.5}} alignItems="center">
-                  <InfoOutlineIcon boxSize={4} mr={3}></InfoOutlineIcon>
-                  <Flex>
-                    {t('You can run your own node at your desktop computer.')}
-                  </Flex>
-                </Flex>
-              </Text>
-            </Flex>
-            <Flex marginTop={rem(30)}>
-              <Link
-                href="https://idena.io/download"
-                target="_blank"
-                ml="auto"
-                mr={2}
-              >
-                <SecondaryButton>{t('Download desktop app')}</SecondaryButton>
-              </Link>
-              <PrimaryButton
-                onClick={process}
-                isDisabled={waiting}
-                isLoading={waiting}
-                loadingText="Waiting..."
-              >
-                {t('Continue')}
-              </PrimaryButton>
+              <Flex mt={7}>
+                <Text color="white" fontSize="sm" opacity={0.5}>
+                  {t('Choose an option')}
+                </Text>
+              </Flex>
+              <Flex mt={4}>
+                <RadioGroup>
+                  <Stack direction="column" spacing={3}>
+                    <ChooseItemRadio
+                      isChecked={state === options.BUY}
+                      onChange={() => setState(options.BUY)}
+                    >
+                      <Text color="white">{t('Rent a shared node')}</Text>
+                    </ChooseItemRadio>
+                    <ChooseItemRadio
+                      isChecked={state === options.ENTER_KEY}
+                      onChange={() => setState(options.ENTER_KEY)}
+                    >
+                      <Text color="white">
+                        {t('Enter shared node API key')}
+                      </Text>
+                    </ChooseItemRadio>
+                    <ChooseItemRadio
+                      isChecked={state === options.ACTIVATE}
+                      onChange={() => setState(options.ACTIVATE)}
+                      isDisabled={identityState !== IdentityStatus.Undefined}
+                    >
+                      <Text color="white">{t('Activate invite')}</Text>
+                    </ChooseItemRadio>
+                    <ChooseItemRadio
+                      isChecked={state === options.CANDIDATE}
+                      onChange={() => setState(options.CANDIDATE)}
+                      isDisabled={identityState !== IdentityStatus.Candidate}
+                    >
+                      <Text color="white">
+                        {t('Get free access (only for Candidates)')}
+                      </Text>
+                    </ChooseItemRadio>
+                    <ChooseItemRadio
+                      isChecked={state === options.RESTRICTED}
+                      onChange={() => setState(options.RESTRICTED)}
+                    >
+                      <Text color="white">
+                        {t(
+                          'Get restricted access (can not be used for validation)'
+                        )}
+                      </Text>
+                    </ChooseItemRadio>
+                  </Stack>
+                </RadioGroup>
+              </Flex>
+              <Flex mt="30px" mb={2}>
+                <PrimaryButton
+                  ml="auto"
+                  onClick={process}
+                  isDisabled={waiting}
+                  isLoading={waiting}
+                  loadingText="Waiting..."
+                >
+                  {t('Continue')}
+                </PrimaryButton>
+              </Flex>
             </Flex>
           </Flex>
+          {unavailableProvider && (
+            <Alert
+              status="error"
+              bg="red.500"
+              borderWidth="1px"
+              borderColor="red.050"
+              fontWeight={500}
+              color="white"
+              rounded="md"
+              px={6}
+              py={4}
+              w="480px"
+              mt={2}
+            >
+              <Flex direction="column" fontSize="mdx">
+                <Flex>
+                  <Flex>
+                    {t('The node is unavailable:', {
+                      nsSeparator: '|',
+                    })}
+                  </Flex>
+                  <Flex ml={1}>{unavailableProvider.url}</Flex>
+                </Flex>
+                <Flex>
+                  <Flex>
+                    {t('Please contact the node owner:', {
+                      nsSeparator: '|',
+                    })}
+                  </Flex>
+                  <Link
+                    href={`https://t.me/${unavailableProvider.name}`}
+                    target="_blank"
+                    ml={1}
+                  >
+                    {unavailableProvider.name}
+                    {' >'}
+                  </Link>
+                </Flex>
+              </Flex>
+            </Alert>
+          )}
         </Flex>
-        {unavailableProvider && (
-          <Alert
-            status="error"
-            bg="red.500"
-            borderWidth="1px"
-            borderColor="red.050"
-            fontWeight={500}
+        <Flex
+          justify="center"
+          mb={8}
+          direction="column"
+          justifyContent="center"
+        >
+          <Text color="white" fontSize="mdx" opacity="0.5" mb={1}>
+            You can run your own node at your desktop computer.
+          </Text>
+          <TextLink
+            href="https://idena.io/download"
+            target="_blank"
             color="white"
-            rounded="md"
-            px={6}
-            py={4}
-            maxWidth={rem(480)}
-            mt={2}
+            textAlign="center"
           >
-            <Flex direction="column" w={rem(480)} fontSize={rem(14)}>
-              <Flex>
-                <Flex>
-                  {t('The node is unavailable:', {
-                    nsSeparator: '|',
-                  })}
-                </Flex>
-                <Flex ml={1}>{unavailableProvider.url}</Flex>
-              </Flex>
-              <Flex>
-                <Flex>
-                  {t('Please contact the node owner:', {
-                    nsSeparator: '|',
-                  })}
-                </Flex>
-                <Link
-                  href={`https://t.me/${unavailableProvider.name}`}
-                  target="_blank"
-                  ml={1}
-                >
-                  {unavailableProvider.name}
-                  {' >'}
-                </Link>
-              </Flex>
-            </Flex>
-          </Alert>
-        )}
+            <DownloadIcon boxSize={4} mx={2} />
+            Download Idena
+          </TextLink>
+        </Flex>
       </Flex>
     </Layout>
   )
