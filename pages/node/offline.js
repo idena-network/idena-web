@@ -1,8 +1,23 @@
 import {DownloadIcon} from '@chakra-ui/icons'
-import {Alert, Flex, Link, RadioGroup, Stack, Text} from '@chakra-ui/react'
+import {
+  Alert,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogCloseButton,
+  AlertDialogContent,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogOverlay,
+  Flex,
+  Link,
+  RadioGroup,
+  Stack,
+  Text,
+  useDisclosure,
+} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
-import {useEffect, useState} from 'react'
-import {useTranslation} from 'react-i18next'
+import {useEffect, useRef, useState} from 'react'
+import {Trans, useTranslation} from 'react-i18next'
 import {ChooseItemRadio} from '../../screens/node/components'
 import {
   getCandidateKey,
@@ -15,7 +30,7 @@ import {
 } from '../../shared/api'
 
 import {SubHeading} from '../../shared/components'
-import {PrimaryButton} from '../../shared/components/button'
+import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {Avatar, TextLink} from '../../shared/components/components'
 import Layout from '../../shared/components/layout'
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
@@ -44,9 +59,12 @@ const options = {
 
 export default function Offline() {
   const {t} = useTranslation()
-  const {apiKeyState, apiKey} = useSettingsState()
+  const {apiKeyState, apiKey, url} = useSettingsState()
   const {coinbase, privateKey} = useAuthState()
   const router = useRouter()
+
+  const {isOpen, onOpen, onClose} = useDisclosure()
+  const cancelRef = useRef()
 
   const [unavailableProvider, setUnavailableProvider] = useState(null)
   const [state, setState] = useState(options.BUY)
@@ -132,9 +150,7 @@ export default function Offline() {
       case options.CANDIDATE:
         return getKeyForCandidate()
       case options.RESTRICTED: {
-        console.log('go go go')
-        setRestrictedKey()
-        return router.push('/')
+        return onOpen()
       }
       default:
     }
@@ -336,10 +352,53 @@ export default function Offline() {
             textAlign="center"
           >
             <DownloadIcon boxSize={4} mx={2} />
-            Download Idena
+            {t('Download Idena')}
           </TextLink>
         </Flex>
       </Flex>
+      <AlertDialog
+        motionPreset="slideInBottom"
+        leastDestructiveRef={cancelRef}
+        onClose={onClose}
+        isOpen={isOpen}
+        isCentered
+      >
+        <AlertDialogOverlay />
+
+        <AlertDialogContent>
+          <AlertDialogHeader fontSize="lg">
+            {t('Are you sure?')}
+          </AlertDialogHeader>
+          <AlertDialogCloseButton />
+          <AlertDialogBody fontSize="md">
+            <Trans i18nKey="confirmRestrictedNodeDialog" t={t}>
+              Your current API key{' '}
+              <Text fontWeight="700" as="span">
+                {apiKey}
+              </Text>{' '}
+              for the shared node{' '}
+              <Text fontWeight="700" as="span">
+                {url}
+              </Text>{' '}
+              will be lost
+            </Trans>
+          </AlertDialogBody>
+          <AlertDialogFooter>
+            <SecondaryButton
+              onClick={() => {
+                setRestrictedKey()
+                onClose()
+                router.push('/')
+              }}
+            >
+              {t('Yes')}
+            </SecondaryButton>
+            <PrimaryButton ref={cancelRef} onClick={onClose} ml={2}>
+              {t('Cancel')}
+            </PrimaryButton>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Layout>
   )
 }

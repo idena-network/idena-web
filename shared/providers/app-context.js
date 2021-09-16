@@ -204,14 +204,24 @@ export function AppProvider({tabId, ...props}) {
   })
 
   useEffect(() => {
+    send('NEW_API_KEY_STATE', {apiKeyState})
+  }, [apiKeyState, send])
+
+  useEffect(() => {
     if (epoch) send('NEW_EPOCH', {epoch: epoch.epoch})
   }, [epoch, send])
 
   useEffect(() => {
-    if (epoch && state && auth) {
-      send('RESTART', {epoch: epoch.epoch, identityState: state, apiKeyState})
+    if (state) {
+      send('NEW_IDENTITY_STATE', {identityState: state})
     }
-  }, [apiKeyState, auth, epoch, send, state])
+  }, [send, state])
+
+  useEffect(() => {
+    if (auth) {
+      send('RESTART')
+    }
+  }, [auth, send, state])
 
   return <AppContext.Provider {...props} value={null} />
 }

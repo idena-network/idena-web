@@ -89,13 +89,13 @@ export function IdentityProvider(props) {
 
   // refetch when connection changes
   useEffect(() => {
-    refetch()
-  }, [apiKey, refetch, url])
+    if (coinbase) refetch()
+  }, [apiKey, coinbase, refetch, url])
 
   // refetch when epoch changes
   useEffect(() => {
-    if (epoch) refetch()
-  }, [epoch, refetch])
+    if (epoch && coinbase) refetch()
+  }, [coinbase, epoch, refetch])
 
   useInterval(
     () => {
@@ -105,8 +105,10 @@ export function IdentityProvider(props) {
   )
 
   const forceUpdate = useCallback(() => {
-    refetch()
-  }, [refetch])
+    if (coinbase) {
+      refetch()
+    }
+  }, [coinbase, refetch])
 
   const killMe = useCallback(
     async privateKey => {

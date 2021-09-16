@@ -44,7 +44,6 @@ export default function Restricted() {
   }
 
   const process = () => {
-    persistCheckbox()
     if (state === options.PROLONG) {
       setShowDrawer(true)
     } else if (state === options.ENTER_KEY) {

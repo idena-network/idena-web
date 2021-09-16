@@ -122,6 +122,17 @@ export const createRestrictedModalMachine = () =>
         },
       },
       on: {
+        NEW_IDENTITY_STATE: {
+          actions: assign({
+            identityState: (_, {identityState}) => identityState,
+          }),
+        },
+        NEW_API_KEY_STATE: {
+          actions: assign({
+            prevApiKeyState: ({apiKeyState}) => apiKeyState,
+            apiKeyState: (_, {apiKeyState}) => apiKeyState,
+          }),
+        },
         NEW_EPOCH: [
           {
             cond: ({storage}, {epoch}) => !storage || storage.epoch !== epoch,
@@ -138,10 +149,6 @@ export const createRestrictedModalMachine = () =>
           target: '#restrictedMachine.running',
           actions: assign({
             type: RestrictedTypes.Immediately,
-            identityState: (_, {identityState}) => identityState,
-            currentEpoch: (_, {epoch}) => epoch,
-            prevApiKeyState: ({apiKeyState}) => apiKeyState,
-            apiKeyState: (_, {apiKeyState}) => apiKeyState,
           }),
         },
       },
@@ -161,6 +168,10 @@ export const createRestrictedModalMachine = () =>
           prevApiKeyState,
           apiKeyState,
         }) => {
+          if (!identityState) {
+            return false
+          }
+
           if (apiKeyState !== apiKeyStates.RESTRICTED) {
             return false
           }
