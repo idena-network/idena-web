@@ -202,7 +202,13 @@ export default function Offline() {
         justify="center"
         flex="1"
       >
-        <Flex flexGrow={1} align="center" justify="center" mt="44px">
+        <Flex
+          flexGrow={1}
+          align="center"
+          justify="center"
+          mt="44px"
+          direction="column"
+        >
           <Flex direction="column" maxWidth="480px">
             <Flex>
               <Avatar address={coinbase} />

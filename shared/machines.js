@@ -67,14 +67,16 @@ const RestrictedTypes = {
   Timer: 1,
 }
 
+const initialContext = {
+  storage: {epoch: 0, dontShow: false},
+}
+
 export const createRestrictedModalMachine = () =>
   Machine(
     {
       id: 'restrictedMachine',
       initial: 'idle',
-      context: {
-        storage: {epoch: 0, dontShow: false},
-      },
+      context: initialContext,
       states: {
         idle: {},
         running: {
@@ -122,11 +124,6 @@ export const createRestrictedModalMachine = () =>
         },
       },
       on: {
-        NEW_IDENTITY_STATE: {
-          actions: assign({
-            identityState: (_, {identityState}) => identityState,
-          }),
-        },
         NEW_API_KEY_STATE: {
           actions: assign({
             prevApiKeyState: ({apiKeyState}) => apiKeyState,
@@ -137,10 +134,10 @@ export const createRestrictedModalMachine = () =>
           {
             cond: ({storage}, {epoch}) => !storage || storage.epoch !== epoch,
             actions: [
-              assign((_, {epoch}) => ({
-                epoch,
-                storage: {epoch, dontShow: false},
-              })),
+              assign({
+                epoch: ({epoch}) => epoch,
+                storage: (_, {epoch}) => ({epoch, dontShow: false}),
+              }),
               'persistModalState',
             ],
           },
@@ -149,7 +146,11 @@ export const createRestrictedModalMachine = () =>
           target: '#restrictedMachine.running',
           actions: assign({
             type: RestrictedTypes.Immediately,
+            identityState: (_, {identityState}) => identityState,
           }),
+        },
+        CLEAR: {
+          actions: assign(() => initialContext),
         },
       },
     },
@@ -168,6 +169,16 @@ export const createRestrictedModalMachine = () =>
           prevApiKeyState,
           apiKeyState,
         }) => {
+          console.log(
+            'need redirect check',
+            type,
+            identityState,
+            epoch,
+            storage,
+            pathname,
+            prevApiKeyState,
+            apiKeyState
+          )
           if (!identityState) {
             return false
           }

@@ -212,14 +212,10 @@ export function AppProvider({tabId, ...props}) {
   }, [epoch, send])
 
   useEffect(() => {
-    if (state) {
-      send('NEW_IDENTITY_STATE', {identityState: state})
-    }
-  }, [send, state])
-
-  useEffect(() => {
     if (auth) {
-      send('RESTART')
+      send('RESTART', {identityState: state})
+    } else {
+      send('CLEAR')
     }
   }, [auth, send, state])
 
