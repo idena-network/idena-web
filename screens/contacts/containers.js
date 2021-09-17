@@ -145,9 +145,11 @@ function InvitationRewardRatioInfo() {
 
   const epoch = useEpoch()
 
-  const {data: lastBlock} = useQuery('bcn_lastBlock', () =>
-    callRpc('bcn_lastBlock')
-  )
+  const {
+    data: {highestBlock},
+  } = useQuery('bcn_syncing', () => callRpc('bcn_syncing'), {
+    initialData: {},
+  })
 
   return (
     <Tooltip
@@ -156,13 +158,14 @@ function InvitationRewardRatioInfo() {
         {
           invitationRewardRatio: toPercent(
             calculateInvitationRewardRatio(epoch ?? {}, {
-              highestBlock: lastBlock?.height,
+              highestBlock,
             })
           ),
         }
       )}
       placement="right"
       w={151}
+      bg="graphite.500"
     >
       <InfoIcon boxSize={5} color="blue.500" />
     </Tooltip>
