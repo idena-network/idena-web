@@ -235,7 +235,7 @@ function WalletTransactions({address}) {
                     </TableCol>
 
                     <TableCol>
-                      {(tx.isMining && t('Mining...')) || (
+                      {(!tx.timestamp && t('Mining...')) || (
                         <div>
                           <div> {t('Confirmed')}</div>
                           <TableHint style={{...ellipsis(rem(130))}}>
