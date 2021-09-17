@@ -269,9 +269,7 @@ export default function Offline() {
                         isChecked={state === options.CANDIDATE}
                         onChange={() => setState(options.CANDIDATE)}
                       >
-                        <Text color="white">
-                          {t('Get free access (only for Candidates)')}
-                        </Text>
+                        <Text color="white">{t('Get free access')}</Text>
                       </ChooseItemRadio>
                     )}
                     <ChooseItemRadio

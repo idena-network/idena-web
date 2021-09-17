@@ -5,25 +5,37 @@ import {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
 import {BuySharedNodeForm, ChooseItemRadio} from '../../screens/node/components'
-import {getProvider} from '../../shared/api'
+import {
+  getAvailableProviders,
+  getCandidateKey,
+  getProvider,
+} from '../../shared/api'
 
 import {SubHeading} from '../../shared/components'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {Avatar, TextLink} from '../../shared/components/components'
 import Layout from '../../shared/components/layout'
+import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
+import {useFailToast} from '../../shared/hooks/use-toast'
 import {useAuthState} from '../../shared/providers/auth-context'
+import {useIdentity} from '../../shared/providers/identity-context'
 import {useSettings} from '../../shared/providers/settings-context'
+import {IdentityStatus} from '../../shared/types'
+import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
+import {signMessage} from '../../shared/utils/crypto'
 import {loadPersistentState, persistState} from '../../shared/utils/persist'
 
 const options = {
   PROLONG: 0,
   BUY: 1,
   ENTER_KEY: 2,
+  CANDIDATE: 3,
 }
 
 export default function Restricted() {
   const [{apiKeyData}] = useSettings()
-  const {coinbase} = useAuthState()
+  const {coinbase, privateKey} = useAuthState()
+  const [{state: identityState}] = useIdentity()
   const auth = useAuthState()
   const router = useRouter()
   const {t} = useTranslation()
@@ -32,6 +44,12 @@ export default function Restricted() {
   const [dontShow, setDontShow] = useState(false)
 
   const [showDrawer, setShowDrawer] = useState(false)
+
+  const [submitting, setSubmitting] = useState(false)
+
+  const failToast = useFailToast()
+
+  const {isPurchasing, savePurchase} = useApikeyPurchasing()
 
   const persistCheckbox = () => {
     const current = loadPersistentState('restricted-modal')
@@ -43,11 +61,36 @@ export default function Restricted() {
     router.back()
   }
 
-  const process = () => {
+  const getKeyForCandidate = async () => {
+    setSubmitting(true)
+
+    try {
+      const providers = await getAvailableProviders()
+      const signature = signMessage(hexToUint8Array(coinbase), privateKey)
+      const result = await getCandidateKey(
+        coinbase,
+        toHexString(signature, true),
+        providers
+      )
+      savePurchase(result.id, result.provider)
+    } catch (e) {
+      failToast(
+        `Failed to get API key for Candidate: ${
+          e.response ? e.response.data : 'unknown error'
+        }`
+      )
+    } finally {
+      setSubmitting(false)
+    }
+  }
+
+  const process = async () => {
     if (state === options.PROLONG) {
       setShowDrawer(true)
     } else if (state === options.ENTER_KEY) {
       return router.push('/settings/node')
+    } else if (state === options.CANDIDATE) {
+      return getKeyForCandidate()
     } else return router.push('/node/rent')
   }
 
@@ -66,6 +109,10 @@ export default function Restricted() {
       setState(options.BUY)
     }
   }, [isError, provider])
+
+  const waiting = submitting || isPurchasing
+
+  const canProlong = provider && provider.slots && !waiting
 
   return (
     <Layout canRedirect={false}>
@@ -112,7 +159,7 @@ export default function Restricted() {
               <Flex mt={4}>
                 <RadioGroup>
                   <Stack direction="column" spacing={3}>
-                    {provider && provider.slots && (
+                    {canProlong && (
                       <ChooseItemRadio
                         isChecked={state === options.PROLONG}
                         onChange={() => setState(options.PROLONG)}
@@ -137,6 +184,14 @@ export default function Restricted() {
                         {t('Enter shared node API key')}
                       </Text>
                     </ChooseItemRadio>
+                    {identityState === IdentityStatus.Candidate && (
+                      <ChooseItemRadio
+                        isChecked={state === options.CANDIDATE}
+                        onChange={() => setState(options.CANDIDATE)}
+                      >
+                        <Text color="white">{t('Get free access')}</Text>
+                      </ChooseItemRadio>
+                    )}
                   </Stack>
                 </RadioGroup>
               </Flex>
@@ -158,7 +213,12 @@ export default function Restricted() {
                   <SecondaryButton onClick={notNow} mr={2}>
                     {t('Not now')}
                   </SecondaryButton>
-                  <PrimaryButton onClick={process}>
+                  <PrimaryButton
+                    onClick={process}
+                    isDisabled={waiting}
+                    isLoading={waiting}
+                    loadingText="Waiting..."
+                  >
                     {t('Continue')}
                   </PrimaryButton>
                 </Flex>
