@@ -118,7 +118,7 @@ function WalletTransactions({address}) {
         const signAmount = fromWallet ? -tx.amount : `+${tx.amount}`
         const counterParty = fromWallet ? tx.to : tx.from
         const counterPartyWallet = fromWallet ? toWallet : fromWallet
-        const isMining = tx.blockHash === HASH_IN_MEMPOOL
+        const isMining = !tx.timestamp
 
         const nextTx = {
           ...tx,
@@ -218,7 +218,7 @@ function WalletTransactions({address}) {
                     </TableCol>
 
                     <TableCol className="text-right">
-                      {((!tx.isMining || tx.maxFee === '0') &&
+                      {(!tx.isMining &&
                         (tx.fee === '0' ? '\u2013' : tx.fee)) || (
                         <div>
                           <div> {tx.maxFee} </div>
@@ -235,14 +235,14 @@ function WalletTransactions({address}) {
                     </TableCol>
 
                     <TableCol>
-                      {(!tx.timestamp && t('Mining...')) || (
+                      <div>
                         <div>
-                          <div> {t('Confirmed')}</div>
-                          <TableHint style={{...ellipsis(rem(130))}}>
-                            {tx.isMining ? '' : tx.hash}
-                          </TableHint>
+                          {tx.isMining ? t('Mining...') : t('Confirmed')}
                         </div>
-                      )}
+                        <TableHint style={{...ellipsis(rem(130))}}>
+                          {tx.hash}
+                        </TableHint>
+                      </div>
                     </TableCol>
                   </TableRow>
                 ))}
