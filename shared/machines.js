@@ -169,16 +169,6 @@ export const createRestrictedModalMachine = () =>
           prevApiKeyState,
           apiKeyState,
         }) => {
-          console.log(
-            'need redirect check',
-            type,
-            identityState,
-            epoch,
-            storage,
-            pathname,
-            prevApiKeyState,
-            apiKeyState
-          )
           if (!identityState) {
             return false
           }

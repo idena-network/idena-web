@@ -1,5 +1,5 @@
 import React, {useState, useContext, useCallback, useEffect} from 'react'
-import {useQuery, useQueryClient} from 'react-query'
+import {useQuery} from 'react-query'
 import deepEqual from 'dequal'
 import {fetchIdentity, getRawTx, sendRawTx} from '../api'
 import {useInterval} from '../hooks/use-interval'

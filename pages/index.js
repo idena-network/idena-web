@@ -467,7 +467,9 @@ export default function ProfilePage() {
 
         <KillForm isOpen={isOpenKillForm} onClose={onCloseKillForm}></KillForm>
 
-        {showValidationResults && <ValidationResultToast epoch={epoch.epoch} />}
+        {showValidationResults && epoch && (
+          <ValidationResultToast epoch={epoch.epoch} />
+        )}
 
         {dnaUrl && (
           <DnaSignInDialog

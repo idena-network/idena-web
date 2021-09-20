@@ -216,9 +216,10 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
       } else {
         const result = await sendRawTx(`0x${hex}`)
         setHash(result)
-      }
 
-      waitStateUpdate()
+        // need to wait identity state update manually, because nothing changes in memory
+        waitStateUpdate()
+      }
     } catch (e) {
       failToast(
         `Failed to activate invite: ${
