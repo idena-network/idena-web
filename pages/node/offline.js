@@ -272,16 +272,18 @@ export default function Offline() {
                         <Text color="white">{t('Get free access')}</Text>
                       </ChooseItemRadio>
                     )}
-                    <ChooseItemRadio
-                      isChecked={state === options.RESTRICTED}
-                      onChange={() => setState(options.RESTRICTED)}
-                    >
-                      <Text color="white">
-                        {t(
-                          'Get restricted access (can not be used for validation)'
-                        )}
-                      </Text>
-                    </ChooseItemRadio>
+                    {identityState !== IdentityStatus.Candidate && (
+                      <ChooseItemRadio
+                        isChecked={state === options.RESTRICTED}
+                        onChange={() => setState(options.RESTRICTED)}
+                      >
+                        <Text color="white">
+                          {t(
+                            'Get restricted access (can not be used for validation)'
+                          )}
+                        </Text>
+                      </ChooseItemRadio>
+                    )}
                   </Stack>
                 </RadioGroup>
               </Flex>

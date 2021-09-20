@@ -94,7 +94,7 @@ export function IdentityProvider(props) {
 
   // refetch when epoch changes
   useEffect(() => {
-    if (epoch && coinbase) refetch()
+    if (coinbase && epoch) refetch()
   }, [coinbase, epoch, refetch])
 
   useInterval(

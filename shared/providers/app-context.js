@@ -2,7 +2,6 @@ import React, {useState, useEffect, useMemo} from 'react'
 import {useToast} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
-import {useQuery} from 'react-query'
 import {useMachine} from '@xstate/react'
 import {useInterval} from '../hooks/use-interval'
 
@@ -144,37 +143,24 @@ export function AppProvider({tabId, ...props}) {
   // api key purchasing
   const {apiKeyId, apiKeyData} = useSettingsState()
   const {addPurchasedKey} = useSettingsDispatch()
-  const [, {forceUpdate}] = useIdentity()
 
-  const {data} = useQuery(
-    ['get-key-by-id', apiKeyId],
-    () => getKeyById(apiKeyId),
-    {
-      enabled: !!apiKeyId,
-      retry: true,
-      retryDelay: 5000,
-    }
+  useInterval(
+    async () => {
+      try {
+        const data = await getKeyById(apiKeyId)
+        const provider = await getProvider(apiKeyData.provider)
+
+        addPurchasedKey(provider.data.url, data.key, data.epoch)
+
+        router.push('/')
+      } catch {
+        console.error(
+          `key is not ready, id: [${apiKeyId}], provider: [${apiKeyData.provider}]`
+        )
+      }
+    },
+    apiKeyId && apiKeyData?.provider ? 3000 : null
   )
-
-  const {data: provider} = useQuery(
-    ['get-provider-by-id', apiKeyData?.provider],
-    () => getProvider(apiKeyData?.provider),
-    {
-      enabled: !!data && !!apiKeyData?.provider,
-      retry: true,
-    }
-  )
-
-  useEffect(() => {
-    if (provider && data) {
-      addPurchasedKey(provider.data.url, data.key, data.epoch)
-
-      // need to update identity asap, because key can be received by activating invite
-      forceUpdate()
-
-      router.push('/')
-    }
-  }, [addPurchasedKey, data, forceUpdate, provider, router])
 
   const restrictedModalMachine = useMemo(
     () => createRestrictedModalMachine(),
