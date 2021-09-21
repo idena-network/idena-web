@@ -97,30 +97,51 @@ function Sidebar({isOpen, onClose, ...props}) {
   )
 }
 
+const StatusLabel = {
+  None: 0,
+  Online: 1,
+  Restricted: 2,
+  Offline: 3,
+}
+
 function ApiStatus() {
   const settings = useSettingsState()
   const {t} = useTranslation()
   const epoch = useEpoch()
+  const [{state: identityState}] = useIdentity()
 
   let bg = 'xwhite.010'
   let color = 'gray.300'
   let text = t('Loading...')
+  let show = StatusLabel.None
+
+  const undefinedOrInvite = [
+    IdentityStatus.Undefined,
+    IdentityStatus.Invite,
+  ].includes(identityState)
 
   if (settings.apiKeyState === apiKeyStates.OFFLINE) {
     bg = 'red.020'
     color = 'red.500'
     text = t('Offline')
-  } else if (settings.apiKeyState === apiKeyStates.RESTRICTED) {
+    show = StatusLabel.Offline
+  } else if (
+    settings.apiKeyState === apiKeyStates.RESTRICTED &&
+    !undefinedOrInvite
+  ) {
     bg = 'warning.020'
     color = 'warning.500'
     text = t('Restricted')
+    show = StatusLabel.Restricted
   } else if (
     settings.apiKeyState === apiKeyStates.ONLINE ||
-    settings.apiKeyState === apiKeyStates.EXTERNAL
+    settings.apiKeyState === apiKeyStates.EXTERNAL ||
+    (settings.apiKeyState === apiKeyStates.RESTRICTED && undefinedOrInvite)
   ) {
     bg = 'green.020'
     color = 'green.500'
     text = t('Online')
+    show = StatusLabel.Online
   }
 
   return (
@@ -133,7 +154,7 @@ function ApiStatus() {
         fontSize={[16, 13]}
       >
         <Flex align="baseline">
-          {settings.apiKeyState === apiKeyStates.RESTRICTED ? (
+          {show === StatusLabel.Restricted ? (
             <Tooltip
               label={t(
                 'You cannot use the shared node for the upcoming validation ceremony.'
@@ -155,7 +176,7 @@ function ApiStatus() {
                 {text}
               </TextLink>
             </Tooltip>
-          ) : settings.apiKeyState === apiKeyStates.ONLINE ? (
+          ) : show === StatusLabel.Online ? (
             <Tooltip
               label={t(
                 'Access to the shared node will be expired after the validation ceremony {{date}}',
@@ -169,6 +190,7 @@ function ApiStatus() {
               zIndex="tooltip"
               bg="graphite.500"
               width={200}
+              isDisabled={undefinedOrInvite}
             >
               <Text color={color} fontWeight={500} lineHeight={rem(18)}>
                 {text}

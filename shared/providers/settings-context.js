@@ -5,7 +5,6 @@ import {
   useEffect,
   useCallback,
 } from 'react'
-import {useRouter} from 'next/router'
 import {usePersistence} from '../hooks/use-persistent-state'
 import {loadPersistentState} from '../utils/persist'
 import useLogger from '../hooks/use-logger'
@@ -16,10 +15,14 @@ import {useInterval} from '../hooks/use-interval'
 const SAVE_ENCRYPTED_KEY = 'SAVE_ENCRYPTED_KEY'
 const CLEAR_ENCRYPTED_KEY = 'CLEAR_ENCRYPTED_KEY'
 const SAVE_CONNECTION = 'SAVE_CONNECTION'
+const SAVE_RESTRICTED_CONNECTION = 'SAVE_RESTRICTED_CONNECTION'
 const RESTORE_SETTINGS = 'RESTORE_SETTINGS'
 const SET_API_KEY_STATE = 'SET_API_KEY_STATE'
 const ADD_PURCHASED_KEY = 'ADD_PURCHASED_KEY'
 const ADD_PURCHASE = 'ADD_PURCHASE'
+
+const RESTRICTED_NODE_URL = process.env.NEXT_PUBLIC_RESTRICTED_NODE_URL
+const RESTRICTED_NODE_KEY = process.env.NEXT_PUBLIC_RESTRICTED_NODE_KEY
 
 export const apiKeyStates = {
   NONE: 0,
@@ -49,6 +52,17 @@ function settingsReducer(state, action) {
         ...state,
         url: action.data.url,
         apiKey: action.data.key,
+      }
+    }
+    case SAVE_RESTRICTED_CONNECTION: {
+      const s = {...state}
+      delete s.apiKeyData
+      delete s.apiKeyId
+      return {
+        ...s,
+        apiKeyState: apiKeyStates.RESTRICTED,
+        url: RESTRICTED_NODE_URL,
+        apiKey: RESTRICTED_NODE_KEY,
       }
     }
     case RESTORE_SETTINGS: {
@@ -96,12 +110,20 @@ const SettingsDispatchContext = createContext()
 const DEFAULT_NODE_URL = 'https://node.idena.io/'
 
 const API_KEY_CHECK_INTERVAL = 5 * 60 * 1000
-const RESTRICTED_CHECK_INTERVAL = 5 * 60 * 1000
+
+function isRestrictedAccess(url, apiKey) {
+  try {
+    return (
+      new URL(url).host === new URL(RESTRICTED_NODE_URL).host &&
+      apiKey === RESTRICTED_NODE_KEY
+    )
+  } catch {
+    return false
+  }
+}
 
 // eslint-disable-next-line react/prop-types
 function SettingsProvider({children}) {
-  const router = useRouter()
-
   const [state, dispatch] = usePersistence(
     useLogger(
       useReducer(settingsReducer, {
@@ -129,6 +151,13 @@ function SettingsProvider({children}) {
     async function loadData() {
       try {
         const {epoch} = await fetchEpoch()
+
+        if (isRestrictedAccess(state.url, state.apiKey)) {
+          return dispatch({
+            type: SET_API_KEY_STATE,
+            data: {apiKeyState: apiKeyStates.RESTRICTED},
+          })
+        }
 
         const result = await softCheckKey(state.apiKey)
         if (result) {
@@ -162,7 +191,11 @@ function SettingsProvider({children}) {
     if (!state.initialized) {
       dispatch({
         type: SET_API_KEY_STATE,
-        data: {apiKeyState: apiKeyStates.ONLINE},
+        data: {
+          apiKeyState: isRestrictedAccess()
+            ? apiKeyStates.RESTRICTED
+            : apiKeyStates.ONLINE,
+        },
       })
     } else if (state.url && state.apiKey) {
       loadData()
@@ -180,20 +213,6 @@ function SettingsProvider({children}) {
 
   useInterval(performCheck, API_KEY_CHECK_INTERVAL)
 
-  useInterval(
-    () => {
-      if (
-        router.pathname !== '/node/restricted' &&
-        router.pathname !== '/validation' &&
-        router.pathname !== '/try/validation'
-      )
-        router.push('/node/restricted')
-    },
-    state.apiKeyState === apiKeyStates.RESTRICTED
-      ? RESTRICTED_CHECK_INTERVAL
-      : null
-  )
-
   const saveEncryptedKey = (coinbase, key) => {
     dispatch({type: SAVE_ENCRYPTED_KEY, data: {coinbase, key}})
   }
@@ -204,6 +223,10 @@ function SettingsProvider({children}) {
 
   const saveConnection = (url, key) => {
     dispatch({type: SAVE_CONNECTION, data: {url, key}})
+  }
+
+  const saveRestrictedConnection = () => {
+    dispatch({type: SAVE_RESTRICTED_CONNECTION})
   }
 
   const addPurchase = (apiKeyId, provider) => {
@@ -221,6 +244,7 @@ function SettingsProvider({children}) {
           saveEncryptedKey,
           removeEncryptedKey,
           saveConnection,
+          saveRestrictedConnection,
           addPurchase,
           addPurchasedKey,
         }}
@@ -251,4 +275,8 @@ function useSettingsDispatch() {
   return context
 }
 
-export {SettingsProvider, useSettingsState, useSettingsDispatch}
+function useSettings() {
+  return [useSettingsState(), useSettingsDispatch()]
+}
+
+export {SettingsProvider, useSettingsState, useSettingsDispatch, useSettings}

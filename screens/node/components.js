@@ -8,10 +8,8 @@ import {
   Radio,
   Stack,
 } from '@chakra-ui/react'
-import {useRouter} from 'next/router'
-import {useEffect, useState} from 'react'
-import {useQuery} from 'react-query'
-import {getRawTx, getKeyById, buyKey} from '../../shared/api'
+import {useState} from 'react'
+import {getRawTx, buyKey} from '../../shared/api'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {
   Drawer,
@@ -22,55 +20,32 @@ import {
   Input,
 } from '../../shared/components/components'
 import {SendOutIcon} from '../../shared/components/icons'
+import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
 import useRpc from '../../shared/hooks/use-rpc'
+import {useFailToast} from '../../shared/hooks/use-toast'
 import {Transaction} from '../../shared/models/transaction'
 import {useAuthState} from '../../shared/providers/auth-context'
-import {useNotificationDispatch} from '../../shared/providers/notification-context'
-import {
-  useSettingsDispatch,
-  useSettingsState,
-} from '../../shared/providers/settings-context'
 import {privateKeyToPublicKey} from '../../shared/utils/crypto'
 
 export function BuySharedNodeForm({
   isOpen,
   onClose,
   providerId,
-  url,
   from,
   to,
   amount,
 }) {
-  const router = useRouter()
   const [submitting, setSubmitting] = useState(false)
 
   const {coinbase, privateKey} = useAuthState()
 
-  const {addError} = useNotificationDispatch()
-
-  const {apiKeyId} = useSettingsState()
-  const {addPurchase, addPurchasedKey} = useSettingsDispatch()
+  const failToast = useFailToast()
 
   const [{result: balanceResult}] = useRpc('dna_getBalance', true, from)
 
   const [{result: epochResult}] = useRpc('dna_epoch', true)
 
-  const {isLoading, data} = useQuery(
-    ['get-key-by-id', apiKeyId],
-    () => getKeyById(apiKeyId),
-    {
-      enabled: !!apiKeyId,
-      retry: true,
-      retryDelay: 5000,
-    }
-  )
-
-  useEffect(() => {
-    if (data) {
-      addPurchasedKey(url, data.key, data.epoch)
-      router.push('/')
-    }
-  }, [addPurchasedKey, data, onClose, router, url])
+  const {isPurchasing, savePurchase} = useApikeyPurchasing()
 
   const transfer = async () => {
     setSubmitting(true)
@@ -89,15 +64,15 @@ export function BuySharedNodeForm({
       const tx = new Transaction().fromHex(rawTx)
       tx.sign(privateKey)
       const result = await buyKey(coinbase, `0x${tx.toHex()}`, providerId)
-      addPurchase(result.id, providerId)
+      savePurchase(result.id, providerId)
     } catch (e) {
-      addError({title: `Failed to send iDNA`, body: e.response.data})
+      failToast(`Failed to send iDNA: ${e.response?.data || 'unknown error'}`)
     } finally {
       setSubmitting(false)
     }
   }
 
-  const waiting = submitting || isLoading
+  const waiting = submitting || isPurchasing
 
   return (
     <Drawer
@@ -208,9 +183,6 @@ export function ChooseItemRadio({isChecked, onChange, ...props}) {
         '&[data-checked]': {
           color: 'gray.500',
         },
-      }}
-      _focus={{
-        boxShadow: 'none',
       }}
       _disabled={{
         bg: 'none',

@@ -13,14 +13,13 @@ export function useInterval(callback, delay, useImmediately = false) {
     function tick() {
       clearTimeout(timeoutId)
       timeoutId = setTimeout(() => {
-        savedCallback.current()
-        tick()
+        Promise.resolve(savedCallback.current()).then(tick())
       }, delay)
     }
 
     if (delay !== null) {
-      if (useImmediately) savedCallback.current()
-      tick()
+      if (useImmediately) Promise.resolve(savedCallback.current()).then(tick())
+      else tick()
       return () => {
         clearTimeout(timeoutId)
       }

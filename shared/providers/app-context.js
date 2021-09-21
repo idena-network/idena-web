@@ -1,7 +1,8 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useMemo} from 'react'
 import {useToast} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
+import {useMachine} from '@xstate/react'
 import {useInterval} from '../hooks/use-interval'
 
 import {
@@ -14,15 +15,23 @@ import {
   didArchiveFlips,
   markFlipsArchived,
 } from '../../screens/flips/utils'
-import {persistItem} from '../utils/persist'
+import {loadPersistentState, persistItem, persistState} from '../utils/persist'
 import {ntp, openExternalUrl} from '../utils/utils'
 import {Toast} from '../components/components'
 import {useEpoch} from './epoch-context'
+import {
+  useSettings,
+  useSettingsDispatch,
+  useSettingsState,
+} from './settings-context'
+import {getKeyById, getProvider} from '../api'
+import {useIdentity} from './identity-context'
+import {useAuthState} from './auth-context'
+import {createRestrictedModalMachine} from '../machines'
 
 const AppContext = React.createContext()
 
 const TIME_DRIFT_THRESHOLD = 10
-
 const IDENA_ACTIVE_TAB = 'IDENA_ACTTIVE_TAB'
 
 // eslint-disable-next-line react/prop-types
@@ -32,6 +41,11 @@ export function AppProvider({tabId, ...props}) {
   const router = useRouter()
 
   const epoch = useEpoch()
+
+  const [{state}] = useIdentity()
+  const [{apiKeyState}] = useSettings()
+
+  const {auth} = useAuthState()
 
   // make only one tab active
   useEffect(() => {
@@ -125,6 +139,71 @@ export function AppProvider({tabId, ...props}) {
         ),
       })
   }, [t, toast, wrongClientTime])
+
+  // api key purchasing
+  const {apiKeyId, apiKeyData} = useSettingsState()
+  const {addPurchasedKey} = useSettingsDispatch()
+
+  useInterval(
+    async () => {
+      try {
+        const data = await getKeyById(apiKeyId)
+        const provider = await getProvider(apiKeyData.provider)
+
+        addPurchasedKey(provider.data.url, data.key, data.epoch)
+
+        router.push('/')
+      } catch {
+        console.error(
+          `key is not ready, id: [${apiKeyId}], provider: [${apiKeyData.provider}]`
+        )
+      }
+    },
+    apiKeyId && apiKeyData?.provider ? 3000 : null
+  )
+
+  const restrictedModalMachine = useMemo(
+    () => createRestrictedModalMachine(),
+    []
+  )
+
+  const [, send] = useMachine(restrictedModalMachine, {
+    actions: {
+      onRedirect: () => {
+        router.push('/node/restricted')
+      },
+      persistModalState: ({storage}) => {
+        persistState('restricted-modal', storage)
+      },
+    },
+    services: {
+      getExternalData: () => cb => {
+        cb({
+          type: 'DATA',
+          data: {
+            pathname: router.pathname,
+            storage: loadPersistentState('restricted-modal'),
+          },
+        })
+      },
+    },
+  })
+
+  useEffect(() => {
+    send('NEW_API_KEY_STATE', {apiKeyState})
+  }, [apiKeyState, send])
+
+  useEffect(() => {
+    if (epoch) send('NEW_EPOCH', {epoch: epoch.epoch})
+  }, [epoch, send])
+
+  useEffect(() => {
+    if (auth) {
+      send('RESTART', {identityState: state})
+    } else {
+      send('CLEAR')
+    }
+  }, [auth, send, state])
 
   return <AppContext.Provider {...props} value={null} />
 }

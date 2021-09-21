@@ -43,11 +43,7 @@ import {
 import {rem} from '../../shared/theme'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {IdentityStatus, NodeType} from '../../shared/types'
-import {
-  useNotificationDispatch,
-  NotificationType,
-} from '../../shared/providers/notification-context'
-import useTx from '../../shared/hooks/use-tx'
+import {NotificationType} from '../../shared/providers/notification-context'
 import {Notification, Snackbar} from '../../shared/components/notifications'
 import {Spinner} from '../../shared/components/spinner'
 import {
@@ -58,7 +54,12 @@ import {createTimerMachine} from '../../shared/machines'
 import {usePersistence} from '../../shared/hooks/use-persistent-state'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {Transaction} from '../../shared/models/transaction'
-import {getRawTx, sendRawTx} from '../../shared/api'
+import {
+  activateKey,
+  getAvailableProviders,
+  getRawTx,
+  sendRawTx,
+} from '../../shared/api'
 import {
   privateKeyToAddress,
   privateKeyToPublicKey,
@@ -73,6 +74,9 @@ import {useEpoch} from '../../shared/providers/epoch-context'
 import {activateMiningMachine} from './machines'
 import {fetchBalance} from '../../shared/api/wallet'
 import {LaptopIcon, UserIcon} from '../../shared/components/icons'
+import {useFailToast} from '../../shared/hooks/use-toast'
+import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
+import useTx from '../../shared/hooks/use-tx'
 
 export function UserInlineCard({address, state, ...props}) {
   return (
@@ -165,21 +169,25 @@ export function UserStatLabelTooltip(props) {
 }
 
 export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
-  props,
+  {onHowToGetInvitation, ...props},
   ref
 ) {
   const {t} = useTranslation()
 
-  const {addError} = useNotificationDispatch()
+  const failToast = useFailToast()
 
   const [{state}, {waitStateUpdate}] = useIdentity()
   const {coinbase, privateKey} = useAuthState()
 
   const [code, setCode] = React.useState('')
+  const [submitting, setSubmitting] = useState(false)
 
   const [{mining}, setHash] = useTx()
 
+  const {isPurchasing, needToPurchase, savePurchase} = useApikeyPurchasing()
+
   const sendActivateInviteTx = async () => {
+    setSubmitting(true)
     const trimmedCode = code.trim()
     const from = trimmedCode
       ? privateKeyToAddress(trimmedCode)
@@ -200,13 +208,30 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
 
       const hex = tx.toHex()
 
-      const result = await sendRawTx(`0x${hex}`)
-      setHash(result)
-      waitStateUpdate()
+      if (needToPurchase) {
+        const providers = await getAvailableProviders()
+
+        const result = await activateKey(coinbase, `0x${hex}`, providers)
+        savePurchase(result.id, result.provider)
+      } else {
+        const result = await sendRawTx(`0x${hex}`)
+        setHash(result)
+
+        // need to wait identity state update manually, because nothing changes in memory
+        waitStateUpdate()
+      }
     } catch (e) {
-      addError({title: `Failed to activate invite: ${e.message}`})
+      failToast(
+        `Failed to activate invite: ${
+          e.response ? e.response.data : 'invitation is invalid'
+        }`
+      )
+    } finally {
+      setSubmitting(false)
     }
   }
+
+  const waiting = submitting || isPurchasing || mining
 
   return (
     <Box
@@ -214,13 +239,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
       as="form"
       onSubmit={async e => {
         e.preventDefault()
-        try {
-          await sendActivateInviteTx(code)
-        } catch ({message}) {
-          addError({
-            title: message,
-          })
-        }
+        await sendActivateInviteTx(code)
       }}
       {...props}
     >
@@ -234,7 +253,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
                 </FormLabel>
                 <Button
                   variant="ghost"
-                  isDisabled={mining}
+                  isDisabled={waiting}
                   bg="unset"
                   color="muted"
                   fontWeight={500}
@@ -253,7 +272,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
               <Input
                 id="code"
                 value={code}
-                isDisabled={mining}
+                isDisabled={waiting}
                 placeholder={
                   state === IdentityStatus.Invite
                     ? 'Click the button to activate invitation'
@@ -276,7 +295,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
             <Button
               variant="link"
               leftIcon={<InfoIcon boxSize={4} />}
-              onClick={props.onHowToGetInvitation}
+              onClick={onHowToGetInvitation}
               colorScheme="blue"
               _active={{}}
               fontWeight={500}
@@ -285,7 +304,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
             </Button>
             <Divider borderColor="gray.100" orientation="vertical" mx={4} />
             <PrimaryButton
-              isLoading={mining}
+              isLoading={waiting}
               loadingText={t('Mining...')}
               type="submit"
             >
