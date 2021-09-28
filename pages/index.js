@@ -181,10 +181,17 @@ export default function ProfilePage() {
   return (
     <Layout canRedirect={!dnaUrl}>
       <Page>
-        <PageTitle mb={8}>{t('Profile')}</PageTitle>
-        <Stack isInline spacing={10}>
-          <Stack spacing={8} w={480} ref={activateInviteRef}>
-            <UserInlineCard address={coinbase} state={state} h={24} />
+        <PageTitle mb={8} display={['none', 'block']}>
+          {t('Profile')}
+        </PageTitle>
+        <Stack direction={['column', 'row']} spacing={10}>
+          <Stack
+            spacing={8}
+            w={['311px', '480px']}
+            align={['center', 'initial']}
+            ref={activateInviteRef}
+          >
+            <UserInlineCard address={coinbase} state={state} h={['auto', 24]} />
             {canActivateInvite && (
               <Box>
                 <OnboardingPopover

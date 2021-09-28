@@ -80,9 +80,23 @@ import useTx from '../../shared/hooks/use-tx'
 
 export function UserInlineCard({address, state, ...props}) {
   return (
-    <Stack isInline spacing={6} align="center" width={rem(480)} {...props}>
-      <Avatar address={address} />
-      <Stack spacing={1}>
+    <Stack
+      direction={['column', 'row']}
+      spacing={6}
+      align="center"
+      width={['200px', '480px']}
+      wordBreak={['break-all', 'normal']}
+      {...props}
+    >
+      <Avatar
+        size={[
+          ['160px', '160px'],
+          ['88px', '80px'],
+        ]}
+        borderRadius={['48px', 'lg']}
+        address={address}
+      />
+      <Stack spacing={1} align={['center', 'initial']}>
         <Heading as="h2" fontSize="lg" fontWeight={500} lineHeight="short">
           {mapIdentityToFriendlyStatus(state)}
         </Heading>
@@ -90,6 +104,7 @@ export function UserInlineCard({address, state, ...props}) {
           as="h3"
           fontSize="mdx"
           fontWeight="normal"
+          textAlign={['center', 'initial']}
           color="muted"
           lineHeight="shorter"
         >
@@ -102,11 +117,24 @@ export function UserInlineCard({address, state, ...props}) {
 
 export function UserStatList({title, children, ...props}) {
   return (
-    <Stack spacing={4} {...props}>
-      <Heading as="h4" fontSize="lg" fontWeight={500}>
+    <Stack spacing={4} {...props} w={['311px', '100%']}>
+      <Heading
+        display={['none', 'block']}
+        as="h4"
+        fontSize="lg"
+        fontWeight={500}
+      >
         {title}
       </Heading>
       <Stack spacing={4} bg="gray.50" px={10} py={8} rounded="lg">
+        <Heading
+          display={['block', 'none']}
+          as="h4"
+          fontSize="lg"
+          fontWeight={500}
+        >
+          {title}
+        </Heading>
         {children}
       </Stack>
     </Stack>

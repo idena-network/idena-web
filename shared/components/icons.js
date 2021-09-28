@@ -828,3 +828,14 @@ export const EmptyFlipIcon = createIcon({
     </g>
   ),
 })
+
+export const OpenExplorerIcon = createIcon({
+  displayName: 'OpenExplorerIcon',
+  viewBox: '0 0 20 20',
+  path: (
+    <g fill="#578FFF" fillRule="evenodd">
+      <path d="M10 1.5 13.5 6H11v7H9V6H6.5L10 1.5z" />
+      <path d="M17.5 12.75a4.75 4.75 0 0 1-4.75 4.75h-5.5A4.75 4.75 0 0 1 7 8.006v2.005a2.75 2.75 0 0 0 .25 5.489h5.5a2.75 2.75 0 0 0 .25-5.489V8.006a4.75 4.75 0 0 1 4.5 4.744z" />
+    </g>
+  ),
+})

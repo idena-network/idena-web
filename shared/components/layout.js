@@ -65,7 +65,14 @@ function NormalApp({children, canRedirect = true}) {
   ])
 
   return (
-    <Flex as="section" direction="column" flex={1} h="100vh" overflowY="auto">
+    <Flex
+      as="section"
+      direction="column"
+      flex={1}
+      h="100vh"
+      w={['375px', 'initial']}
+      overflowY="auto"
+    >
       {children}
 
       {currentTrainingValidation && (
