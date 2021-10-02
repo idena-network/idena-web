@@ -233,6 +233,8 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
 
   const waiting = submitting || isPurchasing || mining
 
+  const hasBeenInvited = state === IdentityStatus.Invite
+
   return (
     <Box
       ref={ref}
@@ -243,8 +245,18 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
       }}
       {...props}
     >
-      <Stack spacing={6}>
-        {state === IdentityStatus.Undefined && (
+      {hasBeenInvited ? (
+        <Flex justify="flex-end">
+          <PrimaryButton
+            isLoading={mining}
+            loadingText={t('Mining...')}
+            type="submit"
+          >
+            {t('Accept invitation')}
+          </PrimaryButton>
+        </Flex>
+      ) : (
+        <Stack spacing={6}>
           <FormControl>
             <Stack spacing={3}>
               <Flex justify="space-between" align="center">
@@ -273,11 +285,6 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
                 id="code"
                 value={code}
                 isDisabled={waiting}
-                placeholder={
-                  state === IdentityStatus.Invite
-                    ? 'Click the button to activate invitation'
-                    : ''
-                }
                 resize="none"
                 _disabled={{
                   bg: 'gray.50',
@@ -289,9 +296,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
               />
             </Stack>
           </FormControl>
-        )}
-        <Flex>
-          <Flex ml="auto" alignItems="center">
+          <Stack spacing={3} isInline align="center" justify="flex-end">
             <Button
               variant="link"
               leftIcon={<InfoIcon boxSize={4} />}
@@ -310,9 +315,9 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
             >
               {t('Activate invite')}
             </PrimaryButton>
-          </Flex>
-        </Flex>
-      </Stack>
+          </Stack>
+        </Stack>
+      )}
     </Box>
   )
 })

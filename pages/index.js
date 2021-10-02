@@ -204,7 +204,9 @@ export default function ProfilePage() {
                     >
                       <Stack>
                         <Heading as="h3" fontWeight={500} fontSize="lg">
-                          {t('Join the upcoming validation')}
+                          {state === IdentityStatus.Invite
+                            ? t('Congratulations!')
+                            : t('Join the upcoming validation')}
                         </Heading>
                         <Text color="muted">
                           {state === IdentityStatus.Invite
