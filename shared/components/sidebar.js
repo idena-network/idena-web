@@ -153,17 +153,17 @@ function ApiStatus() {
         py={[1, 1 / 2]}
         fontSize={[16, 13]}
       >
-        <Flex align="baseline">
-          {show === StatusLabel.Restricted ? (
-            <Tooltip
-              label={t(
-                'You cannot use the shared node for the upcoming validation ceremony.'
-              )}
-              placement="right"
-              zIndex="tooltip"
-              bg="graphite.500"
-              width={200}
-            >
+        {show === StatusLabel.Restricted ? (
+          <Tooltip
+            label={t(
+              'You cannot use the shared node for the upcoming validation ceremony.'
+            )}
+            placement="right"
+            zIndex="tooltip"
+            bg="graphite.500"
+            width={200}
+          >
+            <Flex align="baseline">
               <TextLink
                 href="/node/restricted"
                 color={color}
@@ -175,33 +175,37 @@ function ApiStatus() {
               >
                 {text}
               </TextLink>
-            </Tooltip>
-          ) : show === StatusLabel.Online ? (
-            <Tooltip
-              label={t(
-                'Access to the shared node will be expired after the validation ceremony {{date}}',
-                {
-                  date: epoch
-                    ? new Date(epoch.nextValidation).toLocaleString()
-                    : '',
-                }
-              )}
-              placement="right"
-              zIndex="tooltip"
-              bg="graphite.500"
-              width={200}
-              isDisabled={undefinedOrInvite}
-            >
+            </Flex>
+          </Tooltip>
+        ) : show === StatusLabel.Online ? (
+          <Tooltip
+            label={t(
+              'Access to the shared node will be expired after the validation ceremony {{date}}',
+              {
+                date: epoch
+                  ? new Date(epoch.nextValidation).toLocaleString()
+                  : '',
+              }
+            )}
+            placement="right"
+            zIndex="tooltip"
+            bg="graphite.500"
+            width={200}
+            isDisabled={undefinedOrInvite}
+          >
+            <Flex align="baseline">
               <Text color={color} fontWeight={500} lineHeight={rem(18)}>
                 {text}
               </Text>
-            </Tooltip>
-          ) : (
+            </Flex>
+          </Tooltip>
+        ) : (
+          <Flex align="baseline">
             <Text color={color} fontWeight={500} lineHeight={rem(18)}>
               {text}
             </Text>
-          )}
-        </Flex>
+          </Flex>
+        )}
       </Flex>
     </Flex>
   )
