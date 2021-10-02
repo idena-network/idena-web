@@ -95,7 +95,11 @@ export function OnboardingPopoverContentIconRow({icon, children, ...props}) {
   )
 }
 
-export function OnboardingLinkButton({href, ...props}) {
+export function OnboardingLinkButton({
+  href,
+  onClick = () => openExternalUrl(href),
+  ...props
+}) {
   const {colors} = useTheme()
   return (
     <Button
@@ -109,7 +113,7 @@ export function OnboardingLinkButton({href, ...props}) {
       _hover={null}
       _active={null}
       _focus={null}
-      onClick={() => openExternalUrl(href)}
+      onClick={onClick}
       {...props}
     />
   )
