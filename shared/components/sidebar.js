@@ -516,7 +516,7 @@ function ActionPanel({onClose}) {
                   icon={<SyncIcon boxSize={5} />}
                 >
                   {t(
-                    `Keep your node synchronized in 45-60 minutes before the validation starts.`
+                    `Sign in into your account 15 mins before the validation starts.`
                   )}
                 </OnboardingPopoverContentIconRow>
                 <OnboardingPopoverContentIconRow
@@ -530,7 +530,7 @@ function ActionPanel({onClose}) {
                   icon={<GalleryIcon boxSize={5} />}
                 >
                   <Trans i18nKey="onboardingValidateTest" t={t}>
-                    <OnboardingLinkButton href="https://flips.idena.io/?pass=idena.io">
+                    <OnboardingLinkButton onClick={() => router.push('/try')}>
                       Test yourself
                     </OnboardingLinkButton>{' '}
                     before the validation
