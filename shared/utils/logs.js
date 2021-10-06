@@ -1,7 +1,7 @@
 /* eslint-disable import/no-named-default */
 // eslint-disable-next-line import/no-named-default
-import {useEffect, useState} from 'react'
 import {default as redactObj} from 'redact-object'
+import db from './db'
 
 const redactValues = [
   'privateKey',
@@ -20,30 +20,19 @@ export function redact(msg) {
   return msg
 }
 
-export function useLocalStorageLogger(name) {
-  const [logs, setLogs] = useState([])
-
-  useEffect(() => {
-    try {
-      const data = localStorage.getItem(name)
-      if (data) {
-        const result = JSON.parse(data)
-        if (Array.isArray(result)) setLogs(result)
-      }
-    } catch (e) {
-      console.error('cannot initialize logs', e)
-    }
-  }, [name])
-
-  const info = data => {
-    try {
-      const newLogs = [...logs, JSON.stringify(redact(data))]
-      localStorage.setItem(name, JSON.stringify(newLogs))
-      setLogs(newLogs)
-    } catch {
-      console.error('cannot write logs to localStorage')
-    }
+export async function writeValidationLog(epoch, data) {
+  try {
+    await db
+      .table('logs')
+      .add({epoch, timestamp: new Date().toISOString(), log: redact(data)})
+  } catch {
+    console.error('cannot write logs to IndexedDb')
   }
+}
 
-  return info
+export async function readValidationLogs(epoch) {
+  return db
+    .table('logs')
+    .where({epoch})
+    .toArray()
 }

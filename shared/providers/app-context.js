@@ -62,11 +62,12 @@ export function AppProvider({tabId, ...props}) {
     return () => window.removeEventListener('storage', onStorage)
   }, [tabId, router])
 
+  // TODO: remove later
   // clear old validation logs
   useEffect(() => {
     if (epoch) {
       try {
-        for (let i = epoch.epoch - 10; i < epoch.epoch - 1; i += 1) {
+        for (let i = epoch.epoch - 10; i < epoch.epoch; i += 1) {
           localStorage.removeItem(`logs-validation-${i}`)
         }
       } catch (e) {
