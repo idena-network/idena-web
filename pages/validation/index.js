@@ -11,11 +11,11 @@ import {
 } from '../../screens/validation/utils'
 import {ValidationScreen} from '../../screens/validation/components'
 import {useAuthState} from '../../shared/providers/auth-context'
-import {useLocalStorageLogger} from '../../shared/utils/logs'
 import {LayoutContainer} from '../../screens/app/components'
 import Auth from '../../shared/components/auth'
 import useNodeTiming from '../../shared/hooks/use-node-timing'
 import {useEpoch} from '../../shared/providers/epoch-context'
+import {writeValidationLog} from '../../shared/utils/logs'
 
 export default function ValidationPage() {
   const epoch = useEpoch()
@@ -56,8 +56,6 @@ function ValidationSession({
 
   const {i18n} = useTranslation()
 
-  const info = useLocalStorageLogger(`logs-validation-${epoch}`)
-
   const {
     isOpen: isExceededTooltipOpen,
     onOpen: onOpenExceededTooltip,
@@ -96,7 +94,7 @@ function ValidationSession({
       },
     },
     state: loadValidationState(),
-    logger: info,
+    logger: async data => writeValidationLog(epoch, data),
   })
 
   useEffect(() => {

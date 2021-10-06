@@ -28,6 +28,8 @@ import {
 import {Section} from '../../screens/settings/components'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {useNotificationDispatch} from '../../shared/providers/notification-context'
+import db from '../../shared/utils/db'
+import {readValidationLogs} from '../../shared/utils/logs'
 
 function Settings() {
   return (
@@ -45,15 +47,19 @@ function ExportLogs() {
 
   const {addError} = useNotificationDispatch()
 
-  const getLogs = () => {
+  const getLogs = async () => {
     try {
-      const name = `logs-validation-${epochData.epoch - 1}`
-      const data = localStorage.getItem(name)
+      const epoch = epochData.epoch - 1
 
-      const blob = new Blob([data], {
-        type: 'text/plain;charset=utf-8',
-      })
-      saveAs(blob, `${name}-${coinbase}.txt`)
+      const logs = await readValidationLogs(epoch)
+
+      const blob = new Blob(
+        [logs.map(x => `${x.timestamp} - ${JSON.stringify(x.log)}`).join('\n')],
+        {
+          type: 'text/plain;charset=utf-8',
+        }
+      )
+      saveAs(blob, `validation-${epoch}-${coinbase}.txt`)
     } catch (e) {
       addError({title: 'Cannot export logs', body: e.message})
     }
