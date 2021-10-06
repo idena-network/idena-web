@@ -519,7 +519,7 @@ export function IssueInviteDrawer({onIssue, onIssueFail, ...props}) {
                 transition="all 0.2s ease-in-out"
               />
             </Button>
-            <Collapse isOpen={isOpenAdvancedOptions} mt={4}>
+            <Collapse in={isOpenAdvancedOptions} mt={4}>
               <FormControl>
                 <FormLabel htmlFor="address">{t('Address')}</FormLabel>
                 <Input id="address" placeholder="Invitee address" />
