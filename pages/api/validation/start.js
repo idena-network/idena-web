@@ -29,7 +29,7 @@ function calcValidationStart(type) {
     case CertificateType.Expert:
       return dt.setHours(dt.getHours() + 1)
     case CertificateType.Master: {
-      return GetNextUTCValidationDate().getTime()
+      return GetNextUTCValidationDate()
     }
     default:
       return 0
