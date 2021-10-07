@@ -6,6 +6,7 @@ import GoogleFonts from 'next-google-fonts'
 import {QueryClient, QueryClientProvider} from 'react-query'
 import ReactGA from 'react-ga'
 import {v4 as uuidv4} from 'uuid'
+import TagManager from 'react-gtm-module'
 
 import '../i18n'
 import 'focus-visible/dist/focus-visible'
@@ -120,6 +121,10 @@ function IdenaApp(props) {
   useEffect(() => {
     ReactGA.initialize('UA-139651161-3')
     ReactGA.pageview(window.location.pathname + window.location.search)
+  }, [])
+
+  useEffect(() => {
+    TagManager.initialize({gtmId: 'GTM-P4K5GX4'})
   }, [])
 
   useEffect(() => {
