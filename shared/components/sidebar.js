@@ -113,7 +113,7 @@ function ApiStatus() {
   let bg = 'xwhite.010'
   let color = 'gray.300'
   let text = t('Loading...')
-  let show = StatusLabel.None
+  let status = StatusLabel.None
 
   const undefinedOrInvite = [
     IdentityStatus.Undefined,
@@ -124,7 +124,7 @@ function ApiStatus() {
     bg = 'red.020'
     color = 'red.500'
     text = t('Offline')
-    show = StatusLabel.Offline
+    status = StatusLabel.Offline
   } else if (
     settings.apiKeyState === apiKeyStates.RESTRICTED &&
     !undefinedOrInvite
@@ -132,7 +132,7 @@ function ApiStatus() {
     bg = 'warning.020'
     color = 'warning.500'
     text = t('Restricted')
-    show = StatusLabel.Restricted
+    status = StatusLabel.Restricted
   } else if (
     settings.apiKeyState === apiKeyStates.ONLINE ||
     settings.apiKeyState === apiKeyStates.EXTERNAL ||
@@ -141,28 +141,45 @@ function ApiStatus() {
     bg = 'green.020'
     color = 'green.500'
     text = t('Online')
-    show = StatusLabel.Online
+    status = StatusLabel.Online
   }
+
+  const restrictedOrOnline = [
+    StatusLabel.Restricted,
+    StatusLabel.Online,
+  ].includes(status)
 
   return (
     <Flex>
-      <Flex
-        bg={bg}
-        borderRadius="xl"
-        px={3}
-        py={[1, 1 / 2]}
-        fontSize={[16, 13]}
+      <Tooltip
+        label={
+          status === StatusLabel.Restricted
+            ? t(
+                'You cannot use the shared node for the upcoming validation ceremony.'
+              )
+            : t(
+                'Access to the shared node will be expired after the validation ceremony {{date}}',
+                {
+                  date: epoch
+                    ? new Date(epoch.nextValidation).toLocaleString()
+                    : '',
+                }
+              )
+        }
+        placement="right"
+        zIndex="tooltip"
+        bg="graphite.500"
+        width={200}
+        isDisabled={!restrictedOrOnline || undefinedOrInvite}
       >
-        {show === StatusLabel.Restricted ? (
-          <Tooltip
-            label={t(
-              'You cannot use the shared node for the upcoming validation ceremony.'
-            )}
-            placement="right"
-            zIndex="tooltip"
-            bg="graphite.500"
-            width={200}
-          >
+        <Flex
+          bg={bg}
+          borderRadius="xl"
+          px={3}
+          py={[1, 1 / 2]}
+          fontSize={[16, 13]}
+        >
+          {status === StatusLabel.Restricted ? (
             <Flex align="baseline">
               <TextLink
                 href="/node/restricted"
@@ -176,37 +193,15 @@ function ApiStatus() {
                 {text}
               </TextLink>
             </Flex>
-          </Tooltip>
-        ) : show === StatusLabel.Online ? (
-          <Tooltip
-            label={t(
-              'Access to the shared node will be expired after the validation ceremony {{date}}',
-              {
-                date: epoch
-                  ? new Date(epoch.nextValidation).toLocaleString()
-                  : '',
-              }
-            )}
-            placement="right"
-            zIndex="tooltip"
-            bg="graphite.500"
-            width={200}
-            isDisabled={undefinedOrInvite}
-          >
+          ) : (
             <Flex align="baseline">
               <Text color={color} fontWeight={500} lineHeight={rem(18)}>
                 {text}
               </Text>
             </Flex>
-          </Tooltip>
-        ) : (
-          <Flex align="baseline">
-            <Text color={color} fontWeight={500} lineHeight={rem(18)}>
-              {text}
-            </Text>
-          </Flex>
-        )}
-      </Flex>
+          )}
+        </Flex>
+      </Tooltip>
     </Flex>
   )
 }
