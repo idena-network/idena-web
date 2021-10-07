@@ -530,7 +530,12 @@ function ActionPanel({onClose}) {
                   icon={<GalleryIcon boxSize={5} />}
                 >
                   <Trans i18nKey="onboardingValidateTest" t={t}>
-                    <OnboardingLinkButton onClick={() => router.push('/try')}>
+                    <OnboardingLinkButton
+                      onClick={() => {
+                        dismissCurrentTask()
+                        router.push('/try')
+                      }}
+                    >
                       Test yourself
                     </OnboardingLinkButton>{' '}
                     before the validation
