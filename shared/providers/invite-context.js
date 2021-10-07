@@ -4,7 +4,7 @@ import * as api from '../api'
 import {useInterval} from '../hooks/use-interval'
 import {HASH_IN_MEMPOOL, callRpc} from '../utils/utils'
 import {useIdentity} from './identity-context'
-import {IdentityStatus} from '../types'
+import {IdentityStatus, TxType} from '../types'
 import * as db from '../../screens/contacts/db'
 import {getRawTx, sendRawTx} from '../api'
 import {generatePrivateKey, privateKeyToAddress} from '../utils/crypto'
@@ -281,28 +281,34 @@ export function InviteProvider({children}) {
     await db.updateInvite(id, {id, deletedAt})
   }
 
-  const killInvite = async (id, from, to) => {
-    const {result, error} = await api.killInvitee(from, to)
+  const killInvite = async (id, to, privateKey) => {
+    const rawTx = await getRawTx(
+      TxType.KillInviteeTx,
+      privateKeyToAddress(privateKey),
+      to
+    )
 
-    if (result) {
-      setInvites(
-        // eslint-disable-next-line no-shadow
-        invites.map(invite =>
-          invite.id === id
-            ? {
-                ...invite,
-                terminating: true,
-                state: IdentityStatus.Terminating,
-                canKill: false,
-              }
-            : invite
-        )
+    const tx = new Transaction().fromHex(rawTx)
+    tx.sign(privateKey)
+
+    const result = await sendRawTx(`0x${tx.toHex()}`)
+
+    setInvites(
+      // eslint-disable-next-line no-shadow
+      invites.map(invite =>
+        invite.id === id
+          ? {
+              ...invite,
+              terminating: true,
+              state: IdentityStatus.Terminating,
+              canKill: false,
+            }
+          : invite
       )
-      const invite = {id, terminateHash: result, terminatedAt: Date.now()}
-      await db.updateInvite(id, invite)
-    }
-
-    return {result, error}
+    )
+    const invite = {id, terminateHash: result, terminatedAt: Date.now()}
+    await db.updateInvite(id, invite)
+    return result
   }
 
   const recoverInvite = async id => {
