@@ -248,7 +248,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
       {hasBeenInvited ? (
         <Flex justify="flex-end">
           <PrimaryButton
-            isLoading={mining}
+            isLoading={waiting}
             loadingText={t('Mining...')}
             type="submit"
           >
