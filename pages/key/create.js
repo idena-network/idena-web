@@ -42,6 +42,7 @@ import {
   RefreshIcon,
 } from '../../shared/components/icons'
 import {useSuccessToast} from '../../shared/hooks/use-toast'
+import {sendSignUp} from '../../shared/utils/analytics'
 
 const steps = {
   AVATAR: 0,
@@ -353,6 +354,7 @@ export default function CreateKey() {
                   if (!state.understand1 || !state.understand2) {
                     setError(t('Please confirm you understand risks'))
                   } else {
+                    sendSignUp(state.address)
                     setError('')
                     setStep(steps.SUCCESS)
                   }
