@@ -596,7 +596,7 @@ export function KillInviteDrawer({invite, onKill, onKillFail, ...props}) {
 
   const [isSubmitting, setIsSubmitting] = React.useState()
 
-  const [{address}] = useIdentity()
+  const {privateKey} = useAuthState()
 
   const [{invites}, {killInvite}] = useInvite()
 
@@ -626,12 +626,10 @@ export function KillInviteDrawer({invite, onKill, onKillFail, ...props}) {
           setIsSubmitting(true)
 
           try {
-            const {result, error} = await killInvite(id, address, receiver)
+            const result = await killInvite(id, receiver, privateKey)
 
             setIsSubmitting(false)
-
-            if (error) onKillFail(error?.message)
-            else onKill(result)
+            onKill(result)
           } catch (error) {
             setIsSubmitting(false)
             onKillFail(error?.message)
