@@ -46,16 +46,20 @@ export default async (req, res) => {
       throw new Error('signature is invalid')
 
     const {data} = await faunaClient.query(
-      q.Paginate(q.Match(q.Index('flip_hashes_with_answer_reason')), {
-        size: 500,
-      })
+      q.Paginate(
+        q.Match(q.Index('flip_hashes_with_answer_reason_isDisabled')),
+        {
+          size: 500,
+        }
+      )
     )
 
     const a = []
     const b = []
     const c = []
 
-    data.forEach(([hash, answer, reason]) => {
+    data.forEach(([hash, answer, reason, isDisabled]) => {
+      if (isDisabled) return
       if (reason === 0) {
         a.push({hash, rightAnswer: answer, reason})
       } else if (reason === 1) {

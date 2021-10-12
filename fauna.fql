@@ -35,7 +35,7 @@ CreateIndex({
 })
 
 CreateIndex({
-  name: "flip_hashes_with_answer_reason",
+  name: "flip_hashes_with_answer_reason_isDisabled",
   unique: true,
   serialized: true,
   source: "flips",
@@ -48,6 +48,9 @@ CreateIndex({
     },
     {
       field: ["data", "isReported"]
+    },
+    {
+      field: ["data", "isDisabled"]
     }
   ]
 })
