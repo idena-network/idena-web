@@ -16,6 +16,8 @@ import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {QrScanIcon} from '../../shared/components/icons'
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
 import {useSettingsState} from '../../shared/providers/settings-context'
+import {privateKeyToAddress} from '../../shared/utils/crypto'
+import {sendSignIn} from '../../shared/utils/analytics'
 
 export default function ImportKey() {
   const size = useBreakpointValue(['lg', 'md'])
@@ -42,6 +44,7 @@ export default function ImportKey() {
       if (!apiKey) {
         setRestrictedKey()
       }
+      sendSignIn(privateKeyToAddress(key))
       router.push('/')
     } else {
       setError(t('Key or password is invalid. Try again.'))
