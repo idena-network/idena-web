@@ -22,6 +22,7 @@ import {
   Link,
   RadioGroup,
   Divider,
+  useBreakpointValue,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
@@ -39,6 +40,7 @@ import {
   DrawerFooter,
   Toast,
   FormControlWithLabel,
+  ExternalLink,
 } from '../../shared/components/components'
 import {rem} from '../../shared/theme'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
@@ -126,7 +128,7 @@ export function UserStatList({title, children, ...props}) {
       >
         {title}
       </Heading>
-      <Stack spacing={4} bg="gray.50" px={10} py={8} rounded="lg">
+      <Stack spacing={4} bg="gray.50" px={[7, 10]} py={8} rounded="lg">
         <Heading
           display={['block', 'none']}
           as="h4"
@@ -169,8 +171,54 @@ export function AnnotatedUserStat({
   )
 }
 
+export function AnnotatedUserStatistics({
+  annotation,
+  label,
+  value,
+  children,
+  ...props
+}) {
+  const {colors} = useTheme()
+  return (
+    <Flex
+      direction={['row', 'column']}
+      justify={['space-between', 'flex-start']}
+      {...props}
+    >
+      <Box
+        w="fit-content"
+        borderBottom={['none', `dotted 1px ${colors.muted}`]}
+        cursor="help"
+        fontWeight="500"
+        color={colors.muted}
+      >
+        <UserStatLabelTooltip label={[annotation]}>{label}</UserStatLabelTooltip>
+      </Box>
+      {value && <Box fontWeight="500">{value}</Box>}
+      {children}
+    </Flex>
+  )
+}
+
 export function UserStat(props) {
   return <Stat as={Stack} spacing="2px" {...props} />
+}
+
+export function UserStatistics({label, value, children, ...props}) {
+  const {colors} = useTheme()
+  return (
+    <Flex
+      direction={['row', 'column']}
+      justify={['space-between', 'flex-start']}
+      {...props}
+    >
+      <Box fontWeight="500" color={colors.muted}>
+        {label}
+      </Box>
+      <Box fontWeight="500">{value}</Box>
+      {children}
+    </Flex>
+  )
 }
 
 export function UserStatLabel(props) {
@@ -203,6 +251,8 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
   const {t} = useTranslation()
 
   const failToast = useFailToast()
+  const size = useBreakpointValue(['lg', 'md'])
+  const placeholderValue = useBreakpointValue(['Enter invitation code', ''])
 
   const [{state}, {waitStateUpdate}] = useIdentity()
   const {coinbase, privateKey} = useAuthState()
@@ -287,7 +337,11 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
         <Stack spacing={6}>
           <FormControl>
             <Stack spacing={3}>
-              <Flex justify="space-between" align="center">
+              <Flex
+                display={['none', 'flex']}
+                justify="space-between"
+                align="center"
+              >
                 <FormLabel htmlFor="code" p={0} m={0}>
                   {t('Enter invitation code')}
                 </FormLabel>
@@ -311,6 +365,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
               </Flex>
               <Input
                 id="code"
+                size={size}
                 value={code}
                 isDisabled={waiting}
                 resize="none"
@@ -324,8 +379,9 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
               />
             </Stack>
           </FormControl>
-          <Stack spacing={3} isInline align="center" justify="flex-end">
+          <Stack w={['100%', 'auto']} spacing={3} isInline align="center" justify="flex-end">
             <Button
+              display={['none', 'initial']}
               variant="link"
               leftIcon={<InfoIcon boxSize={4} />}
               onClick={onHowToGetInvitation}
@@ -335,8 +391,15 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
             >
               {t('How to get an invitation?')}
             </Button>
-            <Divider borderColor="gray.100" orientation="vertical" mx={4} />
+            <Divider
+              display={['none', 'block']}
+              borderColor="gray.100"
+              orientation="vertical"
+              mx={4}
+            />
             <PrimaryButton
+              size={size}
+              isFullWidth={[true, false]}
               isLoading={waiting}
               loadingText={t('Mining...')}
               type="submit"

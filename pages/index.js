@@ -5,6 +5,7 @@ import {
   PopoverTrigger,
   Stack,
   Text,
+  useBreakpointValue,
   useDisclosure,
   useToast,
 } from '@chakra-ui/react'
@@ -19,11 +20,13 @@ import {
   UserStat,
   UserStatLabel,
   UserStatValue,
+  UserStatistics,
   AnnotatedUserStat,
   ActivateInviteForm,
   ValidationResultToast,
   ActivateMiningForm,
   KillForm,
+  AnnotatedUserStatistics,
 } from '../screens/profile/components'
 import Layout from '../shared/components/layout'
 import {IdentityStatus, OnboardingStep} from '../shared/types'
@@ -38,7 +41,7 @@ import {useIdentity} from '../shared/providers/identity-context'
 import {useEpoch} from '../shared/providers/epoch-context'
 import {fetchBalance} from '../shared/api/wallet'
 import {useAuthState} from '../shared/providers/auth-context'
-import {IconButton} from '../shared/components/button'
+import {IconButton, PrimaryButton} from '../shared/components/button'
 import {validDnaUrl} from '../shared/utils/dna-link'
 import {DnaSignInDialog} from '../screens/dna/containers'
 import {ExternalLink, TextLink, Toast} from '../shared/components/components'
@@ -89,6 +92,10 @@ export default function ProfilePage() {
 
   const epoch = useEpoch()
   const {coinbase, privateKey} = useAuthState()
+  const userStatAddress = useBreakpointValue([
+    address ? `${address.substr(0, 3)}...${address.substr(-4, 4)}` : '',
+    address,
+  ])
 
   const [showValidationResults, setShowValidationResults] = React.useState()
 
@@ -193,7 +200,7 @@ export default function ProfilePage() {
           >
             <UserInlineCard address={coinbase} state={state} h={['auto', 24]} />
             {canActivateInvite && (
-              <Box>
+              <Box width={['100%', 'initial']}>
                 <OnboardingPopover
                   isOpen={isOpenActivateInvitePopover}
                   placement="bottom"
@@ -203,13 +210,16 @@ export default function ProfilePage() {
                       spacing={6}
                       bg="white"
                       borderRadius="lg"
-                      boxShadow="0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)"
-                      px={10}
-                      py={8}
+                      boxShadow={[
+                        'none',
+                        '0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)',
+                      ]}
+                      px={[0, 10]}
+                      py={[0, 8]}
                       pos="relative"
                       zIndex="docked"
                     >
-                      <Stack>
+                      <Stack display={['none', 'flex']}>
                         <Heading as="h3" fontWeight={500} fontSize="lg">
                           {state === IdentityStatus.Invite
                             ? t('Congratulations!')
@@ -319,10 +329,10 @@ export default function ProfilePage() {
                 IdentityStatus.Candidate,
               ].includes(state) && (
                 <UserStatList title={t('Profile')}>
-                  {age >= 0 && <SimpleUserStat label={t('Age')} value={age} />}
+                  {age >= 0 && <UserStatistics label={t('Age')} value={age} />}
 
                   {penalty > 0 && (
-                    <AnnotatedUserStat
+                    <AnnotatedUserStatistics
                       annotation={t(
                         "Your node was offline more than 1 hour. The penalty will be charged automatically. Once it's fully paid you'll continue to mine coins."
                       )}
@@ -332,11 +342,11 @@ export default function ProfilePage() {
                   )}
 
                   {totalQualifiedFlips > 0 && (
-                    <AnnotatedUserStat
+                    <AnnotatedUserStatistics
                       annotation={t('Total score for the last 10 validations')}
                       label={t('Total score')}
                     >
-                      <UserStatValue>
+                      <Box>
                         {t(
                           '{{shortFlipPoints}} out of {{qualifiedFlips}} ({{score}})',
                           {
@@ -350,12 +360,12 @@ export default function ProfilePage() {
                             ),
                           }
                         )}
-                      </UserStatValue>
-                    </AnnotatedUserStat>
+                      </Box>
+                    </AnnotatedUserStatistics>
                   )}
 
                   {stake > 0 && (
-                    <AnnotatedUserStat
+                    <AnnotatedUserStatistics
                       annotation={t(
                         'You need to get Verified status to be able to terminate your identity and withdraw the stake'
                       )}
@@ -367,7 +377,7 @@ export default function ProfilePage() {
                   )}
 
                   {stake > 0 && state === IdentityStatus.Newbie && (
-                    <AnnotatedUserStat
+                    <AnnotatedUserStatistics
                       annotation={t(
                         'You need to get Verified status to get the locked funds into the normal wallet'
                       )}
@@ -378,24 +388,23 @@ export default function ProfilePage() {
                 </UserStatList>
               )}
             <UserStatList title={t('Wallets')}>
-              <UserStat>
-                <UserStatLabel>{t('Address')}</UserStatLabel>
-                <UserStatValue>{address}</UserStatValue>
-                <ExternalLink href={`https://scan.idena.io/address/${address}`}>
+              <UserStatistics label={t('Address')} value={userStatAddress}>
+                <ExternalLink
+                  display={['none', 'initial']}
+                  href={`https://scan.idena.io/address/${address}`}
+                >
                   {t('Open in blockhain explorer')}
                 </ExternalLink>
-              </UserStat>
+              </UserStatistics>
 
-              <UserStat>
-                <UserStatLabel>{t('Balance')}</UserStatLabel>
-                <UserStatValue>{toDna(balance)}</UserStatValue>
-                <TextLink href="/wallets">
+              <UserStatistics label={t('Balance')} value={toDna(balance)}>
+                <TextLink display={['none', 'initial']} href="/wallets">
                   <Stack isInline spacing={0} align="center" fontWeight={500}>
                     <Text as="span">{t('Send')}</Text>
                     <ChevronDownIcon boxSize={4} transform="rotate(-90deg)" />
                   </Stack>
                 </TextLink>
-              </UserStat>
+              </UserStatistics>
             </UserStatList>
           </Stack>
           <Stack spacing={10} w={200}>
