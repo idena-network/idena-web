@@ -9,7 +9,7 @@ import {usePersistence} from '../hooks/use-persistent-state'
 import {loadPersistentState} from '../utils/persist'
 import useLogger from '../hooks/use-logger'
 import {fetchEpoch} from '../api'
-import {checkKey} from '../api/marketplace'
+import {checkKey, checkProvider} from '../api/marketplace'
 import {useInterval} from '../hooks/use-interval'
 
 const SAVE_ENCRYPTED_KEY = 'SAVE_ENCRYPTED_KEY'
@@ -148,10 +148,27 @@ function SettingsProvider({children}) {
         return null
       }
     }
-    async function loadData() {
+
+    async function softCheckEpoch() {
       try {
         const {epoch} = await fetchEpoch()
+        return epoch
+      } catch (e) {
+        return null
+      }
+    }
 
+    async function loadData() {
+      try {
+        const epoch = await softCheckEpoch()
+
+        // if key is outdated, but node is available, turn on restricted mode
+        if (epoch === null) {
+          await checkProvider(state.url)
+          return dispatch({type: SAVE_RESTRICTED_CONNECTION})
+        }
+
+        // if we are connected to the restricted node
         if (isRestrictedAccess(state.url, state.apiKey)) {
           return dispatch({
             type: SET_API_KEY_STATE,
@@ -160,6 +177,7 @@ function SettingsProvider({children}) {
         }
 
         const result = await softCheckKey(state.apiKey)
+
         if (result) {
           if (result.epoch < epoch) {
             dispatch({
