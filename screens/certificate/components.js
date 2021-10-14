@@ -25,22 +25,22 @@ function CertificateTypeLabelLayout(props) {
 
 export function CertificateTypeLabel({type}) {
   switch (type) {
-    case CertificateType.Beginner:
+    case CertificateType.Easy:
       return (
         <CertificateTypeLabelLayout bg="red.500">
-          Beginner
+          Easy
         </CertificateTypeLabelLayout>
       )
-    case CertificateType.Expert:
+    case CertificateType.Medium:
       return (
         <CertificateTypeLabelLayout bg="gray.500">
-          Expert
+          Medium
         </CertificateTypeLabelLayout>
       )
-    case CertificateType.Master:
+    case CertificateType.Hard:
       return (
         <CertificateTypeLabelLayout bg="orange.500">
-          Master
+          Hard
         </CertificateTypeLabelLayout>
       )
 
