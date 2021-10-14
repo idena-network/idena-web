@@ -25,9 +25,9 @@ export const TEST_LONG_SESSION_INTERVAL_SEC = 30 * 60
 const initStateValue = {
   timestamp: 0,
   validations: {
-    [CertificateType.Beginner]: {actionType: CertificateActionType.None},
-    [CertificateType.Master]: {actionType: CertificateActionType.None},
-    [CertificateType.Expert]: {actionType: CertificateActionType.None},
+    [CertificateType.Easy]: {actionType: CertificateActionType.None},
+    [CertificateType.Medium]: {actionType: CertificateActionType.None},
+    [CertificateType.Hard]: {actionType: CertificateActionType.None},
   },
 }
 

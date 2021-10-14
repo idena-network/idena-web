@@ -58,25 +58,25 @@ export default function Try() {
           </Flex>
           <Stack width="480px" spacing={5}>
             <CertificateCard
-              title={t('Beginner')}
+              title={t('Easy')}
               description={t('Pass the training validation immediately.')}
               trustLevel={t('Low')}
               scheduleText={t('Immediately')}
-              type={CertificateType.Beginner}
+              type={CertificateType.Easy}
               certificateColor="red.500"
             />
             <CertificateCard
-              title={t('Expert')}
+              title={t('Medium')}
               description={t(
                 'Schedule your next training validation and join exactly on time.'
               )}
               trustLevel={t('Middle')}
               scheduleText={t('In 1 hour')}
-              type={CertificateType.Expert}
+              type={CertificateType.Medium}
               certificateColor="gray.500"
             />
             <CertificateCard
-              title={t('Master')}
+              title={t('Hard')}
               description={t(
                 'Train your time management skills. Validation requires participants to join exactly on time.'
               )}
@@ -84,7 +84,7 @@ export default function Try() {
               scheduleText={`${dayjs(GetNextUTCValidationDate()).format(
                 'D MMM HH:mm'
               )}`}
-              type={CertificateType.Master}
+              type={CertificateType.Hard}
               certificateColor="orange.500"
             />
           </Stack>

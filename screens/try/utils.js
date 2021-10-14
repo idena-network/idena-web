@@ -20,13 +20,13 @@ export function canScheduleValidation(type, nextValidationDate) {
   const nextValidation = dayjs(nextValidationDate)
 
   switch (type) {
-    case CertificateType.Beginner: {
+    case CertificateType.Easy: {
       return current.add(40, 'm').isBefore(nextValidation)
     }
-    case CertificateType.Expert: {
+    case CertificateType.Medium: {
       return current.add(1, 'h').isBefore(nextValidation)
     }
-    case CertificateType.Master: {
+    case CertificateType.Hard: {
       return current.add(1, 'D').get('D') !== nextValidation.get('D')
     }
     default:

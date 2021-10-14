@@ -10,11 +10,11 @@ import {isVercelProduction} from '../../../shared/utils/utils'
 function calcDevValidationStart(type) {
   const dt = new Date()
   switch (type) {
-    case CertificateType.Beginner:
+    case CertificateType.Easy:
       return dt.setMinutes(dt.getMinutes() + 1)
-    case CertificateType.Expert:
+    case CertificateType.Medium:
       return dt.setMinutes(dt.getMinutes() + 30)
-    case CertificateType.Master:
+    case CertificateType.Hard:
       return dt.setHours(dt.getHours() + 1)
     default:
       return 0
@@ -24,11 +24,11 @@ function calcDevValidationStart(type) {
 function calcValidationStart(type) {
   const dt = new Date()
   switch (type) {
-    case CertificateType.Beginner:
+    case CertificateType.Easy:
       return dt.setMinutes(dt.getMinutes() + 1)
-    case CertificateType.Expert:
+    case CertificateType.Medium:
       return dt.setHours(dt.getHours() + 1)
-    case CertificateType.Master: {
+    case CertificateType.Hard: {
       return GetNextUTCValidationDate()
     }
     default:
