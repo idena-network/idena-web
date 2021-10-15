@@ -162,7 +162,9 @@ function SettingsProvider({children}) {
       try {
         const epoch = await softCheckEpoch()
 
-        // if key is outdated, but node is available, turn on restricted mode
+        // if epoch is null, then either node is unavailable or key is outdated,
+        // we need to check this node with test key
+        // if request fails then node is offline, otherwise we turn on restricted connection
         if (epoch === null) {
           await checkProvider(state.url)
           return dispatch({type: SAVE_RESTRICTED_CONNECTION})
