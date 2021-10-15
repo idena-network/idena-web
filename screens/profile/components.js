@@ -119,7 +119,7 @@ export function UserInlineCard({address, state, ...props}) {
 
 export function UserStatList({title, children, ...props}) {
   return (
-    <Stack spacing={4} {...props} w={['311px', '100%']}>
+    <Stack spacing={[0, 4]} {...props} w={['311px', '100%']}>
       <Heading
         display={['none', 'block']}
         as="h4"
@@ -181,6 +181,7 @@ export function AnnotatedUserStatistics({
   const {colors} = useTheme()
   return (
     <Flex
+      fontSize={['mdx', 'md']}
       direction={['row', 'column']}
       justify={['space-between', 'flex-start']}
       {...props}
@@ -189,8 +190,8 @@ export function AnnotatedUserStatistics({
         w="fit-content"
         borderBottom={['none', `dotted 1px ${colors.muted}`]}
         cursor="help"
-        fontWeight="500"
-        color={colors.muted}
+        fontWeight={['400', '500']}
+        color={['auto', colors.muted]}
       >
         <UserStatLabelTooltip label={[annotation]}>{label}</UserStatLabelTooltip>
       </Box>
@@ -208,11 +209,12 @@ export function UserStatistics({label, value, children, ...props}) {
   const {colors} = useTheme()
   return (
     <Flex
+      fontSize={['mdx', 'md']}
       direction={['row', 'column']}
       justify={['space-between', 'flex-start']}
       {...props}
     >
-      <Box fontWeight="500" color={colors.muted}>
+      <Box fontWeight={['400', '500']} color={['auto', colors.muted]}>
         {label}
       </Box>
       <Box fontWeight="500">{value}</Box>

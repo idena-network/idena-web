@@ -6,6 +6,7 @@ import {
   Stack,
   Text,
   useBreakpointValue,
+  useClipboard,
   useDisclosure,
   useToast,
 } from '@chakra-ui/react'
@@ -56,11 +57,13 @@ import {useScroll} from '../shared/hooks/use-scroll'
 import {
   AddUserIcon,
   ChevronDownIcon,
+  CopyIcon,
   DeleteIcon,
   PhotoIcon,
   TelegramIcon,
   TestValidationIcon,
 } from '../shared/components/icons'
+import {useSuccessToast} from '../shared/hooks/use-toast'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -98,6 +101,9 @@ export default function ProfilePage() {
   ])
 
   const [showValidationResults, setShowValidationResults] = React.useState()
+
+  const {onCopy, hasCopied} = useClipboard(address)
+  const successToast = useSuccessToast()
 
   const {
     isOpen: isOpenKillForm,
@@ -193,7 +199,7 @@ export default function ProfilePage() {
         </PageTitle>
         <Stack direction={['column', 'row']} spacing={10}>
           <Stack
-            spacing={8}
+            spacing={[1, 8]}
             w={['311px', '480px']}
             align={['center', 'initial']}
             ref={activateInviteRef}
@@ -346,7 +352,7 @@ export default function ProfilePage() {
                       annotation={t('Total score for the last 10 validations')}
                       label={t('Total score')}
                     >
-                      <Box>
+                      <Box fontWeight={['500', 'auto']}>
                         {t(
                           '{{shortFlipPoints}} out of {{qualifiedFlips}} ({{score}})',
                           {
@@ -395,6 +401,20 @@ export default function ProfilePage() {
                 >
                   {t('Open in blockhain explorer')}
                 </ExternalLink>
+                <CopyIcon
+                  display={['inline', 'none']}
+                  mt="3px"
+                  ml="-100px"
+                  boxSize={4}
+                  fill="#96999e"
+                  onClick={() => {
+                    onCopy()
+                    successToast({
+                      title: 'Address copied!',
+                      duration: '5000',
+                    })
+                  }}
+                />
               </UserStatistics>
 
               <UserStatistics label={t('Balance')} value={toDna(balance)}>

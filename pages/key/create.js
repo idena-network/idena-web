@@ -394,6 +394,8 @@ export default function CreateKey() {
                   >
                     <CopyIcon
                       boxSize={6}
+                      fill="#E8EAED"
+                      opacity="0.16"
                       onClick={() => {
                         onCopy()
                         successToast({
@@ -401,7 +403,7 @@ export default function CreateKey() {
                           duration: '5000',
                         })
                       }}
-                    ></CopyIcon>
+                    />
                   </Box>
                 </Flex>
                 <Flex direction="column">
