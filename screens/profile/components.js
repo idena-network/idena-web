@@ -117,6 +117,25 @@ export function UserInlineCard({address, state, ...props}) {
   )
 }
 
+export function WideLink({label, href, children, ...props}) {
+  return (
+    <Link w="100%" href={href} {...props}>
+      <Flex
+        display={['flex', 'none']}
+        h={12}
+        align="center"
+        justify="flex-start"
+      >
+        {children}
+        <Box ml={4} color="brandBlue.100" fontSize="base">
+          {label}
+        </Box>
+      </Flex>
+      <Divider w="263px" ml={12} color="brandGray.800" />
+    </Link>
+  )
+}
+
 export function UserStatList({title, children, ...props}) {
   return (
     <Stack spacing={[0, 4]} {...props} w={['311px', '100%']}>
@@ -193,7 +212,9 @@ export function AnnotatedUserStatistics({
         fontWeight={['400', '500']}
         color={['auto', colors.muted]}
       >
-        <UserStatLabelTooltip label={[annotation]}>{label}</UserStatLabelTooltip>
+        <UserStatLabelTooltip label={[annotation]}>
+          {label}
+        </UserStatLabelTooltip>
       </Box>
       {value && <Box fontWeight="500">{value}</Box>}
       {children}

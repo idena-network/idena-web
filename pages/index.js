@@ -16,18 +16,14 @@ import {useRouter} from 'next/router'
 import {Page, PageTitle} from '../screens/app/components'
 import {
   UserInlineCard,
-  SimpleUserStat,
   UserStatList,
-  UserStat,
-  UserStatLabel,
-  UserStatValue,
   UserStatistics,
-  AnnotatedUserStat,
   ActivateInviteForm,
   ValidationResultToast,
   ActivateMiningForm,
   KillForm,
   AnnotatedUserStatistics,
+  WideLink,
 } from '../screens/profile/components'
 import Layout from '../shared/components/layout'
 import {IdentityStatus, OnboardingStep} from '../shared/types'
@@ -42,7 +38,7 @@ import {useIdentity} from '../shared/providers/identity-context'
 import {useEpoch} from '../shared/providers/epoch-context'
 import {fetchBalance} from '../shared/api/wallet'
 import {useAuthState} from '../shared/providers/auth-context'
-import {IconButton, PrimaryButton} from '../shared/components/button'
+import {IconButton} from '../shared/components/button'
 import {validDnaUrl} from '../shared/utils/dna-link'
 import {DnaSignInDialog} from '../screens/dna/containers'
 import {ExternalLink, TextLink, Toast} from '../shared/components/components'
@@ -59,11 +55,13 @@ import {
   ChevronDownIcon,
   CopyIcon,
   DeleteIcon,
+  OpenExplorerIcon,
   PhotoIcon,
   TelegramIcon,
   TestValidationIcon,
 } from '../shared/components/icons'
 import {useSuccessToast} from '../shared/hooks/use-toast'
+import Flex from '../shared/components/flex'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -328,6 +326,28 @@ export default function ProfilePage() {
                 </OnboardingPopover>
               </Box>
             )}
+
+            <WideLink
+              mt={6}
+              mb={4}
+              label="Open in blockchain explorer"
+              href={`https://scan.idena.io/address/${address}`}
+            >
+              <Box
+                h="32px"
+                w="32px"
+                backgroundColor="brandBlue.10"
+                borderRadius="10px"
+              >
+                <OpenExplorerIcon
+                  height="20px"
+                  width="20px"
+                  mt="6px"
+                  ml="6px"
+                />
+              </Box>
+            </WideLink>
+
             {state &&
               ![
                 IdentityStatus.Undefined,
@@ -399,7 +419,7 @@ export default function ProfilePage() {
                   display={['none', 'initial']}
                   href={`https://scan.idena.io/address/${address}`}
                 >
-                  {t('Open in blockhain explorer')}
+                  {t('Open in blockchain explorer')}
                 </ExternalLink>
                 <CopyIcon
                   display={['inline', 'none']}
@@ -427,7 +447,7 @@ export default function ProfilePage() {
               </UserStatistics>
             </UserStatList>
           </Stack>
-          <Stack spacing={10} w={200}>
+          <Stack spacing={10} w={['100%', 200]}>
             <Box minH={62} mt={6}>
               <OnboardingPopover
                 isOpen={eitherOnboardingState(
