@@ -117,21 +117,39 @@ export function UserInlineCard({address, state, ...props}) {
   )
 }
 
-export function WideLink({label, href, children, ...props}) {
+export function WideLink({label, href, onClick, isDisabled, children, ...props}) {
   return (
-    <Link w="100%" href={href} {...props}>
-      <Flex
-        display={['flex', 'none']}
-        h={12}
-        align="center"
-        justify="flex-start"
-      >
+    <Link
+      w={['100%', 'auto']}
+      px={[0, '12px']}
+      py={[0, '2px']}
+      borderRadius={[0, '6px']}
+      href={href}
+      opacity={isDisabled ? '0.5' : 1}
+      cursor={isDisabled ? 'not-allowed' : 'pointer'}
+      onClick={isDisabled ? () => {} : onClick}
+      _hover={{
+        bg: 'blue.50',
+      }}
+      {...props}
+    >
+      <Flex h={[12, 8]} align="center" justify="flex-start">
         {children}
-        <Box ml={4} color="brandBlue.100" fontSize="base">
+        <Box
+          ml={[4, 2]}
+          color="brandBlue.100"
+          fontWeight={['400', '500']}
+          fontSize={['base', 'md']}
+        >
           {label}
         </Box>
       </Flex>
-      <Divider w="263px" ml={12} color="brandGray.800" />
+      <Divider
+        display={['block', 'none']}
+        w="263px"
+        ml={12}
+        color="brandGray.800"
+      />
     </Link>
   )
 }
@@ -623,20 +641,26 @@ export function ActivateMiningSwitch({isOnline, isDelegator, onShow}) {
   const accentColor = isOnline ? 'blue' : 'red'
 
   return (
-    <Stack spacing={3}>
-      <Text fontWeight={500} h={18}>
+    <Stack spacing={[0, 3]}>
+      <Text display={['none', 'initial']} fontWeight={500} h={18}>
         {t('Status')}
       </Text>
       <Flex
         align="center"
         justify="space-between"
         borderColor="gray.100"
-        borderWidth={1}
-        rounded="md"
-        h={8}
-        px={3}
+        borderWidth={[0, 1]}
+        background={['rgba(255, 102, 102, 0.1)', 'initial']}
+        rounded={['8px', 'md']}
+        h={[12, 8]}
+        px={[5, 3]}
       >
-        <FormLabel htmlFor="mining" fontWeight="normal" m={0}>
+        <FormLabel
+          htmlFor="mining"
+          fontWeight="normal"
+          fontSize={['mdx', 'md']}
+          m={0}
+        >
           {isDelegator ? t('Delegation') : t('Mining')}
         </FormLabel>
         <Stack isInline align="center">

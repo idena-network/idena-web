@@ -195,7 +195,7 @@ export default function ProfilePage() {
         <PageTitle mb={8} display={['none', 'block']}>
           {t('Profile')}
         </PageTitle>
-        <Stack direction={['column', 'row']} spacing={10}>
+        <Stack direction={['column', 'row']} spacing={[0, 10]}>
           <Stack
             spacing={[1, 8]}
             w={['311px', '480px']}
@@ -328,20 +328,19 @@ export default function ProfilePage() {
             )}
 
             <WideLink
+              display={['initial', 'none']}
               mt={6}
               mb={4}
               label="Open in blockchain explorer"
               href={`https://scan.idena.io/address/${address}`}
             >
               <Box
-                h="32px"
-                w="32px"
+                boxSize={8}
                 backgroundColor="brandBlue.10"
                 borderRadius="10px"
               >
                 <OpenExplorerIcon
-                  height="20px"
-                  width="20px"
+                  boxSize={5}
                   mt="6px"
                   ml="6px"
                 />
@@ -447,8 +446,8 @@ export default function ProfilePage() {
               </UserStatistics>
             </UserStatList>
           </Stack>
-          <Stack spacing={10} w={['100%', 200]}>
-            <Box minH={62} mt={6}>
+          <Stack spacing={[0, 10]} w={['100%', 200]}>
+            <Box minH={62} mt={[1, 6]}>
               <OnboardingPopover
                 isOpen={eitherOnboardingState(
                   onboardingShowingStep(OnboardingStep.ActivateMining)
@@ -464,9 +463,9 @@ export default function ProfilePage() {
                         ? 'relative'
                         : 'initial'
                     }
-                    borderRadius="md"
-                    p={2}
-                    m={-2}
+                    borderRadius={['mdx', 'md']}
+                    p={[0, 2]}
+                    m={[0, -2]}
                     zIndex={2}
                   >
                     {address && privateKey && canMine && (
@@ -492,33 +491,78 @@ export default function ProfilePage() {
                 </OnboardingPopoverContent>
               </OnboardingPopover>
             </Box>
-            <Stack spacing={1} align="flex-start">
-              <IconButton
+            <Stack spacing={[0, 1]} align="flex-start">
+              <WideLink
+                mt={[0, '2px']}
+                label={t('Training validation')}
                 onClick={() => router.push('/try')}
-                icon={<TestValidationIcon boxSize={5} />}
               >
-                {t('Training validation')}
-              </IconButton>
-              <IconButton
+                <Box
+                  boxSize={[8, 5]}
+                  backgroundColor={['brandBlue.10', 'initial']}
+                  borderRadius="10px"
+                >
+                  <TestValidationIcon
+                    color="blue.500"
+                    boxSize={5}
+                    mt={['6px', 0]}
+                    ml={['6px', 0]}
+                  />
+                </Box>
+              </WideLink>
+              <WideLink
+                label={t('New flip')}
                 onClick={() => router.push('/flips/new')}
-                icon={<PhotoIcon boxSize={5} />}
               >
-                {t('New flip')}
-              </IconButton>
-              <IconButton
+                <Box
+                  boxSize={[8, 5]}
+                  backgroundColor={['brandBlue.10', 'initial']}
+                  borderRadius="10px"
+                >
+                  <PhotoIcon
+                    color="blue.500"
+                    boxSize={5}
+                    mt={['6px', 0]}
+                    ml={['6px', 0]}
+                  />
+                </Box>
+              </WideLink>
+              <WideLink
+                label={t('Invite')}
                 onClick={() => router.push('/contacts?new')}
                 isDisabled={!canInvite}
-                icon={<AddUserIcon boxSize={5} />}
               >
-                {t('Invite')}
-              </IconButton>
-              <IconButton
-                isDisabled={!canTerminate}
-                icon={<DeleteIcon boxSize={5} />}
+                <Box
+                  boxSize={[8, 5]}
+                  backgroundColor={['brandBlue.10', 'initial']}
+                  borderRadius="10px"
+                >
+                  <AddUserIcon
+                    color="blue.500"
+                    boxSize={5}
+                    mt={['6px', 0]}
+                    ml={['6px', 0]}
+                  />
+                </Box>
+              </WideLink>
+              <WideLink
+                label={t('Terminate')}
                 onClick={onOpenKillForm}
+                isDisabled={!canTerminate}
               >
-                {t('Terminate')}
-              </IconButton>
+                <Box
+                  boxSize={[8, 5]}
+                  backgroundColor={['brandBlue.10', 'initial']}
+                  borderRadius="10px"
+                >
+                  <DeleteIcon
+                    color="blue.500"
+                    boxSize={5}
+                    mt={['6px', 0]}
+                    ml={['6px', 0]}
+                  />
+                </Box>
+              </WideLink>
             </Stack>
           </Stack>
         </Stack>
