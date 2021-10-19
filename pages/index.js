@@ -5,6 +5,7 @@ import {
   PopoverTrigger,
   Stack,
   Text,
+  Button,
   useBreakpointValue,
   useClipboard,
   useDisclosure,
@@ -204,7 +205,7 @@ export default function ProfilePage() {
           >
             <UserInlineCard address={coinbase} state={state} h={['auto', 24]} />
             {canActivateInvite && (
-              <Box width={['100%', 'initial']}>
+              <Box w={['100%', 'initial']} pb={[8, 0]}>
                 <OnboardingPopover
                   isOpen={isOpenActivateInvitePopover}
                   placement="bottom"
@@ -326,91 +327,92 @@ export default function ProfilePage() {
                 </OnboardingPopover>
               </Box>
             )}
-
-            <WideLink
-              display={['initial', 'none']}
-              mt={6}
-              mb={4}
-              label="Open in blockchain explorer"
-              href={`https://scan.idena.io/address/${address}`}
-            >
-              <Box
-                boxSize={8}
-                backgroundColor="brandBlue.10"
-                borderRadius="10px"
-              >
-                <OpenExplorerIcon
-                  boxSize={5}
-                  mt="6px"
-                  ml="6px"
-                />
-              </Box>
-            </WideLink>
-
             {state &&
               ![
                 IdentityStatus.Undefined,
                 IdentityStatus.Invite,
                 IdentityStatus.Candidate,
               ].includes(state) && (
-                <UserStatList title={t('Profile')}>
-                  {age >= 0 && <UserStatistics label={t('Age')} value={age} />}
-
-                  {penalty > 0 && (
-                    <AnnotatedUserStatistics
-                      annotation={t(
-                        "Your node was offline more than 1 hour. The penalty will be charged automatically. Once it's fully paid you'll continue to mine coins."
-                      )}
-                      label={t('Mining penalty')}
-                      value={toDna(penalty)}
-                    />
-                  )}
-
-                  {totalQualifiedFlips > 0 && (
-                    <AnnotatedUserStatistics
-                      annotation={t('Total score for the last 10 validations')}
-                      label={t('Total score')}
+                <>
+                  <WideLink
+                    display={['initial', 'none']}
+                    pt={5}
+                    pb={3}
+                    label="Open in blockchain explorer"
+                    href={`https://scan.idena.io/address/${address}`}
+                  >
+                    <Box
+                      boxSize={8}
+                      backgroundColor="brandBlue.10"
+                      borderRadius="10px"
                     >
-                      <Box fontWeight={['500', 'auto']}>
-                        {t(
-                          '{{shortFlipPoints}} out of {{qualifiedFlips}} ({{score}})',
-                          {
-                            shortFlipPoints: Math.min(
-                              totalShortFlipPoints,
-                              totalQualifiedFlips
-                            ),
-                            qualifiedFlips: totalQualifiedFlips,
-                            score: toPercent(
-                              totalShortFlipPoints / totalQualifiedFlips
-                            ),
-                          }
+                      <OpenExplorerIcon boxSize={5} mt="6px" ml="6px" />
+                    </Box>
+                  </WideLink>
+
+                  <UserStatList title={t('Profile')}>
+                    {age >= 0 && (
+                      <UserStatistics label={t('Age')} value={age} />
+                    )}
+
+                    {penalty > 0 && (
+                      <AnnotatedUserStatistics
+                        annotation={t(
+                          "Your node was offline more than 1 hour. The penalty will be charged automatically. Once it's fully paid you'll continue to mine coins."
                         )}
-                      </Box>
-                    </AnnotatedUserStatistics>
-                  )}
+                        label={t('Mining penalty')}
+                        value={toDna(penalty)}
+                      />
+                    )}
 
-                  {stake > 0 && (
-                    <AnnotatedUserStatistics
-                      annotation={t(
-                        'You need to get Verified status to be able to terminate your identity and withdraw the stake'
-                      )}
-                      label={t('Stake')}
-                      value={toDna(
-                        stake * (state === IdentityStatus.Newbie ? 0.25 : 1)
-                      )}
-                    />
-                  )}
+                    {totalQualifiedFlips > 0 && (
+                      <AnnotatedUserStatistics
+                        annotation={t(
+                          'Total score for the last 10 validations'
+                        )}
+                        label={t('Total score')}
+                      >
+                        <Box fontWeight={['500', 'auto']}>
+                          {t(
+                            '{{shortFlipPoints}} out of {{qualifiedFlips}} ({{score}})',
+                            {
+                              shortFlipPoints: Math.min(
+                                totalShortFlipPoints,
+                                totalQualifiedFlips
+                              ),
+                              qualifiedFlips: totalQualifiedFlips,
+                              score: toPercent(
+                                totalShortFlipPoints / totalQualifiedFlips
+                              ),
+                            }
+                          )}
+                        </Box>
+                      </AnnotatedUserStatistics>
+                    )}
 
-                  {stake > 0 && state === IdentityStatus.Newbie && (
-                    <AnnotatedUserStatistics
-                      annotation={t(
-                        'You need to get Verified status to get the locked funds into the normal wallet'
-                      )}
-                      label={t('Locked')}
-                      value={toDna(stake * 0.75)}
-                    />
-                  )}
-                </UserStatList>
+                    {stake > 0 && (
+                      <AnnotatedUserStatistics
+                        annotation={t(
+                          'You need to get Verified status to be able to terminate your identity and withdraw the stake'
+                        )}
+                        label={t('Stake')}
+                        value={toDna(
+                          stake * (state === IdentityStatus.Newbie ? 0.25 : 1)
+                        )}
+                      />
+                    )}
+
+                    {stake > 0 && state === IdentityStatus.Newbie && (
+                      <AnnotatedUserStatistics
+                        annotation={t(
+                          'You need to get Verified status to get the locked funds into the normal wallet'
+                        )}
+                        label={t('Locked')}
+                        value={toDna(stake * 0.75)}
+                      />
+                    )}
+                  </UserStatList>
+                </>
               )}
             <UserStatList title={t('Wallets')}>
               <UserStatistics label={t('Address')} value={userStatAddress}>
@@ -444,6 +446,20 @@ export default function ProfilePage() {
                   </Stack>
                 </TextLink>
               </UserStatistics>
+
+              <Button
+                display={['initial', 'none']}
+                onClick={() => router.push('/wallets')}
+                w="100%"
+                h={10}
+                fontSize="15px"
+                variant="outline"
+                color="blue.500"
+                border="none"
+                borderColor="transparent"
+              >
+                Send iDNA
+              </Button>
             </UserStatList>
           </Stack>
           <Stack spacing={[0, 10]} w={['100%', 200]}>

@@ -117,7 +117,14 @@ export function UserInlineCard({address, state, ...props}) {
   )
 }
 
-export function WideLink({label, href, onClick, isDisabled, children, ...props}) {
+export function WideLink({
+  label,
+  href,
+  onClick,
+  isDisabled,
+  children,
+  ...props
+}) {
   return (
     <Link
       w={['100%', 'auto']}
@@ -165,10 +172,11 @@ export function UserStatList({title, children, ...props}) {
       >
         {title}
       </Heading>
-      <Stack spacing={4} bg="gray.50" px={[7, 10]} py={8} rounded="lg">
+      <Stack spacing={4} bg="gray.50" px={[7, 10]} py={[4, 8]} rounded="lg">
         <Heading
           display={['block', 'none']}
           as="h4"
+          mt={['10px', 0]}
           fontSize="lg"
           fontWeight={500}
         >
@@ -293,7 +301,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
 
   const failToast = useFailToast()
   const size = useBreakpointValue(['lg', 'md'])
-  const placeholderValue = useBreakpointValue(['Enter invitation code', ''])
+  const placeholderValue = useBreakpointValue(['Invitation code', ''])
 
   const [{state}, {waitStateUpdate}] = useIdentity()
   const {coinbase, privateKey} = useAuthState()
@@ -375,7 +383,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
           </PrimaryButton>
         </Flex>
       ) : (
-        <Stack spacing={6}>
+        <Stack spacing={[4, 6]}>
           <FormControl>
             <Stack spacing={3}>
               <Flex
@@ -408,6 +416,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
                 id="code"
                 size={size}
                 value={code}
+                placeholder={placeholderValue}
                 isDisabled={waiting}
                 resize="none"
                 _disabled={{
@@ -420,9 +429,9 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
               />
             </Stack>
           </FormControl>
-          <Stack w={['100%', 'auto']} spacing={3} isInline align="center" justify="flex-end">
+          <Stack spacing={[0, 3]} isInline align="center" justify="flex-end">
             <Button
-              display={['none', 'initial']}
+              display={['none', 'inline-flex']}
               variant="link"
               leftIcon={<InfoIcon boxSize={4} />}
               onClick={onHowToGetInvitation}
@@ -440,7 +449,8 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
             />
             <PrimaryButton
               size={size}
-              isFullWidth={[true, false]}
+              w={['100%', 'auto']}
+              ml={[0, 'initial']}
               isLoading={waiting}
               loadingText={t('Mining...')}
               type="submit"
@@ -650,7 +660,10 @@ export function ActivateMiningSwitch({isOnline, isDelegator, onShow}) {
         justify="space-between"
         borderColor="gray.100"
         borderWidth={[0, 1]}
-        background={['rgba(255, 102, 102, 0.1)', 'initial']}
+        background={[
+          isOnline ? 'rgba(87, 143, 255, 0.1)' : 'rgba(255, 102, 102, 0.1)',
+          'initial',
+        ]}
         rounded={['8px', 'md']}
         h={[12, 8]}
         px={[5, 3]}

@@ -75,7 +75,7 @@ function Sidebar({isOpen, onClose, ...props}) {
       width={['100%', 200]}
       px={[10, 4]}
       py={[4, 2]}
-      zIndex={[8, 2]}
+      zIndex={[11, 2]}
       position={['absolute', 'relative']}
       direction="column"
       display={[isOpen ? 'flex' : 'none', 'flex']}
@@ -422,7 +422,7 @@ function ActionPanel({onClose}) {
                   : 'transparent'
               }
               position="relative"
-              zIndex={9}
+              zIndex={12}
             >
               <Block
                 title={t('Next validation')}
