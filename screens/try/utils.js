@@ -27,7 +27,7 @@ export function canScheduleValidation(type, nextValidationDate) {
       return current.add(1, 'h').isBefore(nextValidation)
     }
     case CertificateType.Hard: {
-      return current.add(1, 'D').get('D') !== nextValidation.get('D')
+      return current.add(1, 'd').get('date') !== nextValidation.get('date')
     }
     default:
       return false
