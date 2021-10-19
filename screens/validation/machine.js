@@ -26,6 +26,7 @@ import {
   shouldTranslate,
   availableReportsNumber,
   decodedWithoutKeywords,
+  CLIENT_TYPE,
 } from './utils'
 import {forEachAsync, wait} from '../../shared/utils/fn'
 import {fetchConfirmedKeywordTranslations} from '../flips/utils'
@@ -1802,7 +1803,7 @@ async function submitShortAnswersTx(key, hashes, answers, wordsSeed) {
   const [index] = Evaluate(key, wordsSeed)
   const data = serializeAnswers(hashes, answers)
   const rnd = new BN(index.slice(0, 8), null, 'le').toString()
-  const attachment = new ShortAnswerAttachment(rnd, data).toBytes()
+  const attachment = new ShortAnswerAttachment(rnd, data, CLIENT_TYPE).toBytes()
 
   const rawTx = await getRawTx(
     6,

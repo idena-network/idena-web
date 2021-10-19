@@ -245,3 +245,5 @@ export const decodedWithoutKeywords = ({decoded, words}) =>
 export function availableReportsNumber(flips) {
   return Math.floor(flips.length / 3)
 }
+
+export const CLIENT_TYPE = process.env.CLIENT_TYPE || 3
