@@ -262,7 +262,6 @@ export const uiTheme = {
         },
       },
       variants: {
-        size: 'md',
         bordered: {
           container: {
             borderColor: 'gray.100',
@@ -271,14 +270,18 @@ export const uiTheme = {
           },
         },
         mobile: {
-          size: 'lg',
           container: {
+            bg: 'gray.50',
             width: '100%',
             height: 14,
             my: '2px',
-            borderColor: 'gray.100',
-            borderWidth: 1,
             borderRadius: 'md',
+          },
+          control: {w: 5, h: 5},
+          label: {
+            fontSize: 'base',
+            fontWeight: '500',
+            ml: 4,
           },
         },
       },

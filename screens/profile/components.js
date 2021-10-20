@@ -717,7 +717,8 @@ export function ActivateMiningDrawer({
   const [delegatee, setDelegatee] = useState()
   const {onCopy, hasCopied} = useClipboard('https://www.idena.io/download')
 
-  const size = useBreakpointValue(['mdx', 'md'])
+  const sizeInput = useBreakpointValue(['lg', 'md'])
+  const sizeButton = useBreakpointValue(['mdx', 'md'])
   const variantRadio = useBreakpointValue(['mobile', 'bordered'])
   const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
   const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
@@ -774,8 +775,11 @@ export function ActivateMiningDrawer({
               <Radio
                 variant={variantRadio}
                 value={NodeType.Miner}
-                flex={1}
-                p={2}
+                flex={['0 0 56px', 1]}
+                fontSize={['base', 'md']}
+                fontWeight={['500', '400']}
+                px={[4, 2]}
+                py={['18px', 2]}
                 mr={2}
               >
                 {t('Mining')}
@@ -783,8 +787,11 @@ export function ActivateMiningDrawer({
               <Radio
                 variant={variantRadio}
                 value={NodeType.Delegator}
-                flex={1}
-                p={2}
+                flex={['0 0 56px', 1]}
+                fontSize={['base', 'md']}
+                fontWeight={['500', '400']}
+                px={[4, 2]}
+                py={['18px', 2]}
               >
                 {t('Delegation')}
               </Radio>
@@ -792,9 +799,10 @@ export function ActivateMiningDrawer({
           </FormControl>
           {mode === NodeType.Delegator ? (
             <Stack spacing={5}>
-              <FormControl as={Stack} spacing={3}>
-                <FormLabel>{t('Delegation address')}</FormLabel>
+              <FormControl as={Stack} spacing={[0, 3]}>
+                <FormLabel fontSize={['base', 'md']}>{t('Delegation address')}</FormLabel>
                 <Input
+                  size={sizeInput}
                   value={delegatee}
                   onChange={e => setDelegatee(e.target.value)}
                 />
@@ -849,6 +857,7 @@ export function ActivateMiningDrawer({
                     color="brand.gray"
                   >
                     <Flex
+                      shrink={0}
                       boxSize={[8, 5]}
                       align="center"
                       justify="center"
@@ -879,7 +888,11 @@ export function ActivateMiningDrawer({
                           Copied
                         </Text>
                       ) : (
-                        <FlatButton display={['block', 'none']} onClick={onCopy} fontWeight="500">
+                        <FlatButton
+                          display={['block', 'none']}
+                          onClick={onCopy}
+                          fontWeight="500"
+                        >
                           Copy link
                         </FlatButton>
                       )}
@@ -918,11 +931,11 @@ export function ActivateMiningDrawer({
         </Stack>
       </DrawerBody>
       <DrawerFooter mt={[6, 0]} px={0}>
-        <Flex width="100%" justify={['center', 'flex-end']}>
+        <Flex width="100%" justify={['space-evenly', 'flex-end']}>
           <Button
             variant={variantSecondary}
             order={[3, 1]}
-            size={size}
+            size={sizeButton}
             type="button"
             onClick={onClose}
           >
@@ -938,7 +951,7 @@ export function ActivateMiningDrawer({
           <Button
             variant={variantPrimary}
             order={[1, 3]}
-            size={size}
+            size={sizeButton}
             ml={[0, 2]}
             isDisabled={mode === NodeType.Miner}
             isLoading={isLoading}
