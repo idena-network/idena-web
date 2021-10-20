@@ -276,6 +276,9 @@ export const uiTheme = {
             height: 14,
             my: '2px',
             borderRadius: 'md',
+            _checked: {
+              bg: 'blue.010',
+            },
           },
           control: {w: 5, h: 5},
           label: {

@@ -39,7 +39,6 @@ import {useIdentity} from '../shared/providers/identity-context'
 import {useEpoch} from '../shared/providers/epoch-context'
 import {fetchBalance} from '../shared/api/wallet'
 import {useAuthState} from '../shared/providers/auth-context'
-import {IconButton} from '../shared/components/button'
 import {validDnaUrl} from '../shared/utils/dna-link'
 import {DnaSignInDialog} from '../screens/dna/containers'
 import {ExternalLink, TextLink, Toast} from '../shared/components/components'
@@ -62,7 +61,6 @@ import {
   TestValidationIcon,
 } from '../shared/components/icons'
 import {useSuccessToast} from '../shared/hooks/use-toast'
-import Flex from '../shared/components/flex'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()

@@ -800,7 +800,9 @@ export function ActivateMiningDrawer({
           {mode === NodeType.Delegator ? (
             <Stack spacing={5}>
               <FormControl as={Stack} spacing={[0, 3]}>
-                <FormLabel fontSize={['base', 'md']}>{t('Delegation address')}</FormLabel>
+                <FormLabel fontSize={['base', 'md']}>
+                  {t('Delegation address')}
+                </FormLabel>
                 <Input
                   size={sizeInput}
                   value={delegatee}
@@ -841,12 +843,15 @@ export function ActivateMiningDrawer({
                 )}
               </Text>
               <Flex
-                borderTop={[0, '1px']}
-                borderBottom={[0, '1px']}
-                borderColor="gray.100"
+                borderY={[0, '1px']}
                 h={16}
                 alignItems="center"
                 justifyContent="space-between"
+                sx={{
+                  '&': {
+                    borderColor: 'gray.100',
+                  },
+                }}
               >
                 <Flex w={['100%', 'auto']}>
                   <Stack
