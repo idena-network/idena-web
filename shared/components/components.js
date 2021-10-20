@@ -36,6 +36,7 @@ import {
   Text,
   Link,
   keyframes,
+  useBreakpointValue,
 } from '@chakra-ui/react'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
@@ -64,10 +65,21 @@ export function Debug({children}) {
 }
 
 export function Drawer({isCloseable = true, children, ...props}) {
+  const placement = useBreakpointValue(['bottom', 'right'])
+  const maxWidth = useBreakpointValue(['fit-content!important', 360])
+
   return (
-    <ChakraDrawer {...props}>
+    <ChakraDrawer placement={placement} {...props}>
       <DrawerOverlay bg="xblack.080" />
-      <DrawerContent px={8} pt={12} pb={4} maxW={360}>
+      <DrawerContent
+        mx={[3, 0]}
+        mb={[9, 0]}
+        px={[6, 8]}
+        pt={[6, 12]}
+        pb={4}
+        maxW={maxWidth}
+        borderRadius={['8px', 0]}
+      >
         {isCloseable && <DrawerCloseButton />}
         {children}
       </DrawerContent>

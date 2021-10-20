@@ -23,6 +23,7 @@ import {
   RadioGroup,
   Divider,
   useBreakpointValue,
+  useClipboard,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
@@ -43,7 +44,11 @@ import {
   ExternalLink,
 } from '../../shared/components/components'
 import {rem} from '../../shared/theme'
-import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
+import {
+  FlatButton,
+  PrimaryButton,
+  SecondaryButton,
+} from '../../shared/components/button'
 import {IdentityStatus, NodeType} from '../../shared/types'
 import {NotificationType} from '../../shared/providers/notification-context'
 import {Notification, Snackbar} from '../../shared/components/notifications'
@@ -75,7 +80,7 @@ import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {activateMiningMachine} from './machines'
 import {fetchBalance} from '../../shared/api/wallet'
-import {LaptopIcon, UserIcon} from '../../shared/components/icons'
+import {AddUserIcon, LaptopIcon, UserIcon} from '../../shared/components/icons'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
 import useTx from '../../shared/hooks/use-tx'
@@ -129,7 +134,6 @@ export function WideLink({
     <Link
       w={['100%', 'auto']}
       px={[0, '12px']}
-      py={[0, '2px']}
       borderRadius={[0, '6px']}
       href={href}
       opacity={isDisabled ? '0.5' : 1}
@@ -711,37 +715,64 @@ export function ActivateMiningDrawer({
   const {t} = useTranslation()
 
   const [delegatee, setDelegatee] = useState()
+  const {onCopy, hasCopied} = useClipboard('https://www.idena.io/download')
+
+  const size = useBreakpointValue(['mdx', 'md'])
+  const variantRadio = useBreakpointValue(['mobile', 'bordered'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
+  const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
 
   return (
     <Drawer onClose={onClose} {...props}>
       <DrawerHeader>
         <Flex
-          align="center"
-          justify="center"
-          bg="blue.012"
-          h={12}
-          w={12}
-          rounded="xl"
+          direction={['row', 'column']}
+          justify={['space-between', 'flex-start']}
         >
-          <UserIcon boxSize={6} color="blue.500" />
+          <Flex
+            order={[2, 1]}
+            align="center"
+            justify="center"
+            bg="blue.012"
+            h={12}
+            w={12}
+            rounded="xl"
+          >
+            <UserIcon boxSize={6} color="blue.500" />
+          </Flex>
+          <Heading
+            order={[1, 2]}
+            color="brandGray.500"
+            fontSize="lg"
+            fontWeight={500}
+            lineHeight="base"
+            mt={['11px', 4]}
+          >
+            {t('Miner status')}
+          </Heading>
         </Flex>
-        <Heading
-          color="brandGray.500"
-          fontSize="lg"
-          fontWeight={500}
-          lineHeight="base"
-          mt={4}
-        >
-          {t('Miner status')}
-        </Heading>
       </DrawerHeader>
       <DrawerBody>
-        <Stack spacing={6} mt={30}>
-          <FormControl as={Stack} spacing={3}>
-            <FormLabel p={0}>{t('Type')}</FormLabel>
-            <RadioGroup isInline d="flex" value={mode} onChange={onChangeMode}>
+        <Stack spacing={[6]} mt={[0, 30]}>
+          <FormControl as={Stack} spacing={[1, 3]}>
+            <FormLabel
+              fontSize={['11px', '13px']}
+              fontWieght={['400!important', '500']}
+              color={['muted', 'initial']}
+              mb={[0, 2]}
+              p={0}
+            >
+              {t('Type')}
+            </FormLabel>
+            <RadioGroup
+              isInline
+              d="flex"
+              flexDirection={['column', 'row']}
+              value={mode}
+              onChange={onChangeMode}
+            >
               <Radio
-                variant="bordered"
+                variant={variantRadio}
                 value={NodeType.Miner}
                 flex={1}
                 p={2}
@@ -750,7 +781,7 @@ export function ActivateMiningDrawer({
                 {t('Mining')}
               </Radio>
               <Radio
-                variant="bordered"
+                variant={variantRadio}
                 value={NodeType.Delegator}
                 flex={1}
                 p={2}
@@ -795,29 +826,67 @@ export function ActivateMiningDrawer({
               </Alert>
             </Stack>
           ) : (
-            <Stack spacing={5}>
-              <Text fontSize="md" mb={3}>
+            <Stack spacing={[4, 5]}>
+              <Text fontSize={['mdx', 'md']} mb={[0, 3]}>
                 {t(
                   'To activate mining status please download the desktop version of Idena app'
                 )}
               </Text>
               <Flex
-                borderTop="1px"
-                borderBottom="1px"
+                borderTop={[0, '1px']}
+                borderBottom={[0, '1px']}
                 borderColor="gray.100"
                 h={16}
                 alignItems="center"
                 justifyContent="space-between"
               >
-                <Flex>
-                  <Stack spacing={2} isInline align="center" color="brand.gray">
-                    <LaptopIcon boxSize={5} />
-                    <Text as="span" fontSize={14} fontWeight={500}>
-                      {t('Desktop App')}
-                    </Text>
+                <Flex w={['100%', 'auto']}>
+                  <Stack
+                    w={['100%', 'auto']}
+                    spacing={[4, 2]}
+                    isInline
+                    align="center"
+                    color="brand.gray"
+                  >
+                    <Flex
+                      boxSize={[8, 5]}
+                      align="center"
+                      justify="center"
+                      backgroundColor={['brandGray.012', 'initial']}
+                      borderRadius="10px"
+                    >
+                      <LaptopIcon boxSize={5} />
+                    </Flex>
+                    <Flex
+                      direction="row"
+                      w={['100%', 'auto']}
+                      justify={['space-between', 'flex-start']}
+                      borderBottom={['1px', 0]}
+                      borderColor="gray.100"
+                      lineHeight={['48px', 'auto']}
+                    >
+                      <Text as="span" fontSize={['base', 14]} fontWeight={500}>
+                        {t('Desktop App')}
+                      </Text>
+                      {hasCopied ? (
+                        <Text
+                          display={['block', 'none']}
+                          as="span"
+                          color="green.500"
+                          fontSize="base"
+                          fontWeight={500}
+                        >
+                          Copied
+                        </Text>
+                      ) : (
+                        <FlatButton onClick={onCopy} fontWeight="500">
+                          Copy link
+                        </FlatButton>
+                      )}
+                    </Flex>
                   </Stack>
                 </Flex>
-                <Flex>
+                <Flex display={['none', 'flex']}>
                   <Link
                     href="https://www.idena.io/download"
                     target="_blank"
@@ -838,7 +907,7 @@ export function ActivateMiningDrawer({
                 px={6}
                 py={4}
               >
-                <Text color="muted" fontSize="md" lineHeight="20px">
+                <Text color="muted" fontSize={['mdx', 'md']} lineHeight="20px">
                   {t(
                     'Use your private key backup to migrate your account. You can import your private key backup at the Settings page in Idena Desktop app.'
                   )}
@@ -848,12 +917,29 @@ export function ActivateMiningDrawer({
           )}
         </Stack>
       </DrawerBody>
-      <DrawerFooter px={0}>
-        <Stack isInline>
-          <SecondaryButton type="button" onClick={onClose}>
+      <DrawerFooter mt={[6, 0]} px={0}>
+        <Flex width="100%" justify={['center', 'flex-end']}>
+          <Button
+            variant={variantSecondary}
+            order={[3, 1]}
+            size={size}
+            type="button"
+            onClick={onClose}
+          >
             {t('Cancel')}
-          </SecondaryButton>
-          <PrimaryButton
+          </Button>
+          <Divider
+            order="2"
+            display={['block', 'none']}
+            h={10}
+            orientation="vertical"
+            color="gray.100"
+          />
+          <Button
+            variant={variantPrimary}
+            order={[1, 3]}
+            size={size}
+            ml={[0, 2]}
             isDisabled={mode === NodeType.Miner}
             isLoading={isLoading}
             onClick={() => {
@@ -862,8 +948,8 @@ export function ActivateMiningDrawer({
             loadingText={t('Waiting...')}
           >
             {t('Submit')}
-          </PrimaryButton>
-        </Stack>
+          </Button>
+        </Flex>
       </DrawerFooter>
     </Drawer>
   )
