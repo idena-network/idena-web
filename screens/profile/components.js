@@ -879,7 +879,7 @@ export function ActivateMiningDrawer({
                           Copied
                         </Text>
                       ) : (
-                        <FlatButton onClick={onCopy} fontWeight="500">
+                        <FlatButton display={['block', 'none']} onClick={onCopy} fontWeight="500">
                           Copy link
                         </FlatButton>
                       )}
