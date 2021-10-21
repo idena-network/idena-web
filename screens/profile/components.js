@@ -983,36 +983,48 @@ export function DeactivateMiningDrawer({
 }) {
   const {t} = useTranslation()
 
+  const sizeInput = useBreakpointValue(['lg', 'md'])
+  const sizeButton = useBreakpointValue(['mdx', 'md'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
+  const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
+
   const isDelegator = typeof delegatee === 'string'
 
   return (
     <Drawer onClose={onClose} {...props}>
       <DrawerHeader>
         <Flex
-          align="center"
-          justify="center"
-          bg="blue.012"
-          h={12}
-          w={12}
-          rounded="xl"
+          direction={['row', 'column']}
+          justify={['space-between', 'flex-start']}
         >
-          <UserIcon boxSize={6} color="blue.500" />
+          <Flex
+            order={[2, 1]}
+            align="center"
+            justify="center"
+            bg="blue.012"
+            h={12}
+            w={12}
+            rounded="xl"
+          >
+            <UserIcon boxSize={6} color="blue.500" />
+          </Flex>
+          <Heading
+            order={[1, 2]}
+            color="brandGray.500"
+            fontSize="lg"
+            fontWeight={500}
+            lineHeight="base"
+            mt={['11px', 4]}
+          >
+            {isDelegator
+              ? t('Deactivate delegation status')
+              : t('Deactivate mining status')}
+          </Heading>
         </Flex>
-        <Heading
-          color="brandGray.500"
-          fontSize="lg"
-          fontWeight={500}
-          lineHeight="base"
-          mt={4}
-        >
-          {isDelegator
-            ? t('Deactivate delegation status')
-            : t('Deactivate mining status')}
-        </Heading>
       </DrawerHeader>
       <DrawerBody>
-        <Stack spacing={6} mt={30}>
-          <Text fontSize="md">
+        <Stack spacing={6} mt={[2, 30]}>
+          <Text fontSize={['mdx', 'md']} mb={[0, 3]}>
             {isDelegator
               ? t(`Submit the form to deactivate your delegation status.`)
               : t(
@@ -1020,9 +1032,11 @@ export function DeactivateMiningDrawer({
                 )}
           </Text>
           {isDelegator && (
-            <FormControl as={Stack} spacing={3}>
-              <FormLabel>{t('Delegation address')}</FormLabel>
-              <Input defaultValue={delegatee} isDisabled />
+            <FormControl as={Stack} spacing={[0, 3]}>
+              <FormLabel fontSize={['base', 'md']}>
+                {t('Delegation address')}
+              </FormLabel>
+              <Input size={sizeInput} defaultValue={delegatee} isDisabled />
             </FormControl>
           )}
           {isDelegator && !canUndelegate && (
@@ -1045,18 +1059,37 @@ export function DeactivateMiningDrawer({
           )}
         </Stack>
       </DrawerBody>
-      <DrawerFooter px={0}>
-        <Stack isInline>
-          <SecondaryButton onClick={onClose}>{t('Cancel')}</SecondaryButton>
-          <PrimaryButton
+      <DrawerFooter mt={[6, 0]} px={0}>
+        <Flex width="100%" justify={['space-evenly', 'flex-end']}>
+          <Button
+            variant={variantSecondary}
+            order={[3, 1]}
+            size={sizeButton}
+            type="button"
+            onClick={onClose}
+          >
+            {t('Cancel')}
+          </Button>
+          <Divider
+            order="2"
+            display={['block', 'none']}
+            h={10}
+            orientation="vertical"
+            color="gray.100"
+          />
+          <Button
+            variant={variantPrimary}
+            order={[1, 3]}
+            size={sizeButton}
+            ml={[0, 2]}
             isDisabled={isDelegator && !canUndelegate}
             isLoading={isLoading}
             onClick={onDeactivate}
             loadingText={t('Waiting...')}
           >
             {t('Submit')}
-          </PrimaryButton>
-        </Stack>
+          </Button>
+        </Flex>
       </DrawerFooter>
     </Drawer>
   )
