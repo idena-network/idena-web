@@ -135,11 +135,16 @@ export const createRestrictedModalMachine = () =>
             cond: ({storage}, {epoch}) => !storage || storage.epoch !== epoch,
             actions: [
               assign({
-                epoch: ({epoch}) => epoch,
+                epoch: (_, {epoch}) => epoch,
                 storage: (_, {epoch}) => ({epoch, dontShow: false}),
               }),
               'persistModalState',
             ],
+          },
+          {
+            actions: assign({
+              epoch: (_, {epoch}) => epoch,
+            }),
           },
         ],
         RESTART: {
