@@ -47,8 +47,6 @@ export function AppProvider({tabId, ...props}) {
 
   const {auth} = useAuthState()
 
-  console.log(process.env.NEXT_PUBLIC_VERCEL_ENV)
-
   // make only one tab active
   useEffect(() => {
     function onStorage(e) {
