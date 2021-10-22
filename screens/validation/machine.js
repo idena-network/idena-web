@@ -1809,8 +1809,6 @@ async function submitShortAnswersTx(key, hashes, answers, wordsSeed) {
     webClientType
   ).toBytes()
 
-  console.log(webClientType)
-
   const rawTx = await getRawTx(
     6,
     privateKeyToAddress(key),
