@@ -17,7 +17,7 @@ CreateCollection({
 })
 
 CreateCollection({
-  name: "validations-storage",
+  name: "validation-storage",
   history_days: 30,
   ttl_days: null
 })

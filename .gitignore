@@ -99,4 +99,5 @@ datadir
 
 main/node/**
 .env.local
+.env.production
 
