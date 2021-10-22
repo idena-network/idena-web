@@ -1,7 +1,19 @@
 /* eslint-disable react/prop-types */
-import {Box, Divider, Flex, Heading, Image, Stack, Text} from '@chakra-ui/react'
+import {
+  Box,
+  Divider,
+  Flex,
+  Heading,
+  Image,
+  Link,
+  Stack,
+  Text,
+} from '@chakra-ui/react'
 import {useQuery} from 'react-query'
-import {CertificateTypeLabel} from '../../screens/certificate/components'
+import {
+  CertificateTypeLabel,
+  CertificateTypeTitle,
+} from '../../screens/certificate/components'
 import {fetchIdentity} from '../../shared/api'
 import {Avatar, Skeleton} from '../../shared/components/components'
 import {TelegramIcon} from '../../shared/components/icons'
@@ -9,7 +21,7 @@ import {CertificateActionType} from '../../shared/types'
 import {mapIdentityToFriendlyStatus, toPercent} from '../../shared/utils/utils'
 import {getCertificateData} from '../api/validation/certificate'
 
-export default function Certificate({certificate}) {
+export default function Certificate({id, certificate}) {
   const {data: identity, isLoading: identityIsLoading} = useQuery(
     ['fetch-identity', certificate.coinbase],
     () => fetchIdentity(certificate.coinbase, true),
@@ -99,7 +111,7 @@ export default function Certificate({certificate}) {
           <Divider mt={7}></Divider>
         </Flex>
         <Flex
-          mt={82}
+          mt={16}
           justifyContent="space-between"
           w="100%"
           alignItems="center"
@@ -108,7 +120,15 @@ export default function Certificate({certificate}) {
             {new Date(certificate.timestamp).toLocaleDateString()}
           </Box>
           <Flex>
-            <TelegramIcon boxSize={4}></TelegramIcon>
+            <Link
+              target="_blank"
+              href={`https://t.me/share/url?url=https://app.idena.io/certificate/${id}&text=I+am+looking+for+an+invitation+code+to+join+Idena.+Please+find+my+${CertificateTypeTitle(
+                certificate.type
+              ).toUpperCase()}+training+validation+certificate+in+the+link+attached.`}
+              _hover={{color: 'blue.500'}}
+            >
+              <TelegramIcon boxSize={4} />
+            </Link>
           </Flex>
         </Flex>
       </Flex>
@@ -128,6 +148,7 @@ export async function getServerSideProps({params}) {
     return {
       props: {
         certificate,
+        id: params.id,
       },
     }
   } catch {

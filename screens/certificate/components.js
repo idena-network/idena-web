@@ -23,24 +23,37 @@ function CertificateTypeLabelLayout(props) {
   )
 }
 
+export function CertificateTypeTitle(type) {
+  switch (type) {
+    case CertificateType.Easy:
+      return 'Easy'
+    case CertificateType.Medium:
+      return 'Medium'
+    case CertificateType.Hard:
+      return 'Hard'
+    default:
+      return ''
+  }
+}
+
 export function CertificateTypeLabel({type}) {
   switch (type) {
     case CertificateType.Easy:
       return (
         <CertificateTypeLabelLayout bg="red.500">
-          Easy
+          {CertificateTypeTitle(type)}
         </CertificateTypeLabelLayout>
       )
     case CertificateType.Medium:
       return (
         <CertificateTypeLabelLayout bg="gray.500">
-          Medium
+          {CertificateTypeTitle(type)}
         </CertificateTypeLabelLayout>
       )
     case CertificateType.Hard:
       return (
         <CertificateTypeLabelLayout bg="orange.500">
-          Hard
+          {CertificateTypeTitle(type)}
         </CertificateTypeLabelLayout>
       )
 
