@@ -1984,7 +1984,8 @@ proto.models.ProtoShortAnswerAttachment.prototype.toObject = function(opt_includ
 proto.models.ProtoShortAnswerAttachment.toObject = function(includeInstance, msg) {
   var f, obj = {
     answers: msg.getAnswers_asB64(),
-    rnd: jspb.Message.getFieldWithDefault(msg, 2, "0")
+    rnd: jspb.Message.getFieldWithDefault(msg, 2, "0"),
+    clienttype: jspb.Message.getFieldWithDefault(msg, 3, 0)
   };
 
   if (includeInstance) {
@@ -2029,6 +2030,10 @@ proto.models.ProtoShortAnswerAttachment.deserializeBinaryFromReader = function(m
       var value = /** @type {string} */ (reader.readUint64String());
       msg.setRnd(value);
       break;
+    case 3:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setClienttype(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -2069,6 +2074,13 @@ proto.models.ProtoShortAnswerAttachment.serializeBinaryToWriter = function(messa
   if (parseInt(f, 10) !== 0) {
     writer.writeUint64String(
       2,
+      f
+    );
+  }
+  f = message.getClienttype();
+  if (f !== 0) {
+    writer.writeUint32(
+      3,
       f
     );
   }
@@ -2132,6 +2144,24 @@ proto.models.ProtoShortAnswerAttachment.prototype.getRnd = function() {
  */
 proto.models.ProtoShortAnswerAttachment.prototype.setRnd = function(value) {
   return jspb.Message.setProto3StringIntField(this, 2, value);
+};
+
+
+/**
+ * optional uint32 clientType = 3;
+ * @return {number}
+ */
+proto.models.ProtoShortAnswerAttachment.prototype.getClienttype = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.models.ProtoShortAnswerAttachment} returns this
+ */
+proto.models.ProtoShortAnswerAttachment.prototype.setClienttype = function(value) {
+  return jspb.Message.setProto3IntField(this, 3, value);
 };
 
 

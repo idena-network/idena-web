@@ -46,6 +46,7 @@ message ProtoFlipKey {
 message ProtoShortAnswerAttachment {
     bytes answers = 1;
     uint64 rnd = 2 [jstype = JS_STRING];
+    uint32 clientType = 3;
 }
 
 message ProtoLongAnswerAttachment {

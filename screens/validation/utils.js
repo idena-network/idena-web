@@ -245,3 +245,7 @@ export const decodedWithoutKeywords = ({decoded, words}) =>
 export function availableReportsNumber(flips) {
   return Math.floor(flips.length / 3)
 }
+
+export const webClientType = parseInt(
+  process.env.NEXT_PUBLIC_WEB_CLIENT_TYPE || 3
+)
