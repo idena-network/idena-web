@@ -149,7 +149,7 @@ export default function ProfilePage() {
 
   const toast = useToast()
 
-  const toDna = toLocaleDna(language)
+  const toDna = toLocaleDna(language, 4)
 
   const [
     currentOnboarding,
@@ -194,10 +194,14 @@ export default function ProfilePage() {
         <PageTitle mb={8} display={['none', 'block']}>
           {t('Profile')}
         </PageTitle>
-        <Stack direction={['column', 'row']} spacing={[0, 10]}>
+        <Stack
+          w={['100%', '480px']}
+          direction={['column', 'row']}
+          spacing={[0, 10]}
+        >
           <Stack
             spacing={[1, 8]}
-            w={['311px', '480px']}
+            w={['100%', '480px']}
             align={['center', 'initial']}
             ref={activateInviteRef}
           >
@@ -338,6 +342,7 @@ export default function ProfilePage() {
                     pb={3}
                     label="Open in blockchain explorer"
                     href={`https://scan.idena.io/address/${address}`}
+                    isNewTab
                   >
                     <Box
                       boxSize={8}
@@ -423,7 +428,7 @@ export default function ProfilePage() {
                 <CopyIcon
                   display={['inline', 'none']}
                   mt="3px"
-                  ml="-100px"
+                  ml="4px"
                   boxSize={4}
                   fill="#96999e"
                   onClick={() => {
@@ -460,7 +465,7 @@ export default function ProfilePage() {
               </Button>
             </UserStatList>
           </Stack>
-          <Stack spacing={[0, 10]} w={['100%', 200]}>
+          <Stack spacing={[0, 10]} flexShrink={0} w={['100%', 200]}>
             <Box minH={62} mt={[1, 6]}>
               <OnboardingPopover
                 isOpen={eitherOnboardingState(

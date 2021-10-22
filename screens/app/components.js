@@ -19,7 +19,7 @@ export function Page(props) {
   return (
     <Flex
       flexDirection="column"
-      align={['center', 'flex-start']}
+      align="flex-start"
       flexBasis={0}
       flexGrow={999}
       maxH="100vh"

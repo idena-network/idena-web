@@ -127,6 +127,7 @@ export function WideLink({
   href,
   onClick,
   isDisabled,
+  isNewTab,
   children,
   ...props
 }) {
@@ -136,6 +137,7 @@ export function WideLink({
       px={[0, '12px']}
       borderRadius={[0, '6px']}
       href={href}
+      target={isNewTab ? '_blank' : ''}
       opacity={isDisabled ? '0.5' : 1}
       cursor={isDisabled ? 'not-allowed' : 'pointer'}
       onClick={isDisabled ? () => {} : onClick}
@@ -155,19 +157,16 @@ export function WideLink({
           {label}
         </Box>
       </Flex>
-      <Divider
-        display={['block', 'none']}
-        w="263px"
-        ml={12}
-        color="brandGray.800"
-      />
+      <Flex w="100%" pl={12} display={['block', 'none']}>
+        <Divider color="brandGray.800" />
+      </Flex>
     </Link>
   )
 }
 
 export function UserStatList({title, children, ...props}) {
   return (
-    <Stack spacing={[0, 4]} {...props} w={['311px', '100%']}>
+    <Stack spacing={[0, 4]} {...props} w="100%">
       <Heading
         display={['none', 'block']}
         as="h4"
@@ -268,8 +267,10 @@ export function UserStatistics({label, value, children, ...props}) {
       <Box fontWeight={['400', '500']} color={['auto', colors.muted]}>
         {label}
       </Box>
-      <Box fontWeight="500">{value}</Box>
-      {children}
+      <Flex direction={['row', 'column']}>
+        <Box fontWeight="500">{value}</Box>
+        {children}
+      </Flex>
     </Flex>
   )
 }
