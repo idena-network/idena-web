@@ -124,9 +124,11 @@ export default function Certificate({id, certificate}) {
               target="_blank"
               href={`https://telegram.me/share/url?url=${encodeURIComponent(
                 `https://app.idena.io/certificate/${id}`
-              )}&text=I+am+looking+for+an+invitation+code+to+join+Idena.+Please+find+my+${CertificateTypeTitle(
-                certificate.type
-              ).toUpperCase()}+training+validation+certificate+in+the+link+attached.`}
+              )}&text=${encodeURIComponent(
+                `I am looking for an invitation code to join Idena. Please find my ${CertificateTypeTitle(
+                  certificate.type
+                ).toUpperCase()} training validation certificate in the link attached.`
+              )}`}
               _hover={{color: 'blue.500'}}
             >
               <TelegramIcon boxSize={4} />
