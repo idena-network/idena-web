@@ -136,6 +136,24 @@ function Settings() {
           ></PasswordInput>
         </FormControl>
 
+        {settingsState.apiKeyState === apiKeyStates.ONLINE && (
+          <Alert
+            status="warning"
+            bg="warning.020"
+            borderWidth="1px"
+            borderColor="warning.100"
+            fontWeight={500}
+            rounded="md"
+            px={3}
+            py={2}
+          >
+            <AlertIcon size={5} mr={3} colo="warning.500"></AlertIcon>
+            {t(
+              'Please do not use the API key on multiple devices at the same time as this will cause the validation failure.'
+            )}
+          </Alert>
+        )}
+
         <Flex justify="space-between">
           <PrimaryButton
             onClick={() => {
