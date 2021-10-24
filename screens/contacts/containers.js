@@ -40,7 +40,11 @@ import {
   useInviteDispatch,
   useInviteState,
 } from '../../shared/providers/invite-context'
-import {PrimaryButton, IconButton} from '../../shared/components/button'
+import {
+  PrimaryButton,
+  IconButton,
+  FlatButton,
+} from '../../shared/components/button'
 import {
   ContactAvatar,
   ContactCardBadge,
@@ -301,7 +305,7 @@ export function ContactCard({
     identity: {state, stake} = {},
   } = {...contact, ...invitee}
 
-  const {onCopy: onCopyKey} = useClipboard(key)
+  const {onCopy: onCopyKey, hasCopied} = useClipboard(key)
 
   const successToast = useSuccessToast()
 
@@ -409,18 +413,14 @@ export function ContactCard({
               <Stack spacing={3}>
                 <Flex align="center" justify="space-between">
                   <FormLabel pb={0}>{t('Invitation code')}</FormLabel>
-                  {!activated && (
-                    <Button
-                      variant="link"
-                      colorScheme="blue"
-                      fontWeight={500}
-                      _hover={null}
-                      _active={null}
-                      onClick={onCopyKey}
-                    >
-                      {t('Copy')}
-                    </Button>
-                  )}
+                  {!activated &&
+                    (hasCopied ? (
+                      <FormLabel color="green.500" fontSize="md" m={0}>
+                        {t('Copied!')}
+                      </FormLabel>
+                    ) : (
+                      <FlatButton onClick={onCopyKey}>{t('Copy')}</FlatButton>
+                    ))}
                 </Flex>
                 <Input label={t('Invitation code')} value={key} isDisabled />
               </Stack>
