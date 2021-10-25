@@ -224,7 +224,7 @@ export default function ProfilePage() {
                       px={[0, 10]}
                       py={[0, 8]}
                       pos="relative"
-                      zIndex="docked"
+                      zIndex={5}
                     >
                       <Stack display={['none', 'flex']}>
                         <Heading as="h3" fontWeight={500} fontSize="lg">

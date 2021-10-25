@@ -31,7 +31,7 @@ export function OnboardingPopover({children, ...props}) {
           css={{margin: '0!important', padding: '0!important'}}
         />
       )}
-      <Popover closeOnBlur={false} usePortal {...props}>
+      <Popover closeOnBlur={false} {...props}>
         {children}
       </Popover>
     </>
