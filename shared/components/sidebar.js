@@ -72,6 +72,7 @@ function Sidebar({isOpen, onClose, ...props}) {
       backgroundColor="gray.500"
       color="white"
       height="100vh"
+      overflowY="auto"
       width={['100%', 200]}
       px={[10, 4]}
       py={[4, 2]}
