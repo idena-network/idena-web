@@ -1,8 +1,6 @@
 import {IdentityStatus} from '../../shared/types'
 
-export const canKill = (knownIdentity, persistedIdentity) =>
-  persistedIdentity?.state === IdentityStatus.Invite ||
-  (Boolean(knownIdentity) &&
-    [IdentityStatus.Newbie, IdentityStatus.Candidate].includes(
-      persistedIdentity?.state
-    ))
+export const canKill = (invitee, identity) =>
+  identity?.state === IdentityStatus.Invite ||
+  (Boolean(invitee) &&
+    [IdentityStatus.Newbie, IdentityStatus.Candidate].includes(identity?.state))
