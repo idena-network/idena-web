@@ -76,7 +76,7 @@ function Sidebar({isOpen, onClose, ...props}) {
       px={[10, 4]}
       py={[4, 2]}
       zIndex={[11, 2]}
-      position={['absolute', 'relative']}
+      position={['fixed', 'relative']}
       direction="column"
       display={[isOpen ? 'flex' : 'none', 'flex']}
       {...props}

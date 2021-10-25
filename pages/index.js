@@ -215,7 +215,7 @@ export default function ProfilePage() {
                   <PopoverTrigger>
                     <Stack
                       spacing={6}
-                      bg="white"
+                      bg={['transparent', 'white']}
                       borderRadius="lg"
                       boxShadow={[
                         'none',

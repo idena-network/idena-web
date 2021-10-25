@@ -421,6 +421,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
                 id="code"
                 size={size}
                 value={code}
+                bg={['white', 'auto']}
                 placeholder={placeholderValue}
                 isDisabled={waiting}
                 resize="none"
