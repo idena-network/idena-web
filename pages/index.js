@@ -223,7 +223,7 @@ export default function ProfilePage() {
                       ]}
                       px={[0, 10]}
                       py={[0, 8]}
-                      pos={['initial', 'relative']}
+                      pos="relative"
                       zIndex="docked"
                     >
                       <Stack display={['none', 'flex']}>
