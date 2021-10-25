@@ -1,5 +1,5 @@
-import {CopyIcon, DownloadIcon} from '@chakra-ui/icons'
-import {Button, Checkbox, Flex, RadioGroup, Stack, Text} from '@chakra-ui/react'
+import {DownloadIcon} from '@chakra-ui/icons'
+import {Checkbox, Flex, RadioGroup, Stack, Text} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
@@ -166,22 +166,9 @@ export default function Restricted() {
                     </Text>
                   </Flex>
                   <Flex justifyContent="center" mt={4}>
-                    <Button
-                      bg="white"
-                      _hover={{
-                        bg: 'whiteAlpha.900',
-                      }}
-                      _active={{
-                        bg: 'whiteAlpha.900',
-                      }}
-                      color="gray.080"
-                      fontWeight="500"
-                      borderRadius="8px"
-                      leftIcon={<CopyIcon boxSize={4} />}
-                      onClick={() => setStep(steps.CONNECT)}
-                    >
+                    <PrimaryButton onClick={() => setStep(steps.CONNECT)}>
                       {t('Connect')}
-                    </Button>
+                    </PrimaryButton>
                   </Flex>
                   <Flex
                     mt={10}
@@ -200,9 +187,9 @@ export default function Restricted() {
                       </Checkbox>
                     </Flex>
                     <Flex>
-                      <PrimaryButton onClick={() => notNow(true)}>
+                      <SecondaryButton onClick={() => notNow(true)}>
                         {t('Not now')}
-                      </PrimaryButton>
+                      </SecondaryButton>
                     </Flex>
                   </Flex>
                 </Flex>
