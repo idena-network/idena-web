@@ -22,6 +22,8 @@ import {
   Link,
   RadioGroup,
   Divider,
+  useBreakpointValue,
+  useClipboard,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
@@ -39,9 +41,14 @@ import {
   DrawerFooter,
   Toast,
   FormControlWithLabel,
+  ExternalLink,
 } from '../../shared/components/components'
 import {rem} from '../../shared/theme'
-import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
+import {
+  FlatButton,
+  PrimaryButton,
+  SecondaryButton,
+} from '../../shared/components/button'
 import {IdentityStatus, NodeType} from '../../shared/types'
 import {NotificationType} from '../../shared/providers/notification-context'
 import {Notification, Snackbar} from '../../shared/components/notifications'
@@ -73,16 +80,30 @@ import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {activateMiningMachine} from './machines'
 import {fetchBalance} from '../../shared/api/wallet'
-import {LaptopIcon, UserIcon} from '../../shared/components/icons'
+import {AddUserIcon, LaptopIcon, UserIcon} from '../../shared/components/icons'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
 import useTx from '../../shared/hooks/use-tx'
 
 export function UserInlineCard({address, state, ...props}) {
   return (
-    <Stack isInline spacing={6} align="center" width={rem(480)} {...props}>
-      <Avatar address={address} />
-      <Stack spacing={1}>
+    <Stack
+      direction={['column', 'row']}
+      spacing={6}
+      align="center"
+      width={['200px', '480px']}
+      wordBreak={['break-all', 'normal']}
+      {...props}
+    >
+      <Avatar
+        size={[
+          ['160px', '160px'],
+          ['88px', '80px'],
+        ]}
+        borderRadius={['48px', 'lg']}
+        address={address}
+      />
+      <Stack spacing={1} align={['center', 'initial']}>
         <Heading as="h2" fontSize="lg" fontWeight={500} lineHeight="short">
           {mapIdentityToFriendlyStatus(state)}
         </Heading>
@@ -90,6 +111,7 @@ export function UserInlineCard({address, state, ...props}) {
           as="h3"
           fontSize="mdx"
           fontWeight="normal"
+          textAlign={['center', 'initial']}
           color="muted"
           lineHeight="shorter"
         >
@@ -100,13 +122,69 @@ export function UserInlineCard({address, state, ...props}) {
   )
 }
 
+export function WideLink({
+  label,
+  href,
+  onClick,
+  isDisabled,
+  isNewTab,
+  children,
+  ...props
+}) {
+  return (
+    <Link
+      w={['100%', 'auto']}
+      px={[0, '12px']}
+      borderRadius={[0, '6px']}
+      href={href}
+      target={isNewTab ? '_blank' : ''}
+      opacity={isDisabled ? '0.5' : 1}
+      cursor={isDisabled ? 'not-allowed' : 'pointer'}
+      onClick={isDisabled ? () => {} : onClick}
+      _hover={{
+        bg: 'blue.50',
+      }}
+      {...props}
+    >
+      <Flex h={[12, 8]} align="center" justify="flex-start">
+        {children}
+        <Box
+          ml={[4, 2]}
+          color="brandBlue.100"
+          fontWeight={['400', '500']}
+          fontSize={['base', 'md']}
+        >
+          {label}
+        </Box>
+      </Flex>
+      <Flex w="100%" pl={12} display={['block', 'none']}>
+        <Divider color="brandGray.800" />
+      </Flex>
+    </Link>
+  )
+}
+
 export function UserStatList({title, children, ...props}) {
   return (
-    <Stack spacing={4} {...props}>
-      <Heading as="h4" fontSize="lg" fontWeight={500}>
+    <Stack spacing={[0, 4]} {...props} w="100%">
+      <Heading
+        display={['none', 'block']}
+        as="h4"
+        fontSize="lg"
+        fontWeight={500}
+      >
         {title}
       </Heading>
-      <Stack spacing={4} bg="gray.50" px={10} py={8} rounded="lg">
+      <Stack spacing={4} bg="gray.50" px={[7, 10]} py={[4, 8]} rounded="lg">
+        <Heading
+          display={['block', 'none']}
+          as="h4"
+          mt={['10px', 0]}
+          fontSize="lg"
+          fontWeight={500}
+        >
+          {title}
+        </Heading>
         {children}
       </Stack>
     </Stack>
@@ -141,8 +219,60 @@ export function AnnotatedUserStat({
   )
 }
 
+export function AnnotatedUserStatistics({
+  annotation,
+  label,
+  value,
+  children,
+  ...props
+}) {
+  const {colors} = useTheme()
+  return (
+    <Flex
+      fontSize={['mdx', 'md']}
+      direction={['row', 'column']}
+      justify={['space-between', 'flex-start']}
+      {...props}
+    >
+      <Box
+        w="fit-content"
+        borderBottom={['none', `dotted 1px ${colors.muted}`]}
+        cursor="help"
+        fontWeight={['400', '500']}
+        color={['auto', colors.muted]}
+      >
+        <UserStatLabelTooltip label={[annotation]}>
+          {label}
+        </UserStatLabelTooltip>
+      </Box>
+      {value && <Box fontWeight="500">{value}</Box>}
+      {children}
+    </Flex>
+  )
+}
+
 export function UserStat(props) {
   return <Stat as={Stack} spacing="2px" {...props} />
+}
+
+export function UserStatistics({label, value, children, ...props}) {
+  const {colors} = useTheme()
+  return (
+    <Flex
+      fontSize={['mdx', 'md']}
+      direction={['row', 'column']}
+      justify={['space-between', 'flex-start']}
+      {...props}
+    >
+      <Box fontWeight={['400', '500']} color={['auto', colors.muted]}>
+        {label}
+      </Box>
+      <Flex direction={['row', 'column']}>
+        <Box fontWeight="500">{value}</Box>
+        {children}
+      </Flex>
+    </Flex>
+  )
 }
 
 export function UserStatLabel(props) {
@@ -175,6 +305,8 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
   const {t} = useTranslation()
 
   const failToast = useFailToast()
+  const size = useBreakpointValue(['lg', 'md'])
+  const placeholderValue = useBreakpointValue(['Invitation code', ''])
 
   const [{state}, {waitStateUpdate}] = useIdentity()
   const {coinbase, privateKey} = useAuthState()
@@ -256,10 +388,14 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
           </PrimaryButton>
         </Flex>
       ) : (
-        <Stack spacing={6}>
+        <Stack spacing={[4, 6]}>
           <FormControl>
             <Stack spacing={3}>
-              <Flex justify="space-between" align="center">
+              <Flex
+                display={['none', 'flex']}
+                justify="space-between"
+                align="center"
+              >
                 <FormLabel htmlFor="code" p={0} m={0}>
                   {t('Enter invitation code')}
                 </FormLabel>
@@ -283,7 +419,10 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
               </Flex>
               <Input
                 id="code"
+                size={size}
                 value={code}
+                bg={['white', 'auto']}
+                placeholder={placeholderValue}
                 isDisabled={waiting}
                 resize="none"
                 _disabled={{
@@ -296,8 +435,9 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
               />
             </Stack>
           </FormControl>
-          <Stack spacing={3} isInline align="center" justify="flex-end">
+          <Stack spacing={[0, 3]} isInline align="center" justify="flex-end">
             <Button
+              display={['none', 'inline-flex']}
               variant="link"
               leftIcon={<InfoIcon boxSize={4} />}
               onClick={onHowToGetInvitation}
@@ -307,8 +447,16 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
             >
               {t('How to get an invitation?')}
             </Button>
-            <Divider borderColor="gray.100" orientation="vertical" mx={4} />
+            <Divider
+              display={['none', 'block']}
+              borderColor="gray.100"
+              orientation="vertical"
+              mx={4}
+            />
             <PrimaryButton
+              size={size}
+              w={['100%', 'auto']}
+              ml={[0, 'initial']}
               isLoading={waiting}
               loadingText={t('Mining...')}
               type="submit"
@@ -509,20 +657,29 @@ export function ActivateMiningSwitch({isOnline, isDelegator, onShow}) {
   const accentColor = isOnline ? 'blue' : 'red'
 
   return (
-    <Stack spacing={3}>
-      <Text fontWeight={500} h={18}>
+    <Stack spacing={[0, 3]}>
+      <Text display={['none', 'initial']} fontWeight={500} h={18}>
         {t('Status')}
       </Text>
       <Flex
         align="center"
         justify="space-between"
         borderColor="gray.100"
-        borderWidth={1}
-        rounded="md"
-        h={8}
-        px={3}
+        borderWidth={[0, 1]}
+        background={[
+          isOnline ? 'rgba(87, 143, 255, 0.1)' : 'rgba(255, 102, 102, 0.1)',
+          'initial',
+        ]}
+        rounded={['8px', 'md']}
+        h={[12, 8]}
+        px={[5, 3]}
       >
-        <FormLabel htmlFor="mining" fontWeight="normal" m={0}>
+        <FormLabel
+          htmlFor="mining"
+          fontWeight="normal"
+          fontSize={['mdx', 'md']}
+          m={0}
+        >
           {isDelegator ? t('Delegation') : t('Mining')}
         </FormLabel>
         <Stack isInline align="center">
@@ -560,49 +717,83 @@ export function ActivateMiningDrawer({
   const {t} = useTranslation()
 
   const [delegatee, setDelegatee] = useState()
+  const {onCopy, hasCopied} = useClipboard('https://www.idena.io/download')
+
+  const sizeInput = useBreakpointValue(['lg', 'md'])
+  const sizeButton = useBreakpointValue(['mdx', 'md'])
+  const variantRadio = useBreakpointValue(['mobile', 'bordered'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
+  const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
 
   return (
     <Drawer onClose={onClose} {...props}>
       <DrawerHeader>
         <Flex
-          align="center"
-          justify="center"
-          bg="blue.012"
-          h={12}
-          w={12}
-          rounded="xl"
+          direction={['row', 'column']}
+          justify={['space-between', 'flex-start']}
         >
-          <UserIcon boxSize={6} color="blue.500" />
+          <Flex
+            order={[2, 1]}
+            align="center"
+            justify="center"
+            bg="blue.012"
+            h={12}
+            w={12}
+            rounded="xl"
+          >
+            <UserIcon boxSize={6} color="blue.500" />
+          </Flex>
+          <Heading
+            order={[1, 2]}
+            color="brandGray.500"
+            fontSize="lg"
+            fontWeight={500}
+            lineHeight="base"
+            mt={['11px', 4]}
+          >
+            {t('Miner status')}
+          </Heading>
         </Flex>
-        <Heading
-          color="brandGray.500"
-          fontSize="lg"
-          fontWeight={500}
-          lineHeight="base"
-          mt={4}
-        >
-          {t('Miner status')}
-        </Heading>
       </DrawerHeader>
       <DrawerBody>
-        <Stack spacing={6} mt={30}>
-          <FormControl as={Stack} spacing={3}>
-            <FormLabel p={0}>{t('Type')}</FormLabel>
-            <RadioGroup isInline d="flex" value={mode} onChange={onChangeMode}>
+        <Stack spacing={[6]} mt={[0, 30]}>
+          <FormControl as={Stack} spacing={[1, 3]}>
+            <FormLabel
+              fontSize={['11px', '13px']}
+              fontWieght={['400!important', '500']}
+              color={['muted', 'initial']}
+              mb={[0, 2]}
+              p={0}
+            >
+              {t('Type')}
+            </FormLabel>
+            <RadioGroup
+              isInline
+              d="flex"
+              flexDirection={['column', 'row']}
+              value={mode}
+              onChange={onChangeMode}
+            >
               <Radio
-                variant="bordered"
+                variant={variantRadio}
                 value={NodeType.Miner}
-                flex={1}
-                p={2}
+                flex={['0 0 56px', 1]}
+                fontSize={['base', 'md']}
+                fontWeight={['500', '400']}
+                px={[4, 2]}
+                py={['18px', 2]}
                 mr={2}
               >
                 {t('Mining')}
               </Radio>
               <Radio
-                variant="bordered"
+                variant={variantRadio}
                 value={NodeType.Delegator}
-                flex={1}
-                p={2}
+                flex={['0 0 56px', 1]}
+                fontSize={['base', 'md']}
+                fontWeight={['500', '400']}
+                px={[4, 2]}
+                py={['18px', 2]}
               >
                 {t('Delegation')}
               </Radio>
@@ -610,9 +801,12 @@ export function ActivateMiningDrawer({
           </FormControl>
           {mode === NodeType.Delegator ? (
             <Stack spacing={5}>
-              <FormControl as={Stack} spacing={3}>
-                <FormLabel>{t('Delegation address')}</FormLabel>
+              <FormControl as={Stack} spacing={[0, 3]}>
+                <FormLabel fontSize={['base', 'md']}>
+                  {t('Delegation address')}
+                </FormLabel>
                 <Input
+                  size={sizeInput}
                   value={delegatee}
                   onChange={e => setDelegatee(e.target.value)}
                 />
@@ -644,29 +838,75 @@ export function ActivateMiningDrawer({
               </Alert>
             </Stack>
           ) : (
-            <Stack spacing={5}>
-              <Text fontSize="md" mb={3}>
+            <Stack spacing={[4, 5]}>
+              <Text fontSize={['mdx', 'md']} mb={[0, 3]}>
                 {t(
                   'To activate mining status please download the desktop version of Idena app'
                 )}
               </Text>
               <Flex
-                borderTop="1px"
-                borderBottom="1px"
-                borderColor="gray.100"
+                borderY={[0, '1px']}
                 h={16}
                 alignItems="center"
                 justifyContent="space-between"
+                sx={{
+                  '&': {
+                    borderColor: 'gray.100',
+                  },
+                }}
               >
-                <Flex>
-                  <Stack spacing={2} isInline align="center" color="brand.gray">
-                    <LaptopIcon boxSize={5} />
-                    <Text as="span" fontSize={14} fontWeight={500}>
-                      {t('Desktop App')}
-                    </Text>
+                <Flex w={['100%', 'auto']}>
+                  <Stack
+                    w={['100%', 'auto']}
+                    spacing={[4, 2]}
+                    isInline
+                    align="center"
+                    color="brand.gray"
+                  >
+                    <Flex
+                      shrink={0}
+                      boxSize={[8, 5]}
+                      align="center"
+                      justify="center"
+                      backgroundColor={['brandGray.012', 'initial']}
+                      borderRadius="10px"
+                    >
+                      <LaptopIcon boxSize={5} />
+                    </Flex>
+                    <Flex
+                      direction="row"
+                      w={['100%', 'auto']}
+                      justify={['space-between', 'flex-start']}
+                      borderBottom={['1px', 0]}
+                      borderColor="gray.100"
+                      lineHeight={['48px', 'auto']}
+                    >
+                      <Text as="span" fontSize={['base', 14]} fontWeight={500}>
+                        {t('Desktop App')}
+                      </Text>
+                      {hasCopied ? (
+                        <Text
+                          display={['block', 'none']}
+                          as="span"
+                          color="green.500"
+                          fontSize="base"
+                          fontWeight={500}
+                        >
+                          Copied
+                        </Text>
+                      ) : (
+                        <FlatButton
+                          display={['block', 'none']}
+                          onClick={onCopy}
+                          fontWeight="500"
+                        >
+                          Copy link
+                        </FlatButton>
+                      )}
+                    </Flex>
                   </Stack>
                 </Flex>
-                <Flex>
+                <Flex display={['none', 'flex']}>
                   <Link
                     href="https://www.idena.io/download"
                     target="_blank"
@@ -687,7 +927,7 @@ export function ActivateMiningDrawer({
                 px={6}
                 py={4}
               >
-                <Text color="muted" fontSize="md" lineHeight="20px">
+                <Text color="muted" fontSize={['mdx', 'md']} lineHeight="20px">
                   {t(
                     'Use your private key backup to migrate your account. You can import your private key backup at the Settings page in Idena Desktop app.'
                   )}
@@ -697,12 +937,29 @@ export function ActivateMiningDrawer({
           )}
         </Stack>
       </DrawerBody>
-      <DrawerFooter px={0}>
-        <Stack isInline>
-          <SecondaryButton type="button" onClick={onClose}>
+      <DrawerFooter mt={[6, 0]} px={0}>
+        <Flex width="100%" justify={['space-evenly', 'flex-end']}>
+          <Button
+            variant={variantSecondary}
+            order={[3, 1]}
+            size={sizeButton}
+            type="button"
+            onClick={onClose}
+          >
             {t('Cancel')}
-          </SecondaryButton>
-          <PrimaryButton
+          </Button>
+          <Divider
+            order="2"
+            display={['block', 'none']}
+            h={10}
+            orientation="vertical"
+            color="gray.100"
+          />
+          <Button
+            variant={variantPrimary}
+            order={[1, 3]}
+            size={sizeButton}
+            ml={[0, 2]}
             isDisabled={mode === NodeType.Miner}
             isLoading={isLoading}
             onClick={() => {
@@ -711,8 +968,8 @@ export function ActivateMiningDrawer({
             loadingText={t('Waiting...')}
           >
             {t('Submit')}
-          </PrimaryButton>
-        </Stack>
+          </Button>
+        </Flex>
       </DrawerFooter>
     </Drawer>
   )
@@ -728,36 +985,48 @@ export function DeactivateMiningDrawer({
 }) {
   const {t} = useTranslation()
 
+  const sizeInput = useBreakpointValue(['lg', 'md'])
+  const sizeButton = useBreakpointValue(['mdx', 'md'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
+  const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
+
   const isDelegator = typeof delegatee === 'string'
 
   return (
     <Drawer onClose={onClose} {...props}>
       <DrawerHeader>
         <Flex
-          align="center"
-          justify="center"
-          bg="blue.012"
-          h={12}
-          w={12}
-          rounded="xl"
+          direction={['row', 'column']}
+          justify={['space-between', 'flex-start']}
         >
-          <UserIcon boxSize={6} color="blue.500" />
+          <Flex
+            order={[2, 1]}
+            align="center"
+            justify="center"
+            bg="blue.012"
+            h={12}
+            w={12}
+            rounded="xl"
+          >
+            <UserIcon boxSize={6} color="blue.500" />
+          </Flex>
+          <Heading
+            order={[1, 2]}
+            color="brandGray.500"
+            fontSize="lg"
+            fontWeight={500}
+            lineHeight="base"
+            mt={['11px', 4]}
+          >
+            {isDelegator
+              ? t('Deactivate delegation status')
+              : t('Deactivate mining status')}
+          </Heading>
         </Flex>
-        <Heading
-          color="brandGray.500"
-          fontSize="lg"
-          fontWeight={500}
-          lineHeight="base"
-          mt={4}
-        >
-          {isDelegator
-            ? t('Deactivate delegation status')
-            : t('Deactivate mining status')}
-        </Heading>
       </DrawerHeader>
       <DrawerBody>
-        <Stack spacing={6} mt={30}>
-          <Text fontSize="md">
+        <Stack spacing={6} mt={[2, 30]}>
+          <Text fontSize={['mdx', 'md']} mb={[0, 3]}>
             {isDelegator
               ? t(`Submit the form to deactivate your delegation status.`)
               : t(
@@ -765,9 +1034,11 @@ export function DeactivateMiningDrawer({
                 )}
           </Text>
           {isDelegator && (
-            <FormControl as={Stack} spacing={3}>
-              <FormLabel>{t('Delegation address')}</FormLabel>
-              <Input defaultValue={delegatee} isDisabled />
+            <FormControl as={Stack} spacing={[0, 3]}>
+              <FormLabel fontSize={['base', 'md']}>
+                {t('Delegation address')}
+              </FormLabel>
+              <Input size={sizeInput} defaultValue={delegatee} isDisabled />
             </FormControl>
           )}
           {isDelegator && !canUndelegate && (
@@ -790,18 +1061,37 @@ export function DeactivateMiningDrawer({
           )}
         </Stack>
       </DrawerBody>
-      <DrawerFooter px={0}>
-        <Stack isInline>
-          <SecondaryButton onClick={onClose}>{t('Cancel')}</SecondaryButton>
-          <PrimaryButton
+      <DrawerFooter mt={[6, 0]} px={0}>
+        <Flex width="100%" justify={['space-evenly', 'flex-end']}>
+          <Button
+            variant={variantSecondary}
+            order={[3, 1]}
+            size={sizeButton}
+            type="button"
+            onClick={onClose}
+          >
+            {t('Cancel')}
+          </Button>
+          <Divider
+            order="2"
+            display={['block', 'none']}
+            h={10}
+            orientation="vertical"
+            color="gray.100"
+          />
+          <Button
+            variant={variantPrimary}
+            order={[1, 3]}
+            size={sizeButton}
+            ml={[0, 2]}
             isDisabled={isDelegator && !canUndelegate}
             isLoading={isLoading}
             onClick={onDeactivate}
             loadingText={t('Waiting...')}
           >
             {t('Submit')}
-          </PrimaryButton>
-        </Stack>
+          </Button>
+        </Flex>
       </DrawerFooter>
     </Drawer>
   )

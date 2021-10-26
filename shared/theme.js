@@ -171,10 +171,12 @@ export const uiTheme = {
       blue: 'rgb(87, 143, 255)',
     },
     brandGray: {
+      '012': 'rgb(83, 86, 92, 0.12)',
       '016': 'rgb(83, 86, 92, 0.16)',
       '060': 'rgb(83 86 92 /0.6)',
       '080': 'rgb(83 86 92 /0.8)',
       500: 'rgb(83, 86, 92)',
+      800: 'rgb(216, 216, 216)',
     },
     brandBlue: {
       10: 'rgba(87, 143, 255, 0.12)',
@@ -253,12 +255,36 @@ export const uiTheme = {
   },
   components: {
     Radio: {
+      sizes: {
+        md: {},
+        lg: {
+          h: 14,
+        },
+      },
       variants: {
         bordered: {
           container: {
             borderColor: 'gray.100',
             borderWidth: 1,
             borderRadius: 'md',
+          },
+        },
+        mobile: {
+          container: {
+            bg: 'gray.50',
+            width: '100%',
+            height: 14,
+            my: '2px',
+            borderRadius: 'md',
+            _checked: {
+              bg: 'blue.010',
+            },
+          },
+          control: {w: 5, h: 5},
+          label: {
+            fontSize: 'base',
+            fontWeight: '500',
+            ml: 4,
           },
         },
       },
@@ -275,6 +301,7 @@ export const uiTheme = {
       baseStyle: {fontWeight: 500},
       sizes: {
         md: {h: 8},
+        mdx: {h: 10},
         lg: {
           h: 12,
           px: 3,
@@ -313,6 +340,20 @@ export const uiTheme = {
           _active: {
             bg: 'blue.024',
           },
+          _disabled: {
+            bg: 'gray.100',
+            color: 'gray.300',
+          },
+        },
+        primaryFlat: {
+          bg: 'transparent',
+          color: 'brandBlue.500',
+          borderRadius: 8,
+        },
+        secondaryFlat: {
+          bg: 'transparent',
+          color: 'muted',
+          borderRadius: 8,
           _disabled: {
             bg: 'gray.100',
             color: 'gray.300',

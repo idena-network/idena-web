@@ -20,9 +20,8 @@ export function Page(props) {
     <Flex
       flexDirection="column"
       align="flex-start"
-      flexBasis={0}
       flexGrow={999}
-      maxH="100vh"
+      maxH={['auto', '100vh']}
       minW="50%"
       px={[8, 20]}
       py={6}

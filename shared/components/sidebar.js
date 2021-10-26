@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 /* eslint-disable no-nested-ternary */
-import React from 'react'
+import React, {useEffect} from 'react'
 import PropTypes from 'prop-types'
 import {useRouter} from 'next/router'
 import {Trans, useTranslation} from 'react-i18next'
@@ -72,11 +72,12 @@ function Sidebar({isOpen, onClose, ...props}) {
       backgroundColor="gray.500"
       color="white"
       height="100vh"
+      overflowY="auto"
       width={['100%', 200]}
       px={[10, 4]}
       py={[4, 2]}
       zIndex={[8, 2]}
-      position={['absolute', 'relative']}
+      position={['fixed', 'relative']}
       direction="column"
       display={[isOpen ? 'flex' : 'none', 'flex']}
       {...props}
@@ -313,14 +314,24 @@ function ActionPanel({onClose}) {
     {showCurrentTask, dismissCurrentTask},
   ] = useOnboarding()
 
+  useEffect(() => {
+    if (
+      eitherState(
+        currentOnboarding,
+        onboardingShowingStep(OnboardingStep.ActivateInvite)
+      )
+    )
+      onClose()
+  }, [currentOnboarding, onClose])
+
   if (!epoch) {
     return null
   }
 
-  const {currentPeriod, nextValidation} = epoch
-
   const eitherOnboardingState = (...states) =>
     eitherState(currentOnboarding, ...states)
+
+  const {currentPeriod, nextValidation} = epoch
 
   const isPromotingNextOnboardingStep =
     currentPeriod === EpochPeriod.None &&
@@ -363,13 +374,6 @@ function ActionPanel({onClose}) {
           if (eitherOnboardingState(OnboardingStep.CreateFlips))
             router.push('/flips/list')
 
-          if (
-            !eitherOnboardingState(
-              onboardingPromotingStep(OnboardingStep.Validate)
-            )
-          ) {
-            onClose()
-          }
           showCurrentTask()
         }}
       >
@@ -410,7 +414,6 @@ function ActionPanel({onClose}) {
             onboardingShowingStep(OnboardingStep.Validate)
           )}
           placement={onboardingPopoverPlacement}
-          usePortal
         >
           <PopoverTrigger>
             <ChakraBox
@@ -422,7 +425,7 @@ function ActionPanel({onClose}) {
                   : 'transparent'
               }
               position="relative"
-              zIndex={9}
+              zIndex="docked"
             >
               <Block
                 title={t('Next validation')}
@@ -480,6 +483,13 @@ function ActionPanel({onClose}) {
           </PopoverTrigger>
           <Portal>
             <OnboardingPopoverContent
+              display={
+                eitherOnboardingState(
+                  onboardingShowingStep(OnboardingStep.Validate)
+                )
+                  ? 'flex'
+                  : 'none'
+              }
               title={t('Schedule your next validation')}
               maxW="sm"
               additionFooterActions={

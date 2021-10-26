@@ -5,6 +5,9 @@ import {
   PopoverTrigger,
   Stack,
   Text,
+  Button,
+  useBreakpointValue,
+  useClipboard,
   useDisclosure,
   useToast,
 } from '@chakra-ui/react'
@@ -14,16 +17,14 @@ import {useRouter} from 'next/router'
 import {Page, PageTitle} from '../screens/app/components'
 import {
   UserInlineCard,
-  SimpleUserStat,
   UserStatList,
-  UserStat,
-  UserStatLabel,
-  UserStatValue,
-  AnnotatedUserStat,
+  UserStatistics,
   ActivateInviteForm,
   ValidationResultToast,
   ActivateMiningForm,
   KillForm,
+  AnnotatedUserStatistics,
+  WideLink,
 } from '../screens/profile/components'
 import Layout from '../shared/components/layout'
 import {IdentityStatus, OnboardingStep} from '../shared/types'
@@ -38,7 +39,6 @@ import {useIdentity} from '../shared/providers/identity-context'
 import {useEpoch} from '../shared/providers/epoch-context'
 import {fetchBalance} from '../shared/api/wallet'
 import {useAuthState} from '../shared/providers/auth-context'
-import {IconButton} from '../shared/components/button'
 import {validDnaUrl} from '../shared/utils/dna-link'
 import {DnaSignInDialog} from '../screens/dna/containers'
 import {ExternalLink, TextLink, Toast} from '../shared/components/components'
@@ -53,11 +53,14 @@ import {useScroll} from '../shared/hooks/use-scroll'
 import {
   AddUserIcon,
   ChevronDownIcon,
+  CopyIcon,
   DeleteIcon,
+  OpenExplorerIcon,
   PhotoIcon,
   TelegramIcon,
   TestValidationIcon,
 } from '../shared/components/icons'
+import {useSuccessToast} from '../shared/hooks/use-toast'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -89,8 +92,15 @@ export default function ProfilePage() {
 
   const epoch = useEpoch()
   const {coinbase, privateKey} = useAuthState()
+  const userStatAddress = useBreakpointValue([
+    address ? `${address.substr(0, 3)}...${address.substr(-4, 4)}` : '',
+    address,
+  ])
 
   const [showValidationResults, setShowValidationResults] = React.useState()
+
+  const {onCopy, hasCopied} = useClipboard(address)
+  const successToast = useSuccessToast()
 
   const {
     isOpen: isOpenKillForm,
@@ -139,7 +149,7 @@ export default function ProfilePage() {
 
   const toast = useToast()
 
-  const toDna = toLocaleDna(language)
+  const toDna = toLocaleDna(language, 4)
 
   const [
     currentOnboarding,
@@ -181,12 +191,23 @@ export default function ProfilePage() {
   return (
     <Layout canRedirect={!dnaUrl}>
       <Page>
-        <PageTitle mb={8}>{t('Profile')}</PageTitle>
-        <Stack isInline spacing={10}>
-          <Stack spacing={8} w={480} ref={activateInviteRef}>
-            <UserInlineCard address={coinbase} state={state} h={24} />
+        <PageTitle mb={8} display={['none', 'block']}>
+          {t('Profile')}
+        </PageTitle>
+        <Stack
+          w={['100%', '480px']}
+          direction={['column', 'row']}
+          spacing={[0, 10]}
+        >
+          <Stack
+            spacing={[1, 8]}
+            w={['100%', '480px']}
+            align={['center', 'initial']}
+            ref={activateInviteRef}
+          >
+            <UserInlineCard address={coinbase} state={state} h={['auto', 24]} />
             {canActivateInvite && (
-              <Box>
+              <Box w={['100%', 'initial']} pb={[8, 0]}>
                 <OnboardingPopover
                   isOpen={isOpenActivateInvitePopover}
                   placement="bottom"
@@ -194,15 +215,18 @@ export default function ProfilePage() {
                   <PopoverTrigger>
                     <Stack
                       spacing={6}
-                      bg="white"
+                      bg={['transparent', 'white']}
                       borderRadius="lg"
-                      boxShadow="0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)"
-                      px={10}
-                      py={8}
+                      boxShadow={[
+                        'none',
+                        '0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)',
+                      ]}
+                      px={[0, 10]}
+                      py={[0, 8]}
                       pos="relative"
-                      zIndex="docked"
+                      zIndex={5}
                     >
-                      <Stack>
+                      <Stack display={['none', 'flex']}>
                         <Heading as="h3" fontWeight={500} fontSize="lg">
                           {state === IdentityStatus.Invite
                             ? t('Congratulations!')
@@ -311,88 +335,138 @@ export default function ProfilePage() {
                 IdentityStatus.Invite,
                 IdentityStatus.Candidate,
               ].includes(state) && (
-                <UserStatList title={t('Profile')}>
-                  {age >= 0 && <SimpleUserStat label={t('Age')} value={age} />}
-
-                  {penalty > 0 && (
-                    <AnnotatedUserStat
-                      annotation={t(
-                        "Your node was offline more than 1 hour. The penalty will be charged automatically. Once it's fully paid you'll continue to mine coins."
-                      )}
-                      label={t('Mining penalty')}
-                      value={toDna(penalty)}
-                    />
-                  )}
-
-                  {totalQualifiedFlips > 0 && (
-                    <AnnotatedUserStat
-                      annotation={t('Total score for the last 10 validations')}
-                      label={t('Total score')}
+                <>
+                  <WideLink
+                    display={['initial', 'none']}
+                    pt={5}
+                    pb={3}
+                    label="Open in blockchain explorer"
+                    href={`https://scan.idena.io/address/${address}`}
+                    isNewTab
+                  >
+                    <Box
+                      boxSize={8}
+                      backgroundColor="brandBlue.10"
+                      borderRadius="10px"
                     >
-                      <UserStatValue>
-                        {t(
-                          '{{shortFlipPoints}} out of {{qualifiedFlips}} ({{score}})',
-                          {
-                            shortFlipPoints: Math.min(
-                              totalShortFlipPoints,
-                              totalQualifiedFlips
-                            ),
-                            qualifiedFlips: totalQualifiedFlips,
-                            score: toPercent(
-                              totalShortFlipPoints / totalQualifiedFlips
-                            ),
-                          }
+                      <OpenExplorerIcon boxSize={5} mt="6px" ml="6px" />
+                    </Box>
+                  </WideLink>
+
+                  <UserStatList title={t('Profile')}>
+                    {age >= 0 && (
+                      <UserStatistics label={t('Age')} value={age} />
+                    )}
+
+                    {penalty > 0 && (
+                      <AnnotatedUserStatistics
+                        annotation={t(
+                          "Your node was offline more than 1 hour. The penalty will be charged automatically. Once it's fully paid you'll continue to mine coins."
                         )}
-                      </UserStatValue>
-                    </AnnotatedUserStat>
-                  )}
+                        label={t('Mining penalty')}
+                        value={toDna(penalty)}
+                      />
+                    )}
 
-                  {stake > 0 && (
-                    <AnnotatedUserStat
-                      annotation={t(
-                        'You need to get Verified status to be able to terminate your identity and withdraw the stake'
-                      )}
-                      label={t('Stake')}
-                      value={toDna(
-                        stake * (state === IdentityStatus.Newbie ? 0.25 : 1)
-                      )}
-                    />
-                  )}
+                    {totalQualifiedFlips > 0 && (
+                      <AnnotatedUserStatistics
+                        annotation={t(
+                          'Total score for the last 10 validations'
+                        )}
+                        label={t('Total score')}
+                      >
+                        <Box fontWeight={['500', 'auto']}>
+                          {t(
+                            '{{shortFlipPoints}} out of {{qualifiedFlips}} ({{score}})',
+                            {
+                              shortFlipPoints: Math.min(
+                                totalShortFlipPoints,
+                                totalQualifiedFlips
+                              ),
+                              qualifiedFlips: totalQualifiedFlips,
+                              score: toPercent(
+                                totalShortFlipPoints / totalQualifiedFlips
+                              ),
+                            }
+                          )}
+                        </Box>
+                      </AnnotatedUserStatistics>
+                    )}
 
-                  {stake > 0 && state === IdentityStatus.Newbie && (
-                    <AnnotatedUserStat
-                      annotation={t(
-                        'You need to get Verified status to get the locked funds into the normal wallet'
-                      )}
-                      label={t('Locked')}
-                      value={toDna(stake * 0.75)}
-                    />
-                  )}
-                </UserStatList>
+                    {stake > 0 && (
+                      <AnnotatedUserStatistics
+                        annotation={t(
+                          'You need to get Verified status to be able to terminate your identity and withdraw the stake'
+                        )}
+                        label={t('Stake')}
+                        value={toDna(
+                          stake * (state === IdentityStatus.Newbie ? 0.25 : 1)
+                        )}
+                      />
+                    )}
+
+                    {stake > 0 && state === IdentityStatus.Newbie && (
+                      <AnnotatedUserStatistics
+                        annotation={t(
+                          'You need to get Verified status to get the locked funds into the normal wallet'
+                        )}
+                        label={t('Locked')}
+                        value={toDna(stake * 0.75)}
+                      />
+                    )}
+                  </UserStatList>
+                </>
               )}
             <UserStatList title={t('Wallets')}>
-              <UserStat>
-                <UserStatLabel>{t('Address')}</UserStatLabel>
-                <UserStatValue>{address}</UserStatValue>
-                <ExternalLink href={`https://scan.idena.io/address/${address}`}>
-                  {t('Open in blockhain explorer')}
+              <UserStatistics label={t('Address')} value={userStatAddress}>
+                <ExternalLink
+                  display={['none', 'initial']}
+                  href={`https://scan.idena.io/address/${address}`}
+                >
+                  {t('Open in blockchain explorer')}
                 </ExternalLink>
-              </UserStat>
+                <CopyIcon
+                  display={['inline', 'none']}
+                  mt="3px"
+                  ml="4px"
+                  boxSize={4}
+                  fill="#96999e"
+                  onClick={() => {
+                    onCopy()
+                    successToast({
+                      title: 'Address copied!',
+                      duration: '5000',
+                    })
+                  }}
+                />
+              </UserStatistics>
 
-              <UserStat>
-                <UserStatLabel>{t('Balance')}</UserStatLabel>
-                <UserStatValue>{toDna(balance)}</UserStatValue>
-                <TextLink href="/wallets">
+              <UserStatistics label={t('Balance')} value={toDna(balance)}>
+                <TextLink display={['none', 'initial']} href="/wallets">
                   <Stack isInline spacing={0} align="center" fontWeight={500}>
                     <Text as="span">{t('Send')}</Text>
                     <ChevronDownIcon boxSize={4} transform="rotate(-90deg)" />
                   </Stack>
                 </TextLink>
-              </UserStat>
+              </UserStatistics>
+
+              <Button
+                display={['initial', 'none']}
+                onClick={() => router.push('/wallets')}
+                w="100%"
+                h={10}
+                fontSize="15px"
+                variant="outline"
+                color="blue.500"
+                border="none"
+                borderColor="transparent"
+              >
+                Send iDNA
+              </Button>
             </UserStatList>
           </Stack>
-          <Stack spacing={10} w={200}>
-            <Box minH={62} mt={6}>
+          <Stack spacing={[0, 10]} flexShrink={0} w={['100%', 200]}>
+            <Box minH={62} mt={[1, 6]}>
               <OnboardingPopover
                 isOpen={eitherOnboardingState(
                   onboardingShowingStep(OnboardingStep.ActivateMining)
@@ -408,9 +482,9 @@ export default function ProfilePage() {
                         ? 'relative'
                         : 'initial'
                     }
-                    borderRadius="md"
-                    p={2}
-                    m={-2}
+                    borderRadius={['mdx', 'md']}
+                    p={[0, 2]}
+                    m={[0, -2]}
                     zIndex={2}
                   >
                     {address && privateKey && canMine && (
@@ -436,33 +510,78 @@ export default function ProfilePage() {
                 </OnboardingPopoverContent>
               </OnboardingPopover>
             </Box>
-            <Stack spacing={1} align="flex-start">
-              <IconButton
+            <Stack spacing={[0, 1]} align="flex-start">
+              <WideLink
+                mt={[0, '2px']}
+                label={t('Training validation')}
                 onClick={() => router.push('/try')}
-                icon={<TestValidationIcon boxSize={5} />}
               >
-                {t('Training validation')}
-              </IconButton>
-              <IconButton
+                <Box
+                  boxSize={[8, 5]}
+                  backgroundColor={['brandBlue.10', 'initial']}
+                  borderRadius="10px"
+                >
+                  <TestValidationIcon
+                    color="blue.500"
+                    boxSize={5}
+                    mt={['6px', 0]}
+                    ml={['6px', 0]}
+                  />
+                </Box>
+              </WideLink>
+              <WideLink
+                label={t('New flip')}
                 onClick={() => router.push('/flips/new')}
-                icon={<PhotoIcon boxSize={5} />}
               >
-                {t('New flip')}
-              </IconButton>
-              <IconButton
+                <Box
+                  boxSize={[8, 5]}
+                  backgroundColor={['brandBlue.10', 'initial']}
+                  borderRadius="10px"
+                >
+                  <PhotoIcon
+                    color="blue.500"
+                    boxSize={5}
+                    mt={['6px', 0]}
+                    ml={['6px', 0]}
+                  />
+                </Box>
+              </WideLink>
+              <WideLink
+                label={t('Invite')}
                 onClick={() => router.push('/contacts?new')}
                 isDisabled={!canInvite}
-                icon={<AddUserIcon boxSize={5} />}
               >
-                {t('Invite')}
-              </IconButton>
-              <IconButton
-                isDisabled={!canTerminate}
-                icon={<DeleteIcon boxSize={5} />}
+                <Box
+                  boxSize={[8, 5]}
+                  backgroundColor={['brandBlue.10', 'initial']}
+                  borderRadius="10px"
+                >
+                  <AddUserIcon
+                    color="blue.500"
+                    boxSize={5}
+                    mt={['6px', 0]}
+                    ml={['6px', 0]}
+                  />
+                </Box>
+              </WideLink>
+              <WideLink
+                label={t('Terminate')}
                 onClick={onOpenKillForm}
+                isDisabled={!canTerminate}
               >
-                {t('Terminate')}
-              </IconButton>
+                <Box
+                  boxSize={[8, 5]}
+                  backgroundColor={['brandBlue.10', 'initial']}
+                  borderRadius="10px"
+                >
+                  <DeleteIcon
+                    color="blue.500"
+                    boxSize={5}
+                    mt={['6px', 0]}
+                    ml={['6px', 0]}
+                  />
+                </Box>
+              </WideLink>
             </Stack>
           </Stack>
         </Stack>
