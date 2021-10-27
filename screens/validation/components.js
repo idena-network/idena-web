@@ -29,6 +29,7 @@ import {
   ModalOverlay,
   ModalContent,
   useDisclosure,
+  useMediaQuery,
 } from '@chakra-ui/react'
 import {useMachine} from '@xstate/react'
 import {Trans, useTranslation} from 'react-i18next'
@@ -100,7 +101,7 @@ export function Header(props) {
     <ChakraFlex
       justify="space-between"
       align="center"
-      mb={rem(55)}
+      mb={props.isPrettyHigh ? '55px' : '0px'}
       {...props}
     />
   )
@@ -522,6 +523,7 @@ export function FlipWords({
   currentFlip: {words = []},
   translations = {},
   children,
+  isShowGtLink = true,
 }) {
   const {t, i18n} = useTranslation()
 
@@ -548,6 +550,7 @@ export function FlipWords({
             locale={i18n.language}
             onSwitchLocale={() => setShowTranslation(!showTranslation)}
             isInline={false}
+            isShowGtLink={isShowGtLink}
           />
         ) : (
           <>
@@ -1461,6 +1464,8 @@ export function ValidationScreen({
 
   const {t} = useTranslation()
 
+  const [isPrettyHigh] = useMediaQuery('(min-height: 600px)')
+
   const {
     isOpen: isReportDialogOpen,
     onOpen: onOpenReportDialog,
@@ -1481,7 +1486,7 @@ export function ValidationScreen({
     <ValidationScene
       bg={isShortSession(state) ? theme.colors.black : theme.colors.white}
     >
-      <Header>
+      <Header isPrettyHigh={isPrettyHigh}>
         <Title color={isShortSession(state) ? 'white' : 'brandGray.500'}>
           {['shortSession', 'longSession'].some(state.matches) &&
           !isLongSessionKeywords(state)
@@ -1539,6 +1544,7 @@ export function ValidationScreen({
               key={currentFlip.hash}
               currentFlip={currentFlip}
               translations={translations}
+              isShowGtLink={isPrettyHigh}
             >
               <Stack spacing={4}>
                 <Stack isInline spacing={1} align="center">

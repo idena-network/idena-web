@@ -507,6 +507,7 @@ export function FlipKeywordTranslationSwitch({
   locale,
   onSwitchLocale,
   isInline = true,
+  isShowGtLink = true,
 }) {
   const hasBothTranslations =
     keywords.translations.reduce((acc, {length}) => acc + length, 0) > 1
@@ -552,36 +553,38 @@ export function FlipKeywordTranslationSwitch({
           ))}
       </FlipKeywordPair>
 
-      <Stack isInline spacing={1} align="center">
-        {hasBothTranslations && (
-          <IconButton
-            icon={<SwitchIcon boxSize={5} />}
-            _hover={{background: 'transparent'}}
-            onClick={onSwitchLocale}
-          >
-            {showTranslation ? 'EN' : (locale || '').toUpperCase()}
-          </IconButton>
-        )}
-        {showTranslation || (
-          <>
-            {hasBothTranslations ? (
-              <Divider
-                orientation="vertical"
-                borderColor="gray.100"
-                m={0}
-                h={rem(24)}
-              />
-            ) : null}
+      {isShowGtLink && (
+        <Stack isInline spacing={1} align="center">
+          {hasBothTranslations && (
             <IconButton
-              icon={<GtranslateIcon boxSize={5} />}
+              icon={<SwitchIcon boxSize={5} />}
               _hover={{background: 'transparent'}}
-              onClick={translate}
+              onClick={onSwitchLocale}
             >
-              Google Translate
+              {showTranslation ? 'EN' : (locale || '').toUpperCase()}
             </IconButton>
-          </>
-        )}
-      </Stack>
+          )}
+          {showTranslation || (
+            <>
+              {hasBothTranslations ? (
+                <Divider
+                  orientation="vertical"
+                  borderColor="gray.100"
+                  m={0}
+                  h={rem(24)}
+                />
+              ) : null}
+              <IconButton
+                icon={<GtranslateIcon boxSize={5} />}
+                _hover={{background: 'transparent'}}
+                onClick={translate}
+              >
+                Google Translate
+              </IconButton>
+            </>
+          )}
+        </Stack>
+      )}
     </Stack>
   )
 }
