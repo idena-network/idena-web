@@ -198,7 +198,7 @@ export default function Restricted() {
                 <>
                   <Flex>
                     <Text color="white" fontSize="lg">
-                      {t('Connect to shared node')}
+                      {t('Connect to a shared node')}
                     </Text>
                   </Flex>
 
@@ -230,7 +230,9 @@ export default function Restricted() {
                           onChange={() => setState(options.BUY)}
                         >
                           <Text color="white">
-                            {t('Rent another shared node')}
+                            {canProlong
+                              ? t('Rent another shared node')
+                              : t('Rent a shared node')}
                           </Text>
                         </ChooseItemRadio>
                         <ChooseItemRadio
