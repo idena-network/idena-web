@@ -126,3 +126,5 @@ export const toBlob = base64 => fetch(base64).then(res => res.blob())
 
 export const isVercelProduction =
   process.env.NEXT_PUBLIC_VERCEL_ENV === 'production'
+
+export const lowerCase = str => str?.toLowerCase()

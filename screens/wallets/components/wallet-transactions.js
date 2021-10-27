@@ -16,7 +16,7 @@ import {
 import {fetchApiTransactions} from '../../../shared/api/wallet'
 import {FlatButton} from '../../../shared/components/button'
 import {Skeleton} from '../../../shared/components/components'
-import {HASH_IN_MEMPOOL} from '../../../shared/hooks/use-tx'
+import {lowerCase} from '../../../shared/utils/utils'
 
 function RowStatus({direction, type, isMining, walletName, ...props}) {
   const txColor =
@@ -93,8 +93,6 @@ function transactionType(tx) {
     return `Mining status ${data && data.becomeOnline ? 'On' : 'Off'}`
   return type
 }
-
-const lowerCase = str => str?.toLowerCase()
 
 // eslint-disable-next-line react/prop-types
 function WalletTransactions({address}) {

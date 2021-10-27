@@ -208,18 +208,34 @@ function ContactList({filter, selectedContactId, onSelectContact}) {
       </Box>
       {filteredInvites
         .filter(invite => !invite.deletedAt)
-        .map(invite => (
-          <ContactListItem
-            key={invite.id}
-            isActive={(invite.dbkey || invite.id) === selectedContactId}
-            id={invite.dbkey || invite.id}
-            {...invite}
-            state={invite.identity?.state}
-            onClick={() => {
-              onSelectContact(invite)
-            }}
-          />
-        ))}
+        .map(invite => {
+          const {
+            id,
+            receiver,
+            firstName,
+            lastName,
+            activated,
+            mining,
+            terminating,
+            identity,
+          } = invite
+          return (
+            <ContactListItem
+              key={id}
+              isActive={id === selectedContactId}
+              receiver={receiver}
+              firstName={firstName}
+              lastName={lastName}
+              activated={activated}
+              terminating={terminating}
+              mining={mining}
+              state={identity?.state}
+              onClick={() => {
+                onSelectContact(invite)
+              }}
+            />
+          )
+        })}
     </Box>
   )
 }
@@ -292,7 +308,6 @@ export function ContactCard({
 
   const {
     id,
-    dbkey = id,
     key,
     receiver,
     address = receiver,
@@ -361,11 +376,11 @@ export function ContactCard({
               <IconButton
                 icon={<FlipEditorDeleteIcon boxSize={5} />}
                 onClick={() => {
-                  deleteInvite(dbkey)
+                  deleteInvite(id)
                   successToast({
                     title: t('Contact deleted'),
                     onAction: () => {
-                      recoverInvite(dbkey)
+                      recoverInvite(id)
                       onRecoverContact(contact)
                     },
                     actionContent: t('Undo'),
@@ -376,7 +391,7 @@ export function ContactCard({
                 {t('Delete contact')}
               </IconButton>
             </Tooltip>
-            {canKill && (
+            {canKill && !terminating && !mining && (
               <>
                 <VDivider />
                 <IconButton

@@ -1,4 +1,3 @@
-import nanoid from 'nanoid'
 import db from '../../shared/utils/db'
 
 export function getInvites() {
@@ -6,13 +5,15 @@ export function getInvites() {
 }
 
 export async function addInvite(invite) {
-  const id = nanoid()
-  await db.invites.put({id, ...invite})
-  return id
+  return db.invites.put(invite)
 }
 
 export function updateInvite(id, invite) {
-  return db.invites.put({id, ...invite})
+  return db.invites.update(id, invite)
+}
+
+export function deleteInvite(id) {
+  return db.invites.delete(id)
 }
 
 export function getActivationTx() {
