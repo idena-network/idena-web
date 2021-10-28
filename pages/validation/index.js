@@ -90,7 +90,7 @@ function ValidationSession({
         setTimeout(onCloseExceededTooltip, 3000)
       },
       onValidationSucceeded: () => {
-        router.push('/')
+        router.push('/home')
       },
     },
     state: loadValidationState(),

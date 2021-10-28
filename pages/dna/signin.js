@@ -47,7 +47,7 @@ export default function SigninPage() {
             query={query}
             onDone={() => {
               sessionStorage.removeItem('dnaUrl')
-              router.push('/')
+              router.push('/home')
             }}
             onError={error =>
               toast({

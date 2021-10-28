@@ -370,7 +370,7 @@ function ActionPanel({onClose}) {
               OnboardingStep.ActivateMining
             )
           )
-            router.push('/')
+            router.push('/home')
           if (eitherOnboardingState(OnboardingStep.CreateFlips))
             router.push('/flips/list')
 

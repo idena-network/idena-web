@@ -137,7 +137,7 @@ export function AppProvider({tabId, ...props}) {
 
         addPurchasedKey(provider.data.url, data.key, data.epoch)
 
-        router.push('/')
+        router.push('/home')
       } catch {
         console.error(
           `key is not ready, id: [${apiKeyId}], provider: [${apiKeyData.provider}]`
