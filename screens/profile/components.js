@@ -80,10 +80,14 @@ import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {activateMiningMachine} from './machines'
 import {fetchBalance} from '../../shared/api/wallet'
-import {AddUserIcon, LaptopIcon, UserIcon} from '../../shared/components/icons'
+import {LaptopIcon, UserIcon} from '../../shared/components/icons'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
 import useTx from '../../shared/hooks/use-tx'
+import {
+  sendActivateInvitation,
+  sendSuccessValidation,
+} from '../../shared/utils/analytics'
 
 export function UserInlineCard({address, state, ...props}) {
   return (
@@ -352,6 +356,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
         // need to wait identity state update manually, because nothing changes in memory
         waitStateUpdate()
       }
+      sendActivateInvitation(coinbase)
     } catch (e) {
       failToast(
         `Failed to activate invite: ${
@@ -483,16 +488,28 @@ export function ValidationResultToast({epoch}) {
   const [current] = useMachine(timerMachine)
 
   const [state, dispatch] = usePersistence(
-    React.useReducer(
-      (prevState, seen) => ({
-        ...prevState,
-        [epoch]: {
-          ...prevState[epoch],
-          seen,
-        },
-      }),
-      loadPersistentState('validationResults') || {}
-    ),
+    React.useReducer((prevState, action) => {
+      switch (action.type) {
+        case 'seen':
+          return {
+            ...prevState,
+            [epoch]: {
+              ...prevState[epoch],
+              seen: action.value,
+            },
+          }
+        case 'analytics':
+          return {
+            ...prevState,
+            [epoch]: {
+              ...prevState[epoch],
+              analyticsSent: action.value,
+            },
+          }
+        default:
+          return prevState
+      }
+    }, loadPersistentState('validationResults') || {}),
     'validationResults'
   )
 
@@ -516,6 +533,15 @@ export function ValidationResultToast({epoch}) {
     typeof state[epoch] === 'boolean'
       ? !state[epoch]
       : state[epoch] && !state[epoch].seen
+
+  const analyticsNotSent = state[epoch] && !state[epoch].analyticsSent
+
+  useEffect(() => {
+    if (isValidationSucceeded && analyticsNotSent) {
+      sendSuccessValidation(address, epoch)
+      dispatch({type: 'analytics', value: true})
+    }
+  }, [isValidationSucceeded, address, dispatch, analyticsNotSent, epoch])
 
   return notSeen ? (
     <Snackbar>
@@ -551,7 +577,7 @@ export function ValidationResultToast({epoch}) {
               : t('See your validation results in the blockchain explorer')
           }
           action={() => {
-            dispatch(true)
+            dispatch({type: 'seen', value: true})
             const win = openExternalUrl(url)
             win.focus()
           }}
