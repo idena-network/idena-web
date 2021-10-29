@@ -34,7 +34,10 @@ import {
   eitherState,
   openExternalUrl,
 } from '../shared/utils/utils'
-import {hasPersistedValidationResults} from '../screens/validation/utils'
+import {
+  hasPersistedValidationResults,
+  shouldExpectValidationResults,
+} from '../screens/validation/utils'
 import {useIdentity} from '../shared/providers/identity-context'
 import {useEpoch} from '../shared/providers/epoch-context'
 import {fetchBalance} from '../shared/api/wallet'
@@ -61,6 +64,7 @@ import {
   TestValidationIcon,
 } from '../shared/components/icons'
 import {useSuccessToast} from '../shared/hooks/use-toast'
+import {persistItem} from '../shared/utils/persist'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -120,6 +124,15 @@ export default function ProfilePage() {
     if (epoch) {
       const {epoch: epochNumber} = epoch
       if (epochNumber) {
+        if (
+          shouldExpectValidationResults(epochNumber) &&
+          !hasPersistedValidationResults(epochNumber)
+        ) {
+          persistItem('validationResults', epochNumber, {
+            epochStart: new Date().toISOString(),
+          })
+        }
+
         queryClient.invalidateQueries('get-balance')
         setShowValidationResults(hasPersistedValidationResults(epochNumber))
       }

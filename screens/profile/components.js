@@ -41,14 +41,9 @@ import {
   DrawerFooter,
   Toast,
   FormControlWithLabel,
-  ExternalLink,
 } from '../../shared/components/components'
 import {rem} from '../../shared/theme'
-import {
-  FlatButton,
-  PrimaryButton,
-  SecondaryButton,
-} from '../../shared/components/button'
+import {FlatButton, PrimaryButton} from '../../shared/components/button'
 import {IdentityStatus, NodeType} from '../../shared/types'
 import {NotificationType} from '../../shared/providers/notification-context'
 import {Notification, Snackbar} from '../../shared/components/notifications'
@@ -529,10 +524,7 @@ export function ValidationResultToast({epoch}) {
     isValidationSucceeded ? 'rewards' : 'validation'
   }`
 
-  const notSeen =
-    typeof state[epoch] === 'boolean'
-      ? !state[epoch]
-      : state[epoch] && !state[epoch].seen
+  const notSeen = state[epoch] && !state[epoch].seen
 
   const analyticsNotSent = state[epoch] && !state[epoch].analyticsSent
 
