@@ -12,7 +12,7 @@ export function sendSignIn(coinbase) {
     if (data.coinbase === coinbase) {
       localStorage.removeItem(LS_EVENT_NAME)
       TagManager.dataLayer({
-        dataLayer: {event: 'create-account', userId: coinbase},
+        dataLayer: {event: 'app.create_account', userId: coinbase},
       })
     }
   } catch {
@@ -31,7 +31,7 @@ export function sendSignUp(coinbase) {
 export function sendSuccessTrainingValidation(coinbase) {
   try {
     TagManager.dataLayer({
-      dataLayer: {event: 'training-success', userId: coinbase},
+      dataLayer: {event: 'app.training_success', userId: coinbase},
     })
   } catch {
     console.error('cannot send training-success')
@@ -41,17 +41,17 @@ export function sendSuccessTrainingValidation(coinbase) {
 export function sendActivateInvitation(coinbase) {
   try {
     TagManager.dataLayer({
-      dataLayer: {event: 'invite-activation', userId: coinbase},
+      dataLayer: {event: 'app.invite_activation', userId: coinbase},
     })
   } catch {
     console.error('cannot send invite-activation')
   }
 }
 
-export function sendSuccessValidation(coinbase, epoch) {
+export function sendSuccessValidation(coinbase) {
   try {
     TagManager.dataLayer({
-      dataLayer: {event: 'validation-success', userId: coinbase, epoch},
+      dataLayer: {event: 'app.validation_success', userId: coinbase},
     })
   } catch {
     console.error('cannot send validation-success')

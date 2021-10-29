@@ -538,10 +538,10 @@ export function ValidationResultToast({epoch}) {
 
   useEffect(() => {
     if (isValidationSucceeded && analyticsNotSent) {
-      sendSuccessValidation(address, epoch)
+      sendSuccessValidation(address)
       dispatch({type: 'analytics', value: true})
     }
-  }, [isValidationSucceeded, address, dispatch, analyticsNotSent, epoch])
+  }, [isValidationSucceeded, address, dispatch, analyticsNotSent])
 
   return notSeen ? (
     <Snackbar>
