@@ -10,6 +10,7 @@ import {useInterval} from '../hooks/use-interval'
 
 import {usePersistence} from '../hooks/use-persistent-state'
 import {CertificateActionType, CertificateType, EpochPeriod} from '../types'
+import {sendSuccessTrainingValidation} from '../utils/analytics'
 import {toHexString} from '../utils/buffers'
 import {signMessage} from '../utils/crypto'
 import {loadPersistentState} from '../utils/persist'
@@ -135,6 +136,10 @@ function TestValidationProvider({children}) {
 
   const checkValidation = async id => {
     const result = await getResult(id)
+
+    if (result.actionType === CertificateActionType.Passed) {
+      sendSuccessTrainingValidation(coinbase)
+    }
 
     setState(prevState => ({
       ...prevState,

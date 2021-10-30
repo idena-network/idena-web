@@ -5,17 +5,13 @@ import {useRouter} from 'next/router'
 import {useMachine} from '@xstate/react'
 import {useInterval} from '../hooks/use-interval'
 
-import {
-  didValidate,
-  hasPersistedValidationResults,
-  shouldExpectValidationResults,
-} from '../../screens/validation/utils'
+import {didValidate} from '../../screens/validation/utils'
 import {
   archiveFlips,
   didArchiveFlips,
   markFlipsArchived,
 } from '../../screens/flips/utils'
-import {loadPersistentState, persistItem, persistState} from '../utils/persist'
+import {loadPersistentState, persistState} from '../utils/persist'
 import {ntp, openExternalUrl} from '../utils/utils'
 import {Toast} from '../components/components'
 import {useEpoch} from './epoch-context'
@@ -80,18 +76,6 @@ export function AppProvider({tabId, ...props}) {
     if (epoch && didValidate(epoch.epoch) && !didArchiveFlips(epoch.epoch)) {
       archiveFlips()
       markFlipsArchived(epoch.epoch)
-    }
-  }, [epoch])
-
-  useEffect(() => {
-    if (
-      epoch &&
-      shouldExpectValidationResults(epoch.epoch) &&
-      !hasPersistedValidationResults(epoch.epoch)
-    ) {
-      persistItem('validationResults', epoch.epoch, {
-        epochStart: new Date().toISOString(),
-      })
     }
   }, [epoch])
 
