@@ -137,7 +137,7 @@ export function AppProvider({tabId, ...props}) {
 
         addPurchasedKey(provider.data.url, data.key, data.epoch)
 
-        router.push('/')
+        router.push('/home')
       } catch {
         console.error(
           `key is not ready, id: [${apiKeyId}], provider: [${apiKeyData.provider}]`
@@ -155,6 +155,11 @@ export function AppProvider({tabId, ...props}) {
   const [, send] = useMachine(restrictedModalMachine, {
     actions: {
       onRedirect: () => {
+        // need to redirect to /home, because "Not now" button on restricted page
+        // uses history api to go back, we do not need to go back to import
+        if (router.pathname === '/key/import') {
+          router.push('/home')
+        }
         router.push('/node/restricted')
       },
       persistModalState: ({storage}) => {

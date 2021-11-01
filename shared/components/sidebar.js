@@ -228,7 +228,7 @@ function Nav({onClose}) {
     <Flex alignSelf="stretch">
       <List listStyleType="none" m={0} p={0} width="100%">
         <NavItem
-          href="/"
+          href="/home"
           icon={<ProfileIcon boxSize={[8, 5]} />}
           text={t('My Idena') || nickname}
         ></NavItem>
@@ -370,7 +370,7 @@ function ActionPanel({onClose}) {
               OnboardingStep.ActivateMining
             )
           )
-            router.push('/')
+            router.push('/home')
           if (eitherOnboardingState(OnboardingStep.CreateFlips))
             router.push('/flips/list')
 

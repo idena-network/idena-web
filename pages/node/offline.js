@@ -163,7 +163,7 @@ export default function Offline() {
       apiKeyState === apiKeyStates.ONLINE ||
       apiKeyState === apiKeyStates.EXTERNAL
     )
-      router.push('/')
+      router.push('/home')
   }, [apiKeyState, router])
 
   useEffect(() => {
@@ -396,7 +396,7 @@ export default function Offline() {
               onClick={() => {
                 setRestrictedKey()
                 onClose()
-                router.push('/')
+                router.push('/home')
               }}
             >
               {t('Yes')}

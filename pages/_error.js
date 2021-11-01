@@ -30,7 +30,7 @@ function MyError({statusCode, hasGetInitialPropsRun, err}) {
                 : t('An error occurred on client')}
             </h2>
             <div>
-              <PrimaryButton onClick={() => Router.push('/')}>
+              <PrimaryButton onClick={() => Router.push('/home')}>
                 {t('Go to My Idena')}
               </PrimaryButton>
             </div>

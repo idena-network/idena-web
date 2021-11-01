@@ -23,7 +23,7 @@ export default function Custom404() {
           </Flex>
         </Stack>
 
-        <PrimaryButton mt={7} onClick={() => router.push('/')}>
+        <PrimaryButton mt={7} onClick={() => router.push('/home')}>
           Back to My Idena
         </PrimaryButton>
       </Flex>

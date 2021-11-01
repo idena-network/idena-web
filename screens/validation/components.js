@@ -1750,7 +1750,7 @@ export function ValidationScreen({
           onSubmit={
             onValidationFailed
               ? () => onValidationFailed()
-              : () => router.push('/')
+              : () => router.push('/home')
           }
         />
       )}

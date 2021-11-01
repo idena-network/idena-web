@@ -45,7 +45,7 @@ export default function ImportKey() {
         setRestrictedKey()
       }
       sendSignIn(privateKeyToAddress(key))
-      router.push('/')
+      router.push('/home')
     } else {
       setError(t('Key or password is invalid. Try again.'))
     }

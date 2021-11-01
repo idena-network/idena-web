@@ -52,7 +52,7 @@ export default function Try() {
             <CloseButton
               alignSelf="flex-start"
               onClick={() => {
-                router.push('/')
+                router.push('/home')
               }}
             />
           </Flex>
