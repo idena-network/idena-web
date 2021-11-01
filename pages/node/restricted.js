@@ -32,6 +32,11 @@ const options = {
   CANDIDATE: 3,
 }
 
+const steps = {
+  INITIAL: 0,
+  CONNECT: 1,
+}
+
 export default function Restricted() {
   const [{apiKeyData}] = useSettings()
   const {coinbase, privateKey} = useAuthState()
@@ -39,6 +44,8 @@ export default function Restricted() {
   const auth = useAuthState()
   const router = useRouter()
   const {t} = useTranslation()
+
+  const [step, setStep] = useState(steps.INITIAL)
 
   const [state, setState] = useState(options.PROLONG)
   const [dontShow, setDontShow] = useState(false)
@@ -56,8 +63,8 @@ export default function Restricted() {
     persistState('restricted-modal', {...current, dontShow})
   }
 
-  const notNow = () => {
-    persistCheckbox()
+  const notNow = persist => {
+    if (persist) persistCheckbox()
     router.back()
   }
 
@@ -126,7 +133,7 @@ export default function Restricted() {
         flex="1"
       >
         <Flex flexGrow={1} align="center" justify="center" mt="44px">
-          <Flex direction="column" maxWidth="480px">
+          <Flex direction="column" maxWidth={['360px', '480px']}>
             <Flex>
               <Avatar address={auth.coinbase} />
               <Flex direction="column" justify="center" flex="1" ml={5}>
@@ -143,86 +150,127 @@ export default function Restricted() {
               px={10}
               py={7}
             >
-              <Flex>
-                <Text color="white" fontSize="lg">
-                  {t(
-                    'You cannot use the shared node for the upcoming validation ceremony'
-                  )}
-                </Text>
-              </Flex>
+              {step === steps.INITIAL && (
+                <Flex direction="column" alignItems="center" mt={6}>
+                  <Flex>
+                    <Text color="white" fontSize="lg">
+                      {t('Restricted access')}
+                    </Text>
+                  </Flex>
 
-              <Flex mt={7}>
-                <Text color="white" fontSize="sm" opacity={0.5}>
-                  {t('Choose an option')}
-                </Text>
-              </Flex>
-              <Flex mt={4}>
-                <RadioGroup>
-                  <Stack direction="column" spacing={3}>
-                    {canProlong && (
-                      <ChooseItemRadio
-                        isChecked={state === options.PROLONG}
-                        onChange={() => setState(options.PROLONG)}
-                      >
-                        <Text color="white">
-                          {t('Prolong node access')}{' '}
-                          {provider ? `(${provider.data.price} iDNA)` : ''}
-                        </Text>
-                      </ChooseItemRadio>
-                    )}
-                    <ChooseItemRadio
-                      isChecked={state === options.BUY}
-                      onChange={() => setState(options.BUY)}
-                    >
-                      <Text color="white">{t('Rent another shared node')}</Text>
-                    </ChooseItemRadio>
-                    <ChooseItemRadio
-                      isChecked={state === options.ENTER_KEY}
-                      onChange={() => setState(options.ENTER_KEY)}
-                    >
-                      <Text color="white">
-                        {t('Enter shared node API key')}
-                      </Text>
-                    </ChooseItemRadio>
-                    {identityState === IdentityStatus.Candidate && (
-                      <ChooseItemRadio
-                        isChecked={state === options.CANDIDATE}
-                        onChange={() => setState(options.CANDIDATE)}
-                      >
-                        <Text color="white">{t('Get free access')}</Text>
-                      </ChooseItemRadio>
-                    )}
-                  </Stack>
-                </RadioGroup>
-              </Flex>
-              <Flex mt={10} justifyContent="space-between">
-                <Flex>
-                  <Checkbox
-                    order={[2, 1]}
-                    mt={[9, 0]}
-                    textAlign={['left', 'initial']}
-                    value={dontShow}
-                    isChecked={dontShow}
-                    onChange={e => setDontShow(e.target.checked)}
-                    color="white"
+                  <Flex mt={4}>
+                    <Text fontSize="mdx" color="muted" textAlign="center">
+                      {t(
+                        'You can use all functions of the app except validation. Please connect to a shared node if you want to participate in the upcoming validation using the web app. '
+                      )}
+                    </Text>
+                  </Flex>
+                  <Flex justifyContent="center" mt={4}>
+                    <PrimaryButton onClick={() => setStep(steps.CONNECT)}>
+                      {t('Connect')}
+                    </PrimaryButton>
+                  </Flex>
+                  <Flex
+                    mt={10}
+                    justifyContent="space-between"
+                    alignSelf="normal"
                   >
-                    {t('Don’t show again')}
-                  </Checkbox>
+                    <Flex>
+                      <Checkbox
+                        textAlign={['left', 'initial']}
+                        value={dontShow}
+                        isChecked={dontShow}
+                        onChange={e => setDontShow(e.target.checked)}
+                        color="white"
+                      >
+                        {t('Don’t show again')}
+                      </Checkbox>
+                    </Flex>
+                    <Flex>
+                      <SecondaryButton onClick={() => notNow(true)}>
+                        {t('Not now')}
+                      </SecondaryButton>
+                    </Flex>
+                  </Flex>
                 </Flex>
-                <Flex>
-                  <SecondaryButton onClick={notNow} mr={2}>
-                    {t('Not now')}
-                  </SecondaryButton>
-                  <PrimaryButton
-                    onClick={process}
-                    isDisabled={waiting}
-                    isLoading={waiting}
-                    loadingText="Waiting..."
-                  >
-                    {t('Continue')}
-                  </PrimaryButton>
-                </Flex>
-              </Flex>
+              )}
+              {step === steps.CONNECT && (
+                <>
+                  <Flex>
+                    <Text color="white" fontSize="lg">
+                      {t('Connect to a shared node')}
+                    </Text>
+                  </Flex>
+
+                  <Flex mt={7}>
+                    <Text color="muted" fontSize="sm">
+                      {t('Choose an option')}
+                    </Text>
+                  </Flex>
+                  <Flex mt={4}>
+                    <RadioGroup>
+                      <Stack direction="column" spacing={3}>
+                        {canProlong && (
+                          <ChooseItemRadio
+                            isChecked={state === options.PROLONG}
+                            onChange={() => setState(options.PROLONG)}
+                            alignItems="baseline"
+                          >
+                            <Text color="white">
+                              {t('Prolong node access')}{' '}
+                              {`(${provider.data.price} iDNA)`}
+                            </Text>
+                            <Text color="muted" fontSize="sm">
+                              {provider.data.url}
+                            </Text>
+                          </ChooseItemRadio>
+                        )}
+                        <ChooseItemRadio
+                          isChecked={state === options.BUY}
+                          onChange={() => setState(options.BUY)}
+                        >
+                          <Text color="white">
+                            {canProlong
+                              ? t('Rent another shared node')
+                              : t('Rent a shared node')}
+                          </Text>
+                        </ChooseItemRadio>
+                        <ChooseItemRadio
+                          isChecked={state === options.ENTER_KEY}
+                          onChange={() => setState(options.ENTER_KEY)}
+                        >
+                          <Text color="white">
+                            {t('Enter shared node API key')}
+                          </Text>
+                        </ChooseItemRadio>
+                        {identityState === IdentityStatus.Candidate && (
+                          <ChooseItemRadio
+                            isChecked={state === options.CANDIDATE}
+                            onChange={() => setState(options.CANDIDATE)}
+                          >
+                            <Text color="white">{t('Get free access')}</Text>
+                          </ChooseItemRadio>
+                        )}
+                      </Stack>
+                    </RadioGroup>
+                  </Flex>
+                  <Flex mt={10} justifyContent="space-between">
+                    <Flex ml="auto">
+                      <SecondaryButton onClick={() => notNow(false)} mr={2}>
+                        {t('Not now')}
+                      </SecondaryButton>
+                      <PrimaryButton
+                        onClick={process}
+                        isDisabled={waiting}
+                        isLoading={waiting}
+                        loadingText="Waiting..."
+                      >
+                        {t('Continue')}
+                      </PrimaryButton>
+                    </Flex>
+                  </Flex>
+                </>
+              )}
             </Flex>
           </Flex>
         </Flex>
