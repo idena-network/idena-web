@@ -59,7 +59,7 @@ const SHARED_NODE_CHECK_KEY = 'check-status-key'
 
 export async function checkProvider(url) {
   const {data} = await axios.create({baseURL: url}).post('/', {
-    method: 'dna_epoch',
+    method: 'bcn_syncing',
     params: [],
     id: 1,
     key: SHARED_NODE_CHECK_KEY,

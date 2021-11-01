@@ -10,9 +10,11 @@ import {
 import {useRouter} from 'next/router'
 import {rem} from 'polished'
 import {useState} from 'react'
+import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
 import {Page, PageTitle} from '../../screens/app/components'
 import {BuySharedNodeForm} from '../../screens/node/components'
+import {getLastBlock} from '../../shared/api/indexer'
 import {checkProvider, getProviders} from '../../shared/api/marketplace'
 import {
   Table,
@@ -24,34 +26,64 @@ import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import Layout from '../../shared/components/layout'
 import {useAuthState} from '../../shared/providers/auth-context'
 
+const SYNCING_DIFF = 50
+
 // eslint-disable-next-line react/prop-types
 function ProviderStatus({url}) {
-  const {isLoading, isError, isSuccess} = useQuery(
+  const {t} = useTranslation()
+
+  const {isLoading, isError, isSuccess, data: providerData} = useQuery(
     ['provider-status', url],
     () => checkProvider(url),
     {retry: false, refetchOnWindowFocus: false}
   )
+
+  const {data: indexerData, isSuccess: indexerIsSuccess} = useQuery(
+    ['last-block'],
+    () => getLastBlock(),
+    {
+      retry: false,
+      refetchOnWindowFocus: false,
+    }
+  )
+
+  const blocksCount =
+    indexerData?.result?.height - providerData?.result?.currentBlock
+
+  const outOfSync =
+    isSuccess &&
+    indexerIsSuccess &&
+    (providerData?.result?.syncing || blocksCount > SYNCING_DIFF)
 
   return (
     <>
       {isLoading && (
         <Flex>
           <Text color="muted" fontSize="sm">
-            Connecting...
+            {t('Connecting...')}
           </Text>
         </Flex>
       )}
       {isError && (
         <Flex>
           <Text color="muted" fontSize="sm">
-            Not available
+            {t('Not available')}
           </Text>
         </Flex>
       )}
-      {isSuccess && (
+      {isSuccess && !outOfSync && (
         <Flex>
-          <Text color="success.400" fontSize="sm">
-            Online
+          <Text color="green.500" fontSize="sm">
+            {t('Online')}
+          </Text>
+        </Flex>
+      )}
+      {isSuccess && outOfSync && (
+        <Flex>
+          <Text color="warning.500" fontSize="sm">
+            {t('Synchronizing: {{blocksCount}} blocks left', {
+              blocksCount,
+            })}
           </Text>
         </Flex>
       )}
