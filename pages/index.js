@@ -1,17 +1,17 @@
 import {useRouter} from 'next/router'
 import {useEffect} from 'react'
 import Layout from '../shared/components/layout'
-import {useSettingsState} from '../shared/providers/settings-context'
+import {useAuthState} from '../shared/providers/auth-context'
 
 export default function Index() {
   const router = useRouter()
-  const {encryptedKey, coinbase} = useSettingsState()
+  const {auth} = useAuthState()
 
   useEffect(() => {
-    if (encryptedKey && coinbase) {
+    if (auth) {
       router.push('/home')
     }
-  }, [encryptedKey, coinbase, router])
+  }, [auth, router])
 
   return <Layout canRedirect={false}></Layout>
 }

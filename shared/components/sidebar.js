@@ -228,7 +228,7 @@ function Nav({onClose}) {
     <Flex alignSelf="stretch">
       <List listStyleType="none" m={0} p={0} width="100%">
         <NavItem
-          href="/"
+          href="/home"
           icon={<ProfileIcon boxSize={[8, 5]} />}
           text={t('My Idena') || nickname}
         ></NavItem>
