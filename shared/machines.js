@@ -183,9 +183,13 @@ export const createRestrictedModalMachine = () =>
           }
 
           if (
-            ['/node/restricted', '/validation', '/try/validation'].includes(
-              pathname
-            )
+            [
+              '/node/restricted',
+              '/validation',
+              '/try/validation',
+              '/flips/new',
+              '/flips/edit',
+            ].includes(pathname)
           ) {
             return false
           }
