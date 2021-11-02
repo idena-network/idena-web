@@ -16,7 +16,7 @@ import {useAuthDispatch} from '../providers/auth-context'
 import {useSettingsState} from '../providers/settings-context'
 import {FlatButton, PrimaryButton, SecondaryButton} from './button'
 import {SubHeading} from './typo'
-import {useDnaUrl} from '../hooks/use-dna-link'
+import {useAppDnaLink} from '../../screens/dna/hooks'
 import {DnaAppUrl} from '../../screens/dna/components'
 
 function RestoreKey() {
@@ -27,7 +27,7 @@ function RestoreKey() {
   const size = useBreakpointValue(['lg', 'md'])
   const [error, setError] = useState()
 
-  const dnaAppUrl = useDnaUrl()
+  const dnaAppUrl = useAppDnaLink()
 
   return (
     <AuthLayout>
@@ -171,7 +171,7 @@ function RestoreKey() {
 }
 
 function Init() {
-  const dnaAppUrl = useDnaUrl()
+  const dnaAppUrl = useAppDnaLink()
   const size = useBreakpointValue(['lg', 'md'])
 
   return (

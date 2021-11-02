@@ -1,12 +1,9 @@
 import axios from 'axios'
-import {margin} from 'polished'
 import sha3 from 'js-sha3'
 import secp256k1 from 'secp256k1'
 import apiClient from '../api/api-client'
 import {sendTransaction} from '../api'
 import {bufferToHex} from './string'
-import {Box} from '../components'
-import theme, {rem} from '../theme'
 import {hexToUint8Array} from './buffers'
 
 export const DNA_LINK_VERSION = `v1`
@@ -136,20 +133,4 @@ export async function sendDna({from, to, amount, comment}) {
   if (error) throw new Error(error.message)
 
   return result
-}
-
-// eslint-disable-next-line react/prop-types
-export function AlertText({textAlign = 'initial', ...props}) {
-  return (
-    <Box
-      color={theme.colors.danger}
-      style={{
-        fontWeight: theme.fontWeights.medium,
-        fontSize: rem(11),
-        ...margin(rem(12), 0, 0),
-        textAlign,
-      }}
-      {...props}
-    />
-  )
 }

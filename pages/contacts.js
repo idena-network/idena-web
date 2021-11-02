@@ -79,6 +79,7 @@ export default function ContactsPage() {
           </Flex>
 
           <IssueInviteDrawer
+            inviteeAddress={query.address}
             isOpen={isOpenSendInviteDrawer}
             onClose={onCloseNewContactDrawer}
             onIssue={invite => {
