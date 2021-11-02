@@ -83,3 +83,12 @@ export function resolveDnaAppUrl({route, query}) {
 
   return `dna://${method}/v1?${params}`
 }
+
+export function isValidUrl(string) {
+  try {
+    return ['https:', 'http:', 'dna:'].includes(new URL(string).protocol)
+  } catch (_) {
+    global.logger.error('Invalid URL', string)
+    return false
+  }
+}

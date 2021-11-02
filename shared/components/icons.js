@@ -835,3 +835,14 @@ export const OpenExplorerIcon = createIcon({
     </g>
   ),
 })
+
+export const ExclamationMarkIcon = createIcon({
+  displayName: 'ExclamationMarkIcon',
+  viewBox: '0 0 20 20',
+  path: (
+    <path
+      fill="currentColor"
+      d="M10 2c4.418 0 8 3.582 8 8s-3.582 8-8 8-8-3.582-8-8 3.582-8 8-8zm1 10H9v2h2v-2zm0-6H9v5h2V6z"
+    />
+  ),
+})
