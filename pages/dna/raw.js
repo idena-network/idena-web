@@ -5,7 +5,7 @@ import {useQuery} from 'react-query'
 import {Page, PageTitle} from '../../screens/app/components'
 import Layout from '../../shared/components/layout'
 import {
-  DnaSendDialog,
+  DnaRawTxDialog,
   DnaSendFailedDialog,
   DnaSendSucceededDialog,
 } from '../../screens/dna/components'
@@ -14,7 +14,7 @@ import {DnaLinkMethod, useDnaLinkMethod} from '../../screens/dna/hooks'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {fetchBalance} from '../../shared/api/wallet'
 
-export default function DnaSendPage() {
+export default function DnaRawPage() {
   const {t} = useTranslation()
 
   const failToast = useFailToast()
@@ -26,10 +26,10 @@ export default function DnaSendPage() {
     })
   }, [failToast, t])
 
-  const dnaSendDisclosure = useDisclosure()
+  const dnaRawTxDisclosure = useDisclosure()
 
-  const {params: dnaSendParams} = useDnaLinkMethod(DnaLinkMethod.Send, {
-    onReceive: dnaSendDisclosure.onOpen,
+  const {params: dnaRawTxParams} = useDnaLinkMethod(DnaLinkMethod.RawTx, {
+    onReceive: dnaRawTxDisclosure.onOpen,
     onInvalidLink: handleInvalidDnaLink,
   })
 
@@ -55,19 +55,19 @@ export default function DnaSendPage() {
         <Box>
           <Spinner />
 
-          <DnaSendDialog
+          <DnaRawTxDialog
             balance={balance}
-            {...dnaSendParams}
-            {...dnaSendDisclosure}
-            onDepositSuccess={({hash, url}) => {
+            {...dnaRawTxParams}
+            {...dnaRawTxDisclosure}
+            onSendSuccess={({hash, url}) => {
               setDnaSendResponse({hash, url})
               dnaSendSucceededDisclosure.onOpen()
             }}
-            onDepositError={({error, url}) => {
+            onSendError={({error, url}) => {
               setDnaSendResponse({error, url})
               dnaSendFailedDisclosure.onOpen()
             }}
-            onSendTxFailed={failToast}
+            onSendRawTxFailed={failToast}
           />
 
           <DnaSendSucceededDialog
