@@ -22,12 +22,6 @@ import {
   Tooltip,
 } from '../../shared/components/components'
 import {
-  authenticate,
-  isValidUrl,
-  signNonceOffline,
-  startSession,
-} from '../../shared/utils/dna-link'
-import {
   DnaDialog,
   DnaDialogAlert,
   DnaDialogAvatar,
@@ -44,8 +38,12 @@ import {callRpc, openExternalUrl, toLocaleDna} from '../../shared/utils/utils'
 import {Transaction} from '../../shared/models/transaction'
 import {
   appendTxHash,
+  authenticate,
   DNA_SEND_CONFIRM_TRESHOLD,
   handleCallbackUrl,
+  isValidUrl,
+  signNonceOffline,
+  startSession,
 } from './utils'
 import {ExclamationMarkIcon, GlobeIcon} from '../../shared/components/icons'
 import {useIdentity} from '../../shared/providers/identity-context'

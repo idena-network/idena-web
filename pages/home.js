@@ -42,7 +42,6 @@ import {useIdentity} from '../shared/providers/identity-context'
 import {useEpoch} from '../shared/providers/epoch-context'
 import {fetchBalance} from '../shared/api/wallet'
 import {useAuthState} from '../shared/providers/auth-context'
-import {validDnaUrl} from '../shared/utils/dna-link'
 import {DnaSignInDialog} from '../screens/dna/containers'
 import {ExternalLink, TextLink, Toast} from '../shared/components/components'
 import {useOnboarding} from '../shared/providers/onboarding-context'
@@ -65,6 +64,7 @@ import {
 } from '../shared/components/icons'
 import {useSuccessToast} from '../shared/hooks/use-toast'
 import {persistItem} from '../shared/utils/persist'
+import {isValidDnaUrl} from '../screens/dna/utils'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -152,7 +152,7 @@ export default function ProfilePage() {
   )
 
   React.useEffect(() => {
-    if (dnaUrl && validDnaUrl(dnaUrl.route)) {
+    if (dnaUrl && isValidDnaUrl(dnaUrl.route)) {
       onOpenDnaSignInDialog()
     } else {
       sessionStorage.removeItem('dnaUrl')

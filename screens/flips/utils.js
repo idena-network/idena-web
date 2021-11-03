@@ -6,7 +6,6 @@ import {loadPersistentStateValue, persistItem} from '../../shared/utils/persist'
 import {FlipType} from '../../shared/types'
 import {areSame, areEual} from '../../shared/utils/arr'
 import {getRawTx, submitRawFlip} from '../../shared/api'
-import {signNonce} from '../../shared/utils/dna-link'
 import {
   encryptFlipData,
   privateKeyToAddress,
@@ -18,6 +17,7 @@ import {FlipSubmitAttachment} from '../../shared/models/flipSubmitAttachment'
 import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
 import {Transaction} from '../../shared/models/transaction'
 import db from '../../shared/utils/db'
+import {signNonceOffline} from '../dna/utils'
 
 export const FLIP_LENGTH = 4
 export const DEFAULT_FLIP_ORDER = [0, 1, 2, 3]
@@ -310,9 +310,9 @@ export async function fetchConfirmedKeywordTranslations(ids, locale) {
   ).map(({translation}) => translation)
 }
 
-export async function voteForKeywordTranslation({id, up}) {
+export async function voteForKeywordTranslation({id, up, pk}) {
   const timestamp = new Date().toISOString()
-  const signature = await signNonce(id.concat(up).concat(timestamp))
+  const signature = signNonceOffline(id.concat(up).concat(timestamp), pk)
 
   const {
     data: {resCode, upVotes, downVotes, error},
@@ -328,21 +328,20 @@ export async function voteForKeywordTranslation({id, up}) {
   return {id, ups: upVotes - downVotes}
 }
 
-export async function suggestKeywordTranslation({
-  wordId,
-  name,
-  desc,
-  locale = 'en',
-}) {
+export async function suggestKeywordTranslation(
+  {wordId, name, desc, locale = 'en'},
+  pk
+) {
   const timestamp = new Date().toISOString()
 
-  const signature = await signNonce(
+  const signature = await signNonceOffline(
     wordId
       .toString()
       .concat(locale)
       .concat(name)
       .concat(desc)
-      .concat(timestamp)
+      .concat(timestamp),
+    pk
   )
 
   const {

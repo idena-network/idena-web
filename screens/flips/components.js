@@ -71,6 +71,7 @@ import {
   UpvoteIcon,
 } from '../../shared/components/icons'
 import {WideLink} from '../profile/components'
+import {useAuthState} from '../../shared/providers/auth-context'
 
 export function FlipPageTitle({onClose, ...props}) {
   return (
@@ -1148,6 +1149,8 @@ export function CommunityTranslations({
 }) {
   const {t} = useTranslation()
 
+  const {privateKey} = useAuthState()
+
   const [wordIdx, setWordIdx] = React.useState(0)
 
   const [
@@ -1192,7 +1195,7 @@ export function CommunityTranslations({
               <Stack isInline spacing={2} align="center">
                 <VoteButton
                   icon={<UpvoteIcon />}
-                  onClick={() => onVote({id, up: true})}
+                  onClick={() => onVote({id, up: true, pk: privateKey})}
                 />
                 <Flex
                   align="center"
@@ -1211,7 +1214,7 @@ export function CommunityTranslations({
                   icon={<UpvoteIcon />}
                   color="muted"
                   transform="rotate(180deg)"
-                  onClick={() => onVote({id, up: false})}
+                  onClick={() => onVote({id, up: false, pk: privateKey})}
                 />
               </Stack>
             </Flex>
@@ -1231,7 +1234,7 @@ export function CommunityTranslations({
                   nameInput: {value: name},
                   descInput: {value: desc},
                 } = e.target.elements
-                onSuggest({wordIdx, name, desc: desc.trim()})
+                onSuggest({wordIdx, name, desc: desc.trim(), pk: privateKey})
               }}
             >
               <FormControl>

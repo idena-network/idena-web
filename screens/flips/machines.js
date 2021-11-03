@@ -949,14 +949,17 @@ export const flipMasterMachine = Machine(
       suggestKeywordTranslation: async (
         // eslint-disable-next-line no-shadow
         {keywords: {words}, locale},
-        {name, desc, wordIdx}
+        {name, desc, wordIdx, pk}
       ) =>
-        suggestKeywordTranslation({
-          wordId: words[wordIdx].id,
-          name,
-          desc,
-          locale,
-        }),
+        suggestKeywordTranslation(
+          {
+            wordId: words[wordIdx].id,
+            name,
+            desc,
+            locale,
+          },
+          pk
+        ),
     },
     actions: {
       changeOrder: assign({

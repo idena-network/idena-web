@@ -16,7 +16,7 @@ export function DnaDialog(props) {
   return <Dialog closeOnOverlayClick={false} closeOnEsc={false} {...props} />
 }
 
-export function DnaDialogAlert(props) {
+export function DnaDialogAlert({children, ...props}) {
   return (
     <Stack
       isInline
@@ -27,10 +27,10 @@ export function DnaDialogAlert(props) {
       borderRadius="md"
       px={3}
       py={2}
-      mb={5}
+      {...props}
     >
       <InfoIcon boxSize={4} color="red.500" />
-      <Text fontWeight={500} {...props} />
+      <Text fontWeight={500}>{children}</Text>
     </Stack>
   )
 }
