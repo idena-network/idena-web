@@ -5,10 +5,10 @@ import {useQuery} from 'react-query'
 import {Page, PageTitle} from '../../screens/app/components'
 import Layout from '../../shared/components/layout'
 import {
-  DnaRawTxDialog,
   DnaSendFailedDialog,
   DnaSendSucceededDialog,
-} from '../../screens/dna/components'
+  DnaRawDialog,
+} from '../../screens/dna/containers'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import {DnaLinkMethod, useDnaLinkMethod} from '../../screens/dna/hooks'
 import {useAuthState} from '../../shared/providers/auth-context'
@@ -51,11 +51,10 @@ export default function DnaRawPage() {
   return (
     <Layout canRedirect={false}>
       <Page>
-        <PageTitle>{t('Send iDNA')}</PageTitle>
+        <PageTitle>{t('Send raw transaction')}</PageTitle>
         <Box>
           <Spinner />
-
-          <DnaRawTxDialog
+          <DnaRawDialog
             balance={balance}
             {...dnaRawTxParams}
             {...dnaRawTxDisclosure}

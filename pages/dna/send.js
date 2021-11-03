@@ -8,7 +8,7 @@ import {
   DnaSendDialog,
   DnaSendFailedDialog,
   DnaSendSucceededDialog,
-} from '../../screens/dna/components'
+} from '../../screens/dna/containers'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import {DnaLinkMethod, useDnaLinkMethod} from '../../screens/dna/hooks'
 import {useAuthState} from '../../shared/providers/auth-context'
@@ -54,7 +54,6 @@ export default function DnaSendPage() {
         <PageTitle>{t('Send iDNA')}</PageTitle>
         <Box>
           <Spinner />
-
           <DnaSendDialog
             balance={balance}
             {...dnaSendParams}

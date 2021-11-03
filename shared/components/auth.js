@@ -1,8 +1,16 @@
 /* eslint-disable react/prop-types */
-import {Flex, Box, Text, useBreakpointValue} from '@chakra-ui/react'
+import {
+  Flex,
+  Box,
+  Text,
+  HStack,
+  Link,
+  useBreakpointValue,
+} from '@chakra-ui/react'
 import React, {useState} from 'react'
 import {FiChevronRight} from 'react-icons/fi'
 import Router from 'next/router'
+import {useTranslation} from 'react-i18next'
 import {
   Avatar,
   Dialog,
@@ -17,7 +25,7 @@ import {useSettingsState} from '../providers/settings-context'
 import {FlatButton, PrimaryButton, SecondaryButton} from './button'
 import {SubHeading} from './typo'
 import {useAppDnaLink} from '../../screens/dna/hooks'
-import {DnaAppUrl} from '../../screens/dna/components'
+import {LaptopIcon} from './icons'
 
 function RestoreKey() {
   const [warning, showWarning] = useState(false)
@@ -277,5 +285,15 @@ AuthLayout.Small = function({children}) {
         {children}
       </Flex>
     </Flex>
+  )
+}
+
+function DnaAppUrl({url}) {
+  const {t} = useTranslation()
+  return (
+    <HStack align="center" spacing={3} color="muted" px={2} py={1.5} mt={16}>
+      <LaptopIcon name="laptop" boxSize={5} />
+      <Link href={url}>{t('Open in Idena app')}</Link>
+    </HStack>
   )
 }

@@ -1,39 +1,32 @@
 import * as React from 'react'
-import {Box, Spinner, useToast} from '@chakra-ui/react'
+import {Box, Spinner, useDisclosure} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
 import {Page, PageTitle} from '../../screens/app/components'
 import Layout from '../../shared/components/layout'
-import {Toast} from '../../shared/components/components'
 import {DnaSignInDialog} from '../../screens/dna/containers'
-import {validDnaUrl} from '../../shared/utils/dna-link'
+import {DnaLinkMethod, useDnaLinkMethod} from '../../screens/dna/hooks'
+import {useFailToast} from '../../shared/hooks/use-toast'
 
 export default function SigninPage() {
   const router = useRouter()
-  const {route, query} = router
 
   const {t} = useTranslation()
 
-  const toast = useToast()
+  const failToast = useFailToast()
 
-  const [dnaUrl, setDnaUrl] = React.useState()
+  const {onOpen, ...dnaSignInDisclosure} = useDisclosure()
 
-  React.useEffect(() => {
-    if (validDnaUrl(route)) {
-      setDnaUrl(route)
-    } else
-      toast({
-        // eslint-disable-next-line react/display-name
-        render: () => (
-          <Toast
-            title={t('Invalid DNA link')}
-            description={t(
-              `You must provide valid URL including protocol version`
-            )}
-          />
-        ),
-      })
-  }, [route, t, toast])
+  const {
+    params: {
+      nonce_endpoint: nonceEndpoint,
+      authentication_endpoint: authenticationEndpoint,
+      favicon_url: faviconUrl,
+      ...dnaSignInParams
+    },
+  } = useDnaLinkMethod(DnaLinkMethod.SignIn, {
+    onReceive: onOpen,
+  })
 
   return (
     <Layout canRedirect={false}>
@@ -42,21 +35,16 @@ export default function SigninPage() {
         <Box>
           <Spinner />
           <DnaSignInDialog
-            isOpen={Boolean(dnaUrl)}
-            closeOnOverlayClick={false}
-            query={query}
-            onDone={() => {
+            authenticationEndpoint={authenticationEndpoint}
+            nonceEndpoint={nonceEndpoint}
+            faviconUrl={faviconUrl}
+            {...dnaSignInParams}
+            {...dnaSignInDisclosure}
+            onCompleteSignIn={() => {
               sessionStorage.removeItem('dnaUrl')
               router.push('/home')
             }}
-            onError={error =>
-              toast({
-                status: 'error',
-                // eslint-disable-next-line react/display-name
-                render: () => <Toast status="error" title={error} />,
-              })
-            }
-            onClose={() => null}
+            onSignInError={failToast}
           />
         </Box>
       </Page>
