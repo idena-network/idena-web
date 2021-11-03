@@ -10,7 +10,11 @@ import {
   StatNumber,
 } from '@chakra-ui/react'
 import {InfoIcon} from '../../shared/components/icons'
-import {Avatar} from '../../shared/components/components'
+import {Avatar, Dialog} from '../../shared/components/components'
+
+export function DnaDialog(props) {
+  return <Dialog closeOnOverlayClick={false} closeOnEsc={false} {...props} />
+}
 
 export function DnaDialogAlert(props) {
   return (

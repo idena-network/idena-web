@@ -10,7 +10,11 @@ import {
   DnaSendSucceededDialog,
 } from '../../screens/dna/containers'
 import {useFailToast} from '../../shared/hooks/use-toast'
-import {DnaLinkMethod, useDnaLinkMethod} from '../../screens/dna/hooks'
+import {
+  DnaLinkMethod,
+  useDnaAppLink,
+  useDnaLinkMethod,
+} from '../../screens/dna/hooks'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {fetchBalance} from '../../shared/api/wallet'
 
@@ -48,6 +52,8 @@ export default function DnaSendPage() {
     enabled: !!coinbase,
   })
 
+  const [, {clear: clearDnaAppLink}] = useDnaAppLink()
+
   return (
     <Layout canRedirect={false}>
       <Page>
@@ -67,6 +73,7 @@ export default function DnaSendPage() {
               dnaSendFailedDisclosure.onOpen()
             }}
             onSendTxFailed={failToast}
+            onClose={clearDnaAppLink}
           />
 
           <DnaSendSucceededDialog

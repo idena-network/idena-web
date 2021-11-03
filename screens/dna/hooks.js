@@ -16,7 +16,7 @@ export function useDnaLink() {
 
   const [method, setMethod] = React.useState()
 
-  const [params, setParams] = React.useState()
+  const [params, setParams] = React.useState({})
 
   React.useEffect(() => {
     if (typeof window === 'undefined') return
@@ -48,7 +48,6 @@ export function useDnaLinkMethod(method, {onReceive}) {
   const {url, method: currentMethod} = dnaLink
 
   React.useEffect(() => {
-    console.log({currentMethod, method})
     if (currentMethod === method) {
       if (onReceive) onReceive(url)
     }
@@ -70,8 +69,8 @@ export function useDnaLinkRedirect(method, url) {
   })
 }
 
-export function useAppDnaLink() {
-  const {route, query} = useRouter()
+export function useDnaAppLink() {
+  const {route, query, push: redirect} = useRouter()
 
   const isDnaUrl = route.startsWith('/dna/')
 
@@ -80,5 +79,13 @@ export function useAppDnaLink() {
       sessionStorage.setItem('dnaUrl', JSON.stringify({route, query}))
   }, [isDnaUrl, query, route])
 
-  return isDnaUrl ? resolveDnaAppUrl({route, query}) : null
+  return [
+    isDnaUrl ? resolveDnaAppUrl({route, query}) : null,
+    {
+      clear() {
+        sessionStorage.removeItem('dnaUrl')
+        redirect('/home')
+      },
+    },
+  ]
 }

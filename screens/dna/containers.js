@@ -13,7 +13,6 @@ import {
 import {useTranslation} from 'react-i18next'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {
-  Avatar,
   Dialog,
   DialogBody,
   DialogFooter,
@@ -29,6 +28,7 @@ import {
   startSession,
 } from '../../shared/utils/dna-link'
 import {
+  DnaDialog,
   DnaDialogAlert,
   DnaDialogAvatar,
   SimpleDnaDialogStat,
@@ -79,10 +79,8 @@ export function DnaSignInDialog({
   )
 
   return (
-    <Dialog
+    <DnaDialog
       title={t('Login confirmation')}
-      closeOnOverlayClick={false}
-      closeOnEsc={false}
       initialFocusRef={confirmButtonRef}
       {...props}
     >
@@ -105,7 +103,7 @@ export function DnaSignInDialog({
               )}
             </MediaDnaDialogStat>
             <MediaDnaDialogStat label={t('My address')} value={coinbase}>
-              <Avatar address={coinbase} size={10} />
+              <DnaDialogAvatar address={coinbase} />
             </MediaDnaDialogStat>
             <SimpleDnaDialogStat label={t('Token')} value={token} />
           </Stack>
@@ -153,7 +151,7 @@ export function DnaSignInDialog({
           {t('Confirm')}
         </PrimaryButton>
       </DialogFooter>
-    </Dialog>
+    </DnaDialog>
   )
 }
 
@@ -199,7 +197,7 @@ export function DnaSendDialog({
   const dna = toLocaleDna(language)
 
   return (
-    <Dialog title={t('Confirm transfer')} onClose={onClose} {...props}>
+    <DnaDialog title={t('Confirm transfer')} onClose={onClose} {...props}>
       <DialogBody>
         <Stack spacing={5}>
           <Text>
@@ -333,7 +331,7 @@ export function DnaSendDialog({
           {t('Confirm')}
         </PrimaryButton>
       </DialogFooter>
-    </Dialog>
+    </DnaDialog>
   )
 }
 
@@ -383,7 +381,7 @@ export function DnaRawDialog({
   const dna = toLocaleDna(language)
 
   return (
-    <Dialog m={0} title={t('Confirm transaction')} onClose={onClose} {...props}>
+    <DnaDialog title={t('Confirm transaction')} onClose={onClose} {...props}>
       <DialogBody>
         <Stack spacing={5}>
           <Text>{t('You’re about to sign and send tx from your wallet')}</Text>
@@ -529,7 +527,7 @@ export function DnaRawDialog({
           {t('Confirm')}
         </PrimaryButton>
       </DialogFooter>
-    </Dialog>
+    </DnaDialog>
   )
 }
 
