@@ -263,7 +263,7 @@ export default function Offline() {
                         isChecked={state === options.ACTIVATE}
                         onChange={() => setState(options.ACTIVATE)}
                       >
-                        <Text color="white">{t('Activate invite')}</Text>
+                        <Text color="white">{t('Activate invitation')}</Text>
                       </ChooseItemRadio>
                     )}
                     {identityState === IdentityStatus.Candidate && (

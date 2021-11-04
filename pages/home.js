@@ -103,7 +103,7 @@ export default function ProfilePage() {
 
   const [showValidationResults, setShowValidationResults] = React.useState()
 
-  const {onCopy, hasCopied} = useClipboard(address)
+  const {onCopy} = useClipboard(address)
   const successToast = useSuccessToast()
 
   const {
@@ -264,7 +264,11 @@ export default function ProfilePage() {
                   </PopoverTrigger>
                   <OnboardingPopoverContent
                     gutter={10}
-                    title={t('How to get an invitation code')}
+                    title={
+                      state === IdentityStatus.Invite
+                        ? t('Accept invitation')
+                        : t('How to get an invitation code')
+                    }
                     zIndex={2}
                     onDismiss={() => {
                       dismissCurrentTask()
@@ -272,71 +276,79 @@ export default function ProfilePage() {
                     }}
                   >
                     <Stack spacing={5}>
-                      <Stack>
-                        <Text fontSize="sm">
+                      {state === IdentityStatus.Invite ? (
+                        <Box>
                           {t(
-                            '1. Join the official Idena public Telegram group and follow instructions in the pinned message.'
+                            'You are invited to join the upcoming validation. Please accept the invitation.'
                           )}
-                        </Text>
-                        <OnboardingPopoverContentIconRow
-                          icon={<TelegramIcon boxSize={5} />}
-                          _hover={{
-                            bg: '#689aff',
-                          }}
-                          px={4}
-                          py={2}
-                          cursor="pointer"
-                          onClick={() => {
-                            const win = openExternalUrl(
-                              'https://t.me/IdenaNetworkPublic'
-                            )
-                            win.focus()
-                          }}
-                          borderRadius="lg"
-                        >
-                          <Box>
-                            <Text p={0} py={0} h={18} fontSize="md">
-                              https://t.me/IdenaNetworkPublic
-                            </Text>
-                            <Text
-                              fontSize="sm"
-                              color="rgba(255, 255, 255, 0.56)"
-                            >
-                              {t('Official group')}
-                            </Text>
-                          </Box>
-                        </OnboardingPopoverContentIconRow>
-                        <Text fontSize="sm">
-                          {t(
-                            '2. Pass the training validation and get a certificate which you can provide to a validated member to get an invitation code'
-                          )}
-                        </Text>
-                        <OnboardingPopoverContentIconRow
-                          icon={
-                            <TestValidationIcon boxSize={5} color="white" />
-                          }
-                          _hover={{
-                            bg: '#689aff',
-                          }}
-                          px={4}
-                          py={2}
-                          cursor="pointer"
-                          onClick={() => router.push('/try')}
-                          borderRadius="lg"
-                        >
-                          <Box>
-                            <Text p={0} py={0} h={18} fontSize="md">
-                              {t('Test yourself')}
-                            </Text>
-                            <Text
-                              fontSize="sm"
-                              color="rgba(255, 255, 255, 0.56)"
-                            >
-                              {t('Training validation')}
-                            </Text>
-                          </Box>
-                        </OnboardingPopoverContentIconRow>
-                      </Stack>
+                        </Box>
+                      ) : (
+                        <Stack>
+                          <Text fontSize="sm">
+                            {t(
+                              '1. Join the official Idena public Telegram group and follow instructions in the pinned message.'
+                            )}
+                          </Text>
+                          <OnboardingPopoverContentIconRow
+                            icon={<TelegramIcon boxSize={5} />}
+                            _hover={{
+                              bg: '#689aff',
+                            }}
+                            px={4}
+                            py={2}
+                            cursor="pointer"
+                            onClick={() => {
+                              const win = openExternalUrl(
+                                'https://t.me/IdenaNetworkPublic'
+                              )
+                              win.focus()
+                            }}
+                            borderRadius="lg"
+                          >
+                            <Box>
+                              <Text p={0} py={0} h={18} fontSize="md">
+                                https://t.me/IdenaNetworkPublic
+                              </Text>
+                              <Text
+                                fontSize="sm"
+                                color="rgba(255, 255, 255, 0.56)"
+                              >
+                                {t('Official group')}
+                              </Text>
+                            </Box>
+                          </OnboardingPopoverContentIconRow>
+                          <Text fontSize="sm">
+                            {t(
+                              '2. Pass the training validation and get a certificate which you can provide to a validated member to get an invitation code'
+                            )}
+                          </Text>
+                          <OnboardingPopoverContentIconRow
+                            icon={
+                              <TestValidationIcon boxSize={5} color="white" />
+                            }
+                            _hover={{
+                              bg: '#689aff',
+                            }}
+                            px={4}
+                            py={2}
+                            cursor="pointer"
+                            onClick={() => router.push('/try')}
+                            borderRadius="lg"
+                          >
+                            <Box>
+                              <Text p={0} py={0} h={18} fontSize="md">
+                                {t('Test yourself')}
+                              </Text>
+                              <Text
+                                fontSize="sm"
+                                color="rgba(255, 255, 255, 0.56)"
+                              >
+                                {t('Training validation')}
+                              </Text>
+                            </Box>
+                          </OnboardingPopoverContentIconRow>
+                        </Stack>
+                      )}
                     </Stack>
                   </OnboardingPopoverContent>
                 </OnboardingPopover>

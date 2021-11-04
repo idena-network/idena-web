@@ -645,11 +645,14 @@ function CurrentTask({epoch, period}) {
         requiredFlips: requiredFlipsNumber,
         availableFlips: availableFlipsNumber,
         state: status,
+        canActivateInvite,
       } = identity
 
       switch (true) {
-        case identity.canActivateInvite:
-          return t('Activate invite')
+        case canActivateInvite:
+          return status === IdentityStatus.Invite
+            ? t('Accept invitation')
+            : t('Activate invitation')
 
         case currentOnboarding.matches(OnboardingStep.ActivateMining): {
           return t('Activate mining status')
