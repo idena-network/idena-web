@@ -205,22 +205,6 @@ export async function becomeOffline() {
   return data
 }
 
-export async function sendTransaction(from, to, amount, payload = null) {
-  const {data} = await api().post('/', {
-    method: 'dna_sendTransaction',
-    params: [
-      strip({
-        from,
-        to,
-        amount,
-        payload,
-      }),
-    ],
-    id: 1,
-  })
-  return data
-}
-
 export async function fetchNodeVersion() {
   const {data} = await api().post('/', {
     method: 'dna_version',

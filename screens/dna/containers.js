@@ -34,7 +34,7 @@ import {
 } from './components'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {toHexString} from '../../shared/utils/buffers'
-import {callRpc, openExternalUrl, toLocaleDna} from '../../shared/utils/utils'
+import {openExternalUrl, toLocaleDna} from '../../shared/utils/utils'
 import {Transaction} from '../../shared/models/transaction'
 import {
   appendTxHash,
@@ -48,6 +48,7 @@ import {
 import {ExclamationMarkIcon, GlobeIcon} from '../../shared/components/icons'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {bufferToHex} from '../../shared/utils/string'
+import {getRawTx, sendRawTx} from '../../shared/api'
 
 export function DnaSignInDialog({
   token,
@@ -171,6 +172,8 @@ export function DnaSendDialog({
     i18n: {language},
   } = useTranslation()
 
+  const {privateKey} = useAuthState()
+
   const [{address: from}] = useIdentity()
 
   const shouldConfirmTx = React.useMemo(
@@ -270,14 +273,20 @@ export function DnaSendDialog({
               return resolve()
             })
               .then(() => setIsSubmitting(true))
-              .then(() =>
-                callRpc('dna_sendTransaction', {
-                  from,
-                  to,
-                  amount,
-                  payload: bufferToHex(new TextEncoder().encode(comment)),
-                })
-              )
+              .then(async () => {
+                const tx = new Transaction().fromHex(
+                  await getRawTx(
+                    0,
+                    from,
+                    to,
+                    amount,
+                    null,
+                    bufferToHex(new TextEncoder().encode(comment))
+                  )
+                )
+                tx.sign(privateKey)
+                return sendRawTx(`0x${tx.toHex()}`)
+              })
               .then(async hash => {
                 if (isValidUrl(callbackUrl)) {
                   const callbackUrlWithHash = appendTxHash(callbackUrl, hash)
@@ -471,7 +480,7 @@ export function DnaRawDialog({
               return resolve()
             })
               .then(() => setIsSubmitting(true))
-              .then(() => callRpc('bcn_sendRawTx', tx))
+              .then(() => sendRawTx(tx))
               .then(async hash => {
                 if (isValidUrl(callbackUrl)) {
                   const callbackUrlWithHash = appendTxHash(callbackUrl, hash)
