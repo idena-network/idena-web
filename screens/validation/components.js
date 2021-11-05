@@ -1853,9 +1853,9 @@ function isFirstFlip(state) {
 }
 
 function isLastFlip(state) {
-  return ['shortSession', 'longSession']
-    .map(type => `${type}.solve.nav.lastFlip`)
-    .some(state.matches)
+  const {currentIndex} = state.context
+  const flips = sessionFlips(state)
+  return currentIndex === flips.length - 1
 }
 
 function hasManyFlips(state) {
