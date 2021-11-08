@@ -550,7 +550,7 @@ export default function ProfilePage() {
               </WideLink>
               <WideLink
                 label={t('New flip')}
-                isDisabled={canSubmitFlip}
+                isDisabled={!canSubmitFlip}
                 onClick={() => router.push('/flips/new')}
               >
                 <Box
