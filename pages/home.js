@@ -276,17 +276,49 @@ export default function ProfilePage() {
                     }}
                   >
                     <Stack spacing={5}>
-                      <Stack>
-                        <Text fontSize="sm">
-                          {state === IdentityStatus.Invite
-                            ? t(
-                                'You are invited to join the upcoming validation. Please accept the invitation.'
-                              )
-                            : t(
-                                '1. Join the official Idena public Telegram group and follow instructions in the pinned message.'
-                              )}
-                        </Text>
-                        {state !== IdentityStatus.Invite && (
+                      {state === IdentityStatus.Invite ? (
+                        <Stack>
+                          <Text fontSize="sm">
+                            {t(
+                              'You are invited to join the upcoming validation. Please accept the invitation.'
+                            )}
+                          </Text>
+                          <Text fontSize="sm">
+                            {t('Prepare yourself with training validation')}
+                          </Text>
+                          <OnboardingPopoverContentIconRow
+                            icon={
+                              <TestValidationIcon boxSize={5} color="white" />
+                            }
+                            _hover={{
+                              bg: '#689aff',
+                            }}
+                            px={4}
+                            py={2}
+                            cursor="pointer"
+                            onClick={() => router.push('/try')}
+                            borderRadius="lg"
+                          >
+                            <Box>
+                              <Text p={0} py={0} h={18} fontSize="md">
+                                {t('Test yourself')}
+                              </Text>
+                              <Text
+                                fontSize="sm"
+                                color="rgba(255, 255, 255, 0.56)"
+                              >
+                                {t('Training validation')}
+                              </Text>
+                            </Box>
+                          </OnboardingPopoverContentIconRow>
+                        </Stack>
+                      ) : (
+                        <Stack>
+                          <Text fontSize="sm">
+                            {t(
+                              '1. Join the official Idena public Telegram group and follow instructions in the pinned message.'
+                            )}
+                          </Text>
                           <OnboardingPopoverContentIconRow
                             icon={<TelegramIcon boxSize={5} />}
                             _hover={{
@@ -315,40 +347,38 @@ export default function ProfilePage() {
                               </Text>
                             </Box>
                           </OnboardingPopoverContentIconRow>
-                        )}
-                        <Text fontSize="sm">
-                          {state === IdentityStatus.Invite
-                            ? t('Prepare yourself with training validation')
-                            : t(
-                                '2. Pass the training validation and get a certificate which you can provide to a validated member to get an invitation code'
-                              )}
-                        </Text>
-                        <OnboardingPopoverContentIconRow
-                          icon={
-                            <TestValidationIcon boxSize={5} color="white" />
-                          }
-                          _hover={{
-                            bg: '#689aff',
-                          }}
-                          px={4}
-                          py={2}
-                          cursor="pointer"
-                          onClick={() => router.push('/try')}
-                          borderRadius="lg"
-                        >
-                          <Box>
-                            <Text p={0} py={0} h={18} fontSize="md">
-                              {t('Test yourself')}
-                            </Text>
-                            <Text
-                              fontSize="sm"
-                              color="rgba(255, 255, 255, 0.56)"
-                            >
-                              {t('Training validation')}
-                            </Text>
-                          </Box>
-                        </OnboardingPopoverContentIconRow>
-                      </Stack>
+                          <Text fontSize="sm">
+                            {t(
+                              '2. Pass the training validation and get a certificate which you can provide to a validated member to get an invitation code'
+                            )}
+                          </Text>
+                          <OnboardingPopoverContentIconRow
+                            icon={
+                              <TestValidationIcon boxSize={5} color="white" />
+                            }
+                            _hover={{
+                              bg: '#689aff',
+                            }}
+                            px={4}
+                            py={2}
+                            cursor="pointer"
+                            onClick={() => router.push('/try')}
+                            borderRadius="lg"
+                          >
+                            <Box>
+                              <Text p={0} py={0} h={18} fontSize="md">
+                                {t('Test yourself')}
+                              </Text>
+                              <Text
+                                fontSize="sm"
+                                color="rgba(255, 255, 255, 0.56)"
+                              >
+                                {t('Training validation')}
+                              </Text>
+                            </Box>
+                          </OnboardingPopoverContentIconRow>
+                        </Stack>
+                      )}
                     </Stack>
                   </OnboardingPopoverContent>
                 </OnboardingPopover>
