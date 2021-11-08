@@ -81,69 +81,81 @@ export default function Rent() {
 
   return (
     <Layout canRedirect={false}>
-      <Page>
-        <Flex align="center" alignSelf="stretch" justify="space-between">
-          <PageTitle>Rent a shared node</PageTitle>
-          <CloseButton onClick={() => router.back()} />
-        </Flex>
-        <Flex width="100%">
-          <Table height="90%">
-            <thead>
-              <TableRow>
-                <TableHeaderCol width={rem(40)}></TableHeaderCol>
-                <TableHeaderCol>Node URL</TableHeaderCol>
-                <TableHeaderCol>Owner</TableHeaderCol>
-                <TableHeaderCol>Location</TableHeaderCol>
-                <TableHeaderCol className="text-right">
-                  Slots available
-                </TableHeaderCol>
-                <TableHeaderCol className="text-right">
-                  Price per validation
-                </TableHeaderCol>
-              </TableRow>
-            </thead>
-            <tbody>
-              {sortedProviders.map((p, idx) => (
+      <Page p={0} overflowY="hidden">
+        <Flex
+          direction="column"
+          flex={1}
+          alignSelf="stretch"
+          pt={6}
+          px={20}
+          mx={-20}
+          pb={9}
+          overflowY="auto"
+        >
+          <Flex align="center" alignSelf="stretch" justify="space-between">
+            <PageTitle>Rent a shared node</PageTitle>
+            <CloseButton onClick={() => router.back()} />
+          </Flex>
+          <Flex width="100%">
+            <Table>
+              <thead>
                 <TableRow>
-                  <TableCol>
-                    <Radio
-                      isChecked={state === idx}
-                      onClick={() => setState(idx)}
-                      borderColor="#d2d4d9"
-                    ></Radio>
-                  </TableCol>
-                  <TableCol>
-                    <Flex direction="column">
-                      <Flex>{p.data.url}</Flex>
-                      <ProviderStatus url={p.data.url}></ProviderStatus>
-                    </Flex>
-                  </TableCol>
-                  <TableCol>
-                    <Link
-                      target="_blank"
-                      rel="noreferrer"
-                      color="brandBlue.100"
-                      href={`https://t.me/${p.data.ownerName}`}
-                    >
-                      {p.data.ownerName}
-                    </Link>
-                  </TableCol>
-                  <TableCol>{p.data.location}</TableCol>
-                  <TableCol className="text-right">{p.slots}</TableCol>
-                  <TableCol className="text-right">
-                    {p.data.price} iDNA
-                  </TableCol>
+                  <TableHeaderCol width={rem(40)}></TableHeaderCol>
+                  <TableHeaderCol>Node URL</TableHeaderCol>
+                  <TableHeaderCol>Owner</TableHeaderCol>
+                  <TableHeaderCol>Location</TableHeaderCol>
+                  <TableHeaderCol className="text-right">
+                    Slots available
+                  </TableHeaderCol>
+                  <TableHeaderCol className="text-right">
+                    Price per validation
+                  </TableHeaderCol>
                 </TableRow>
-              ))}
-            </tbody>
-          </Table>
+              </thead>
+              <tbody>
+                {sortedProviders.map((p, idx) => (
+                  <TableRow>
+                    <TableCol>
+                      <Radio
+                        isChecked={state === idx}
+                        onClick={() => setState(idx)}
+                        borderColor="#d2d4d9"
+                      ></Radio>
+                    </TableCol>
+                    <TableCol>
+                      <Flex direction="column">
+                        <Flex>{p.data.url}</Flex>
+                        <ProviderStatus url={p.data.url}></ProviderStatus>
+                      </Flex>
+                    </TableCol>
+                    <TableCol>
+                      <Link
+                        target="_blank"
+                        rel="noreferrer"
+                        color="brandBlue.100"
+                        href={`https://t.me/${p.data.ownerName}`}
+                      >
+                        {p.data.ownerName}
+                      </Link>
+                    </TableCol>
+                    <TableCol>{p.data.location}</TableCol>
+                    <TableCol className="text-right">{p.slots}</TableCol>
+                    <TableCol className="text-right">
+                      {p.data.price} iDNA
+                    </TableCol>
+                  </TableRow>
+                ))}
+              </tbody>
+            </Table>
+          </Flex>
         </Flex>
         <Box
           alignSelf="stretch"
           borderTop="1px"
           borderTopColor="gray.100"
           mt="auto"
-          pt={5}
+          px={4}
+          py={3}
         >
           <Stack isInline spacing={2} justify="flex-end">
             <SecondaryButton onClick={() => router.back()}>
