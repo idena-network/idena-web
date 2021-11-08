@@ -81,7 +81,7 @@ export default function Rent() {
 
   return (
     <Layout canRedirect={false}>
-      <Page p={0}>
+      <Page p={0} overflowY="hidden">
         <Flex
           direction="column"
           flex={1}
@@ -97,7 +97,7 @@ export default function Rent() {
             <CloseButton onClick={() => router.back()} />
           </Flex>
           <Flex width="100%">
-            <Table height="90%">
+            <Table>
               <thead>
                 <TableRow>
                   <TableHeaderCol width={rem(40)}></TableHeaderCol>
