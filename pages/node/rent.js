@@ -15,7 +15,11 @@ import {useQuery} from 'react-query'
 import {Page, PageTitle} from '../../screens/app/components'
 import {BuySharedNodeForm} from '../../screens/node/components'
 import {getLastBlock} from '../../shared/api/indexer'
-import {checkProvider, getProviders} from '../../shared/api/marketplace'
+import {
+  checkProvider,
+  checkProviderSyncing,
+  getProviders,
+} from '../../shared/api/marketplace'
 import {
   Table,
   TableCol,
@@ -25,16 +29,21 @@ import {
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import Layout from '../../shared/components/layout'
 import {useAuthState} from '../../shared/providers/auth-context'
-
-const SYNCING_DIFF = 50
+import {SYNCING_DIFF} from '../../shared/providers/settings-context'
 
 // eslint-disable-next-line react/prop-types
 function ProviderStatus({url}) {
   const {t} = useTranslation()
 
-  const {isLoading, isError, isSuccess, data: providerData} = useQuery(
+  const {isLoading, isError, isSuccess} = useQuery(
     ['provider-status', url],
     () => checkProvider(url),
+    {retry: false, refetchOnWindowFocus: false}
+  )
+
+  const {isSuccess: isSuccessSyncing, data: syncingData} = useQuery(
+    ['provider-status-syncing', url],
+    () => checkProviderSyncing(url),
     {retry: false, refetchOnWindowFocus: false}
   )
 
@@ -48,12 +57,13 @@ function ProviderStatus({url}) {
   )
 
   const blocksCount =
-    indexerData?.result?.height - providerData?.result?.currentBlock
+    indexerData?.result?.height - syncingData?.result?.currentBlock
 
   const outOfSync =
     isSuccess &&
+    isSuccessSyncing &&
     indexerIsSuccess &&
-    (providerData?.result?.syncing || blocksCount > SYNCING_DIFF)
+    blocksCount > SYNCING_DIFF
 
   return (
     <>
