@@ -79,6 +79,7 @@
     "qrcode.react": "^0.9.3",
     "react": "^17.0.2",
     "react-beautiful-dnd": "^10.0.4",
+    "react-device-detect": "^2.1.2",
     "react-ga": "^3.3.0",
     "react-gtm-module": "^2.0.11",
     "react-i18next": "^11.2.5",
