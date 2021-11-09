@@ -71,6 +71,7 @@ import {
   TimerIcon,
   InfoIcon,
   OkIcon,
+  ArrowBackIcon,
 } from '../../shared/components/icons'
 import {TEST_SHORT_SESSION_INTERVAL_SEC} from '../../shared/providers/test-validation-context'
 
@@ -143,6 +144,8 @@ export function Flip({
   onChoose,
   onImageFail,
 }) {
+  const radius = useBreakpointValue(['12px', '8px'])
+
   if ((fetched && !decoded) || failed) return <FailedFlip />
   if (!fetched) return <LoadingFlip />
 
@@ -171,7 +174,7 @@ export function Flip({
       {reorderList(images, orders[variant - 1]).map((src, idx) => (
         <ChakraBox
           key={idx}
-          borderRadius={getFlipBorderRadius(idx, images.length - 1)}
+          borderRadius={getFlipBorderRadius(idx, images.length - 1, radius)}
           css={{
             height: 'calc((100vh - 260px) / 4)',
             position: 'relative',
@@ -347,25 +350,32 @@ export function ActionBar(props) {
 }
 
 export function ActionBarItem(props) {
-  return <ChakraFlex minH="32px" zIndex={1} {...props} />
+  return <ChakraFlex flex={1} minH="32px" zIndex={1} {...props} />
 }
 
 const totalThumbWidth = 44
 
-export function Thumbnails({currentIndex, ...props}) {
+export function Thumbnails({currentIndex, isLong, ...props}) {
   return (
     <ChakraFlex
       align="center"
-      justify={['center', 'normal']}
+      justify={[isLong ? 'normal' : 'center', 'normal']}
       minH={12}
       transform={[
-        'none',
+        isLong
+          ? `translateX(50%) translateX(-${rem(
+              totalThumbWidth * (currentIndex + 1 / 2)
+            )})`
+          : 'none',
         `translateX(50%) translateX(-${rem(
           totalThumbWidth * (currentIndex + 1 / 2)
         )})`,
       ]}
-      transition={['none', 'transform .3s ease-out']}
-      willChange={['none', 'transform']}
+      transition={[
+        isLong ? 'transform .3s ease-out' : 'none',
+        'transform .3s ease-out',
+      ]}
+      willChange={[isLong ? 'transform' : 'none', 'transform']}
       zIndex={1}
       {...props}
     />
@@ -380,6 +390,7 @@ export function Thumbnail({
   option,
   relevance,
   isCurrent,
+  isLong,
   onPick,
 }) {
   const isQualified = !!relevance
@@ -390,6 +401,7 @@ export function Thumbnail({
   return (
     <ThumbnailHolder
       isCurrent={isCurrent}
+      isLong={isLong}
       border={[
         `solid 1px ${
           // eslint-disable-next-line no-nested-ternary
@@ -446,14 +458,15 @@ export function Thumbnail({
   )
 }
 
-function ThumbnailHolder({isCurrent, css, children, ...props}) {
+function ThumbnailHolder({isCurrent, isLong, css, children, ...props}) {
   return (
     <ChakraFlex
       justify="center"
       align="center"
-      border={[
-        `solid 1px ${isCurrent ? 'xwhite.500' : 'transparent'}`,
-        `solid 2px ${isCurrent ? theme.colors.primary : 'transparent'}`,
+      border={['solid 1px', 'solid 2px']}
+      borderColor={[
+        isCurrent ? (isLong ? 'gray.500' : 'xwhite.500') : 'transparent',
+        isCurrent ? theme.colors.primary : 'transparent',
       ]}
       borderRadius={['18px', '12px']}
       {...props}
@@ -1715,21 +1728,61 @@ export function ValidationScreen({
             </TooltipLegacy>
           )}
           {isLongSessionFlips(state) && (
-            <PrimaryButton
-              isDisabled={!canSubmit(state)}
-              onClick={() => send('FINISH_FLIPS')}
-            >
-              {t('Start checking keywords')}
-            </PrimaryButton>
+            <ChakraBox>
+              <PrimaryButton
+                display={['none', 'inline-flex']}
+                isDisabled={!canSubmit(state)}
+                onClick={() => send('FINISH_FLIPS')}
+              >
+                {t('Start checking keywords')}
+              </PrimaryButton>
+              <ChakraBox
+                display={['block', 'none']}
+                as="button"
+                isDisabled={!canSubmit(state)}
+                onClick={() => send('FINISH_FLIPS')}
+                position="absolute"
+                bottom="0"
+                right="0"
+                h={24}
+                w={24}
+                background="brandBlue.10"
+                borderTopLeftRadius="90%"
+              >
+                <ChakraFlex
+                  direction="column"
+                  align="center"
+                  justify="flex-end"
+                  h="100%"
+                  pl="16px"
+                  pb="16px"
+                  fontSize="15px"
+                  fontWeight="500"
+                >
+                  <ArrowBackIcon
+                    fill="brandBlue.500"
+                    transform="rotate(180deg)"
+                    mb="5px"
+                    boxSize={5}
+                  />
+                  {t('Check')}
+                </ChakraFlex>
+              </ChakraBox>
+            </ChakraBox>
           )}
         </ActionBarItem>
       </ActionBar>
-      <Thumbnails order={[2, 4]} currentIndex={currentIndex}>
+      <Thumbnails
+        order={[2, 4]}
+        currentIndex={currentIndex}
+        isLong={isLongSessionFlips(state) || isLongSessionKeywords(state)}
+      >
         {flips.map((flip, idx) => (
           <Thumbnail
             key={flip.hash}
             {...flip}
             isCurrent={currentIndex === idx}
+            isLong={isLongSessionFlips(state) || isLongSessionKeywords(state)}
             onPick={() => send({type: 'PICK', index: idx})}
           />
         ))}
@@ -1937,10 +1990,7 @@ function hasAllRelevanceMarks({context: {longFlips}}) {
   return flips.every(({relevance}) => relevance)
 }
 
-function getFlipBorderRadius(index, size) {
-  // eslint-disable-next-line react-hooks/rules-of-hooks
-  const radius = useBreakpointValue(['12px', '8px'])
-
+function getFlipBorderRadius(index, size, radius) {
   if (index === 0) {
     return `${radius} ${radius} 0 0`
   }

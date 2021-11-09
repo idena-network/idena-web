@@ -171,6 +171,7 @@ export default function CreateKey() {
             display={['block', 'none']}
           >
             <ArrowBackIcon
+              fill="#fff"
               boxSize={6}
               ml={4}
               onClick={() => setStep(steps.AVATAR)}
@@ -315,6 +316,7 @@ export default function CreateKey() {
             display={['block', 'none']}
           >
             <ArrowBackIcon
+              fill="#fff"
               boxSize={6}
               ml={4}
               onClick={() => setStep(steps.PASSWORD)}

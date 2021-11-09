@@ -1,7 +1,8 @@
 /* eslint-disable react/display-name */
 /* eslint-disable react/prop-types */
 import React from 'react'
-import {Button as ChakraButton, Button} from '@chakra-ui/react'
+import {Button as ChakraButton, Flex, Box, Button} from '@chakra-ui/react'
+import {OkIcon} from './icons'
 
 export const PrimaryButton = React.forwardRef((props, ref) => (
   <Button ref={ref} variant="primary" {...props} />
