@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, {useState} from 'react'
 import {wordWrap, padding, margin, borderRadius} from 'polished'
+import {Portal} from '@chakra-ui/react'
 import {Absolute, Box} from '.'
 import Flex from './flex'
 import theme, {rem} from '../theme'
@@ -60,6 +61,7 @@ export function Notification({
             position: 'relative',
             width: rem(480),
             zIndex: 10000,
+            fontSize: rem(13),
           }}
         >
           {icon || (
@@ -135,7 +137,11 @@ export function Notification({
 }
 
 export function Snackbar(props) {
-  return <Absolute bottom={0} left={0} right={0} {...props} />
+  return (
+    <Portal>
+      <Absolute bottom={0} left={0} right={0} {...props} />
+    </Portal>
+  )
 }
 
 export default Notifications
