@@ -30,6 +30,8 @@ import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import Layout from '../../shared/components/layout'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {SYNCING_DIFF} from '../../shared/providers/settings-context'
+import {useIdentity} from '../../shared/providers/identity-context'
+import {IdentityStatus} from '../../shared/types'
 
 // eslint-disable-next-line react/prop-types
 function ProviderStatus({url}) {
@@ -101,6 +103,24 @@ function ProviderStatus({url}) {
   )
 }
 
+function GetPrice(data, state) {
+  if (!data.prices) {
+    return data.price
+  }
+
+  if (state === IdentityStatus.Human) return data.prices[2]
+  if (
+    [
+      IdentityStatus.Verified,
+      IdentityStatus.Suspended,
+      IdentityStatus.Zombie,
+    ].includes(state)
+  )
+    return data.prices[1]
+
+  return data.prices[0]
+}
+
 export default function Rent() {
   const router = useRouter()
   const {coinbase} = useAuthState()
@@ -114,6 +134,8 @@ export default function Rent() {
   const {data: providers} = useQuery(['providers'], fetchProviders, {
     initialData: [],
   })
+
+  const [{state: identityState}] = useIdentity()
 
   const sortedProviders = providers
     .filter(x => x.slots)
@@ -183,7 +205,7 @@ export default function Rent() {
                     <TableCol>{p.data.location}</TableCol>
                     <TableCol className="text-right">{p.slots}</TableCol>
                     <TableCol className="text-right">
-                      {p.data.price} iDNA
+                      {GetPrice(p.data, identityState)} iDNA
                     </TableCol>
                   </TableRow>
                 ))}
@@ -214,7 +236,9 @@ export default function Rent() {
           providerId={selectedProvider && selectedProvider.id}
           url={selectedProvider && selectedProvider.data.url}
           from={coinbase}
-          amount={selectedProvider && selectedProvider.data.price}
+          amount={
+            selectedProvider && GetPrice(selectedProvider.data, identityState)
+          }
           to={selectedProvider && selectedProvider.data.address}
         />
       </Page>
