@@ -1300,7 +1300,6 @@ export const createValidationMachine = ({
                     },
                     submitShortAnswers: {
                       invoke: {
-                        // eslint-disable-next-line no-shadow
                         src: 'submitShortAnswers',
                         onDone: {
                           target: 'done',
@@ -1311,9 +1310,12 @@ export const createValidationMachine = ({
                         onError: [
                           {
                             target: 'done',
-                            actions: assign({
-                              shortAnswersSubmitted: new Date().getTime(),
-                            }),
+                            actions: [
+                              assign({
+                                shortAnswersSubmitted: new Date().getTime(),
+                              }),
+                              log(),
+                            ],
                             cond: (_, {data}) =>
                               data === 'tx with same hash already exists',
                           },
