@@ -69,6 +69,18 @@ export async function checkProvider(url) {
   return result
 }
 
+export async function checkProviderSyncing(url) {
+  const {data} = await axios.create({baseURL: url}).post('/', {
+    method: 'bcn_syncing',
+    params: [],
+    id: 1,
+    key: SHARED_NODE_CHECK_KEY,
+  })
+  const {result, error} = data
+  if (error) throw new Error(error)
+  return result
+}
+
 async function safeCheckProvider(provider) {
   try {
     await promiseTimeout(checkProvider(provider.data.url), 3000)

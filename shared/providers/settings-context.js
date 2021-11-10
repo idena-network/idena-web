@@ -8,9 +8,11 @@ import {
 import {usePersistence} from '../hooks/use-persistent-state'
 import {loadPersistentState} from '../utils/persist'
 import useLogger from '../hooks/use-logger'
-import {fetchEpoch} from '../api'
+import {fetchEpoch, fetchSync} from '../api'
 import {checkKey} from '../api/marketplace'
 import {useInterval} from '../hooks/use-interval'
+import {getLastBlock} from '../api/indexer'
+import {isVercelProduction} from '../utils/utils'
 
 const SAVE_ENCRYPTED_KEY = 'SAVE_ENCRYPTED_KEY'
 const CLEAR_ENCRYPTED_KEY = 'CLEAR_ENCRYPTED_KEY'
@@ -31,6 +33,8 @@ export const apiKeyStates = {
   RESTRICTED: 3,
   EXTERNAL: 4,
 }
+
+export const SYNCING_DIFF = 50
 
 function settingsReducer(state, action) {
   switch (action.type) {
@@ -148,6 +152,19 @@ function SettingsProvider({children}) {
         return null
       }
     }
+    async function softCheckIsSyncing() {
+      try {
+        const lastBlock = await getLastBlock()
+        const indexerResult = lastBlock?.result?.height
+        if (!indexerResult) return false
+
+        const chain = await fetchSync()
+
+        if (indexerResult - chain.currentBlock > SYNCING_DIFF) return true
+      } catch (e) {
+        return false
+      }
+    }
     async function loadData() {
       try {
         const {epoch} = await fetchEpoch()
@@ -158,6 +175,15 @@ function SettingsProvider({children}) {
             data: {apiKeyState: apiKeyStates.RESTRICTED},
           })
         }
+
+        // check node is syncing only in production
+        if (isVercelProduction)
+          if (await softCheckIsSyncing()) {
+            return dispatch({
+              type: SET_API_KEY_STATE,
+              data: {apiKeyState: apiKeyStates.OFFLINE},
+            })
+          }
 
         const result = await softCheckKey(state.apiKey)
         if (result) {
