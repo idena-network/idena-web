@@ -461,7 +461,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
               loadingText={t('Mining...')}
               type="submit"
             >
-              {t('Activate invite')}
+              {t('Activate invitation')}
             </PrimaryButton>
           </Stack>
         </Stack>
