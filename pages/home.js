@@ -201,6 +201,12 @@ export default function ProfilePage() {
     scrollToActivateInvite,
   ])
 
+  const canSubmitFlip = [
+    IdentityStatus.Verified,
+    IdentityStatus.Human,
+    IdentityStatus.Newbie,
+  ].includes(state)
+
   return (
     <Layout canRedirect={!dnaUrl}>
       <Page>
@@ -586,6 +592,7 @@ export default function ProfilePage() {
               </WideLink>
               <WideLink
                 label={t('New flip')}
+                isDisabled={!canSubmitFlip}
                 onClick={() => router.push('/flips/new')}
               >
                 <Box
