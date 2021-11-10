@@ -769,15 +769,28 @@ export const createValidationMachine = ({
                                 log('Short answers hash sent'),
                               ],
                             },
-                            onError: {
-                              target: 'fail',
-                              actions: [
-                                assign({
-                                  errorMessage: (_, {data}) => data,
-                                }),
-                                log(),
-                              ],
-                            },
+                            onError: [
+                              {
+                                target: '#validation.longSession',
+                                actions: [
+                                  assign({
+                                    shortHashSubmitted: new Date().getTime(),
+                                  }),
+                                  log(),
+                                ],
+                                cond: (_, {data}) =>
+                                  data === 'tx with same hash already exists',
+                              },
+                              {
+                                target: 'fail',
+                                actions: [
+                                  assign({
+                                    errorMessage: (_, {data}) => data,
+                                  }),
+                                  log(),
+                                ],
+                              },
+                            ],
                           },
                         },
                         fail: {
@@ -1201,15 +1214,28 @@ export const createValidationMachine = ({
                                 send('FORCE_SUBMIT_SHORT_ANSWERS'),
                               ],
                             },
-                            onError: {
-                              target: 'fail',
-                              actions: [
-                                assign({
-                                  errorMessage: (_, {data}) => data,
-                                }),
-                                log(),
-                              ],
-                            },
+                            onError: [
+                              {
+                                actions: [
+                                  assign({
+                                    longAnswersSubmitted: true,
+                                  }),
+                                  send('FORCE_SUBMIT_SHORT_ANSWERS'),
+                                  log(),
+                                ],
+                                cond: (_, {data}) =>
+                                  data === 'tx with same hash already exists',
+                              },
+                              {
+                                target: 'fail',
+                                actions: [
+                                  assign({
+                                    errorMessage: (_, {data}) => data,
+                                  }),
+                                  log(),
+                                ],
+                              },
+                            ],
                           },
                         },
                         fail: {
@@ -1274,7 +1300,6 @@ export const createValidationMachine = ({
                     },
                     submitShortAnswers: {
                       invoke: {
-                        // eslint-disable-next-line no-shadow
                         src: 'submitShortAnswers',
                         onDone: {
                           target: 'done',
@@ -1282,15 +1307,28 @@ export const createValidationMachine = ({
                             shortAnswersSubmitted: new Date().getTime(),
                           }),
                         },
-                        onError: {
-                          target: 'fail',
-                          actions: [
-                            assign({
-                              errorMessage: (_, {data}) => data,
-                            }),
-                            log(),
-                          ],
-                        },
+                        onError: [
+                          {
+                            target: 'done',
+                            actions: [
+                              assign({
+                                shortAnswersSubmitted: new Date().getTime(),
+                              }),
+                              log(),
+                            ],
+                            cond: (_, {data}) =>
+                              data === 'tx with same hash already exists',
+                          },
+                          {
+                            target: 'fail',
+                            actions: [
+                              assign({
+                                errorMessage: (_, {data}) => data,
+                              }),
+                              log(),
+                            ],
+                          },
+                        ],
                       },
                     },
                     fail: {
