@@ -113,16 +113,14 @@ export default function Rent() {
 
   const [state, setState] = useState(0)
 
-  const fetchProviders = () => getProviders()
-
-  const {data: providers} = useQuery(['providers'], fetchProviders, {
+  const {data: providers} = useQuery(['providers'], getProviders, {
     initialData: [],
   })
 
   const [{state: identityState}] = useIdentity()
 
   const sortedProviders = providers
-    .filter(x => x.slots)
+    .filter(x => Boolean(x.slots))
     .sort((a, b) => b.slots - a.slots)
 
   const selectedProvider = sortedProviders.length && sortedProviders[state]
