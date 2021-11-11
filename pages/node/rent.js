@@ -129,9 +129,9 @@ export default function Rent() {
 
   return (
     <Layout canRedirect={false}>
-      <Page p={0}>
-        <Box pt={6} px={20} mx={-20} pb={9}>
-          <Flex align="center" alignSelf="stretch" justify="space-between">
+      <Page>
+        <Box w="full">
+          <Flex align="center" justify="space-between">
             <PageTitle>Rent a shared node</PageTitle>
             <CloseButton onClick={() => router.back()} />
           </Flex>
@@ -159,7 +159,7 @@ export default function Rent() {
                         isChecked={state === idx}
                         onClick={() => setState(idx)}
                         borderColor="#d2d4d9"
-                      ></Radio>
+                      />
                     </TableCol>
                     <TableCol>
                       <Flex direction="column">
@@ -192,6 +192,7 @@ export default function Rent() {
           isInline
           spacing={2}
           justify="flex-end"
+          bg="white"
           borderTop="1px"
           borderTopColor="gray.100"
           px={4}
