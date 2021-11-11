@@ -19,10 +19,13 @@ Table.propTypes = {
   children: PropTypes.node,
 }
 
-export function TableRow({children, ...props}) {
+const RowContext = React.createContext()
+
+// eslint-disable-next-line react/prop-types
+export function TableRow({children, isLast, ...props}) {
   return (
     <tr {...props}>
-      {children}
+      <RowContext.Provider value={{isLast}}>{children}</RowContext.Provider>
       <style jsx>{`
         width: 100%;
       `}</style>
@@ -30,11 +33,10 @@ export function TableRow({children, ...props}) {
   )
 }
 
-TableRow.propTypes = {
-  children: PropTypes.node,
-}
-
+// eslint-disable-next-line react/prop-types
 export function TableCol({children, color, ...props}) {
+  const {isLast} = React.useContext(RowContext)
+
   return (
     <td {...props}>
       {children}
@@ -42,7 +44,7 @@ export function TableCol({children, color, ...props}) {
         td {
           padding: ${rem(8)} ${rem(12)};
           color: ${color || 'inherit'};
-          border-bottom: 1px solid ${theme.colors.gray2};
+          border-bottom: ${isLast ? 'none' : `solid 1px ${theme.colors.gray2}`};
         }
 
         td.text-right {
@@ -51,11 +53,6 @@ export function TableCol({children, color, ...props}) {
       `}</style>
     </td>
   )
-}
-
-TableCol.propTypes = {
-  children: PropTypes.node,
-  color: PropTypes.string,
 }
 
 export function TableHeaderCol({children, ...props}) {
