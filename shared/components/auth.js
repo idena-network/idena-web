@@ -179,7 +179,7 @@ function RestoreKey() {
 }
 
 function Init() {
-  const [dnaAppUrl] = useDnaAppLink()
+  const [dnaAppUrl, {clear}] = useDnaAppLink()
 
   const size = useBreakpointValue(['lg', 'md'])
 
@@ -226,7 +226,7 @@ function Init() {
           </Flex>
         </Flex>
       </AuthLayout.Small>
-      {dnaAppUrl && <DnaAppUrl url={dnaAppUrl} />}
+      {dnaAppUrl && <DnaAppUrl url={dnaAppUrl} onOpenInApp={clear} />}
     </AuthLayout>
   )
 }
@@ -289,12 +289,14 @@ AuthLayout.Small = function({children}) {
   )
 }
 
-function DnaAppUrl({url}) {
+function DnaAppUrl({url, onOpenInApp}) {
   const {t} = useTranslation()
   return (
-    <HStack align="center" spacing={3} color="muted" px={2} py={1.5} mt={16}>
+    <HStack align="center" spacing={3} color="muted" px={2} py={1.5} mb={6}>
       <LaptopIcon name="laptop" boxSize={5} />
-      <Link href={url}>{t('Open in Idena app')}</Link>
+      <Link href={url} onClick={onOpenInApp}>
+        {t('Open in Idena app')}
+      </Link>
     </HStack>
   )
 }

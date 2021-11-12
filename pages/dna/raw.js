@@ -52,7 +52,7 @@ export default function DnaRawPage() {
     enabled: !!coinbase,
   })
 
-  const [, {clear: clearDnaAppLink}] = useDnaAppLink()
+  const [, {dismiss: dismissDnaAppLink}] = useDnaAppLink()
 
   return (
     <Layout canRedirect={false}>
@@ -73,7 +73,7 @@ export default function DnaRawPage() {
               dnaSendFailedDisclosure.onOpen()
             }}
             onSendRawTxFailed={failToast}
-            onClose={clearDnaAppLink}
+            onClose={dismissDnaAppLink}
           />
 
           <DnaSendSucceededDialog

@@ -79,11 +79,14 @@ export function useDnaAppLink() {
       sessionStorage.setItem('dnaUrl', JSON.stringify({route, query}))
   }, [isDnaUrl, query, route])
 
+  const clearSessionStorage = () => sessionStorage.removeItem('dnaUrl')
+
   return [
     isDnaUrl ? resolveDnaAppUrl({route, query}) : null,
     {
-      clear() {
-        sessionStorage.removeItem('dnaUrl')
+      clear: clearSessionStorage,
+      dismiss() {
+        clearSessionStorage()
         redirect('/home')
       },
     },

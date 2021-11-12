@@ -29,7 +29,7 @@ export default function SigninPage() {
     onReceive: onOpen,
   })
 
-  const [, {clear: clearDnaAppLink}] = useDnaAppLink()
+  const [, {dimiss: dimissDnaAppLink}] = useDnaAppLink()
 
   return (
     <Layout canRedirect={false}>
@@ -44,7 +44,7 @@ export default function SigninPage() {
               faviconUrl={faviconUrl}
               {...dnaSignInParams}
               {...dnaSignInDisclosure}
-              onCompleteSignIn={clearDnaAppLink}
+              onCompleteSignIn={dimissDnaAppLink}
               onSignInError={failToast}
             />
           )}

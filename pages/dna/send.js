@@ -52,7 +52,7 @@ export default function DnaSendPage() {
     enabled: !!coinbase,
   })
 
-  const [, {clear: clearDnaAppLink}] = useDnaAppLink()
+  const [, {dismiss: dismissDnaAppLink}] = useDnaAppLink()
 
   return (
     <Layout canRedirect={false}>
@@ -73,7 +73,7 @@ export default function DnaSendPage() {
               dnaSendFailedDisclosure.onOpen()
             }}
             onSendTxFailed={failToast}
-            onClose={clearDnaAppLink}
+            onClose={dismissDnaAppLink}
           />
 
           <DnaSendSucceededDialog
