@@ -70,6 +70,7 @@ import {
   UploadIcon,
   UpvoteIcon,
 } from '../../shared/components/icons'
+import {WideLink} from '../profile/components'
 
 export function FlipPageTitle({onClose, ...props}) {
   return (
@@ -534,7 +535,10 @@ export function FlipKeywordTranslationSwitch({
 
   return (
     <Stack spacing={rem(30)}>
-      <FlipKeywordPair isInline={isInline} spacing={isInline ? 10 : rem(15)}>
+      <FlipKeywordPair
+        isInline={[false, isInline]}
+        spacing={['14px', isInline ? 10 : rem(15)]}
+      >
         {hasBothTranslations &&
           showTranslation &&
           keywords.translations.map(([{id, name, desc}]) => (
@@ -586,9 +590,114 @@ export function FlipKeywordTranslationSwitch({
   )
 }
 
+export function FlipKeywordTranslationSwitchNew({
+  keywords,
+  showTranslation,
+  locale,
+  onSwitchLocale,
+  isInline = true,
+}) {
+  const hasBothTranslations =
+    keywords.translations.reduce((acc, {length}) => acc + length, 0) > 1
+
+  const translate = () => {
+    const langs = [
+      ...(window.navigator.languages || []),
+      window.navigator.language,
+      window.navigator.browserLanguage,
+      window.navigator.userLanguage,
+      window.navigator.systemLanguage,
+    ]
+      .filter(Boolean)
+      .map(language => language.substr(0, 2))
+
+    const win = openExternalUrl(
+      `https://translate.google.com/#view=home&op=translate&sl=auto&tl=${
+        langs.length ? langs[0] : 'en'
+      }&text=${encodeURIComponent(
+        keywords.words.map(({name, desc}) => `${name}\n${desc}`).join('\n')
+      )}`
+    )
+    win.focus()
+  }
+
+  return (
+    <Stack spacing={[0, '30px']}>
+      <FlipKeywordPair isInline={isInline} spacing={isInline ? 10 : rem(15)}>
+        {hasBothTranslations &&
+          showTranslation &&
+          keywords.translations.map(([{id, name, desc}]) => (
+            <FlipKeyword key={id}>
+              <FlipKeywordName>{name}</FlipKeywordName>
+              <FlipKeywordDescription minH={10}>{desc}</FlipKeywordDescription>
+            </FlipKeyword>
+          ))}
+        {showTranslation ||
+          keywords.words.map(({id, name, desc}) => (
+            <FlipKeyword key={id}>
+              <FlipKeywordName>{name}</FlipKeywordName>
+              <FlipKeywordDescription minH={10}>{desc}</FlipKeywordDescription>
+            </FlipKeyword>
+          ))}
+      </FlipKeywordPair>
+
+      <Stack isInline spacing={1} align="center">
+        {hasBothTranslations && (
+          <IconButton
+            icon={<SwitchIcon boxSize={5} />}
+            _hover={{background: 'transparent'}}
+            onClick={onSwitchLocale}
+          >
+            {showTranslation ? 'EN' : (locale || '').toUpperCase()}
+          </IconButton>
+        )}
+        {showTranslation || (
+          <>
+            {hasBothTranslations ? (
+              <Divider
+                orientation="vertical"
+                borderColor="gray.100"
+                m={0}
+                h={rem(24)}
+              />
+            ) : null}
+            <WideLink label="Google Translate" onClick={translate} px={0}>
+              <Box
+                boxSize={[8]}
+                backgroundColor={['brandBlue.10', 'transparent']}
+                borderRadius="10px"
+              >
+                <GtranslateIcon
+                  color="blue.500"
+                  boxSize={5}
+                  mt="6px"
+                  ml={['6px', '12px']}
+                />
+              </Box>
+            </WideLink>
+          </>
+        )}
+      </Stack>
+    </Stack>
+  )
+}
+
 export function FlipKeywordPanel(props) {
   return (
     <Box bg="gray.50" px={10} py={8} rounded="lg" w="480px" {...props}></Box>
+  )
+}
+
+export function FlipKeywordPanelNew(props) {
+  return (
+    <Box
+      bg={['', 'gray.50']}
+      px={[0, 10]}
+      py={[4, 8]}
+      rounded="lg"
+      w={['100%', '320px']}
+      {...props}
+    ></Box>
   )
 }
 

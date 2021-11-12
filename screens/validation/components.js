@@ -54,8 +54,8 @@ import {NotificationType} from '../../shared/providers/notification-context'
 import {AnswerType, EpochPeriod, RelevanceType} from '../../shared/types'
 import {createTimerMachine} from '../../shared/machines'
 import {
-  FlipKeywordPanel,
-  FlipKeywordTranslationSwitch,
+  FlipKeywordPanelNew,
+  FlipKeywordTranslationSwitchNew,
 } from '../flips/components'
 
 import {
@@ -82,9 +82,9 @@ export function ValidationScene(props) {
       h="100vh"
       maxW="full"
       pt={6}
-      pb={3}
-      pl={[6, 10]}
-      pr={6}
+      pb={[0, 3]}
+      pl={[8, 10]}
+      pr={[8, 6]}
       overflow="hidden"
       {...props}
     />
@@ -124,6 +124,7 @@ export function FlipChallenge(props) {
   return (
     <ChakraFlex
       w={['100%', 'auto']}
+      direction={['column', 'row']}
       justify="center"
       align="center"
       css={{zIndex: 1}}
@@ -524,7 +525,9 @@ function ThumbnailOverlay({option, isQualified, hasIrrelevantWords}) {
 export function FlipWords({
   currentFlip: {words = []},
   translations = {},
+  onReport = {},
   children,
+  ...props
 }) {
   const {t, i18n} = useTranslation()
 
@@ -539,10 +542,46 @@ export function FlipWords({
   const shouldShowTranslation = showTranslation && hasApprovedTranslation
 
   return (
-    <ChakraBox fontSize="md" color="brandGray.500" ml={rem(32)} w={rem(320)}>
-      <FlipKeywordPanel w={rem(320)} mb={8}>
+    <ChakraFlex
+      direction="column"
+      fontSize={['base', 'md']}
+      color="brandGray.500"
+      ml={[0, 8]}
+      mb={[10, 0]}
+      w={['100%', '320px']}
+      {...props}
+    >
+      <ChakraFlex
+        display={['flex', 'none']}
+        direction="row"
+        align="center"
+        justify="center"
+      >
+        <Heading fontSize="20px" fontWeight={500}>
+          {t(`Is the flip correct?`)}
+        </Heading>
+        <IconButton
+          icon={<InfoIcon />}
+          bg="unset"
+          fontSize="20px"
+          minW={5}
+          w={5}
+          h={5}
+          _active={{
+            bg: 'unset',
+          }}
+          _hover={{
+            bg: 'unset',
+          }}
+          _focus={{
+            outline: 'none',
+          }}
+          onClick={onReport}
+        />
+      </ChakraFlex>
+      <FlipKeywordPanelNew mb={8}>
         {words.length ? (
-          <FlipKeywordTranslationSwitch
+          <FlipKeywordTranslationSwitchNew
             keywords={{
               words,
               translations: wordTranslations.map(x => (x ? [x] : [])),
@@ -581,25 +620,39 @@ export function FlipWords({
             ))}
           </>
         )}
-      </FlipKeywordPanel>
+      </FlipKeywordPanelNew>
       {children}
-    </ChakraBox>
+    </ChakraFlex>
   )
 }
 
 export function QualificationActions(props) {
-  return <Stack isInline spacing={2} align="center" {...props} />
+  return (
+    <ChakraFlex
+      direction={['column', 'row']}
+      justify="center"
+      align="center"
+      {...props}
+    />
+  )
 }
 
 // eslint-disable-next-line react/display-name
 export const QualificationButton = React.forwardRef(
-  ({isSelected, children, ...props}, ref) => {
+  ({isSelected, size, children, ...props}, ref) => {
     const ButtonVariant = isSelected ? PrimaryButton : SecondaryButton
     return (
-      <ButtonVariant ref={ref} flex={1} maxW={40} {...props}>
+      <ButtonVariant
+        size={size}
+        ref={ref}
+        flex={['0 0 48px', 1]}
+        w={['100%', 'auto']}
+        maxW={['100%', 40]}
+        {...props}
+      >
         <Stack isInline spacing={2} align="center" justify="center">
           {isSelected && <TickIcon boxSize={5} />}
-          <Text>{children}</Text>
+          <Text fontWeight={[500, 400]}>{children}</Text>
         </Stack>
       </ButtonVariant>
     )
@@ -1465,6 +1518,7 @@ export function ValidationScreen({
   const {t} = useTranslation()
 
   const [isDesktop] = useMediaQuery('(min-width: 481px)')
+  const size = useBreakpointValue(['lg', 'md'])
 
   const {
     isOpen: isReportDialogOpen,
@@ -1505,25 +1559,28 @@ export function ValidationScreen({
             ? isDesktop
               ? t('Select meaningful story: left or right', {nsSeparator: '!'})
               : t('Select meaningful story:', {nsSeparator: '!'})
-            : t('Check flips quality')}
+            : isDesktop
+            ? t('Check flips quality')
+            : ''}
         </Title>
         <Flex align="center">
           <Title
             color={['muted', isShortSession(state) ? 'white' : 'brandGray.500']}
             mr={[0, 6]}
           >
-            {!isDesktop && 'left or right ('}
+            {!isDesktop && !isLongSessionKeywords(state) && 'left or right ('}
             {currentIndex + 1}{' '}
             <Text as="span" color="muted">
               {t('out of')} {flips.length}
             </Text>
-            {!isDesktop && ')'}
+            {!isDesktop && !isLongSessionKeywords(state) && ')'}
           </Title>
         </Flex>
       </Header>
       <CurrentStep order={[3, 2]}>
         <FlipChallenge>
           <ChakraFlex
+            order={[2, 1]}
             w={['100%', 'auto']}
             justify="center"
             align="center"
@@ -1562,12 +1619,19 @@ export function ValidationScreen({
           </ChakraFlex>
           {isLongSessionKeywords(state) && currentFlip && (
             <FlipWords
+              order={[1, 2]}
               key={currentFlip.hash}
               currentFlip={currentFlip}
               translations={translations}
+              onReport={onOpenReportDialog}
             >
-              <Stack spacing={4}>
-                <Stack isInline spacing={1} align="center">
+              <Stack spacing={[0, 4]}>
+                <Stack
+                  display={['none', 'flex']}
+                  isInline
+                  spacing={1}
+                  align="center"
+                >
                   <Heading fontSize="base" fontWeight={500}>
                     {t(`Is the flip correct?`)}
                   </Heading>
@@ -1592,6 +1656,7 @@ export function ValidationScreen({
                 </Stack>
                 <QualificationActions>
                   <QualificationButton
+                    size={size}
                     isSelected={
                       currentFlip.relevance === RelevanceType.Relevant
                     }
@@ -1614,6 +1679,9 @@ export function ValidationScreen({
                     zIndex="tooltip"
                   >
                     <QualificationButton
+                      mt={[2, 0]}
+                      ml={[0, 2]}
+                      size={size}
                       isSelected={
                         currentFlip.relevance === RelevanceType.Irrelevant
                       }
