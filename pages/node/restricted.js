@@ -1,10 +1,18 @@
 import {DownloadIcon} from '@chakra-ui/icons'
-import {Checkbox, Flex, RadioGroup, Stack, Text} from '@chakra-ui/react'
+import {
+  Checkbox,
+  Flex,
+  RadioGroup,
+  Stack,
+  Text,
+  useDisclosure,
+} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
 import {BuySharedNodeForm, ChooseItemRadio} from '../../screens/node/components'
+import {GetProviderPrice} from '../../screens/node/utils'
 import {
   getAvailableProviders,
   getCandidateKey,
@@ -50,7 +58,7 @@ export default function Restricted() {
   const [state, setState] = useState(options.PROLONG)
   const [dontShow, setDontShow] = useState(false)
 
-  const [showDrawer, setShowDrawer] = useState(false)
+  const buySharedNodeDisclosure = useDisclosure()
 
   const [submitting, setSubmitting] = useState(false)
 
@@ -93,7 +101,7 @@ export default function Restricted() {
 
   const process = async () => {
     if (state === options.PROLONG) {
-      setShowDrawer(true)
+      buySharedNodeDisclosure.onOpen()
     } else if (state === options.ENTER_KEY) {
       return router.push('/settings/node')
     } else if (state === options.CANDIDATE) {
@@ -218,7 +226,10 @@ export default function Restricted() {
                           >
                             <Text color="white">
                               {t('Prolong node access')}{' '}
-                              {`(${provider.data.price} iDNA)`}
+                              {`(${GetProviderPrice(
+                                provider.data,
+                                identityState
+                              )} iDNA)`}
                             </Text>
                             <Text color="muted" fontSize="sm">
                               {provider.data.url}
@@ -296,12 +307,11 @@ export default function Restricted() {
       </Flex>
       {provider && (
         <BuySharedNodeForm
-          isOpen={showDrawer}
-          onClose={() => setShowDrawer(false)}
+          {...buySharedNodeDisclosure}
           providerId={provider.id}
           url={provider.data.url}
           from={coinbase}
-          amount={provider.data.price}
+          amount={GetProviderPrice(provider.data, identityState)}
           to={provider.data.address}
         />
       )}

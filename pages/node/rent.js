@@ -20,6 +20,7 @@ import {
   checkProviderSyncing,
   getProviders,
 } from '../../shared/api/marketplace'
+import {GetProviderPrice} from '../../screens/node/utils'
 import {
   Table,
   TableCol,
@@ -30,6 +31,7 @@ import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import Layout from '../../shared/components/layout'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {SYNCING_DIFF} from '../../shared/providers/settings-context'
+import {useIdentity} from '../../shared/providers/identity-context'
 
 // eslint-disable-next-line react/prop-types
 function ProviderStatus({url}) {
@@ -115,6 +117,8 @@ export default function Rent() {
     initialData: [],
   })
 
+  const [{state: identityState}] = useIdentity()
+
   const sortedProviders = providers
     .filter(x => x.slots)
     .sort((a, b) => b.slots - a.slots)
@@ -183,7 +187,7 @@ export default function Rent() {
                     <TableCol>{p.data.location}</TableCol>
                     <TableCol className="text-right">{p.slots}</TableCol>
                     <TableCol className="text-right">
-                      {p.data.price} iDNA
+                      {GetProviderPrice(p.data, identityState)} iDNA
                     </TableCol>
                   </TableRow>
                 ))}
@@ -214,7 +218,10 @@ export default function Rent() {
           providerId={selectedProvider && selectedProvider.id}
           url={selectedProvider && selectedProvider.data.url}
           from={coinbase}
-          amount={selectedProvider && selectedProvider.data.price}
+          amount={
+            selectedProvider &&
+            GetProviderPrice(selectedProvider.data, identityState)
+          }
           to={selectedProvider && selectedProvider.data.address}
         />
       </Page>
