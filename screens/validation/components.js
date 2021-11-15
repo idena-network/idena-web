@@ -59,6 +59,7 @@ import {
 } from '../flips/components'
 
 import {
+  CornerButton,
   IconButton,
   PrimaryButton,
   SecondaryButton,
@@ -116,7 +117,14 @@ export function Title(props) {
 
 export function CurrentStep(props) {
   return (
-    <ChakraFlex justify="center" flex={1} mt={[6, 0]} mb={[0, 6]} {...props} />
+    <ChakraFlex
+      justify="center"
+      overflowY={['auto', 'initial']}
+      flex={1}
+      mt={[6, 0]}
+      mb={[0, 6]}
+      {...props}
+    />
   )
 }
 
@@ -125,7 +133,7 @@ export function FlipChallenge(props) {
     <ChakraFlex
       w={['100%', 'auto']}
       direction={['column', 'row']}
-      justify="center"
+      justify={['flex-start', 'center']}
       align="center"
       css={{zIndex: 1}}
       {...props}
@@ -175,9 +183,10 @@ export function Flip({
       {reorderList(images, orders[variant - 1]).map((src, idx) => (
         <ChakraBox
           key={idx}
+          h={['calc((100vh - 290px) / 4)', 'calc((100vh - 260px) / 4)']}
           borderRadius={getFlipBorderRadius(idx, images.length - 1, radius)}
           css={{
-            height: 'calc((100vh - 260px) / 4)',
+            // height: 'calc((100vh - 260px) / 4)',
             position: 'relative',
             overflow: 'hidden',
           }}
@@ -347,7 +356,9 @@ function FlipImage({
 }
 
 export function ActionBar(props) {
-  return <ChakraFlex justify="space-between" mb={4} {...props} />
+  return (
+    <ChakraFlex justify="space-between" mt={[6, 0]} mb={[10, 4]} {...props} />
+  )
 }
 
 export function ActionBarItem(props) {
@@ -362,21 +373,20 @@ export function Thumbnails({currentIndex, isLong, ...props}) {
       align="center"
       justify={[isLong ? 'normal' : 'center', 'normal']}
       minH={12}
+      overflowX={['scroll', 'auto']}
+      sx={{
+        '&::-webkit-scrollbar': {
+          display: 'none',
+        },
+      }}
       transform={[
-        isLong
-          ? `translateX(50%) translateX(-${rem(
-              totalThumbWidth * (currentIndex + 1 / 2)
-            )})`
-          : 'none',
+        'none',
         `translateX(50%) translateX(-${rem(
           totalThumbWidth * (currentIndex + 1 / 2)
         )})`,
       ]}
-      transition={[
-        isLong ? 'transform .3s ease-out' : 'none',
-        'transform .3s ease-out',
-      ]}
-      willChange={[isLong ? 'transform' : 'none', 'transform']}
+      transition={['none', 'transform .3s ease-out']}
+      willChange={['none', 'transform']}
       zIndex={1}
       {...props}
     />
@@ -787,7 +797,7 @@ export function TimerClock({duration, color}) {
 
   return (
     <Box style={{fontVariantNumeric: 'tabular-nums', minWidth: rem(37)}}>
-      <Text color={color} fontSize={rem(13)} fontWeight={500}>
+      <Text color={color} fontSize={['16px', '13px']} fontWeight={500}>
         {state.matches('stopped') && '00:00'}
         {state.matches('running') &&
           [Math.floor(remaining / 60), remaining % 60]
@@ -1750,7 +1760,7 @@ export function ValidationScreen({
           {(isShortSession(state) || isLongSessionKeywords(state)) && (
             <TooltipLegacy
               content={
-                hasAllRelevanceMarks(state) || isLastFlip(state)
+                hasAllRelevanceMarks(state) || isLastFlip(state) || !isDesktop
                   ? null
                   : t('Go to last flip')
               }
@@ -1764,35 +1774,20 @@ export function ValidationScreen({
               >
                 {t('Submit answers')}
               </PrimaryButton>
-              <ChakraBox
+              <CornerButton
                 display={['block', 'none']}
-                as="button"
+                label={t('Submit')}
                 isDisabled={!canSubmit(state)}
                 isLoading={isSubmitting(state)}
-                loadingText={t('Submitting answers...')}
+                isDark={isShortSession(state)}
                 onClick={() => send('SUBMIT')}
-                position="absolute"
-                bottom="0"
-                right="0"
-                h={24}
-                w={24}
-                background="xwhite.010"
-                borderTopLeftRadius="90%"
               >
-                <ChakraFlex
-                  direction="column"
-                  align="center"
-                  justify="flex-end"
-                  h="100%"
-                  pl="16px"
-                  pb="16px"
-                  fontSize="15px"
-                  fontWeight="500"
-                >
-                  <OkIcon mb="5px" boxSize={5} />
-                  {t('Submit')}
-                </ChakraFlex>
-              </ChakraBox>
+                <OkIcon
+                  color={canSubmit(state) ? 'brandBlue.500' : 'inherit'}
+                  mb="5px"
+                  boxSize={5}
+                />
+              </CornerButton>
             </TooltipLegacy>
           )}
           {isLongSessionFlips(state) && (
@@ -1804,38 +1799,20 @@ export function ValidationScreen({
               >
                 {t('Start checking keywords')}
               </PrimaryButton>
-              <ChakraBox
+              <CornerButton
                 display={['block', 'none']}
-                as="button"
+                label={t('Check')}
                 isDisabled={!canSubmit(state)}
+                isDark={isShortSession(state)}
                 onClick={() => send('FINISH_FLIPS')}
-                position="absolute"
-                bottom="0"
-                right="0"
-                h={24}
-                w={24}
-                background="brandBlue.10"
-                borderTopLeftRadius="90%"
               >
-                <ChakraFlex
-                  direction="column"
-                  align="center"
-                  justify="flex-end"
-                  h="100%"
-                  pl="16px"
-                  pb="16px"
-                  fontSize="15px"
-                  fontWeight="500"
-                >
-                  <ArrowBackIcon
-                    fill="brandBlue.500"
-                    transform="rotate(180deg)"
-                    mb="5px"
-                    boxSize={5}
-                  />
-                  {t('Check')}
-                </ChakraFlex>
-              </ChakraBox>
+                <ArrowBackIcon
+                  fill={canSubmit(state) ? 'brandBlue.500' : 'gray.200'}
+                  transform="rotate(180deg)"
+                  mb="5px"
+                  boxSize={5}
+                />
+              </CornerButton>
             </ChakraBox>
           )}
         </ActionBarItem>

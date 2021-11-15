@@ -53,3 +53,62 @@ export function FlatButton({children, ...props}) {
     </ChakraButton>
   )
 }
+
+export function CornerButton({
+  children,
+  label,
+  isDisabled = false,
+  isLoading = false,
+  isDark = false,
+  onClick = {},
+  ...props
+}) {
+  // eslint-disable-next-line no-nested-ternary
+  const colorBg = isDisabled
+    ? isDark
+      ? 'xwhite.010'
+      : 'gray.50'
+    : isDark
+    ? 'brandBlue.032'
+    : 'brandBlue.10'
+  // eslint-disable-next-line no-nested-ternary
+  const colorText = isDisabled
+    ? isDark
+      ? 'xwhite.024'
+      : 'gray.200'
+    : isDark
+    ? 'white'
+    : 'gray.500'
+
+  return (
+    <Box
+      as="button"
+      isDisabled={isDisabled}
+      isLoading={isLoading}
+      onClick={isDisabled || isLoading ? () => {} : onClick}
+      position="absolute"
+      bottom="0"
+      right="0"
+      h={24}
+      w={24}
+      background={colorBg}
+      borderTopLeftRadius="90%"
+      {...props}
+    >
+      <Flex
+        color={colorText}
+        direction="column"
+        align="center"
+        justify="flex-end"
+        h="100%"
+        pl="16px"
+        pb="16px"
+        fontSize="15px"
+        fontWeight="500"
+      >
+        {children}
+        {label}
+      </Flex>
+    </Box>
+  )
+}
