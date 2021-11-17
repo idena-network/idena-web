@@ -12,6 +12,7 @@ import {
   Alert,
   AlertIcon,
   useTheme,
+  Divider,
   Button,
   ListItem,
   AspectRatio,
@@ -40,6 +41,8 @@ import {
   Dialog,
   DialogBody,
   DialogFooter,
+  Drawer,
+  DrawerFooter,
 } from '../../shared/components/components'
 import {
   availableReportsNumber,
@@ -241,7 +244,7 @@ function FlipHolder({css, ...props}) {
 function LoadingFlip() {
   return (
     <FlipHolder css={{cursor: 'not-allowed'}}>
-      <Fill w="100%">
+      <Fill h={['calc(100vh - 290px)', 'auto']} w="100%">
         <ValidationSpinner />
       </Fill>
     </FlipHolder>
@@ -856,12 +859,28 @@ export function ValidationFailedDialog(props) {
   )
 }
 
-function ValidationDialog({submitText, onSubmit, children, ...props}) {
+function ValidationDialog({
+  submitText,
+  onSubmit,
+  children,
+  isDesktop,
+  ...props
+}) {
   return (
-    <Dialog closeOnOverlayClick={false} closeOnEsc={false} {...props}>
+    <Dialog
+      closeOnOverlayClick={false}
+      closeOnEsc={false}
+      isDesktop={isDesktop}
+      isCloseable={false}
+      {...props}
+    >
       {children}
       {onSubmit && (
-        <ValidationDialogFooter submitText={submitText} onSubmit={onSubmit} />
+        <ValidationDialogFooter
+          submitText={submitText}
+          isDesktop={isDesktop}
+          onSubmit={onSubmit}
+        />
       )}
     </Dialog>
   )
@@ -875,11 +894,21 @@ function ValidationDialogBody(props) {
   )
 }
 
-function ValidationDialogFooter({submitText, onSubmit, props}) {
+function ValidationDialogFooter({submitText, onSubmit, isDesktop, props}) {
+  const NoticeFooter = isDesktop ? DialogFooter : DrawerFooter
+  const size = useBreakpointValue(['mdx', 'md'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
   return (
-    <DialogFooter {...props}>
-      <PrimaryButton onClick={onSubmit}>{submitText}</PrimaryButton>
-    </DialogFooter>
+    <NoticeFooter {...props}>
+      <Button
+        variant={variantPrimary}
+        size={size}
+        w={['100%', 'auto']}
+        onClick={onSubmit}
+      >
+        {submitText}
+      </Button>
+    </NoticeFooter>
   )
 }
 
@@ -1101,6 +1130,7 @@ export function ReviewValidationDialog({
   onMisingAnswers,
   onMisingReports,
   onCancel,
+  isDesktop,
   ...props
 }) {
   const {t} = useTranslation()
@@ -1110,8 +1140,19 @@ export function ReviewValidationDialog({
   const areFlipsUnanswered = answeredFlipsCount < flips.length
   const areReportsMissing = reportedFlipsCount < availableReportsCount
 
+  const NoticeFooter = isDesktop ? DialogFooter : DrawerFooter
+  const size = useBreakpointValue(['mdx', 'md'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
+  const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
+
   return (
-    <Dialog title={t('Submit the answers')} onClose={onCancel} {...props}>
+    <Dialog
+      title={t('Submit the answers')}
+      onClose={onCancel}
+      isDesktop={isDesktop}
+      isCloseable={false}
+      {...props}
+    >
       <ValidationDialogBody>
         <Stack spacing={6}>
           <Stack spacing={4}>
@@ -1179,16 +1220,32 @@ export function ReviewValidationDialog({
           )}
         </Stack>
       </ValidationDialogBody>
-      <DialogFooter {...props}>
-        <SecondaryButton onClick={onCancel}>{t('Cancel')}</SecondaryButton>
-        <PrimaryButton
+      <NoticeFooter {...props}>
+        <Button
+          variant={variantSecondary}
+          size={size}
+          w={['100%', 'auto']}
+          onClick={onCancel}
+        >
+          {t('Cancel')}
+        </Button>
+        <Divider
+          display={['block', 'none']}
+          h={10}
+          orientation="vertical"
+          color="gray.100"
+        />
+        <Button
+          variant={variantPrimary}
+          size={size}
+          w={['100%', 'auto']}
           isLoading={isSubmitting}
           loadingText={t('Submitting answers...')}
           onClick={onSubmit}
         >
-          {t('Submit answers')}
-        </PrimaryButton>
-      </DialogFooter>
+          {isDesktop ? t('Submit answers') : t('Submit')}
+        </Button>
+      </NoticeFooter>
     </Dialog>
   )
 }
@@ -1208,6 +1265,7 @@ function ReviewValidationDialogLinkButton(props) {
   return (
     <Button
       variant="link"
+      fontSize={['mobile', 'md']}
       color="muted"
       fontWeight="normal"
       verticalAlign="baseline"
@@ -1469,15 +1527,32 @@ function BadFlipPartFrame({flipCase, ...props}) {
   )
 }
 
-function ReviewShortSessionDialog({flips, onSubmit, onCancel, ...props}) {
+function ReviewShortSessionDialog({
+  flips,
+  onSubmit,
+  onCancel,
+  isDesktop,
+  ...props
+}) {
   const {t} = useTranslation()
 
   const answeredFlipsCount = flips.filter(({option}) => option > 0).length
 
   const areFlipsUnanswered = answeredFlipsCount < flips.length
 
+  const NoticeFooter = isDesktop ? DialogFooter : DrawerFooter
+  const size = useBreakpointValue(['mdx', 'md'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
+  const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
+
   return (
-    <Dialog title={t('Submit the answers')} onClose={onCancel} {...props}>
+    <Dialog
+      title={t('Submit the answers')}
+      onClose={onCancel}
+      isDesktop={isDesktop}
+      isCloseable={false}
+      {...props}
+    >
       <ValidationDialogBody>
         <Stack spacing={6}>
           <Stack spacing={4}>
@@ -1506,10 +1581,30 @@ function ReviewShortSessionDialog({flips, onSubmit, onCancel, ...props}) {
           </Stack>
         </Stack>
       </ValidationDialogBody>
-      <DialogFooter {...props}>
-        <SecondaryButton onClick={onCancel}>{t('Cancel')}</SecondaryButton>
-        <PrimaryButton onClick={onSubmit}>{t('Submit answers')}</PrimaryButton>
-      </DialogFooter>
+      <NoticeFooter justify={['center', 'auto']} {...props}>
+        <Button
+          variant={variantSecondary}
+          size={size}
+          w={['100%', 'auto']}
+          onClick={onCancel}
+        >
+          {t('Cancel')}
+        </Button>
+        <Divider
+          display={['block', 'none']}
+          h={10}
+          orientation="vertical"
+          color="gray.100"
+        />
+        <Button
+          variant={variantPrimary}
+          size={size}
+          w={['100%', 'auto']}
+          onClick={onSubmit}
+        >
+          {isDesktop ? t('Submit answers') : t('Submit')}
+        </Button>
+      </NoticeFooter>
     </Dialog>
   )
 }
@@ -1871,6 +1966,7 @@ export function ValidationScreen({
       {state.matches('longSession.solve.answer.welcomeQualification') && (
         <WelcomeQualificationDialog
           isOpen
+          isDesktop={isDesktop}
           onSubmit={() => send('START_LONG_SESSION')}
         />
       )}
@@ -1914,6 +2010,7 @@ export function ValidationScreen({
         availableReportsCount={availableReportsNumber(longFlips)}
         isOpen={state.matches('longSession.solve.answer.review')}
         isSubmitting={isSubmitting(state)}
+        isDesktop={isDesktop}
         onSubmit={() => send('SUBMIT')}
         onMisingAnswers={() => {
           send({
@@ -1934,6 +2031,7 @@ export function ValidationScreen({
         isOpen={state.matches(
           'shortSession.solve.answer.submitShortSession.confirm'
         )}
+        isDesktop={isDesktop}
         onSubmit={() => send('SUBMIT')}
         onClose={() => {
           send('CANCEL')

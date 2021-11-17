@@ -283,30 +283,41 @@ export function Dialog({
   title,
   children,
   shouldShowCloseButton = false,
+  isDesktop = true,
   ...props
 }) {
+  const Notice = isDesktop ? Modal : Drawer
+  const NoticeBody = isDesktop ? ModalContent : DrawerBody
   return (
-    <Modal isCentered size="sm" {...props}>
-      <ModalOverlay bg="xblack.080" />
-      <ModalContent
+    <Notice isCentered size="sm" {...props}>
+      {isDesktop && <ModalOverlay bg="xblack.080" />}
+      <NoticeBody
         bg="white"
         color="brandGray.500"
-        fontSize="md"
-        p={8}
-        pt={6}
+        fontSize={['mobile', 'md']}
+        p={[0, 8]}
+        pt={[0, 6]}
         my={0}
         rounded="lg"
       >
         {title && <DialogHeader>{title}</DialogHeader>}
         {shouldShowCloseButton && <ModalCloseButton />}
         {children}
-      </ModalContent>
-    </Modal>
+      </NoticeBody>
+    </Notice>
   )
 }
 
 export function DialogHeader(props) {
-  return <ModalHeader p={0} mb={2} fontSize="lg" fontWeight={500} {...props} />
+  return (
+    <ModalHeader
+      p={0}
+      mb={2}
+      fontSize={['20px', 'lg']}
+      fontWeight={500}
+      {...props}
+    />
+  )
 }
 
 export function DialogBody(props) {
