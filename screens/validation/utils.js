@@ -48,7 +48,7 @@ export function rearrangeFlips(flips) {
       loading.push(flips[i])
     }
   }
-  solvable.sort((a, b) => a.retries - b.retries || a.hash > b.hash)
+  solvable.sort((a, b) => a.flipIndex - b.flipIndex)
   return [...solvable, ...loading, ...invalid, ...extras]
 }
 

@@ -118,9 +118,11 @@ function ValidationSession({
     services: {
       fetchIdentity: () => Promise.resolve({}),
       fetchShortHashes: () =>
-        getHashes(id, SessionType.Short).then(data =>
-          data.map(x => ({hash: x}))
-        ),
+        id
+          ? getHashes(id, SessionType.Short).then(data =>
+              data.map(x => ({hash: x}))
+            )
+          : new Promise((_, reject) => setTimeout(reject, 0)),
       fetchShortFlips: ({shortFlips}) => cb =>
         fetchFlips(
           shortFlips
@@ -129,9 +131,11 @@ function ValidationSession({
           cb
         ),
       fetchLongHashes: () =>
-        getHashes(id, SessionType.Long).then(data =>
-          data.map(x => ({hash: x}))
-        ),
+        id
+          ? getHashes(id, SessionType.Long).then(data =>
+              data.map(x => ({hash: x}))
+            )
+          : new Promise((_, reject) => setTimeout(reject, 0)),
       fetchLongFlips: ({longFlips}) => cb =>
         fetchFlips(
           longFlips
