@@ -367,6 +367,7 @@ export const createValidationMachine = ({
         longSessionDuration,
         errorMessage: null,
         retries: 0,
+        flipIndex: 0,
         locale,
         translations: {},
         reportedFlipsCount: 0,
@@ -486,10 +487,14 @@ export const createValidationMachine = ({
                             FLIP: {
                               actions: [
                                 assign({
-                                  shortFlips: ({shortFlips, retries}, {flip}) =>
+                                  shortFlips: (
+                                    {shortFlips, retries, flipIndex},
+                                    {flip}
+                                  ) =>
                                     mergeFlipsByHash(shortFlips, [
-                                      {...flip, retries},
+                                      {...flip, retries, flipIndex},
                                     ]),
+                                  flipIndex: ({flipIndex}) => flipIndex + 1,
                                 }),
                                 choose([
                                   {
@@ -814,6 +819,7 @@ export const createValidationMachine = ({
             assign({
               currentIndex: 0,
               retries: 0,
+              flipIndex: 0,
             }),
             log('Entering long session'),
           ],
@@ -906,8 +912,11 @@ export const createValidationMachine = ({
                 FLIP: {
                   actions: [
                     assign({
-                      longFlips: ({longFlips, retries}, {flip}) =>
-                        mergeFlipsByHash(longFlips, [{...flip, retries}]),
+                      longFlips: ({longFlips, retries, flipIndex}, {flip}) =>
+                        mergeFlipsByHash(longFlips, [
+                          {...flip, retries, flipIndex},
+                        ]),
+                      flipIndex: ({flipIndex}) => flipIndex + 1,
                     }),
                     choose([
                       {
