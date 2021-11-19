@@ -293,8 +293,15 @@ function FailedFlip() {
           key={`left-${idx}`}
           justify="center"
           align="center"
-          borderRadius={getFlipBorderRadius(idx, defaultOrder.length - 1, radius)}
-          h={[`calc((${windowHeight}px - 290px) / 4)`, 'calc(100vh - 260px)']}
+          borderRadius={getFlipBorderRadius(
+            idx,
+            defaultOrder.length - 1,
+            radius
+          )}
+          h={[
+            `calc((${windowHeight}px - 290px) / 4)`,
+            'calc((100vh - 260px) / 4)',
+          ]}
           css={{
             background: transparentize(0.16, theme.colors.gray5),
             border: 'solid 1px rgba(210, 212, 217, 0.16)',
