@@ -90,7 +90,6 @@
     "react-scroll": "^1.8.4",
     "redact-object": "^3.0.1",
     "reverse-line-reader": "^0.2.6",
-    "react-div-100vh": "^0.7.0",
     "rlp": "^2.2.2",
     "secp256k1": "^4.0.2",
     "semver": "^6.3.0",

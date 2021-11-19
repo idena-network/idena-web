@@ -30,7 +30,6 @@ import {Trans, useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
 import {useRouter} from 'next/router'
 import {State} from 'xstate'
-import {use100vh} from 'react-div-100vh'
 import {Box, Fill, Absolute} from '../../shared/components'
 import Flex from '../../shared/components/flex'
 import {reorderList} from '../../shared/utils/arr'
@@ -78,6 +77,7 @@ import {
   ArrowBackIcon,
 } from '../../shared/components/icons'
 import {TEST_SHORT_SESSION_INTERVAL_SEC} from '../../shared/providers/test-validation-context'
+import {use100vh} from '../../shared/hooks/use-100vh'
 
 const Scroll = require('react-scroll')
 
