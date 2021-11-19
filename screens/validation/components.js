@@ -88,8 +88,14 @@ export function ValidationScene(props) {
   return (
     <ChakraFlex
       direction="column"
-      h="100vh"
+      h={['100%', '100vh']}
       maxW="full"
+      overflowY={['auto', 'initial']}
+      sx={{
+        '&::-webkit-scrollbar': {
+          display: 'none',
+        },
+      }}
       pt={6}
       pb={[0, 3]}
       pl={[8, 10]}
@@ -103,10 +109,16 @@ export function ValidationScene(props) {
 export function Header(props) {
   return (
     <ChakraFlex
+      position={['fixed', 'initial']}
+      top={['24px', 'initial']}
+      left={[0, 'initial']}
+      h={['60px', 'auto']}
+      w={['100%', 'auto']}
       direction={['column', 'row']}
-      justify="space-between"
+      justify={['space-evenly', 'space-between']}
       align="center"
       mb={['15px', '55px']}
+      zIndex={[2, 'initial']}
       {...props}
     />
   )
@@ -127,14 +139,8 @@ export function CurrentStep(props) {
   return (
     <ChakraFlex
       justify="center"
-      overflowY={['auto', 'initial']}
-      sx={{
-        '&::-webkit-scrollbar': {
-          display: 'none',
-        },
-      }}
       flex={1}
-      mt={[6, 0]}
+      mt={['154px', 0]}
       mb={[0, 6]}
       {...props}
     />
@@ -373,9 +379,9 @@ export function ActionBar(props) {
     <ChakraFlex
       position={['fixed', 'initial']}
       bottom={[0, 'initial']}
+      left={[0, 'initial']}
       w={['100%', 'auto']}
       justify="space-between"
-      ml={['-32px', 0]}
       mt={[6, 0]}
       mb={[10, 4]}
       zIndex={[1, 'initial']}
@@ -393,6 +399,12 @@ const totalThumbWidth = 44
 export function Thumbnails({currentIndex, isLong, ...props}) {
   return (
     <ChakraFlex
+      position={['fixed', 'initial']}
+      top={['100px', 'initial']}
+      left={[0, 'initial']}
+      w={['100%', 'auto']}
+      mx={[isLong ? '32px' : 0, 0]}
+      maxW={['-webkit-fill-available', 'auto']}
       align="center"
       justify={[isLong ? 'normal' : 'center', 'normal']}
       minH={12}
@@ -1675,11 +1687,12 @@ export function ValidationScreen({
     <ValidationScene
       bg={isShortSession(state) ? theme.colors.black : theme.colors.white}
     >
-      <Header order={[1, 1]}>
+      <Header order={[2, 1]}>
         <Heading
           display={['block', 'none']}
           color={isShortSession(state) ? 'white' : 'brandGray.500'}
           fontSize="base"
+          zIndex={[2, 'auto']}
         >
           {isLongSessionKeywords(state)
             ? t('Check flips quality')
@@ -1687,6 +1700,7 @@ export function ValidationScreen({
         </Heading>
         <Title
           color={['muted', isShortSession(state) ? 'white' : 'brandGray.500']}
+          zIndex={[2, 'auto']}
         >
           {/* eslint-disable-next-line no-nested-ternary */}
           {['shortSession', 'longSession'].some(state.matches) &&
@@ -1702,6 +1716,7 @@ export function ValidationScreen({
           <Title
             color={['muted', isShortSession(state) ? 'white' : 'brandGray.500']}
             mr={[0, 6]}
+            zIndex={[2, 'auto']}
           >
             {!isDesktop && !isLongSessionKeywords(state) && 'left or right ('}
             {currentIndex + 1}{' '}
@@ -1717,7 +1732,7 @@ export function ValidationScreen({
           <ChakraFlex
             order={[2, 1]}
             w={['100%', 'auto']}
-            pb={[isLongSessionKeywords(state) ? '96px' : 0, 0]}
+            pb={[isLongSessionKeywords(state) ? '96px' : '16px', 0]}
             justify="center"
             align="center"
             position="relative"
@@ -1883,6 +1898,14 @@ export function ValidationScreen({
           />
         </ActionBarItem>
         <ActionBarItem justify="flex-end">
+            <ChakraBox
+                display={['block', 'none']}
+                position="fixed"
+                top={0}
+                h="166px"
+                w="100%"
+                bg={isShortSession(state) ? theme.colors.black : theme.colors.white}
+            />
           <ChakraBox
             display={['block', 'none']}
             position="fixed"
