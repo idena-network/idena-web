@@ -30,6 +30,7 @@ import {Trans, useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
 import {useRouter} from 'next/router'
 import {State} from 'xstate'
+import {use100vh} from 'react-div-100vh'
 import {Box, Fill, Absolute} from '../../shared/components'
 import Flex from '../../shared/components/flex'
 import {reorderList} from '../../shared/utils/arr'
@@ -173,6 +174,7 @@ export function Flip({
   onImageFail,
 }) {
   const radius = useBreakpointValue(['12px', '8px'])
+  const windowHeight = use100vh()
 
   if ((fetched && !decoded) || failed) return <FailedFlip />
   if (!fetched) return <LoadingFlip />
@@ -202,7 +204,10 @@ export function Flip({
       {reorderList(images, orders[variant - 1]).map((src, idx) => (
         <ChakraBox
           key={idx}
-          h={['calc((100vh - 290px) / 4)', 'calc((100vh - 260px) / 4)']}
+          h={[
+            `calc((${windowHeight}px - 290px) / 4)`,
+            'calc((100vh - 260px) / 4)',
+          ]}
           borderRadius={getFlipBorderRadius(idx, images.length - 1, radius)}
           css={{
             // height: 'calc((100vh - 260px) / 4)',
@@ -235,12 +240,13 @@ export function Flip({
 }
 
 function FlipHolder({css, ...props}) {
+  const windowHeight = use100vh()
   return (
     <ChakraFlex
       justify="center"
       direction="column"
       position="relative"
-      h={['calc(100vh - 290px)', 'calc(100vh - 260px)']}
+      h={[`calc(${windowHeight}px - 290px)`, 'calc(100vh - 260px)']}
       w={['100%', 'calc((100vh - 240px) / 3)']}
       mx={['6px', '10px']}
       my={0}
@@ -258,9 +264,10 @@ function FlipHolder({css, ...props}) {
 }
 
 function LoadingFlip() {
+  const windowHeight = use100vh()
   return (
     <FlipHolder css={{cursor: 'not-allowed'}}>
-      <Fill h={['calc(100vh - 290px)', 'auto']} w="100%">
+      <Fill h={[`calc((${windowHeight}px - 290px)`, 'auto']} w="100%">
         <ValidationSpinner />
       </Fill>
     </FlipHolder>
@@ -271,6 +278,8 @@ const defaultOrder = [1, 2, 3, 4]
 
 function FailedFlip() {
   const {t} = useTranslation()
+  const radius = useBreakpointValue(['12px', '8px'])
+  const windowHeight = use100vh()
   return (
     <FlipHolder
       css={{
@@ -284,6 +293,8 @@ function FailedFlip() {
           key={`left-${idx}`}
           justify="center"
           align="center"
+          borderRadius={getFlipBorderRadius(idx, defaultOrder.length - 1, radius)}
+          h={[`calc((${windowHeight}px - 290px) / 4)`, 'calc(100vh - 260px)']}
           css={{
             background: transparentize(0.16, theme.colors.gray5),
             border: 'solid 1px rgba(210, 212, 217, 0.16)',
@@ -291,12 +302,6 @@ function FailedFlip() {
               idx !== defaultOrder.length - 1
                 ? 'none'
                 : 'solid 1px rgba(210, 212, 217, 0.16)',
-            ...borderRadius('top', idx === 0 ? rem(8) : 'none'),
-            ...borderRadius(
-              'bottom',
-              idx === defaultOrder.length - 1 ? rem(8) : 'none'
-            ),
-            height: 'calc((100vh - 260px) / 4)',
             overflow: 'hidden',
           }}
         >
