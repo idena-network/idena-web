@@ -267,7 +267,7 @@ function LoadingFlip() {
   const windowHeight = use100vh()
   return (
     <FlipHolder css={{cursor: 'not-allowed'}}>
-      <Fill h={[`calc((${windowHeight}px - 290px)`, 'auto']} w="100%">
+      <Fill h={[`calc(${windowHeight}px - 290px)`, 'auto']} w="100%">
         <ValidationSpinner />
       </Fill>
     </FlipHolder>
