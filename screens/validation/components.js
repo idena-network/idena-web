@@ -370,7 +370,17 @@ function FlipImage({
 
 export function ActionBar(props) {
   return (
-    <ChakraFlex justify="space-between" mt={[6, 0]} mb={[10, 4]} {...props} />
+    <ChakraFlex
+      position={['fixed', 'initial']}
+      bottom={[0, 'initial']}
+      w={['100%', 'auto']}
+      justify="space-between"
+      ml={['-32px', 0]}
+      mt={[6, 0]}
+      mb={[10, 4]}
+      zIndex={[1, 'initial']}
+      {...props}
+    />
   )
 }
 
@@ -1707,6 +1717,7 @@ export function ValidationScreen({
           <ChakraFlex
             order={[2, 1]}
             w={['100%', 'auto']}
+            pb={[isLongSessionKeywords(state) ? '96px' : 0, 0]}
             justify="center"
             align="center"
             position="relative"
@@ -1860,7 +1871,7 @@ export function ValidationScreen({
       </CurrentStep>
       <ActionBar order={[4, 3]}>
         <ActionBarItem />
-        <ActionBarItem justify="center">
+        <ActionBarItem zIndex={2} justify="center">
           <ValidationTimer
             key={isShortSession(state) ? 'short-timer' : 'long-timer'}
             validationStart={validationStart}
@@ -1872,6 +1883,14 @@ export function ValidationScreen({
           />
         </ActionBarItem>
         <ActionBarItem justify="flex-end">
+          <ChakraBox
+            display={['block', 'none']}
+            position="fixed"
+            bottom={0}
+            h="96px"
+            w="100%"
+            bg={isShortSession(state) ? theme.colors.black : theme.colors.white}
+          />
           {(isShortSession(state) || isLongSessionKeywords(state)) && (
             <TooltipLegacy
               content={

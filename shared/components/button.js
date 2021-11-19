@@ -86,7 +86,7 @@ export function CornerButton({
       isDisabled={isDisabled}
       isLoading={isLoading}
       onClick={isDisabled || isLoading ? () => {} : onClick}
-      position="absolute"
+      position="fixed"
       bottom="0"
       right="0"
       h={24}
