@@ -41,7 +41,6 @@ import {
   Dialog,
   DialogBody,
   DialogFooter,
-  Drawer,
   DrawerFooter,
 } from '../../shared/components/components'
 import {
@@ -78,6 +77,12 @@ import {
   ArrowBackIcon,
 } from '../../shared/components/icons'
 import {TEST_SHORT_SESSION_INTERVAL_SEC} from '../../shared/providers/test-validation-context'
+
+const Scroll = require('react-scroll')
+
+const {ScrollElement} = Scroll
+const {scroller} = Scroll
+const ElementThumbnail = ScrollElement(Thumbnail)
 
 export function ValidationScene(props) {
   return (
@@ -123,6 +128,11 @@ export function CurrentStep(props) {
     <ChakraFlex
       justify="center"
       overflowY={['auto', 'initial']}
+      sx={{
+        '&::-webkit-scrollbar': {
+          display: 'none',
+        },
+      }}
       flex={1}
       mt={[6, 0]}
       mb={[0, 6]}
@@ -224,7 +234,7 @@ function FlipHolder({css, ...props}) {
       justify="center"
       direction="column"
       position="relative"
-      h={['100%', 'calc(100vh - 260px)']}
+      h={['calc(100vh - 290px)', 'calc(100vh - 260px)']}
       w={['100%', 'calc((100vh - 240px) / 3)']}
       mx={['6px', '10px']}
       my={0}
@@ -397,6 +407,7 @@ export function Thumbnails({currentIndex, isLong, ...props}) {
 }
 
 export function Thumbnail({
+  flipId,
   images,
   fetched,
   decoded,
@@ -414,6 +425,7 @@ export function Thumbnail({
 
   return (
     <ThumbnailHolder
+      name={flipId}
       isCurrent={isCurrent}
       isLong={isLong}
       border={[
@@ -1624,6 +1636,14 @@ export function ValidationScreen({
 
   const [isDesktop] = useMediaQuery('(min-width: 481px)')
   const size = useBreakpointValue(['lg', 'md'])
+  const flipsToLeft = () => {
+    scroller.scrollTo('flipIcon0', {
+      duration: 250,
+      smooth: true,
+      containerId: 'thumbnails',
+      horizontal: true,
+    })
+  }
 
   const {
     isOpen: isReportDialogOpen,
@@ -1913,12 +1933,14 @@ export function ValidationScreen({
         </ActionBarItem>
       </ActionBar>
       <Thumbnails
+        id="thumbnails"
         order={[2, 4]}
         currentIndex={currentIndex}
         isLong={isLongSessionFlips(state) || isLongSessionKeywords(state)}
       >
         {flips.map((flip, idx) => (
-          <Thumbnail
+          <ElementThumbnail
+            flipId={`flipIcon${idx}`}
             key={flip.hash}
             {...flip}
             isCurrent={currentIndex === idx}
@@ -1960,7 +1982,11 @@ export function ValidationScreen({
           />
         )}
       {isSubmitFailed(state) && (
-        <SubmitFailedDialog isOpen onSubmit={() => send('RETRY_SUBMIT')} />
+        <SubmitFailedDialog
+          isOpen
+          isDesktop={isDesktop}
+          onSubmit={() => send('RETRY_SUBMIT')}
+        />
       )}
 
       {state.matches('longSession.solve.answer.welcomeQualification') && (
@@ -1973,13 +1999,18 @@ export function ValidationScreen({
       {state.matches('longSession.solve.answer.finishFlips') && (
         <WelcomeKeywordsQualificationDialog
           isOpen
-          onSubmit={() => send('START_KEYWORDS_QUALIFICATION')}
+          isDesktop={isDesktop}
+          onSubmit={() => {
+            flipsToLeft()
+            send('START_KEYWORDS_QUALIFICATION')
+          }}
         />
       )}
 
       {state.matches('validationFailed') && (
         <ValidationFailedDialog
           isOpen
+          isDesktop={isDesktop}
           onSubmit={
             onValidationFailed
               ? () => onValidationFailed()
@@ -1998,9 +2029,10 @@ export function ValidationScreen({
           `You'll get rewards for reported flips if they are are also reported by more than 50% of qualification committee.`
         )}
         onClose={() => {
-          if (state.matches('longSession.solve.answer.finishFlips'))
+          if (state.matches('longSession.solve.answer.finishFlips')) {
+            flipsToLeft()
             send('START_KEYWORDS_QUALIFICATION')
-          else onCloseReportDialog()
+          } else onCloseReportDialog()
         }}
       />
 

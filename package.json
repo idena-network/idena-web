@@ -87,6 +87,7 @@
     "react-indexed-db": "^1.0.12",
     "react-qr-reader": "^2.2.1",
     "react-query": "^3.9.8",
+    "react-scroll": "^1.8.4",
     "redact-object": "^3.0.1",
     "reverse-line-reader": "^0.2.6",
     "rlp": "^2.2.2",
