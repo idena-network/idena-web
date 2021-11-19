@@ -1,15 +1,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable react/prop-types */
 import React, {useEffect, useMemo, useState} from 'react'
-import {
-  margin,
-  padding,
-  borderRadius,
-  cover,
-  position,
-  transparentize,
-  rgba,
-} from 'polished'
+import {margin, borderRadius, cover, transparentize, rgba} from 'polished'
 import {FiCheck, FiXCircle, FiChevronLeft, FiChevronRight} from 'react-icons/fi'
 import {
   Box as ChakraBox,
@@ -20,6 +12,7 @@ import {
   Alert,
   AlertIcon,
   useTheme,
+  Divider,
   Button,
   ListItem,
   AspectRatio,
@@ -29,6 +22,7 @@ import {
   ModalOverlay,
   ModalContent,
   useDisclosure,
+  useBreakpointValue,
   useMediaQuery,
 } from '@chakra-ui/react'
 import {useMachine} from '@xstate/react'
@@ -47,6 +41,7 @@ import {
   Dialog,
   DialogBody,
   DialogFooter,
+  DrawerFooter,
 } from '../../shared/components/components'
 import {
   availableReportsNumber,
@@ -61,11 +56,12 @@ import {NotificationType} from '../../shared/providers/notification-context'
 import {AnswerType, EpochPeriod, RelevanceType} from '../../shared/types'
 import {createTimerMachine} from '../../shared/machines'
 import {
-  FlipKeywordPanel,
-  FlipKeywordTranslationSwitch,
+  FlipKeywordPanelNew,
+  FlipKeywordTranslationSwitchNew,
 } from '../flips/components'
 
 import {
+  CornerButton,
   IconButton,
   PrimaryButton,
   SecondaryButton,
@@ -77,19 +73,34 @@ import {
   TickIcon,
   TimerIcon,
   InfoIcon,
+  OkIcon,
+  ArrowBackIcon,
 } from '../../shared/components/icons'
 import {TEST_SHORT_SESSION_INTERVAL_SEC} from '../../shared/providers/test-validation-context'
+import {use100vh} from '../../shared/hooks/use-100vh'
+
+const Scroll = require('react-scroll')
+
+const {ScrollElement} = Scroll
+const {scroller} = Scroll
+const ElementThumbnail = ScrollElement(Thumbnail)
 
 export function ValidationScene(props) {
   return (
     <ChakraFlex
       direction="column"
-      h="100vh"
+      h={['100%', '100vh']}
       maxW="full"
+      overflowY={['auto', 'initial']}
+      sx={{
+        '&::-webkit-scrollbar': {
+          display: 'none',
+        },
+      }}
       pt={6}
-      pb={3}
-      pl={10}
-      pr={6}
+      pb={[0, 3]}
+      pl={[8, 10]}
+      pr={[8, 6]}
       overflow="hidden"
       {...props}
     />
@@ -99,9 +110,16 @@ export function ValidationScene(props) {
 export function Header(props) {
   return (
     <ChakraFlex
-      justify="space-between"
+      position={['fixed', 'initial']}
+      top={['24px', 'initial']}
+      left={[0, 'initial']}
+      h={['60px', 'auto']}
+      w={['100%', 'auto']}
+      direction={['column', 'row']}
+      justify={['space-evenly', 'space-between']}
       align="center"
-      mb={props.isPrettyHigh ? '55px' : '0px'}
+      mb={['15px', '55px']}
+      zIndex={[2, 'initial']}
       {...props}
     />
   )
@@ -110,9 +128,9 @@ export function Header(props) {
 export function Title(props) {
   return (
     <Heading
-      fontSize={rem(24)}
+      fontSize={['mdx', '24px']}
       lineHeight="short"
-      fontWeight={500}
+      fontWeight={[400, 500]}
       {...props}
     />
   )
@@ -120,17 +138,27 @@ export function Title(props) {
 
 export function CurrentStep(props) {
   return (
-    <Flex
+    <ChakraFlex
       justify="center"
       flex={1}
-      css={{...margin(0, 0, rem(theme.spacings.medium24))}}
+      mt={['154px', 0]}
+      mb={[0, 6]}
       {...props}
     />
   )
 }
 
 export function FlipChallenge(props) {
-  return <Flex justify="center" align="center" css={{zIndex: 1}} {...props} />
+  return (
+    <ChakraFlex
+      w={['100%', 'auto']}
+      direction={['column', 'row']}
+      justify={['flex-start', 'center']}
+      align="center"
+      css={{zIndex: 1}}
+      {...props}
+    />
+  )
 }
 
 export function Flip({
@@ -145,6 +173,9 @@ export function Flip({
   onChoose,
   onImageFail,
 }) {
+  const radius = useBreakpointValue(['12px', '8px'])
+  const windowHeight = use100vh()
+
   if ((fetched && !decoded) || failed) return <FailedFlip />
   if (!fetched) return <LoadingFlip />
 
@@ -171,10 +202,15 @@ export function Flip({
       }
     >
       {reorderList(images, orders[variant - 1]).map((src, idx) => (
-        <Box
+        <ChakraBox
           key={idx}
+          h={[
+            `calc((${windowHeight}px - 290px) / 4)`,
+            'calc((100vh - 260px) / 4)',
+          ]}
+          borderRadius={getFlipBorderRadius(idx, images.length - 1, radius)}
           css={{
-            height: 'calc((100vh - 260px) / 4)',
+            // height: 'calc((100vh - 260px) / 4)',
             position: 'relative',
             overflow: 'hidden',
           }}
@@ -197,43 +233,41 @@ export function Flip({
             }}
             onError={onImageFail}
           />
-        </Box>
+        </ChakraBox>
       ))}
     </FlipHolder>
   )
 }
 
 function FlipHolder({css, ...props}) {
+  const windowHeight = use100vh()
   return (
-    <Flex
+    <ChakraFlex
       justify="center"
       direction="column"
-      css={{
-        borderRadius: rem(8),
-        border: `solid ${rem(2)} ${transparentize(
-          0.95,
-          theme.colors.primary2
-        )}`,
-        boxShadow: `0 0 ${rem(2)} 0 ${transparentize(
-          0.95,
-          theme.colors.primary2
-        )}`,
-        ...margin(0, rem(10)),
-        ...padding(rem(4)),
-        position: 'relative',
-        height: 'calc(100vh - 260px)',
-        width: 'calc((100vh - 240px) / 3)',
-        ...css,
-      }}
+      position="relative"
+      h={[`calc(${windowHeight}px - 290px)`, 'calc(100vh - 260px)']}
+      w={['100%', 'calc((100vh - 240px) / 3)']}
+      mx={['6px', '10px']}
+      my={0}
+      p={1}
+      borderRadius={['16px', '8px']}
+      border={`solid ${rem(2)} ${transparentize(0.95, theme.colors.primary2)}`}
+      boxShadow={`0 0 ${rem(2)} 0 ${transparentize(
+        0.95,
+        theme.colors.primary2
+      )}`}
+      css={css}
       {...props}
     />
   )
 }
 
 function LoadingFlip() {
+  const windowHeight = use100vh()
   return (
     <FlipHolder css={{cursor: 'not-allowed'}}>
-      <Fill>
+      <Fill h={[`calc(${windowHeight}px - 290px)`, 'auto']} w="100%">
         <ValidationSpinner />
       </Fill>
     </FlipHolder>
@@ -244,6 +278,8 @@ const defaultOrder = [1, 2, 3, 4]
 
 function FailedFlip() {
   const {t} = useTranslation()
+  const radius = useBreakpointValue(['12px', '8px'])
+  const windowHeight = use100vh()
   return (
     <FlipHolder
       css={{
@@ -253,10 +289,19 @@ function FailedFlip() {
       }}
     >
       {defaultOrder.map((_, idx) => (
-        <Flex
+        <ChakraFlex
           key={`left-${idx}`}
           justify="center"
           align="center"
+          borderRadius={getFlipBorderRadius(
+            idx,
+            defaultOrder.length - 1,
+            radius
+          )}
+          h={[
+            `calc((${windowHeight}px - 290px) / 4)`,
+            'calc((100vh - 260px) / 4)',
+          ]}
           css={{
             background: transparentize(0.16, theme.colors.gray5),
             border: 'solid 1px rgba(210, 212, 217, 0.16)',
@@ -264,12 +309,6 @@ function FailedFlip() {
               idx !== defaultOrder.length - 1
                 ? 'none'
                 : 'solid 1px rgba(210, 212, 217, 0.16)',
-            ...borderRadius('top', idx === 0 ? rem(8) : 'none'),
-            ...borderRadius(
-              'bottom',
-              idx === defaultOrder.length - 1 ? rem(8) : 'none'
-            ),
-            height: 'calc((100vh - 260px) / 4)',
             overflow: 'hidden',
           }}
         >
@@ -282,7 +321,7 @@ function FailedFlip() {
               opacity: 0.3,
             }}
           />
-        </Flex>
+        </ChakraFlex>
       ))}
     </FlipHolder>
   )
@@ -290,35 +329,34 @@ function FailedFlip() {
 
 export function FailedFlipAnnotation(props) {
   return (
-    <Box
-      style={{
-        background: transparentize(0.17, theme.colors.black),
-        ...padding(rem(16), rem(42)),
-        color: theme.colors.white,
-        fontSize: rem(13),
-        fontWeight: 500,
-        textAlign: 'center',
-        position: 'absolute',
-        top: '50%',
-        left: rem(14),
-        right: rem(14),
-        transform: 'translateY(-50%)',
-        zIndex: 2,
-      }}
+    <ChakraBox
+      background="gray.980"
+      color="xwhite.500"
+      fontSize="md"
+      fontWeight={500}
+      textAlign="center"
+      transform="translateY(-50%)"
+      p="16px 42px"
+      position="absolute"
+      top="50%"
+      left={['10px', '14px']}
+      right={['10px', '14px']}
+      zIndex={2}
       {...props}
-    ></Box>
+    />
   )
 }
 
-function FlipBlur({src}) {
+function FlipBlur({src, ...props}) {
   return (
-    <div
+    <ChakraBox
       style={{
         background: `center center / cover no-repeat url(${src})`,
         filter: `blur(${rem(6)})`,
         ...cover(),
         zIndex: 1,
       }}
+      {...props}
     />
   )
 }
@@ -350,44 +388,60 @@ function FlipImage({
 
 export function ActionBar(props) {
   return (
-    <Flex
+    <ChakraFlex
+      position={['fixed', 'initial']}
+      bottom={[0, 'initial']}
+      left={[0, 'initial']}
+      w={['100%', 'auto']}
       justify="space-between"
-      css={{
-        ...margin(0, 0, rem(theme.spacings.medium16)),
-      }}
+      mt={[6, 0]}
+      mb={[10, 4]}
+      zIndex={[1, 'initial']}
       {...props}
     />
   )
 }
 
 export function ActionBarItem(props) {
-  return <Flex flex={1} css={{minHeight: rem(32), zIndex: 1}} {...props} />
+  return <ChakraFlex flex={1} minH="32px" zIndex={1} {...props} />
 }
 
-const thumbBorderWidth = 2
-const thumbMargin = 4
-const thumbWidth = 32
-const totalThumbWidth = thumbBorderWidth * 2 + thumbMargin * 2 + thumbWidth
+const totalThumbWidth = 44
 
-export function Thumbnails({currentIndex, ...props}) {
+export function Thumbnails({currentIndex, isLong, ...props}) {
   return (
-    <Flex
+    <ChakraFlex
+      position={['fixed', 'initial']}
+      top={['100px', 'initial']}
+      left={[0, 'initial']}
+      w={['100%', 'auto']}
+      mx={[isLong ? '32px' : 0, 0]}
+      maxW={['-webkit-fill-available', 'auto']}
       align="center"
-      css={{
-        minHeight: rem(48),
-        transform: `translateX(50%) translateX(-${rem(
+      justify={[isLong ? 'normal' : 'center', 'normal']}
+      minH={12}
+      overflowX={['scroll', 'auto']}
+      sx={{
+        '&::-webkit-scrollbar': {
+          display: 'none',
+        },
+      }}
+      transform={[
+        'none',
+        `translateX(50%) translateX(-${rem(
           totalThumbWidth * (currentIndex + 1 / 2)
         )})`,
-        transition: 'transform .3s ease-out',
-        willChange: 'transform',
-        zIndex: 1,
-      }}
+      ]}
+      transition={['none', 'transform .3s ease-out']}
+      willChange={['none', 'transform']}
+      zIndex={1}
       {...props}
     />
   )
 }
 
 export function Thumbnail({
+  flipId,
   images,
   fetched,
   decoded,
@@ -395,16 +449,32 @@ export function Thumbnail({
   option,
   relevance,
   isCurrent,
+  isLong,
   onPick,
 }) {
   const isQualified = !!relevance
   const hasIrrelevantWords = relevance === RelevanceType.Irrelevant
+  const flipPreviewSize = useBreakpointValue(['100%', 32])
+  const flipPreviewBorderRadius = useBreakpointValue(['16px', '12px'])
 
   return (
     <ThumbnailHolder
+      name={flipId}
       isCurrent={isCurrent}
-      css={{
-        border: `solid ${rem(thumbBorderWidth)} ${
+      isLong={isLong}
+      border={[
+        `solid 1px ${
+          // eslint-disable-next-line no-nested-ternary
+          isCurrent
+            ? // eslint-disable-next-line no-nested-ternary
+              isQualified
+              ? hasIrrelevantWords
+                ? theme.colors.danger
+                : 'white'
+              : 'white'
+            : 'transparent'
+        }`,
+        `solid 2px ${
           // eslint-disable-next-line no-nested-ternary
           isCurrent
             ? // eslint-disable-next-line no-nested-ternary
@@ -415,7 +485,7 @@ export function Thumbnail({
               : theme.colors.primary
             : 'transparent'
         }`,
-      }}
+      ]}
       onClick={onPick}
     >
       {((fetched && !decoded) || failed) && <FailedThumbnail />}
@@ -432,11 +502,11 @@ export function Thumbnail({
           <FlipImage
             src={images[0]}
             alt={images[0]}
-            height={32}
-            width={32}
+            height={flipPreviewSize}
+            width={flipPreviewSize}
             fit="cover"
             style={{
-              borderRadius: rem(12),
+              borderRadius: flipPreviewBorderRadius,
               border: isCurrent
                 ? 'transparent'
                 : 'solid 1px rgb(83 86 92 /0.16)',
@@ -448,31 +518,28 @@ export function Thumbnail({
   )
 }
 
-function ThumbnailHolder({isCurrent, css, children, ...props}) {
+function ThumbnailHolder({isCurrent, isLong, css, children, ...props}) {
   return (
-    <Flex
+    <ChakraFlex
       justify="center"
       align="center"
-      css={{
-        border: `solid ${rem(thumbBorderWidth)} ${
-          isCurrent ? theme.colors.primary : 'transparent'
-        }`,
-        borderRadius: rem(12),
-        ...css,
-      }}
+      border={['solid 1px', 'solid 2px']}
+      borderColor={[
+        isCurrent ? (isLong ? 'gray.500' : 'xwhite.500') : 'transparent',
+        isCurrent ? theme.colors.primary : 'transparent',
+      ]}
+      borderRadius={['18px', '12px']}
       {...props}
     >
-      <Box
-        css={{
-          height: rem(thumbWidth),
-          width: rem(thumbWidth),
-          margin: rem(thumbMargin),
-          ...position('relative'),
-        }}
+      <ChakraBox
+        position="relative"
+        h={['44px', '32px']}
+        w={['44px', '32px']}
+        m={[0.5, 1]}
       >
         {children}
-      </Box>
-    </Flex>
+      </ChakraBox>
+    </ChakraFlex>
   )
 }
 
@@ -484,8 +551,8 @@ function FailedThumbnail() {
   return (
     <Fill
       bg={rgba(89, 89, 89, 0.95)}
+      borderRadius={['16px', '12px']}
       css={{
-        borderRadius: rem(12),
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -507,12 +574,7 @@ function ThumbnailOverlay({option, isQualified, hasIrrelevantWords}) {
             : rgba(87, 143, 255, 0.9)
           : rgba(89, 89, 89, 0.95)
       }
-      css={{
-        borderRadius: rem(12),
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-      }}
+      borderRadius={['16px', '12px']}
     >
       {option && <FiCheck size={rem(20)} color={theme.colors.white} />}
     </Fill>
@@ -522,8 +584,9 @@ function ThumbnailOverlay({option, isQualified, hasIrrelevantWords}) {
 export function FlipWords({
   currentFlip: {words = []},
   translations = {},
+  onReport = {},
   children,
-  isShowGtLink = true,
+  ...props
 }) {
   const {t, i18n} = useTranslation()
 
@@ -538,10 +601,46 @@ export function FlipWords({
   const shouldShowTranslation = showTranslation && hasApprovedTranslation
 
   return (
-    <ChakraBox fontSize="md" color="brandGray.500" ml={rem(32)} w={rem(320)}>
-      <FlipKeywordPanel w={rem(320)} mb={8}>
+    <ChakraFlex
+      direction="column"
+      fontSize={['base', 'md']}
+      color="brandGray.500"
+      ml={[0, 8]}
+      mb={[10, 0]}
+      w={['100%', '320px']}
+      {...props}
+    >
+      <ChakraFlex
+        display={['flex', 'none']}
+        direction="row"
+        align="center"
+        justify="center"
+      >
+        <Heading fontSize="20px" fontWeight={500}>
+          {t(`Is the flip correct?`)}
+        </Heading>
+        <IconButton
+          icon={<InfoIcon />}
+          bg="unset"
+          fontSize="20px"
+          minW={5}
+          w={5}
+          h={5}
+          _active={{
+            bg: 'unset',
+          }}
+          _hover={{
+            bg: 'unset',
+          }}
+          _focus={{
+            outline: 'none',
+          }}
+          onClick={onReport}
+        />
+      </ChakraFlex>
+      <FlipKeywordPanelNew mb={8}>
         {words.length ? (
-          <FlipKeywordTranslationSwitch
+          <FlipKeywordTranslationSwitchNew
             keywords={{
               words,
               translations: wordTranslations.map(x => (x ? [x] : [])),
@@ -550,7 +649,6 @@ export function FlipWords({
             locale={i18n.language}
             onSwitchLocale={() => setShowTranslation(!showTranslation)}
             isInline={false}
-            isShowGtLink={isShowGtLink}
           />
         ) : (
           <>
@@ -581,25 +679,39 @@ export function FlipWords({
             ))}
           </>
         )}
-      </FlipKeywordPanel>
+      </FlipKeywordPanelNew>
       {children}
-    </ChakraBox>
+    </ChakraFlex>
   )
 }
 
 export function QualificationActions(props) {
-  return <Stack isInline spacing={2} align="center" {...props} />
+  return (
+    <ChakraFlex
+      direction={['column', 'row']}
+      justify="center"
+      align="center"
+      {...props}
+    />
+  )
 }
 
 // eslint-disable-next-line react/display-name
 export const QualificationButton = React.forwardRef(
-  ({isSelected, children, ...props}, ref) => {
+  ({isSelected, size, children, ...props}, ref) => {
     const ButtonVariant = isSelected ? PrimaryButton : SecondaryButton
     return (
-      <ButtonVariant ref={ref} flex={1} maxW={40} {...props}>
+      <ButtonVariant
+        size={size}
+        ref={ref}
+        flex={['0 0 48px', 1]}
+        w={['100%', 'auto']}
+        maxW={['100%', 40]}
+        {...props}
+      >
         <Stack isInline spacing={2} align="center" justify="center">
           {isSelected && <TickIcon boxSize={5} />}
-          <Text>{children}</Text>
+          <Text fontWeight={[500, 400]}>{children}</Text>
         </Stack>
       </ButtonVariant>
     )
@@ -734,7 +846,7 @@ export function TimerClock({duration, color}) {
 
   return (
     <Box style={{fontVariantNumeric: 'tabular-nums', minWidth: rem(37)}}>
-      <Text color={color} fontSize={rem(13)} fontWeight={500}>
+      <Text color={color} fontSize={['16px', '13px']} fontWeight={500}>
         {state.matches('stopped') && '00:00'}
         {state.matches('running') &&
           [Math.floor(remaining / 60), remaining % 60]
@@ -793,12 +905,28 @@ export function ValidationFailedDialog(props) {
   )
 }
 
-function ValidationDialog({submitText, onSubmit, children, ...props}) {
+function ValidationDialog({
+  submitText,
+  onSubmit,
+  children,
+  isDesktop,
+  ...props
+}) {
   return (
-    <Dialog closeOnOverlayClick={false} closeOnEsc={false} {...props}>
+    <Dialog
+      closeOnOverlayClick={false}
+      closeOnEsc={false}
+      isDesktop={isDesktop}
+      isCloseable={false}
+      {...props}
+    >
       {children}
       {onSubmit && (
-        <ValidationDialogFooter submitText={submitText} onSubmit={onSubmit} />
+        <ValidationDialogFooter
+          submitText={submitText}
+          isDesktop={isDesktop}
+          onSubmit={onSubmit}
+        />
       )}
     </Dialog>
   )
@@ -812,11 +940,21 @@ function ValidationDialogBody(props) {
   )
 }
 
-function ValidationDialogFooter({submitText, onSubmit, props}) {
+function ValidationDialogFooter({submitText, onSubmit, isDesktop, props}) {
+  const NoticeFooter = isDesktop ? DialogFooter : DrawerFooter
+  const size = useBreakpointValue(['mdx', 'md'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
   return (
-    <DialogFooter {...props}>
-      <PrimaryButton onClick={onSubmit}>{submitText}</PrimaryButton>
-    </DialogFooter>
+    <NoticeFooter {...props}>
+      <Button
+        variant={variantPrimary}
+        size={size}
+        w={['100%', 'auto']}
+        onClick={onSubmit}
+      >
+        {submitText}
+      </Button>
+    </NoticeFooter>
   )
 }
 
@@ -1038,6 +1176,7 @@ export function ReviewValidationDialog({
   onMisingAnswers,
   onMisingReports,
   onCancel,
+  isDesktop,
   ...props
 }) {
   const {t} = useTranslation()
@@ -1047,8 +1186,19 @@ export function ReviewValidationDialog({
   const areFlipsUnanswered = answeredFlipsCount < flips.length
   const areReportsMissing = reportedFlipsCount < availableReportsCount
 
+  const NoticeFooter = isDesktop ? DialogFooter : DrawerFooter
+  const size = useBreakpointValue(['mdx', 'md'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
+  const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
+
   return (
-    <Dialog title={t('Submit the answers')} onClose={onCancel} {...props}>
+    <Dialog
+      title={t('Submit the answers')}
+      onClose={onCancel}
+      isDesktop={isDesktop}
+      isCloseable={false}
+      {...props}
+    >
       <ValidationDialogBody>
         <Stack spacing={6}>
           <Stack spacing={4}>
@@ -1116,16 +1266,32 @@ export function ReviewValidationDialog({
           )}
         </Stack>
       </ValidationDialogBody>
-      <DialogFooter {...props}>
-        <SecondaryButton onClick={onCancel}>{t('Cancel')}</SecondaryButton>
-        <PrimaryButton
+      <NoticeFooter {...props}>
+        <Button
+          variant={variantSecondary}
+          size={size}
+          w={['100%', 'auto']}
+          onClick={onCancel}
+        >
+          {t('Cancel')}
+        </Button>
+        <Divider
+          display={['block', 'none']}
+          h={10}
+          orientation="vertical"
+          color="gray.100"
+        />
+        <Button
+          variant={variantPrimary}
+          size={size}
+          w={['100%', 'auto']}
           isLoading={isSubmitting}
           loadingText={t('Submitting answers...')}
           onClick={onSubmit}
         >
-          {t('Submit answers')}
-        </PrimaryButton>
-      </DialogFooter>
+          {isDesktop ? t('Submit answers') : t('Submit')}
+        </Button>
+      </NoticeFooter>
     </Dialog>
   )
 }
@@ -1145,6 +1311,7 @@ function ReviewValidationDialogLinkButton(props) {
   return (
     <Button
       variant="link"
+      fontSize={['mobile', 'md']}
       color="muted"
       fontWeight="normal"
       verticalAlign="baseline"
@@ -1406,15 +1573,32 @@ function BadFlipPartFrame({flipCase, ...props}) {
   )
 }
 
-function ReviewShortSessionDialog({flips, onSubmit, onCancel, ...props}) {
+function ReviewShortSessionDialog({
+  flips,
+  onSubmit,
+  onCancel,
+  isDesktop,
+  ...props
+}) {
   const {t} = useTranslation()
 
   const answeredFlipsCount = flips.filter(({option}) => option > 0).length
 
   const areFlipsUnanswered = answeredFlipsCount < flips.length
 
+  const NoticeFooter = isDesktop ? DialogFooter : DrawerFooter
+  const size = useBreakpointValue(['mdx', 'md'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
+  const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
+
   return (
-    <Dialog title={t('Submit the answers')} onClose={onCancel} {...props}>
+    <Dialog
+      title={t('Submit the answers')}
+      onClose={onCancel}
+      isDesktop={isDesktop}
+      isCloseable={false}
+      {...props}
+    >
       <ValidationDialogBody>
         <Stack spacing={6}>
           <Stack spacing={4}>
@@ -1443,10 +1627,30 @@ function ReviewShortSessionDialog({flips, onSubmit, onCancel, ...props}) {
           </Stack>
         </Stack>
       </ValidationDialogBody>
-      <DialogFooter {...props}>
-        <SecondaryButton onClick={onCancel}>{t('Cancel')}</SecondaryButton>
-        <PrimaryButton onClick={onSubmit}>{t('Submit answers')}</PrimaryButton>
-      </DialogFooter>
+      <NoticeFooter justify={['center', 'auto']} {...props}>
+        <Button
+          variant={variantSecondary}
+          size={size}
+          w={['100%', 'auto']}
+          onClick={onCancel}
+        >
+          {t('Cancel')}
+        </Button>
+        <Divider
+          display={['block', 'none']}
+          h={10}
+          orientation="vertical"
+          color="gray.100"
+        />
+        <Button
+          variant={variantPrimary}
+          size={size}
+          w={['100%', 'auto']}
+          onClick={onSubmit}
+        >
+          {isDesktop ? t('Submit answers') : t('Submit')}
+        </Button>
+      </NoticeFooter>
     </Dialog>
   )
 }
@@ -1464,7 +1668,16 @@ export function ValidationScreen({
 
   const {t} = useTranslation()
 
-  const [isPrettyHigh] = useMediaQuery('(min-height: 600px)')
+  const [isDesktop] = useMediaQuery('(min-width: 481px)')
+  const size = useBreakpointValue(['lg', 'md'])
+  const flipsToLeft = () => {
+    scroller.scrollTo('flipIcon0', {
+      duration: 250,
+      smooth: true,
+      containerId: 'thumbnails',
+      horizontal: true,
+    })
+  }
 
   const {
     isOpen: isReportDialogOpen,
@@ -1486,28 +1699,56 @@ export function ValidationScreen({
     <ValidationScene
       bg={isShortSession(state) ? theme.colors.black : theme.colors.white}
     >
-      <Header isPrettyHigh={isPrettyHigh}>
-        <Title color={isShortSession(state) ? 'white' : 'brandGray.500'}>
+      <Header order={[1, 1]}>
+        <Heading
+          display={['block', 'none']}
+          color={isShortSession(state) ? 'white' : 'brandGray.500'}
+          fontSize="base"
+          zIndex={[2, 'auto']}
+        >
+          {isLongSessionKeywords(state)
+            ? t('Check flips quality')
+            : t('Left or right')}
+        </Heading>
+        <Title
+          color={['muted', isShortSession(state) ? 'white' : 'brandGray.500']}
+          zIndex={[2, 'auto']}
+        >
+          {/* eslint-disable-next-line no-nested-ternary */}
           {['shortSession', 'longSession'].some(state.matches) &&
           !isLongSessionKeywords(state)
-            ? t('Select meaningful story: left or right', {nsSeparator: '!'})
-            : t('Check flips quality')}
+            ? isDesktop
+              ? t('Select meaningful story: left or right', {nsSeparator: '!'})
+              : t('Select meaningful story:', {nsSeparator: '!'})
+            : isDesktop
+            ? t('Check flips quality')
+            : ''}
         </Title>
         <Flex align="center">
           <Title
-            color={isShortSession(state) ? 'white' : 'brandGray.500'}
-            mr={6}
+            color={['muted', isShortSession(state) ? 'white' : 'brandGray.500']}
+            mr={[0, 6]}
+            zIndex={[2, 'auto']}
           >
+            {!isDesktop && !isLongSessionKeywords(state) && 'left or right ('}
             {currentIndex + 1}{' '}
             <Text as="span" color="muted">
               {t('out of')} {flips.length}
             </Text>
+            {!isDesktop && !isLongSessionKeywords(state) && ')'}
           </Title>
         </Flex>
       </Header>
-      <CurrentStep>
+      <CurrentStep order={[3, 2]}>
         <FlipChallenge>
-          <Flex justify="center" align="center" position="relative">
+          <ChakraFlex
+            order={[2, 1]}
+            w={['100%', 'auto']}
+            pb={[isLongSessionKeywords(state) ? '96px' : '16px', 0]}
+            justify="center"
+            align="center"
+            position="relative"
+          >
             {currentFlip &&
               ((currentFlip.fetched && !currentFlip.decoded) ||
                 currentFlip.failed) && (
@@ -1538,16 +1779,22 @@ export function ValidationScreen({
               }
               onImageFail={() => send('REFETCH_FLIPS')}
             />
-          </Flex>
+          </ChakraFlex>
           {isLongSessionKeywords(state) && currentFlip && (
             <FlipWords
+              order={[1, 2]}
               key={currentFlip.hash}
               currentFlip={currentFlip}
               translations={translations}
-              isShowGtLink={isPrettyHigh}
+              onReport={onOpenReportDialog}
             >
-              <Stack spacing={4}>
-                <Stack isInline spacing={1} align="center">
+              <Stack spacing={[0, 4]}>
+                <Stack
+                  display={['none', 'flex']}
+                  isInline
+                  spacing={1}
+                  align="center"
+                >
                   <Heading fontSize="base" fontWeight={500}>
                     {t(`Is the flip correct?`)}
                   </Heading>
@@ -1572,6 +1819,7 @@ export function ValidationScreen({
                 </Stack>
                 <QualificationActions>
                   <QualificationButton
+                    size={size}
                     isSelected={
                       currentFlip.relevance === RelevanceType.Relevant
                     }
@@ -1594,6 +1842,9 @@ export function ValidationScreen({
                     zIndex="tooltip"
                   >
                     <QualificationButton
+                      mt={[2, 0]}
+                      ml={[0, 2]}
+                      size={size}
                       isSelected={
                         currentFlip.relevance === RelevanceType.Irrelevant
                       }
@@ -1645,9 +1896,9 @@ export function ValidationScreen({
           )}
         </FlipChallenge>
       </CurrentStep>
-      <ActionBar>
+      <ActionBar order={[4, 3]}>
         <ActionBarItem />
-        <ActionBarItem justify="center">
+        <ActionBarItem zIndex={2} justify="center">
           <ValidationTimer
             key={isShortSession(state) ? 'short-timer' : 'long-timer'}
             validationStart={validationStart}
@@ -1659,15 +1910,32 @@ export function ValidationScreen({
           />
         </ActionBarItem>
         <ActionBarItem justify="flex-end">
+          <ChakraBox
+            display={['block', 'none']}
+            position="fixed"
+            top={0}
+            h="166px"
+            w="100%"
+            bg={isShortSession(state) ? theme.colors.black : theme.colors.white}
+          />
+          <ChakraBox
+            display={['block', 'none']}
+            position="fixed"
+            bottom={0}
+            h="96px"
+            w="100%"
+            bg={isShortSession(state) ? theme.colors.black : theme.colors.white}
+          />
           {(isShortSession(state) || isLongSessionKeywords(state)) && (
             <TooltipLegacy
               content={
-                hasAllRelevanceMarks(state) || isLastFlip(state)
+                hasAllRelevanceMarks(state) || isLastFlip(state) || !isDesktop
                   ? null
                   : t('Go to last flip')
               }
             >
               <PrimaryButton
+                display={['none', 'inline-flex']}
                 isDisabled={!canSubmit(state)}
                 isLoading={isSubmitting(state)}
                 loadingText={t('Submitting answers...')}
@@ -1675,24 +1943,62 @@ export function ValidationScreen({
               >
                 {t('Submit answers')}
               </PrimaryButton>
+              <CornerButton
+                display={['block', 'none']}
+                label={t('Submit')}
+                isDisabled={!canSubmit(state)}
+                isLoading={isSubmitting(state)}
+                isDark={isShortSession(state)}
+                onClick={() => send('SUBMIT')}
+              >
+                <OkIcon
+                  color={canSubmit(state) ? 'brandBlue.500' : 'inherit'}
+                  mb="5px"
+                  boxSize={5}
+                />
+              </CornerButton>
             </TooltipLegacy>
           )}
           {isLongSessionFlips(state) && (
-            <PrimaryButton
-              isDisabled={!canSubmit(state)}
-              onClick={() => send('FINISH_FLIPS')}
-            >
-              {t('Start checking keywords')}
-            </PrimaryButton>
+            <ChakraBox>
+              <PrimaryButton
+                display={['none', 'inline-flex']}
+                isDisabled={!canSubmit(state)}
+                onClick={() => send('FINISH_FLIPS')}
+              >
+                {t('Start checking keywords')}
+              </PrimaryButton>
+              <CornerButton
+                display={['block', 'none']}
+                label={t('Check')}
+                isDisabled={!canSubmit(state)}
+                isDark={isShortSession(state)}
+                onClick={() => send('FINISH_FLIPS')}
+              >
+                <ArrowBackIcon
+                  fill={canSubmit(state) ? 'brandBlue.500' : 'gray.200'}
+                  transform="rotate(180deg)"
+                  mb="5px"
+                  boxSize={5}
+                />
+              </CornerButton>
+            </ChakraBox>
           )}
         </ActionBarItem>
       </ActionBar>
-      <Thumbnails currentIndex={currentIndex}>
+      <Thumbnails
+        id="thumbnails"
+        order={[2, 4]}
+        currentIndex={currentIndex}
+        isLong={isLongSessionFlips(state) || isLongSessionKeywords(state)}
+      >
         {flips.map((flip, idx) => (
-          <Thumbnail
+          <ElementThumbnail
+            flipId={`flipIcon${idx}`}
             key={flip.hash}
             {...flip}
             isCurrent={currentIndex === idx}
+            isLong={isLongSessionFlips(state) || isLongSessionKeywords(state)}
             onPick={() => send({type: 'PICK', index: idx})}
           />
         ))}
@@ -1702,6 +2008,7 @@ export function ValidationScreen({
         isSolving(state) &&
         !isSubmitting(state) && (
           <NavButton
+            display={['none', 'block']}
             type="prev"
             bg={
               isShortSession(state) ? theme.colors.white01 : theme.colors.gray
@@ -1717,6 +2024,7 @@ export function ValidationScreen({
         isSolving(state) &&
         !isSubmitting(state) && (
           <NavButton
+            display={['none', 'block']}
             type="next"
             bg={
               isShortSession(state) ? theme.colors.white01 : theme.colors.gray
@@ -1728,25 +2036,35 @@ export function ValidationScreen({
           />
         )}
       {isSubmitFailed(state) && (
-        <SubmitFailedDialog isOpen onSubmit={() => send('RETRY_SUBMIT')} />
+        <SubmitFailedDialog
+          isOpen
+          isDesktop={isDesktop}
+          onSubmit={() => send('RETRY_SUBMIT')}
+        />
       )}
 
       {state.matches('longSession.solve.answer.welcomeQualification') && (
         <WelcomeQualificationDialog
           isOpen
+          isDesktop={isDesktop}
           onSubmit={() => send('START_LONG_SESSION')}
         />
       )}
       {state.matches('longSession.solve.answer.finishFlips') && (
         <WelcomeKeywordsQualificationDialog
           isOpen
-          onSubmit={() => send('START_KEYWORDS_QUALIFICATION')}
+          isDesktop={isDesktop}
+          onSubmit={() => {
+            flipsToLeft()
+            send('START_KEYWORDS_QUALIFICATION')
+          }}
         />
       )}
 
       {state.matches('validationFailed') && (
         <ValidationFailedDialog
           isOpen
+          isDesktop={isDesktop}
           onSubmit={
             onValidationFailed
               ? () => onValidationFailed()
@@ -1765,9 +2083,10 @@ export function ValidationScreen({
           `You'll get rewards for reported flips if they are are also reported by more than 50% of qualification committee.`
         )}
         onClose={() => {
-          if (state.matches('longSession.solve.answer.finishFlips'))
+          if (state.matches('longSession.solve.answer.finishFlips')) {
+            flipsToLeft()
             send('START_KEYWORDS_QUALIFICATION')
-          else onCloseReportDialog()
+          } else onCloseReportDialog()
         }}
       />
 
@@ -1777,6 +2096,7 @@ export function ValidationScreen({
         availableReportsCount={availableReportsNumber(longFlips)}
         isOpen={state.matches('longSession.solve.answer.review')}
         isSubmitting={isSubmitting(state)}
+        isDesktop={isDesktop}
         onSubmit={() => send('SUBMIT')}
         onMisingAnswers={() => {
           send({
@@ -1797,6 +2117,7 @@ export function ValidationScreen({
         isOpen={state.matches(
           'shortSession.solve.answer.submitShortSession.confirm'
         )}
+        isDesktop={isDesktop}
         onSubmit={() => send('SUBMIT')}
         onClose={() => {
           send('CANCEL')
@@ -1896,4 +2217,14 @@ function hasAllAnswers(state) {
 function hasAllRelevanceMarks({context: {longFlips}}) {
   const flips = longFlips.filter(decodedWithKeywords)
   return flips.every(({relevance}) => relevance)
+}
+
+function getFlipBorderRadius(index, size, radius) {
+  if (index === 0) {
+    return `${radius} ${radius} 0 0`
+  }
+  if (index === size) {
+    return `0 0 ${radius} ${radius}`
+  }
+  return 0
 }
