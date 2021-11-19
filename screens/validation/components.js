@@ -1687,7 +1687,7 @@ export function ValidationScreen({
     <ValidationScene
       bg={isShortSession(state) ? theme.colors.black : theme.colors.white}
     >
-      <Header order={[2, 1]}>
+      <Header order={[1, 1]}>
         <Heading
           display={['block', 'none']}
           color={isShortSession(state) ? 'white' : 'brandGray.500'}
@@ -1898,14 +1898,14 @@ export function ValidationScreen({
           />
         </ActionBarItem>
         <ActionBarItem justify="flex-end">
-            <ChakraBox
-                display={['block', 'none']}
-                position="fixed"
-                top={0}
-                h="166px"
-                w="100%"
-                bg={isShortSession(state) ? theme.colors.black : theme.colors.white}
-            />
+          <ChakraBox
+            display={['block', 'none']}
+            position="fixed"
+            top={0}
+            h="166px"
+            w="100%"
+            bg={isShortSession(state) ? theme.colors.black : theme.colors.white}
+          />
           <ChakraBox
             display={['block', 'none']}
             position="fixed"

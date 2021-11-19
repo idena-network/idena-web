@@ -286,25 +286,28 @@ export function Dialog({
   isDesktop = true,
   ...props
 }) {
+  const variant = useBreakpointValue(['mobile', 'initial'])
   const Notice = isDesktop ? Modal : Drawer
   const NoticeBody = isDesktop ? ModalContent : DrawerBody
   return (
-    <Notice isCentered size="sm" {...props}>
-      {isDesktop && <ModalOverlay bg="xblack.080" />}
-      <NoticeBody
+    <Modal isCentered variant={variant} size="sm" {...props}>
+      <ModalOverlay bg="xblack.080" />
+      <ModalContent
         bg="white"
         color="brandGray.500"
         fontSize={['mobile', 'md']}
-        p={[0, 8]}
-        pt={[0, 6]}
-        my={0}
+        px={[6, 8]}
+        pb={[4, 8]}
+        pt={6}
+        mt={0}
+        mb={[9, 0]}
         rounded="lg"
       >
         {title && <DialogHeader>{title}</DialogHeader>}
         {shouldShowCloseButton && <ModalCloseButton />}
         {children}
-      </NoticeBody>
-    </Notice>
+      </ModalContent>
+    </Modal>
   )
 }
 
