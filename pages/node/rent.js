@@ -6,13 +6,13 @@ import {
   Radio,
   Stack,
   Text,
+  useDisclosure,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {rem} from 'polished'
 import {useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
-import {Page, PageTitle} from '../../screens/app/components'
 import {BuySharedNodeForm} from '../../screens/node/components'
 import {getLastBlock} from '../../shared/api/indexer'
 import {
@@ -21,6 +21,7 @@ import {
   getProviders,
 } from '../../shared/api/marketplace'
 import {GetProviderPrice} from '../../screens/node/utils'
+import {Page, PageTitle} from '../../screens/app/components'
 import {
   Table,
   TableCol,
@@ -105,44 +106,34 @@ function ProviderStatus({url}) {
 
 export default function Rent() {
   const router = useRouter()
+
   const {coinbase} = useAuthState()
 
-  const [showDrawer, setShowDrawer] = useState(false)
+  const buySharedNodeDisclosure = useDisclosure()
 
   const [state, setState] = useState(0)
 
-  const fetchProviders = () => getProviders()
-
-  const {data: providers} = useQuery(['providers'], fetchProviders, {
+  const {data: providers} = useQuery(['providers'], getProviders, {
     initialData: [],
   })
 
   const [{state: identityState}] = useIdentity()
 
   const sortedProviders = providers
-    .filter(x => x.slots)
+    .filter(x => Boolean(x.slots))
     .sort((a, b) => b.slots - a.slots)
 
   const selectedProvider = sortedProviders.length && sortedProviders[state]
 
   return (
     <Layout canRedirect={false}>
-      <Page p={0} overflowY="hidden">
-        <Flex
-          direction="column"
-          flex={1}
-          alignSelf="stretch"
-          pt={6}
-          px={20}
-          mx={-20}
-          pb={9}
-          overflowY="auto"
-        >
-          <Flex align="center" alignSelf="stretch" justify="space-between">
+      <Page mb={14}>
+        <Box w="full">
+          <Flex align="center" justify="space-between">
             <PageTitle>Rent a shared node</PageTitle>
             <CloseButton onClick={() => router.back()} />
           </Flex>
-          <Flex width="100%">
+          <Box>
             <Table>
               <thead>
                 <TableRow>
@@ -160,13 +151,13 @@ export default function Rent() {
               </thead>
               <tbody>
                 {sortedProviders.map((p, idx) => (
-                  <TableRow>
+                  <TableRow isLast={idx === sortedProviders.length - 1}>
                     <TableCol>
                       <Radio
                         isChecked={state === idx}
                         onClick={() => setState(idx)}
                         borderColor="#d2d4d9"
-                      ></Radio>
+                      />
                     </TableCol>
                     <TableCol>
                       <Flex direction="column">
@@ -193,38 +184,40 @@ export default function Rent() {
                 ))}
               </tbody>
             </Table>
-          </Flex>
-        </Flex>
-        <Box
-          alignSelf="stretch"
+          </Box>
+        </Box>
+        <Stack
+          isInline
+          spacing={2}
+          justify="flex-end"
+          bg="white"
           borderTop="1px"
           borderTopColor="gray.100"
-          mt="auto"
           px={4}
           py={3}
+          h={14}
+          position="fixed"
+          bottom={0}
+          left={0}
+          right={0}
         >
-          <Stack isInline spacing={2} justify="flex-end">
-            <SecondaryButton onClick={() => router.back()}>
-              Cancel
-            </SecondaryButton>
-            <PrimaryButton onClick={() => setShowDrawer(true)}>
-              Continue
-            </PrimaryButton>
-          </Stack>
-        </Box>
-        <BuySharedNodeForm
-          isOpen={showDrawer}
-          onClose={() => setShowDrawer(false)}
-          providerId={selectedProvider && selectedProvider.id}
-          url={selectedProvider && selectedProvider.data.url}
-          from={coinbase}
-          amount={
-            selectedProvider &&
-            GetProviderPrice(selectedProvider.data, identityState)
-          }
-          to={selectedProvider && selectedProvider.data.address}
-        />
+          <SecondaryButton onClick={router.back}>Cancel</SecondaryButton>
+          <PrimaryButton onClick={buySharedNodeDisclosure.onOpen}>
+            Continue
+          </PrimaryButton>
+        </Stack>
       </Page>
+      <BuySharedNodeForm
+        {...buySharedNodeDisclosure}
+        providerId={selectedProvider && selectedProvider.id}
+        url={selectedProvider && selectedProvider.data.url}
+        from={coinbase}
+        amount={
+          selectedProvider &&
+          GetProviderPrice(selectedProvider.data, identityState)
+        }
+        to={selectedProvider && selectedProvider.data.address}
+      />
     </Layout>
   )
 }
