@@ -127,13 +127,13 @@ export default function Rent() {
 
   return (
     <Layout canRedirect={false}>
-      <Page>
+      <Page mb={14}>
         <Box w="full">
           <Flex align="center" justify="space-between">
             <PageTitle>Rent a shared node</PageTitle>
             <CloseButton onClick={() => router.back()} />
           </Flex>
-          <Box mb={14}>
+          <Box>
             <Table>
               <thead>
                 <TableRow>
@@ -195,6 +195,7 @@ export default function Rent() {
           borderTopColor="gray.100"
           px={4}
           py={3}
+          h={14}
           position="fixed"
           bottom={0}
           left={0}
