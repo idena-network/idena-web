@@ -35,7 +35,7 @@ function RestoreKey() {
   const size = useBreakpointValue(['lg', 'md'])
   const [error, setError] = useState()
 
-  const [dnaAppUrl] = useDnaAppLink()
+  const [dnaAppUrl, {dismiss: dimissDnaAppLink}] = useDnaAppLink()
 
   return (
     <AuthLayout>
@@ -145,35 +145,33 @@ function RestoreKey() {
             )}
           </form>
         </Flex>
-
-        {dnaAppUrl && <DnaAppUrl url={dnaAppUrl} />}
-
-        <Dialog
-          key="warning"
-          isOpen={warning}
-          onClose={() => showWarning(false)}
-        >
-          <DialogHeader>Remove private key?</DialogHeader>
-          <DialogBody>
-            Make sure you have the private key backup. Otherwise you will lose
-            access to your account.
-          </DialogBody>
-          <DialogFooter>
-            <SecondaryButton onClick={() => showWarning(false)}>
-              Cancel
-            </SecondaryButton>
-            <PrimaryButton
-              onClick={removeKey}
-              backgroundColor="red.090"
-              _hover={{
-                bg: 'red.500',
-              }}
-            >
-              Remove
-            </PrimaryButton>
-          </DialogFooter>
-        </Dialog>
       </AuthLayout.Normal>
+
+      {dnaAppUrl && (
+        <DnaAppUrl url={dnaAppUrl} onOpenInApp={dimissDnaAppLink} />
+      )}
+
+      <Dialog key="warning" isOpen={warning} onClose={() => showWarning(false)}>
+        <DialogHeader>Remove private key?</DialogHeader>
+        <DialogBody>
+          Make sure you have the private key backup. Otherwise you will lose
+          access to your account.
+        </DialogBody>
+        <DialogFooter>
+          <SecondaryButton onClick={() => showWarning(false)}>
+            Cancel
+          </SecondaryButton>
+          <PrimaryButton
+            onClick={removeKey}
+            backgroundColor="red.090"
+            _hover={{
+              bg: 'red.500',
+            }}
+          >
+            Remove
+          </PrimaryButton>
+        </DialogFooter>
+      </Dialog>
     </AuthLayout>
   )
 }
@@ -260,8 +258,9 @@ AuthLayout.Normal = function({children}) {
   return (
     <Flex
       align="center"
-      justify={['start', 'space-between']}
+      justify={['start', 'center']}
       direction="column"
+      h="full"
       w={['279px', '480px']}
       pt={['80px', '0']}
       textAlign={['center', 'initial']}

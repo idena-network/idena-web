@@ -29,7 +29,7 @@ export default function SigninPage() {
     onReceive: onOpen,
   })
 
-  const [, {dimiss: dimissDnaAppLink}] = useDnaAppLink()
+  const [, {dismiss: dimissDnaAppLink}] = useDnaAppLink()
 
   return (
     <Layout canRedirect={false}>

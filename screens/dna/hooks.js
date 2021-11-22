@@ -1,7 +1,12 @@
 import {useRouter} from 'next/router'
 import * as React from 'react'
 import {areSameCaseInsensitive} from '../../shared/utils/utils'
-import {dnaLinkMethod, extractQueryParams, resolveDnaAppUrl} from './utils'
+import {
+  dnaLinkMethod,
+  extractQueryParams,
+  isValidDnaUrl,
+  resolveDnaAppUrl,
+} from './utils'
 
 export const DnaLinkMethod = {
   SignIn: 'signin',
@@ -70,24 +75,33 @@ export function useDnaLinkRedirect(method, url) {
 }
 
 export function useDnaAppLink() {
-  const {route, query, push: redirect} = useRouter()
+  const router = useRouter()
 
-  const isDnaUrl = route.startsWith('/dna/')
+  const [dnaUrl, setDnaUrl] = React.useState()
 
   React.useEffect(() => {
-    if (isDnaUrl)
-      sessionStorage.setItem('dnaUrl', JSON.stringify({route, query}))
-  }, [isDnaUrl, query, route])
+    const {route, query} = router
+    if (isValidDnaUrl(route)) setDnaUrl(resolveDnaAppUrl({route, query}))
+  }, [router])
 
-  const clearSessionStorage = () => sessionStorage.removeItem('dnaUrl')
+  React.useEffect(() => {
+    if (dnaUrl) {
+      const {route, query} = router
+      sessionStorage.setItem('dnaUrl', JSON.stringify({route, query}))
+    } else if (dnaUrl === null) {
+      sessionStorage.removeItem('dnaUrl')
+    }
+  }, [dnaUrl, router])
 
   return [
-    isDnaUrl ? resolveDnaAppUrl({route, query}) : null,
+    dnaUrl,
     {
-      clear: clearSessionStorage,
+      clear() {
+        setDnaUrl(null)
+      },
       dismiss() {
-        clearSessionStorage()
-        redirect('/home')
+        setDnaUrl(null)
+        router.push('/home')
       },
     },
   ]
