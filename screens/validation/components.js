@@ -1879,7 +1879,9 @@ function sessionFlips(state) {
   return isShortSession(state)
     ? rearrangeFlips(filterRegularFlips(shortFlips))
     : rearrangeFlips(
-        longFlips.filter(({decoded, missing}) => decoded || !missing)
+        longFlips.filter(
+          ({decoded, missing, failed}) => (decoded || !missing) && !failed
+        )
       )
 }
 
