@@ -15,14 +15,19 @@ import {
   CertificateTypeTitle,
 } from '../../screens/certificate/components'
 import {fetchIdentity} from '../../shared/api'
+import {PrimaryButton} from '../../shared/components/button'
 import {Avatar, Skeleton} from '../../shared/components/components'
 import {TelegramIcon} from '../../shared/components/icons'
-import {CertificateActionType} from '../../shared/types'
-import {mapIdentityToFriendlyStatus, toPercent} from '../../shared/utils/utils'
+import {CertificateActionType, IdentityStatus} from '../../shared/types'
+import {
+  mapIdentityToFriendlyStatus,
+  openExternalUrl,
+  toPercent,
+} from '../../shared/utils/utils'
 import {getCertificateData} from '../api/validation/certificate'
 
 export default function Certificate({id, certificate}) {
-  const {data: identity, isLoading: identityIsLoading} = useQuery(
+  const {data: identity, isLoading: identityIsLoading, isFetched} = useQuery(
     ['fetch-identity', certificate.coinbase],
     () => fetchIdentity(certificate.coinbase, true),
     {
@@ -30,6 +35,8 @@ export default function Certificate({id, certificate}) {
       refetchOnWindowFocus: false,
     }
   )
+
+  const identityState = identity?.state || IdentityStatus.Undefined
 
   return (
     <Flex
@@ -91,7 +98,7 @@ export default function Certificate({id, certificate}) {
                 <Skeleton h={4} w={20}></Skeleton>
               ) : (
                 <Heading fontSize="md" fontWeight={500} lineHeight={4}>
-                  {mapIdentityToFriendlyStatus(identity?.state || 'Undefined')}
+                  {mapIdentityToFriendlyStatus(identityState)}
                 </Heading>
               )}
               <Heading
@@ -109,6 +116,21 @@ export default function Certificate({id, certificate}) {
           </Stack>
 
           <Divider mt={7}></Divider>
+
+          {isFetched && identityState === IdentityStatus.Undefined && (
+            <Flex mt={8} w="full">
+              <PrimaryButton
+                flexGrow={1}
+                onClick={() =>
+                  openExternalUrl(
+                    `https://app.idena.io/dna/invite?address=${certificate.coinbase}`
+                  )
+                }
+              >
+                Send invite
+              </PrimaryButton>
+            </Flex>
+          )}
         </Flex>
         <Flex
           mt={16}
