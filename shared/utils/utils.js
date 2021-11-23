@@ -128,3 +128,7 @@ export const isVercelProduction =
   process.env.NEXT_PUBLIC_VERCEL_ENV === 'production'
 
 export const lowerCase = str => str?.toLowerCase()
+
+export function areSameCaseInsensitive(a, b) {
+  return a?.toUpperCase() === b?.toUpperCase()
+}

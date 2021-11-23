@@ -1,43 +1,95 @@
 /* eslint-disable react/prop-types */
-import {Box, Stack, Text, Link} from '@chakra-ui/react'
-import {useTranslation} from 'react-i18next'
-import {LaptopIcon} from '../../shared/components/icons'
+import * as React from 'react'
+import {
+  Box,
+  Stack,
+  Text,
+  HStack,
+  Stat,
+  StatLabel,
+  StatNumber,
+} from '@chakra-ui/react'
+import {InfoIcon} from '../../shared/components/icons'
+import {Avatar, Dialog} from '../../shared/components/components'
 
-export function DnaDialogStat({label, value, children, ...props}) {
+export function DnaDialog(props) {
+  return <Dialog closeOnOverlayClick={false} closeOnEsc={false} {...props} />
+}
+
+export function DnaDialogAlert({children, ...props}) {
   return (
     <Stack
       isInline
-      spacing={4}
       align="center"
-      justify="space-between"
-      bg="gray.50"
-      px={5}
-      py={4}
+      bg="red.020"
+      borderColor="red.500"
+      borderWidth={1}
+      borderRadius="md"
+      px={3}
+      py={2}
       {...props}
     >
-      <Box>
-        {label && <Text color="muted">{label}</Text>}
-        {value && <Text wordBreak="break-all">{value}</Text>}
-      </Box>
-      {children}
+      <InfoIcon boxSize={4} color="red.500" />
+      <Text fontWeight={500}>{children}</Text>
     </Stack>
   )
 }
 
-export function DnaAppUrl({url}) {
-  const {t} = useTranslation()
+export function DnaDialogAlertText(props) {
   return (
-    <Stack
-      isInline
-      align="center"
-      spacing={3}
-      color="muted"
-      px={2}
-      py={1.5}
-      mt={16}
-    >
-      <LaptopIcon name="laptop" boxSize={5} />
-      <Link href={url}>{t('Open in Idena app')}</Link>
-    </Stack>
+    <Box color="red.500" fontWeight={500} fontSize="sm" mt={1} {...props} />
+  )
+}
+
+export function DnaDialogAvatar({address}) {
+  return (
+    <Avatar
+      address={address}
+      size={10}
+      bg="white"
+      borderRadius="md"
+      borderWidth={1}
+      borderColor="brandGray.016"
+    />
+  )
+}
+
+export function SimpleDnaDialogStat({label, value, ...props}) {
+  return (
+    <DnaDialogStat {...props}>
+      <DnaDialogStatLabel>{label}</DnaDialogStatLabel>
+      <DnaDialogStatValue>{value}</DnaDialogStatValue>
+    </DnaDialogStat>
+  )
+}
+
+export function MediaDnaDialogStat({label, value, children, ...props}) {
+  return (
+    <HStack spacing={4} align="center" bg="gray.50" px={5} py={4} {...props}>
+      <Stat p={0}>
+        <DnaDialogStatLabel>{label}</DnaDialogStatLabel>
+        <DnaDialogStatValue>{value}</DnaDialogStatValue>
+      </Stat>
+      {children}
+    </HStack>
+  )
+}
+
+export function DnaDialogStat(props) {
+  return <Stat bg="gray.50" px={5} py={4} {...props} />
+}
+
+export function DnaDialogStatLabel(props) {
+  return <StatLabel color="muted" fontSize="md" {...props} />
+}
+
+export function DnaDialogStatValue(props) {
+  return (
+    <StatNumber
+      fontSize="md"
+      fontWeight={500}
+      wordBreak="break-all"
+      {...props}
+    />
   )
 }

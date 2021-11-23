@@ -1,8 +1,16 @@
 /* eslint-disable react/prop-types */
-import {Flex, Box, Text, useBreakpointValue} from '@chakra-ui/react'
+import {
+  Flex,
+  Box,
+  Text,
+  HStack,
+  Link,
+  useBreakpointValue,
+} from '@chakra-ui/react'
 import React, {useState} from 'react'
 import {FiChevronRight} from 'react-icons/fi'
 import Router from 'next/router'
+import {useTranslation} from 'react-i18next'
 import {
   Avatar,
   Dialog,
@@ -16,8 +24,8 @@ import {useAuthDispatch} from '../providers/auth-context'
 import {useSettingsState} from '../providers/settings-context'
 import {FlatButton, PrimaryButton, SecondaryButton} from './button'
 import {SubHeading} from './typo'
-import {useDnaUrl} from '../hooks/use-dna-link'
-import {DnaAppUrl} from '../../screens/dna/components'
+import {useDnaAppLink} from '../../screens/dna/hooks'
+import {LaptopIcon} from './icons'
 
 function RestoreKey() {
   const [warning, showWarning] = useState(false)
@@ -27,7 +35,7 @@ function RestoreKey() {
   const size = useBreakpointValue(['lg', 'md'])
   const [error, setError] = useState()
 
-  const dnaAppUrl = useDnaUrl()
+  const [dnaAppUrl, {dismiss: dimissDnaAppLink}] = useDnaAppLink()
 
   return (
     <AuthLayout>
@@ -137,41 +145,40 @@ function RestoreKey() {
             )}
           </form>
         </Flex>
-
-        {dnaAppUrl && <DnaAppUrl url={dnaAppUrl} />}
-
-        <Dialog
-          key="warning"
-          isOpen={warning}
-          onClose={() => showWarning(false)}
-        >
-          <DialogHeader>Remove private key?</DialogHeader>
-          <DialogBody>
-            Make sure you have the private key backup. Otherwise you will lose
-            access to your account.
-          </DialogBody>
-          <DialogFooter>
-            <SecondaryButton onClick={() => showWarning(false)}>
-              Cancel
-            </SecondaryButton>
-            <PrimaryButton
-              onClick={removeKey}
-              backgroundColor="red.090"
-              _hover={{
-                bg: 'red.500',
-              }}
-            >
-              Remove
-            </PrimaryButton>
-          </DialogFooter>
-        </Dialog>
       </AuthLayout.Normal>
+
+      {dnaAppUrl && (
+        <DnaAppUrl url={dnaAppUrl} onOpenInApp={dimissDnaAppLink} />
+      )}
+
+      <Dialog key="warning" isOpen={warning} onClose={() => showWarning(false)}>
+        <DialogHeader>Remove private key?</DialogHeader>
+        <DialogBody>
+          Make sure you have the private key backup. Otherwise you will lose
+          access to your account.
+        </DialogBody>
+        <DialogFooter>
+          <SecondaryButton onClick={() => showWarning(false)}>
+            Cancel
+          </SecondaryButton>
+          <PrimaryButton
+            onClick={removeKey}
+            backgroundColor="red.090"
+            _hover={{
+              bg: 'red.500',
+            }}
+          >
+            Remove
+          </PrimaryButton>
+        </DialogFooter>
+      </Dialog>
     </AuthLayout>
   )
 }
 
 function Init() {
-  const dnaAppUrl = useDnaUrl()
+  const [dnaAppUrl, {clear}] = useDnaAppLink()
+
   const size = useBreakpointValue(['lg', 'md'])
 
   return (
@@ -217,7 +224,7 @@ function Init() {
           </Flex>
         </Flex>
       </AuthLayout.Small>
-      {dnaAppUrl && <DnaAppUrl url={dnaAppUrl} />}
+      {dnaAppUrl && <DnaAppUrl url={dnaAppUrl} onOpenInApp={clear} />}
     </AuthLayout>
   )
 }
@@ -251,8 +258,9 @@ AuthLayout.Normal = function({children}) {
   return (
     <Flex
       align="center"
-      justify={['start', 'space-between']}
+      justify={['start', 'center']}
       direction="column"
+      h="full"
       w={['279px', '480px']}
       pt={['80px', '0']}
       textAlign={['center', 'initial']}
@@ -277,5 +285,17 @@ AuthLayout.Small = function({children}) {
         {children}
       </Flex>
     </Flex>
+  )
+}
+
+function DnaAppUrl({url, onOpenInApp}) {
+  const {t} = useTranslation()
+  return (
+    <HStack align="center" spacing={3} color="muted" px={2} py={1.5} mb={6}>
+      <LaptopIcon name="laptop" boxSize={5} />
+      <Link href={url} onClick={onOpenInApp}>
+        {t('Open in Idena app')}
+      </Link>
+    </HStack>
   )
 }

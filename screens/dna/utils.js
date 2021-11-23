@@ -1,31 +1,14 @@
 import axios from 'axios'
-import {margin} from 'polished'
 import sha3 from 'js-sha3'
 import secp256k1 from 'secp256k1'
-import apiClient from '../api/api-client'
-import {sendTransaction} from '../api'
-import {bufferToHex} from './string'
-import {Box} from '../components'
-import theme, {rem} from '../theme'
-import {hexToUint8Array} from './buffers'
+import apiClient from '../../shared/api/api-client'
+import {hexToUint8Array} from '../../shared/utils/buffers'
 
-export const DNA_LINK_VERSION = `v1`
 export const DNA_NONCE_PREFIX = 'signin-'
 
 export const DNA_SEND_CONFIRM_TRESHOLD = 0.05
 
-export function isValidUrl(string) {
-  try {
-    // eslint-disable-next-line no-new
-    new URL(string)
-    return true
-  } catch (_) {
-    console.error('Invalid URL', string)
-    return false
-  }
-}
-
-export const validDnaUrl = url => {
+export function isValidDnaUrl(url) {
   try {
     return url.startsWith('/dna') || new URL(url).pathname.startsWith('/dna')
   } catch {
@@ -33,31 +16,17 @@ export const validDnaUrl = url => {
   }
 }
 
-export function parseQuery(url) {
+export function dnaLinkMethod(dnaUrl) {
+  return new URL(dnaUrl).pathname.slice(1).split('/')[1]
+}
+
+export function extractQueryParams(url) {
   const {searchParams} = typeof url === 'string' ? new URL(url) : url
 
-  return Array.from(searchParams.entries()).reduce(
+  return Array.from(searchParams).reduce(
     (acc, [k, v]) => ({...acc, [k]: decodeURIComponent(v)}),
     {}
   )
-}
-
-export function parseCallbackUrl({callbackUrl, faviconUrl}) {
-  if (isValidUrl(callbackUrl)) {
-    try {
-      const {hostname, origin} = new URL(callbackUrl)
-      return {
-        hostname: hostname || callbackUrl,
-        faviconUrl: faviconUrl || new URL('favicon.ico', origin),
-      }
-    } catch {
-      console.error(
-        'Failed to construct favicon url from callback url',
-        callbackUrl
-      )
-    }
-  }
-  return {hostname: callbackUrl, faviconUrl: ''}
 }
 
 export async function startSession(
@@ -125,31 +94,56 @@ export async function authenticate(authenticationEndpoint, {token, signature}) {
   throw new Error('Error authenticating identity')
 }
 
-export async function sendDna({from, to, amount, comment}) {
-  const {result, error} = await sendTransaction(
-    from,
-    to,
-    amount,
-    bufferToHex(new TextEncoder().encode(comment))
-  )
-
-  if (error) throw new Error(error.message)
-
-  return result
+export function appendTxHash(url, hash) {
+  const txUrl = new URL(url)
+  txUrl.searchParams.append('tx', hash)
+  return txUrl
 }
 
-// eslint-disable-next-line react/prop-types
-export function AlertText({textAlign = 'initial', ...props}) {
-  return (
-    <Box
-      color={theme.colors.danger}
-      style={{
-        fontWeight: theme.fontWeights.medium,
-        fontSize: rem(11),
-        ...margin(rem(12), 0, 0),
-        textAlign,
-      }}
-      {...props}
-    />
-  )
+export async function handleCallbackUrl(
+  callbackUrl,
+  callbackFormat,
+  {onJson, onHtml}
+) {
+  switch (callbackFormat) {
+    case 'json': {
+      onJson(
+        await (
+          await fetch(callbackUrl, {
+            headers: {
+              Accept: 'application/json',
+              'Content-Type': 'application/json',
+            },
+          })
+        ).json()
+      )
+      break
+    }
+
+    default:
+    case 'html':
+      onHtml({
+        url: typeof callbackUrl === 'string' ? callbackUrl : callbackUrl.href,
+      })
+      break
+  }
+}
+
+export function resolveDnaAppUrl({route, query}) {
+  const method = route.substring(route.indexOf('/dna/') + 5)
+
+  const params = Object.entries(query)
+    .map(([k, v]) => `${k}=${v}`)
+    .join('&')
+
+  return `dna://${method}/v1?${params}`
+}
+
+export function isValidUrl(string) {
+  try {
+    return ['https:', 'http:', 'dna:'].includes(new URL(string).protocol)
+  } catch (_) {
+    global.logger.error('Invalid URL', string)
+    return false
+  }
 }

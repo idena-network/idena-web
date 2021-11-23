@@ -9,7 +9,6 @@ import {
   useBreakpointValue,
   useClipboard,
   useDisclosure,
-  useToast,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useQuery, useQueryClient} from 'react-query'
@@ -42,9 +41,7 @@ import {useIdentity} from '../shared/providers/identity-context'
 import {useEpoch} from '../shared/providers/epoch-context'
 import {fetchBalance} from '../shared/api/wallet'
 import {useAuthState} from '../shared/providers/auth-context'
-import {validDnaUrl} from '../shared/utils/dna-link'
-import {DnaSignInDialog} from '../screens/dna/containers'
-import {ExternalLink, TextLink, Toast} from '../shared/components/components'
+import {ExternalLink, TextLink} from '../shared/components/components'
 import {useOnboarding} from '../shared/providers/onboarding-context'
 import {
   OnboardingPopover,
@@ -65,6 +62,7 @@ import {
 } from '../shared/components/icons'
 import {useSuccessToast} from '../shared/hooks/use-toast'
 import {persistItem} from '../shared/utils/persist'
+import {isValidDnaUrl} from '../screens/dna/utils'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -139,28 +137,19 @@ export default function ProfilePage() {
     }
   }, [epoch, queryClient])
 
-  const {
-    isOpen: isOpenDnaSignInDialog,
-    onOpen: onOpenDnaSignInDialog,
-    onClose: onCloseDnaSignInDialog,
-  } = useDisclosure()
-
-  const [dnaUrl, setDnaUrl] = React.useState(() =>
+  const [dnaUrl] = React.useState(() =>
     typeof window !== 'undefined'
       ? JSON.parse(sessionStorage.getItem('dnaUrl'))
       : null
   )
 
   React.useEffect(() => {
-    if (dnaUrl && validDnaUrl(dnaUrl.route)) {
-      onOpenDnaSignInDialog()
-    } else {
+    if (dnaUrl) {
+      if (isValidDnaUrl(dnaUrl.route))
+        router.push({pathname: dnaUrl.route, query: dnaUrl.query})
       sessionStorage.removeItem('dnaUrl')
-      onCloseDnaSignInDialog()
     }
-  }, [dnaUrl, onCloseDnaSignInDialog, onOpenDnaSignInDialog])
-
-  const toast = useToast()
+  }, [dnaUrl, router])
 
   const toDna = toLocaleDna(language, 4)
 
@@ -652,22 +641,6 @@ export default function ProfilePage() {
 
         {showValidationResults && epoch && (
           <ValidationResultToast epoch={epoch.epoch} />
-        )}
-
-        {dnaUrl && (
-          <DnaSignInDialog
-            isOpen={isOpenDnaSignInDialog}
-            query={dnaUrl?.query}
-            onDone={() => setDnaUrl('')}
-            onError={error =>
-              toast({
-                status: 'error',
-                // eslint-disable-next-line react/display-name
-                render: () => <Toast status="error" title={error} />,
-              })
-            }
-            onClose={onCloseDnaSignInDialog}
-          />
         )}
       </Page>
     </Layout>
