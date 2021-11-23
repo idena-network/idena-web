@@ -287,7 +287,7 @@ export function DnaSendDialog({
                 tx.sign(privateKey)
                 return sendRawTx(`0x${tx.toHex()}`)
               })
-              .then(async hash => {
+              .then(hash => {
                 if (isValidUrl(callbackUrl)) {
                   const callbackUrlWithHash = appendTxHash(callbackUrl, hash)
 
@@ -481,7 +481,7 @@ export function DnaRawDialog({
             })
               .then(() => setIsSubmitting(true))
               .then(() => sendRawTx(tx))
-              .then(async hash => {
+              .then(hash => {
                 if (isValidUrl(callbackUrl)) {
                   const callbackUrlWithHash = appendTxHash(callbackUrl, hash)
 
@@ -628,7 +628,7 @@ export function DnaSendFailedDialog({
       </DialogBody>
       <DialogFooter>
         <SecondaryButton
-          onClick={async () => {
+          onClick={() => {
             const requestedUrl = new URL(url)
             handleCallbackUrl(url, 'json', {
               // eslint-disable-next-line no-shadow
