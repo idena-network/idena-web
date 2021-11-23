@@ -24,15 +24,15 @@ export function useDnaLink() {
   const [params, setParams] = React.useState({})
 
   React.useEffect(() => {
-    if (typeof window === 'undefined') return
+    const currentUrl = window.location.href
 
-    setMethod(dnaLinkMethod(window.location.href))
+    setMethod(dnaLinkMethod(currentUrl))
 
     const {
       callback_url: callbackUrl,
       callback_format: callbackFormat,
       ...dnaQueryParams
-    } = extractQueryParams(window.location.href)
+    } = extractQueryParams(currentUrl)
 
     setParams({
       ...dnaQueryParams,
@@ -42,7 +42,7 @@ export function useDnaLink() {
   }, [router])
 
   return {
-    url: typeof window === 'undefined' ? null : window?.location.href,
+    url: typeof window === 'undefined' ? null : window.location.href,
     method,
     params,
   }

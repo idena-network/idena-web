@@ -297,7 +297,7 @@ export function DnaSendDialog({
                     callbackUrlWithHash.href
                   )
 
-                  await handleCallbackUrl(callbackUrlWithHash, callbackFormat, {
+                  handleCallbackUrl(callbackUrlWithHash, callbackFormat, {
                     onJson: ({success, error, url}) => {
                       if (success) {
                         onDepositSuccess({hash, url})
@@ -491,7 +491,7 @@ export function DnaRawDialog({
                     callbackUrlWithHash.href
                   )
 
-                  await handleCallbackUrl(callbackUrlWithHash, callbackFormat, {
+                  handleCallbackUrl(callbackUrlWithHash, callbackFormat, {
                     // eslint-disable-next-line no-shadow
                     onJson: ({success, error, url}) => {
                       if (success) {
@@ -630,7 +630,7 @@ export function DnaSendFailedDialog({
         <SecondaryButton
           onClick={async () => {
             const requestedUrl = new URL(url)
-            await handleCallbackUrl(url, 'json', {
+            handleCallbackUrl(url, 'json', {
               // eslint-disable-next-line no-shadow
               onJson: ({success, error, url}) => {
                 if (success) {
