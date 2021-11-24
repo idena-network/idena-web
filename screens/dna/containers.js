@@ -291,8 +291,8 @@ export function DnaSendDialog({
                 if (isValidUrl(callbackUrl)) {
                   const callbackUrlWithHash = appendTxHash(callbackUrl, hash)
 
-                  global.logger.info('Received dna://send cb url', callbackUrl)
-                  global.logger.info(
+                  console.info('Received dna://send cb url', callbackUrl)
+                  console.info(
                     'Append hash to cb url',
                     callbackUrlWithHash.href
                   )
@@ -315,7 +315,7 @@ export function DnaSendDialog({
                     onHtml: ({url}) => onDepositSuccess({hash, url}),
                   })
                     .catch(error => {
-                      global.logger.error(error)
+                      console.error(error)
                       onDepositError({
                         error: error?.message,
                         url: callbackUrlWithHash.href,
@@ -324,12 +324,12 @@ export function DnaSendDialog({
                     .finally(() => setIsSubmitting(false))
                 } else {
                   setIsSubmitting(false)
-                  global.logger.error('Invalid dna://send cb url', callbackUrl)
+                  console.error('Invalid dna://send cb url', callbackUrl)
                 }
               })
               .catch(({message}) => {
                 setIsSubmitting(false)
-                global.logger.error(message)
+                console.error(message)
                 onSendTxFailed(message)
               })
               .finally(onClose)
@@ -485,8 +485,8 @@ export function DnaRawDialog({
                 if (isValidUrl(callbackUrl)) {
                   const callbackUrlWithHash = appendTxHash(callbackUrl, hash)
 
-                  global.logger.info('Received dna://rawTx cb url', callbackUrl)
-                  global.logger.info(
+                  console.info('Received dna://rawTx cb url', callbackUrl)
+                  console.info(
                     'Append hash to cb url',
                     callbackUrlWithHash.href
                   )
@@ -511,7 +511,7 @@ export function DnaRawDialog({
                     onHtml: ({url}) => onSendSuccess({hash, url}),
                   })
                     .catch(error => {
-                      global.logger.error(error)
+                      console.error(error)
                       onSendError({
                         error: error?.message,
                         url: callbackUrlWithHash.href,
@@ -520,12 +520,12 @@ export function DnaRawDialog({
                     .finally(() => setIsSubmitting(false))
                 } else {
                   setIsSubmitting(false)
-                  global.logger.error('Invalid dna://send cb url', callbackUrl)
+                  console.error('Invalid dna://send cb url', callbackUrl)
                 }
               })
               .catch(({message}) => {
                 setIsSubmitting(false)
-                global.logger.error(message)
+                console.error(message)
                 onSendRawTxFailed(message)
               })
               .finally(onClose)
@@ -576,7 +576,7 @@ export function DnaSendSucceededDialog({hash, url, ...props}) {
         {url ? (
           <PrimaryButton
             onClick={() => {
-              global.openExternal(url)
+              openExternalUrl(url)
               props.onClose()
             }}
           >
@@ -650,7 +650,7 @@ export function DnaSendFailedDialog({
                 }
               },
             }).catch(error => {
-              global.logger.error(error)
+              console.error(error)
               onRetryFailed({
                 error: error?.message,
                 url,
@@ -663,7 +663,7 @@ export function DnaSendFailedDialog({
         <PrimaryButton
           onClick={() => {
             props.onClose()
-            global.openExternal(url)
+            openExternalUrl(url)
           }}
         >
           {t('Open in browser')}

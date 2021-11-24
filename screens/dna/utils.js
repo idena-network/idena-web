@@ -143,7 +143,7 @@ export function isValidUrl(string) {
   try {
     return ['https:', 'http:', 'dna:'].includes(new URL(string).protocol)
   } catch (_) {
-    global.logger.error('Invalid URL', string)
+    console.error('Invalid URL', string)
     return false
   }
 }
