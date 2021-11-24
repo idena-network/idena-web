@@ -169,7 +169,7 @@ export default function ImportKey() {
                 onChange={e => setState({...state, saveKey: e.target.checked})}
                 style={{fontWeight: 300}}
               >
-                {t('Save the encrypted key on this computer')}
+                {t('Save the encrypted key on this device')}
               </Checkbox>
               <Flex order={[1, 2]}>
                 <SecondaryButton

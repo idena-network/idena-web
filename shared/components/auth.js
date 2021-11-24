@@ -73,7 +73,7 @@ function RestoreKey() {
                 fontSize={['15px', '13px']}
                 m={['21px 0 0 0', '0']}
               >
-                <span>Remove private key from this computer</span>
+                <span>Remove private key from this device</span>
 
                 <Box display={['none', 'initial']}>
                   <FiChevronRight
