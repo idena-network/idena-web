@@ -287,7 +287,22 @@ export function DnaSendDialog({
                 tx.sign(privateKey)
                 return tx.hash
               })
-              .then(hash => {
+              .then(async hash => {
+                async function sendDna() {
+                  const tx = new Transaction().fromHex(
+                    await getRawTx(
+                      0,
+                      from,
+                      to,
+                      amount,
+                      null,
+                      bufferToHex(new TextEncoder().encode(comment))
+                    )
+                  )
+                  tx.sign(privateKey)
+                  return sendRawTx(`0x${tx.toHex()}`)
+                }
+
                 if (isValidUrl(callbackUrl)) {
                   const callbackUrlWithHash = appendTxHash(callbackUrl, hash)
 
@@ -300,18 +315,7 @@ export function DnaSendDialog({
                   handleCallbackUrl(callbackUrlWithHash, callbackFormat, {
                     onJson: async ({success, error, url}) => {
                       if (success) {
-                        const tx = new Transaction().fromHex(
-                          await getRawTx(
-                            0,
-                            from,
-                            to,
-                            amount,
-                            null,
-                            bufferToHex(new TextEncoder().encode(comment))
-                          )
-                        )
-                        tx.sign(privateKey)
-                        await sendRawTx(`0x${tx.toHex()}`)
+                        await sendDna()
 
                         onDepositSuccess({hash, url})
                       } else {
@@ -336,6 +340,7 @@ export function DnaSendDialog({
                     })
                     .finally(() => setIsSubmitting(false))
                 } else {
+                  await sendDna()
                   setIsSubmitting(false)
                   console.error('Invalid dna://send cb url', callbackUrl)
                 }
