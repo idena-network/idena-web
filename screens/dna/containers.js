@@ -285,7 +285,7 @@ export function DnaSendDialog({
                   )
                 )
                 tx.sign(privateKey)
-                return sendRawTx(`0x${tx.toHex()}`)
+                return tx.hash
               })
               .then(hash => {
                 if (isValidUrl(callbackUrl)) {
@@ -298,8 +298,21 @@ export function DnaSendDialog({
                   )
 
                   handleCallbackUrl(callbackUrlWithHash, callbackFormat, {
-                    onJson: ({success, error, url}) => {
+                    onJson: async ({success, error, url}) => {
                       if (success) {
+                        const tx = new Transaction().fromHex(
+                          await getRawTx(
+                            0,
+                            from,
+                            to,
+                            amount,
+                            null,
+                            bufferToHex(new TextEncoder().encode(comment))
+                          )
+                        )
+                        tx.sign(privateKey)
+                        await sendRawTx(`0x${tx.toHex()}`)
+
                         onDepositSuccess({hash, url})
                       } else {
                         onDepositError({

@@ -58,6 +58,10 @@ export class Transaction {
     return this
   }
 
+  get hash() {
+    return Buffer.from(sha3.keccak_256.array(this.toBytes())).toString('hex')
+  }
+
   toBytes() {
     const transaction = new messages.ProtoTransaction()
     transaction.setData(this._createProtoTxData())
