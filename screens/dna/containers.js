@@ -285,7 +285,7 @@ export function DnaSendDialog({
                   )
                 )
                 tx.sign(privateKey)
-                return tx.hash
+                return `0x${tx.hash}`
               })
               .then(async hash => {
                 async function sendDna() {
