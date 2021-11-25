@@ -65,20 +65,26 @@ export default function DnaSendPage() {
             {...dnaSendParams}
             {...dnaSendDisclosure}
             onDepositSuccess={({hash, url}) => {
+              dnaSendDisclosure.onClose()
               setDnaSendResponse({hash, url})
               dnaSendSucceededDisclosure.onOpen()
             }}
             onDepositError={({error, url}) => {
+              dnaSendDisclosure.onClose()
               setDnaSendResponse({error, url})
               dnaSendFailedDisclosure.onOpen()
             }}
             onSendTxFailed={failToast}
-            onClose={dismissDnaAppLink}
+            onCompleteSend={dismissDnaAppLink}
           />
 
           <DnaSendSucceededDialog
             {...dnaSendResponse}
             {...dnaSendSucceededDisclosure}
+            onCompleteSend={() => {
+              dismissDnaAppLink()
+              dnaSendSucceededDisclosure.onClose()
+            }}
           />
 
           <DnaSendFailedDialog
@@ -92,6 +98,10 @@ export default function DnaSendPage() {
             }}
             {...dnaSendResponse}
             {...dnaSendFailedDisclosure}
+            onOpenFailUrl={() => {
+              dismissDnaAppLink()
+              dnaSendFailedDisclosure.onClose()
+            }}
           />
         </Box>
       </Page>
