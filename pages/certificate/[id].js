@@ -4,25 +4,47 @@ import {
   Divider,
   Flex,
   Heading,
+  Icon,
   Image,
   Link,
   Stack,
   Text,
+  useDisclosure,
 } from '@chakra-ui/react'
+import {useRef} from 'react'
+import {MdMoreVert} from 'react-icons/md'
 import {useQuery} from 'react-query'
 import {
   CertificateTypeLabel,
   CertificateTypeTitle,
 } from '../../screens/certificate/components'
 import {fetchIdentity} from '../../shared/api'
+import {IconButton} from '../../shared/components/button'
 import {Avatar, Skeleton} from '../../shared/components/components'
-import {TelegramIcon} from '../../shared/components/icons'
-import {CertificateActionType} from '../../shared/types'
-import {mapIdentityToFriendlyStatus, toPercent} from '../../shared/utils/utils'
+import {AddUserIcon, TelegramIcon} from '../../shared/components/icons'
+import useClickOutside from '../../shared/hooks/use-click-outside'
+import {CertificateActionType, IdentityStatus} from '../../shared/types'
+import {
+  mapIdentityToFriendlyStatus,
+  openExternalUrl,
+  toPercent,
+} from '../../shared/utils/utils'
 import {getCertificateData} from '../api/validation/certificate'
 
 export default function Certificate({id, certificate}) {
-  const {data: identity, isLoading: identityIsLoading} = useQuery(
+  const {
+    isOpen: isMenuOpen,
+    onOpen: onMenuOpen,
+    onClose: onMenuClose,
+  } = useDisclosure()
+
+  const menuRef = useRef()
+
+  useClickOutside(menuRef, () => {
+    onMenuClose()
+  })
+
+  const {data: identity, isLoading: identityIsLoading, isFetched} = useQuery(
     ['fetch-identity', certificate.coinbase],
     () => fetchIdentity(certificate.coinbase, true),
     {
@@ -30,6 +52,8 @@ export default function Certificate({id, certificate}) {
       refetchOnWindowFocus: false,
     }
   )
+
+  const identityState = identity?.state || IdentityStatus.Undefined
 
   return (
     <Flex
@@ -91,7 +115,7 @@ export default function Certificate({id, certificate}) {
                 <Skeleton h={4} w={20}></Skeleton>
               ) : (
                 <Heading fontSize="md" fontWeight={500} lineHeight={4}>
-                  {mapIdentityToFriendlyStatus(identity?.state || 'Undefined')}
+                  {mapIdentityToFriendlyStatus(identityState)}
                 </Heading>
               )}
               <Heading
@@ -106,6 +130,44 @@ export default function Certificate({id, certificate}) {
                 {certificate.coinbase}
               </Heading>
             </Stack>
+            {isFetched && identityState === IdentityStatus.Undefined && (
+              <Flex position="relative">
+                <Icon
+                  as={MdMoreVert}
+                  cursor="pointer"
+                  boxSize={5}
+                  onClick={onMenuOpen}
+                />
+                <Flex
+                  position="absolute"
+                  borderRadius="lg"
+                  py={2}
+                  boxShadow="0 4px 6px 0 rgba(83, 86, 92, 0.24), 0 0 2px 0 rgba(83, 86, 92, 0.2)"
+                  right={0}
+                  top={6}
+                  zIndex={100}
+                  bg="white"
+                  display={isMenuOpen ? 'flex' : 'none'}
+                  ref={menuRef}
+                >
+                  <IconButton
+                    w="100%"
+                    color="brandGray.080"
+                    icon={<AddUserIcon color="blue.500" boxSize={5} />}
+                    _hover={{bg: 'gray.50'}}
+                    _active={{bg: 'gray.50'}}
+                    onClick={() => {
+                      onMenuClose()
+                      openExternalUrl(
+                        `https://app.idena.io/dna/invite?address=${certificate.coinbase}`
+                      )
+                    }}
+                  >
+                    Send invite
+                  </IconButton>
+                </Flex>
+              </Flex>
+            )}
           </Stack>
 
           <Divider mt={7}></Divider>
