@@ -164,7 +164,7 @@ export function DnaSendDialog({
   onDepositSuccess,
   onDepositError,
   onSendTxFailed,
-  onClose,
+  onCompleteSend,
   ...props
 }) {
   const {
@@ -198,7 +198,7 @@ export function DnaSendDialog({
   const dna = toLocaleDna(language)
 
   return (
-    <DnaDialog title={t('Confirm transfer')} onClose={onClose} {...props}>
+    <DnaDialog title={t('Confirm transfer')} {...props}>
       <DialogBody>
         <Stack spacing={5}>
           <Text>
@@ -255,7 +255,9 @@ export function DnaSendDialog({
         </Stack>
       </DialogBody>
       <DialogFooter>
-        <SecondaryButton onClick={onClose}>{t('Cancel')}</SecondaryButton>
+        <SecondaryButton onClick={onCompleteSend}>
+          {t('Cancel')}
+        </SecondaryButton>
         <PrimaryButton
           isDisabled={isExceededBalance || (shouldConfirmTx && !areSameAmounts)}
           isLoading={isSubmitting}
@@ -352,7 +354,6 @@ export function DnaSendDialog({
                 console.error(message)
                 onSendTxFailed(message)
               })
-              .finally(onClose)
           }}
         >
           {t('Confirm')}
@@ -558,7 +559,7 @@ export function DnaRawDialog({
   )
 }
 
-export function DnaSendSucceededDialog({hash, url, ...props}) {
+export function DnaSendSucceededDialog({hash, url, onCompleteSend, ...props}) {
   const {t} = useTranslation()
   return (
     <Dialog closeOnOverlayClick={false} closeOnEsc={false} {...props}>
@@ -597,14 +598,13 @@ export function DnaSendSucceededDialog({hash, url, ...props}) {
           <PrimaryButton
             onClick={() => {
               openExternalUrl(url)
-              props.onClose()
+              onCompleteSend()
             }}
           >
             {t('Continue')}
           </PrimaryButton>
         ) : (
-          // eslint-disable-next-line react/destructuring-assignment
-          <PrimaryButton onClick={props.onClose}>{t('Close')}</PrimaryButton>
+          <PrimaryButton onClick={onCompleteSend}>{t('Close')}</PrimaryButton>
         )}
       </DialogFooter>
     </Dialog>
@@ -616,6 +616,7 @@ export function DnaSendFailedDialog({
   url,
   onRetrySucceeded,
   onRetryFailed,
+  onOpenFailUrl,
   ...props
 }) {
   const {t} = useTranslation()
@@ -682,8 +683,8 @@ export function DnaSendFailedDialog({
         </SecondaryButton>
         <PrimaryButton
           onClick={() => {
-            props.onClose()
             openExternalUrl(url)
+            onOpenFailUrl()
           }}
         >
           {t('Open in browser')}
