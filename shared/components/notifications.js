@@ -1,9 +1,8 @@
 /* eslint-disable react/prop-types */
 import React, {useState} from 'react'
 import {wordWrap, padding, margin, borderRadius} from 'polished'
-import {Portal} from '@chakra-ui/react'
+import {Portal, Flex, Box as ChakraBox} from '@chakra-ui/react'
 import {Absolute, Box} from '.'
-import Flex from './flex'
 import theme, {rem} from '../theme'
 import {
   useNotificationState,
@@ -51,17 +50,21 @@ export function Notification({
       >
         <Flex
           align="center"
+          background={bg}
+          borderRadius="8px"
+          color={color}
+          mx={['12px', 0]}
+          mt="auto"
+          mb={['46px', 'auto']}
+          py={['10px', '6px']}
+          pl={['16px', '8px']}
+          pr="16px"
+          position="relative"
+          fontSize="md"
+          width={['auto', '480px']}
+          zIndex={10000}
           css={{
-            background: bg,
-            borderRadius: rem(8),
             boxShadow: `0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)`,
-            color,
-            ...margin(0, 'auto'),
-            ...padding(rem(6), rem(8), rem(6), rem(16)),
-            position: 'relative',
-            width: rem(480),
-            zIndex: 10000,
-            fontSize: rem(13),
           }}
         >
           {icon || (
@@ -139,7 +142,13 @@ export function Notification({
 export function Snackbar(props) {
   return (
     <Portal>
-      <Absolute bottom={0} left={0} right={0} {...props} />
+      <ChakraBox
+        position={['fixed', 'absolute']}
+        bottom={0}
+        left={0}
+        right={0}
+        {...props}
+      />
     </Portal>
   )
 }

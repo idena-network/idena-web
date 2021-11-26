@@ -389,6 +389,25 @@ export const uiTheme = {
             color: 'blue.500',
           },
         },
+        tabMobile: {
+          color: 'gray.500',
+          fontSize: 'mobile',
+          borderRadius: '8px',
+          h: '34px',
+          w: '100%',
+          _hover: {
+            bg: 'gray.500',
+            color: 'white',
+          },
+          _selected: {
+            bg: 'gray.500',
+            color: 'white',
+          },
+          _active: {
+            bg: 'gray.500',
+            color: 'white',
+          },
+        },
       },
       defaultProps: {
         variant: 'primary',
