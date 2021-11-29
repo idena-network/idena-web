@@ -274,7 +274,37 @@ export const uiTheme = {
             borderRadius: 'md',
           },
         },
+        dark: {
+          container: {
+            borderColor: 'white',
+            _checked: {
+              bg: 'gray.500',
+            },
+            _disabled: {
+              bg: 'none',
+              borderColor: 'gray.300',
+            },
+          },
+        },
         mobile: {
+          container: {
+            bg: 'gray.50',
+            width: '100%',
+            height: 14,
+            my: '2px',
+            borderRadius: 'md',
+            _checked: {
+              bg: 'blue.010',
+            },
+          },
+          control: {w: 5, h: 5},
+          label: {
+            fontSize: 'base',
+            fontWeight: '500',
+            ml: 4,
+          },
+        },
+        mobileDark: {
           container: {
             bg: 'gray.50',
             width: '100%',

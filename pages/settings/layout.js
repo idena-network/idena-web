@@ -15,8 +15,15 @@ function SettingsLayout({children}) {
     <Layout canRedirect={false}>
       <Page>
         <Flex
+          position={['fixed', 'initial']}
+          top={[0, 'initial']}
+          left={[0, 'initial']}
           direction="column"
           align={['center', 'flex-start']}
+          boxShadow={['0 8px 4px -4px rgba(83, 86, 92, 0.16)', 'none']}
+          pt={[3, 0]}
+          px={[8, 0]}
+          h={['128px', 'auto']}
           w={['100%', 'auto']}
         >
           <PageTitle fontSize={['base', 'xl']} fontWeight={[600, 500]}>
@@ -47,7 +54,9 @@ function SettingsLayout({children}) {
             </Button>
           </Flex>
         </Flex>
-        {children}
+        <Box mt={['104px', 0]} w={['100%', 'auto']}>
+          {children}
+        </Box>
       </Page>
     </Layout>
   )

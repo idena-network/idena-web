@@ -1,7 +1,14 @@
 import React, {useState} from 'react'
 import {margin} from 'polished'
 import {useTranslation} from 'react-i18next'
-import {Flex as ChakraFlex, Text, useClipboard} from '@chakra-ui/react'
+import {
+  Flex as ChakraFlex,
+  Box,
+  Text,
+  Button,
+  useBreakpointValue,
+  useClipboard,
+} from '@chakra-ui/react'
 import QRCode from 'qrcode.react'
 import {saveAs} from 'file-saver'
 import theme, {rem} from '../../shared/theme'
@@ -16,11 +23,7 @@ import {
   Input,
   PasswordInput,
 } from '../../shared/components/components'
-import {
-  FlatButton,
-  PrimaryButton,
-  SecondaryButton,
-} from '../../shared/components/button'
+import {FlatButton, PrimaryButton} from '../../shared/components/button'
 import {
   useAuthDispatch,
   useAuthState,
@@ -29,6 +32,8 @@ import {Section} from '../../screens/settings/components'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {useNotificationDispatch} from '../../shared/providers/notification-context'
 import {readValidationLogs} from '../../shared/utils/logs'
+import {CopyIcon} from '../../shared/components/icons'
+import {useSuccessToast} from '../../shared/hooks/use-toast'
 
 function Settings() {
   return (
@@ -45,6 +50,8 @@ function ExportLogs() {
   const {coinbase} = useAuthState()
 
   const {addError} = useNotificationDispatch()
+
+  const size = useBreakpointValue(['lg', 'md'])
 
   const getLogs = async () => {
     try {
@@ -66,7 +73,9 @@ function ExportLogs() {
 
   return (
     <Section title={t('Validation logs')}>
-      <PrimaryButton onClick={getLogs}>{t('Export')}</PrimaryButton>
+      <PrimaryButton size={size} w={['100%', 'auto']} onClick={getLogs}>
+        {t('Export')}
+      </PrimaryButton>
     </Section>
   )
 }
@@ -82,11 +91,26 @@ function ExportPK() {
 
   const {exportKey} = useAuthDispatch()
 
+  const size = useBreakpointValue(['lg', 'md'])
+  const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
+  const justify = useBreakpointValue(['center', 'flex-end'])
+  const inputWidth = useBreakpointValue(['100%', '300px'])
+  const buttonWidth = useBreakpointValue(['100%', 'auto'])
+  const successToast = useSuccessToast()
+
   return (
     <Section title={t('Export private key')}>
-      <Text mb={2}>
-        {t('Create a new password to export your private key')}
-      </Text>
+      <ChakraFlex
+        justify={['center', 'flex-start']}
+        textAlign={['center', 'start']}
+        w={['100%', 'auto']}
+      >
+        <Box w={['80%', 'auto']}>
+          <Text fontSize={['mdx', 'md']} mb={2}>
+            {t('Create a new password to export your private key')}
+          </Text>
+        </Box>
+      </ChakraFlex>
       <form
         onSubmit={e => {
           e.preventDefault()
@@ -95,23 +119,31 @@ function ExportPK() {
           setShowDialog(true)
         }}
       >
-        <Flex align="center">
-          <FormLabel htmlFor="url" style={{width: 100}}>
+        <ChakraFlex
+          direction={['column', 'row']}
+          align={['flex-start', 'center']}
+        >
+          <FormLabel
+            fontSize={['base', 'md']}
+            w={['auto', '100px']}
+            htmlFor="url"
+          >
             {t('New password')}
           </FormLabel>
           <PasswordInput
+            size={size}
             value={password}
-            width={rem(300)}
-            style={{
-              ...margin(0, theme.spacings.normal, 0, 0),
-            }}
+            mr={[0, '15px']}
+            width={inputWidth}
             disabled={showDialog}
             onChange={e => setPassword(e.target.value)}
           />
-        </Flex>
+        </ChakraFlex>
         <Flex css={{marginTop: 10}}>
           <PrimaryButton
-            css={{marginLeft: 110, width: 100}}
+            size={size}
+            ml={[0, '110px']}
+            w={['100%', '100px']}
             type="submit"
             disabled={!password}
           >
@@ -130,7 +162,7 @@ function ExportPK() {
           <ChakraFlex justify="center" mx="auto" my={8}>
             <QRCode value={pk} />
           </ChakraFlex>
-          <ChakraFlex justify="space-between">
+          <ChakraFlex display={['none', 'flex']} justify="space-between">
             <FormLabel style={{fontSize: rem(13)}}>
               Your encrypted private key
             </FormLabel>
@@ -146,13 +178,37 @@ function ExportPK() {
             width="100%"
             style={{marginBottom: rem(20), position: 'relative'}}
           >
-            <Input value={pk} width="100%" disabled />
+            <Input size={size} value={pk} width="100%" pr={[10, 0]} disabled />
+            <Box
+              display={['initial', 'none']}
+              position="absolute"
+              top={3}
+              right={3}
+            >
+              <CopyIcon
+                boxSize={6}
+                fill="muted"
+                opacity="0.4"
+                onClick={() => {
+                  onCopy()
+                  successToast({
+                    title: 'Private key copied!',
+                    duration: '5000',
+                  })
+                }}
+              />
+            </Box>
           </ChakraFlex>
         </DialogBody>
-        <DialogFooter>
-          <SecondaryButton onClick={() => setShowDialog(false)}>
+        <DialogFooter justifyContent={justify}>
+          <Button
+            variant={variantSecondary}
+            size={size}
+            w={buttonWidth}
+            onClick={() => setShowDialog(false)}
+          >
             {t('Close')}
-          </SecondaryButton>
+          </Button>
         </DialogFooter>
       </Dialog>
     </Section>
