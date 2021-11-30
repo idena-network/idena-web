@@ -1,6 +1,7 @@
 import dayjs from 'dayjs'
 import {getRpcParams} from '../api/api-client'
 import {IdentityStatus} from '../types'
+import {stripHexPrefix} from './buffers'
 
 export const HASH_IN_MEMPOOL =
   '0x0000000000000000000000000000000000000000000000000000000000000000'
@@ -131,4 +132,15 @@ export const lowerCase = str => str?.toLowerCase()
 
 export function areSameCaseInsensitive(a, b) {
   return a?.toUpperCase() === b?.toUpperCase()
+}
+
+export function validateInvitationCode(code) {
+  try {
+    const raw = stripHexPrefix(code)
+    const re = /[0-9A-Fa-f]{64}/g
+    const match = raw.match(re)
+    return match?.length && match[0] === raw
+  } catch {
+    return false
+  }
 }
