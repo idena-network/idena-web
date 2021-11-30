@@ -7,14 +7,20 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogOverlay,
+  Heading,
+  Button,
   Flex,
   RadioGroup,
+  Radio,
   Stack,
   Text,
+  useBreakpointValue,
   useDisclosure,
+  useMediaQuery,
+  Divider,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
-import {useEffect, useRef, useState} from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import {Trans, useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
 import {
@@ -94,6 +100,14 @@ export default function Offline() {
   const failToast = useFailToast()
 
   const {isPurchasing, savePurchase, setRestrictedKey} = useApikeyPurchasing()
+
+  const [isDesktop] = useMediaQuery('(min-width: 481px)')
+  const size = useBreakpointValue(['lg', 'md'])
+  const variant = useBreakpointValue(['mobile', 'initial'])
+  const variantRadio = useBreakpointValue(['mobileDark', 'dark'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
+  const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
+  const titleColor = useBreakpointValue(['muted', 'white'])
 
   const {data: identity} = useQuery(
     ['fetch-identity', coinbase],
@@ -229,7 +243,7 @@ export default function Offline() {
   return (
     <Layout canRedirect={false}>
       <Flex
-        bg="graphite.500"
+        bg={['gray.500', 'graphite.500']}
         alignItems="center"
         justifyContent="center"
         height="100%"
@@ -240,17 +254,38 @@ export default function Offline() {
         <Flex
           flexGrow={1}
           align="center"
-          justify="center"
+          justify={['flex-start', 'center']}
           mt="44px"
+          mx={[3, 0]}
           direction="column"
         >
-          <Flex direction="column" maxWidth="480px">
-            <Flex>
+          <Flex
+            direction="column"
+            align={['center', 'flex-start']}
+            maxWidth={['100%', '480px']}
+          >
+            <Flex
+              direction={['column', 'row']}
+              align={['center', 'flex-start']}
+              textAlign={['center', 'initial']}
+              w={['60%', 'auto']}
+            >
               <Avatar address={coinbase} />
-              <Flex direction="column" justify="center" flex="1" ml={5}>
-                <SubHeading color="white" css={{wordBreak: 'break-word'}}>
+              <Flex
+                direction="column"
+                justify="center"
+                flex="1"
+                ml={[0, 5]}
+                mt={[5, 0]}
+              >
+                <Heading
+                  fontSize={['mdx', 'lg']}
+                  fontWeight={[400, 500]}
+                  color={['muted', 'white']}
+                  wordBreak="break-word"
+                >
                   {coinbase}
-                </SubHeading>
+                </Heading>
               </Flex>
             </Flex>
             <Flex
@@ -258,7 +293,7 @@ export default function Offline() {
               mt={6}
               bg="gray.500"
               borderRadius="lg"
-              px={10}
+              px={[6, 10]}
               py={7}
             >
               {step === steps.INITIAL && (
@@ -283,7 +318,7 @@ export default function Offline() {
               )}
               {step === steps.CONNECT && (
                 <>
-                  <Flex>
+                  <Flex justify={['center', ' flex-start']}>
                     <Text color="white" fontSize="lg">
                       {t('Connect to Idena node')}
                     </Text>
@@ -294,11 +329,13 @@ export default function Offline() {
                       {t('Choose an option')}
                     </Text>
                   </Flex>
-                  <Flex mt={4}>
+                  <Flex mt={[2, 4]}>
                     <RadioGroup>
                       <Stack direction="column" spacing={3}>
                         {identity?.state === IdentityStatus.Candidate && (
                           <ChooseItemRadio
+                            variant={variantRadio}
+                            px={[4, 0]}
                             isChecked={state === options.CANDIDATE}
                             onChange={() => setState(options.CANDIDATE)}
                           >
@@ -306,12 +343,16 @@ export default function Offline() {
                           </ChooseItemRadio>
                         )}
                         <ChooseItemRadio
+                          variant={variantRadio}
+                          px={[4, 0]}
                           isChecked={state === options.BUY}
                           onChange={() => setState(options.BUY)}
                         >
                           <Text color="white">{t('Rent a shared node')}</Text>
                         </ChooseItemRadio>
                         <ChooseItemRadio
+                          variant={variantRadio}
+                          px={[4, 0]}
                           isChecked={state === options.ENTER_KEY}
                           onChange={() => setState(options.ENTER_KEY)}
                         >
@@ -324,6 +365,8 @@ export default function Offline() {
                           IdentityStatus.Invite,
                         ].includes(identity?.state) && (
                           <ChooseItemRadio
+                            variant={variantRadio}
+                            px={[4, 0]}
                             isChecked={state === options.ACTIVATE}
                             onChange={() => setState(options.ACTIVATE)}
                           >
@@ -334,22 +377,33 @@ export default function Offline() {
                         )}
                         {identity?.state !== IdentityStatus.Candidate && (
                           <ChooseItemRadio
+                            variant={variantRadio}
+                            px={[4, 0]}
                             isChecked={state === options.RESTRICTED}
                             onChange={() => setState(options.RESTRICTED)}
                           >
-                            <Text color="white">
-                              {t(
-                                'Get restricted access (can not be used for validation)'
-                              )}
+                            <Text lineHeight={['16px', 'initial']} color="white">
+                              {`Get restricted access${
+                                isDesktop ? ' (can not be used for validation)' : ''
+                              }`}
+                            </Text>
+                            <Text
+                              display={['inline-block', 'none']}
+                              color="xwhite.050"
+                              fontSize="sm"
+                            >
+                              Can not be used for validation
                             </Text>
                           </ChooseItemRadio>
                         )}
                       </Stack>
                     </RadioGroup>
                   </Flex>
-                  <Flex mt="30px" mb={2}>
+                  <Flex mt={[4, '30px']} mb={2}>
                     <PrimaryButton
+                      size={size}
                       ml="auto"
+                      w={['100%', 'auto']}
                       onClick={process}
                       isDisabled={waiting}
                       isLoading={waiting}
@@ -376,6 +430,7 @@ export default function Offline() {
             )}
         </Flex>
         <Flex
+          display={['none', 'flex']}
           justify="center"
           mb={8}
           direction="column"
@@ -396,6 +451,7 @@ export default function Offline() {
         </Flex>
       </Flex>
       <AlertDialog
+        variant={variant}
         motionPreset="slideInBottom"
         leastDestructiveRef={cancelRef}
         onClose={onClose}
@@ -404,12 +460,12 @@ export default function Offline() {
       >
         <AlertDialogOverlay />
 
-        <AlertDialogContent>
+        <AlertDialogContent mx={[3, 'auto']}>
           <AlertDialogHeader fontSize="lg">
             {t('Are you sure?')}
           </AlertDialogHeader>
           <AlertDialogCloseButton />
-          <AlertDialogBody fontSize="md">
+          <AlertDialogBody fontSize={['mobile', 'md']}>
             <Trans i18nKey="confirmRestrictedNodeDialog" t={t}>
               Your current API key{' '}
               <Text fontWeight="700" as="span">
@@ -423,7 +479,10 @@ export default function Offline() {
             </Trans>
           </AlertDialogBody>
           <AlertDialogFooter>
-            <SecondaryButton
+            <Button
+              variant={variantSecondary}
+              size={size}
+              w={['100%', 'auto']}
               onClick={() => {
                 setRestrictedKey()
                 onClose()
@@ -431,10 +490,23 @@ export default function Offline() {
               }}
             >
               {t('Yes')}
-            </SecondaryButton>
-            <PrimaryButton ref={cancelRef} onClick={onClose} ml={2}>
+            </Button>
+            <Divider
+              display={['block', 'none']}
+              h={10}
+              orientation="vertical"
+              color="gray.100"
+            />
+            <Button
+              variant={variantPrimary}
+              w={['100%', 'auto']}
+              size={size}
+              ref={cancelRef}
+              onClick={onClose}
+              ml={2}
+            >
               {t('Cancel')}
-            </PrimaryButton>
+            </Button>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

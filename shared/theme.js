@@ -306,13 +306,12 @@ export const uiTheme = {
         },
         mobileDark: {
           container: {
-            bg: 'gray.50',
+            bg: 'xwhite.010',
             width: '100%',
             height: 14,
-            my: '2px',
             borderRadius: 'md',
             _checked: {
-              bg: 'blue.010',
+              bg: 'xblack.016',
             },
           },
           control: {w: 5, h: 5},
