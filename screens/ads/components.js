@@ -12,6 +12,8 @@ import {
   NumberInputField,
   NumberInput,
   Textarea,
+  useTab,
+  Button,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {rem} from '../../shared/theme'
@@ -118,26 +120,23 @@ export function AdTextarea(props) {
 // eslint-disable-next-line react/prop-types
 export function AdNumberInput(props) {
   return (
-    <NumberInput w="100%" {...props}>
-      <NumberInputField inputMode="numeric" pattern="[0-9]*" px={3} py={2} />
+    <NumberInput borderColor="gray.100" w="full" {...props}>
+      <NumberInputField
+        inputMode="numeric"
+        pattern="[0-9]*"
+        px={3}
+        py={2}
+        _hover={{
+          borderColor: 'gray.100',
+        }}
+      />
     </NumberInput>
   )
 }
 
-export function AdFooter(props) {
-  return (
-    <Box
-      bg="white"
-      borderTop="1px"
-      borderTopColor="gray.100"
-      position="absolute"
-      bottom={0}
-      left={0}
-      right={0}
-      px={4}
-      py={3}
-    >
-      <Stack isInline spacing={2} justify="flex-end" {...props} />
-    </Box>
-  )
-}
+export const NewAdFormTab = React.forwardRef((props, ref) => {
+  const tabProps = useTab({...props, ref})
+  const isSelected = Boolean(tabProps['aria-selected'])
+
+  return <Button variant="tab" isActive={isSelected} {...tabProps} />
+})

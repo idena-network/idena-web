@@ -438,6 +438,71 @@ export const uiTheme = {
         },
       },
     },
+    Textarea: {
+      sizes: {
+        md: {
+          px: 3,
+          borderRadius: 'md',
+          fontSize: 'md',
+        },
+      },
+      variants: {
+        outline: {
+          borderColor: 'gray.100',
+          _hover: {
+            borderColor: 'gray.100',
+          },
+          _placeholder: {
+            color: 'muted',
+          },
+          _disabled: {
+            bg: 'gray.50',
+            color: 'muted',
+          },
+        },
+      },
+    },
+    Select: {
+      sizes: {
+        md: {
+          field: {
+            h: 8,
+            px: 3,
+            borderRadius: 'md',
+            fontSize: 'md',
+          },
+        },
+      },
+      variants: {
+        outline: {
+          field: {
+            borderColor: 'gray.100',
+            _hover: {
+              borderColor: 'gray.100',
+            },
+            _placeholder: {
+              color: 'muted',
+            },
+            _disabled: {
+              bg: 'gray.50',
+              color: 'muted',
+            },
+          },
+          icon: {
+            color: 'gray.100',
+            _hover: {
+              color: 'gray.100',
+            },
+            _placeholder: {
+              color: 'muted',
+            },
+            _disabled: {
+              color: 'muted',
+            },
+          },
+        },
+      },
+    },
     Modal: {
       variants: {
         mobile: {

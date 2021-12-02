@@ -67,6 +67,7 @@ import {AVAILABLE_LANGS} from '../../i18n'
 import {buildTargetKey, createAdDb, hexToObject, isEligibleAd} from './utils'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {useIdentity} from '../../shared/providers/identity-context'
+import {PhotoIcon, UploadIcon} from '../../shared/components/icons'
 
 export function BlockAdStat({label, value, children, ...props}) {
   return (
@@ -259,6 +260,8 @@ export function AdCoverImage({ad, ...props}) {
 }
 
 export function AdForm({onChange, ...ad}) {
+  const {t} = useTranslation()
+
   const [current, send] = useMachine(adFormMachine, {
     context: {
       ...ad,
@@ -271,9 +274,9 @@ export function AdForm({onChange, ...ad}) {
   const {title, cover, url, location, lang, age, os, stake} = current.context
 
   return (
-    <Stack spacing={6} w="480px">
+    <Stack spacing={6} w="lg">
       <FormSection>
-        <FormSectionTitle>Parameters</FormSectionTitle>
+        <FormSectionTitle>{t('Parameters')}</FormSectionTitle>
         <Stack isInline spacing={10}>
           <Stack spacing={4} shouldWrapChildren>
             <AdFormField label="Text" id="text" align="flex-start">
@@ -296,13 +299,13 @@ export function AdForm({onChange, ...ad}) {
               <FillCenter
                 bg="gray.50"
                 borderWidth="1px"
-                borderColor="gray.300"
+                borderColor="gray.100"
                 h={20}
                 w={20}
                 rounded="lg"
                 onClick={() => document.querySelector('#cover').click()}
               >
-                <Icon name="photo" size={10} color="muted" />
+                <PhotoIcon boxSize={10} color="muted" />
               </FillCenter>
             )}
             <VisuallyHidden>
@@ -328,7 +331,7 @@ export function AdForm({onChange, ...ad}) {
               as={FormLabel}
               htmlFor="cover"
               type="file"
-              icon="upload"
+              icon={<UploadIcon boxSize={4} />}
             >
               Upload cover
             </IconButton>
@@ -341,7 +344,6 @@ export function AdForm({onChange, ...ad}) {
           <AdFormField label="Location" id="location">
             <Select
               value={location}
-              borderColor="gray.300"
               onChange={e => send('CHANGE', {ad: {location: e.target.value}})}
             >
               <option></option>
@@ -353,7 +355,6 @@ export function AdForm({onChange, ...ad}) {
           <AdFormField label="Language" id="lang">
             <Select
               value={lang}
-              borderColor="gray.300"
               onChange={e => send('CHANGE', {ad: {lang: e.target.value}})}
             >
               <option></option>
@@ -379,7 +380,6 @@ export function AdForm({onChange, ...ad}) {
           <AdFormField label="OS" id="os">
             <Select
               value={os}
-              borderColor="gray.300"
               onChange={e => send('CHANGE', {ad: {os: e.target.value}})}
             >
               <option></option>
