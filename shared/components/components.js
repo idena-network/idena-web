@@ -37,6 +37,12 @@ import {
   Link,
   keyframes,
   useBreakpointValue,
+  Icon,
+  Menu as ChakraMenu,
+  MenuButton as ChakraMenuButton,
+  MenuList as ChakraMenuList,
+  MenuItem as ChakraMenuItem,
+  MenuDivider as ChakraMenuDivider,
 } from '@chakra-ui/react'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
@@ -397,6 +403,10 @@ export const VDivider = React.forwardRef(function VDivider(props, ref) {
   )
 })
 
+export const HDivider = React.forwardRef(function HDivider(props, ref) {
+  return <Divider ref={ref} borderColor="gray.300" my={0} {...props} />
+})
+
 export function SmallText(props) {
   return <Text color="muted" fontSize="sm" {...props} />
 }
@@ -494,5 +504,72 @@ export function Spinner({size = 8}) {
         animation={`${spin} 1.2s linear infinite`}
       ></Box>
     </>
+  )
+}
+
+export function Menu(props) {
+  return (
+    <ChakraMenu autoSelect={false}>
+      <ChakraMenuButton
+        rounded="md"
+        py="3/2"
+        px="1/2"
+        _hover={{bg: 'gray.50'}}
+        _expanded={{bg: 'gray.50'}}
+        _focus={{outline: 0}}
+      >
+        <Icon name="more" size={5} />
+      </ChakraMenuButton>
+      <ChakraMenuList
+        placement="bottom-end"
+        border="none"
+        shadow="0 4px 6px 0 rgba(83, 86, 92, 0.24), 0 0 2px 0 rgba(83, 86, 92, 0.2)"
+        rounded="lg"
+        py={2}
+        minWidth="145px"
+        {...props}
+      />
+    </ChakraMenu>
+  )
+}
+
+// eslint-disable-next-line react/display-name
+export const IconMenuItem = React.forwardRef(
+  ({icon, color, children, ...props}, ref) => (
+    <MenuItem ref={ref} color={color} {...props}>
+      <MenuItemIcon name={icon} color={color} />
+      {children}
+    </MenuItem>
+  )
+)
+
+// eslint-disable-next-line react/display-name
+export const MenuItem = React.forwardRef((props, ref) => (
+  <ChakraMenuItem
+    ref={ref}
+    fontWeight={500}
+    lineHeight="shorter"
+    px={3}
+    py="3/2"
+    _hover={{bg: 'gray.50'}}
+    _focus={{bg: 'gray.50'}}
+    _selected={{bg: 'gray.50'}}
+    _active={{bg: 'gray.50'}}
+    {...props}
+  />
+))
+
+export function MenuItemIcon({color = 'blue.500', ...props}) {
+  return <Icon size={5} mr={3} color={color} {...props} />
+}
+
+export function MenuDivider(props) {
+  return (
+    <ChakraMenuDivider
+      borderColor="gray.100"
+      borderWidth={1}
+      my={2}
+      {...props}
+    />
   )
 }

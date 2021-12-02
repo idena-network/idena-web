@@ -132,3 +132,5 @@ export const lowerCase = str => str?.toLowerCase()
 export function areSameCaseInsensitive(a, b) {
   return a?.toUpperCase() === b?.toUpperCase()
 }
+
+export const urlFromBytes = bytes => URL.createObjectURL(new Blob([bytes]))

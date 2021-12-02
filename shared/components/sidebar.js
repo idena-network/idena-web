@@ -64,6 +64,7 @@ import {
   TelegramIcon,
   WalletIcon,
   TimerIcon,
+  AdsIcon,
 } from './icons'
 
 function Sidebar({isOpen, onClose, ...props}) {
@@ -247,6 +248,11 @@ function Nav({onClose}) {
           icon={<ContactsIcon boxSize={[8, 5]} />}
           text={t('Contacts')}
         ></NavItem>
+        <NavItem
+          href="/ads/list"
+          icon={<AdsIcon boxSize={[8, 5]} />}
+          text={t('Ads')}
+        />
         <NavItem
           href="/settings"
           icon={<SettingsIcon boxSize={[8, 5]} />}

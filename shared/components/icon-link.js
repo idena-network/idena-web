@@ -1,16 +1,9 @@
+/* eslint-disable react/prop-types */
 import React from 'react'
-import Link from 'next/link'
-import PropTypes from 'prop-types'
+import NextLink from 'next/link'
 import {IconButton} from './button'
 
-function IconLink({href, icon, ...props}) {
+export default function IconLink({href, icon, ...props}) {
   const iconButton = <IconButton icon={icon} {...props} />
-  return href ? <Link href={href}>{iconButton}</Link> : iconButton
+  return href ? <NextLink href={href}>{iconButton}</NextLink> : iconButton
 }
-
-IconLink.propTypes = {
-  href: PropTypes.string,
-  icon: PropTypes.node,
-}
-
-export default IconLink
