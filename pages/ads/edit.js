@@ -1,47 +1,48 @@
 import * as React from 'react'
 import {
+  Stack,
+  TabPanels,
+  TabPanel,
   CloseButton,
   Flex,
-  Stack,
-  Tabs,
-  TabPanel,
-  TabPanels,
-  HStack,
   Box,
+  Tabs,
+  HStack,
 } from '@chakra-ui/react'
-import {useRouter} from 'next/router'
 import {useMachine} from '@xstate/react'
+import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
 import {Page, PageTitle} from '../../screens/app/components'
 import Layout from '../../shared/components/layout'
-import {buildTargetKey, createAdDb} from '../../screens/ads/utils'
+import {PrimaryButton} from '../../shared/components/button'
+import {useSuccessToast} from '../../shared/hooks/use-toast'
+import {useEpoch} from '../../shared/providers/epoch-context'
+import {eitherState} from '../../shared/utils/utils'
+import {createAdDb} from '../../screens/ads/utils'
 import {
   AdNumberInput,
   AdFormField,
   NewAdFormTab,
 } from '../../screens/ads/components'
-import {editAdMachine} from '../../screens/ads/hooks'
 import {AdForm} from '../../screens/ads/containers'
+import {editAdMachine} from '../../screens/ads/hooks'
 import {AdStatus} from '../../screens/ads/types'
-import {PrimaryButton} from '../../shared/components/button'
-import {useEpoch} from '../../shared/providers/epoch-context'
-import {useIdentity} from '../../shared/providers/identity-context'
-import {useSuccessToast} from '../../shared/hooks/use-toast'
 import {SuccessAlert} from '../../shared/components/components'
 
-export default function NewAdPage() {
-  const router = useRouter()
-
+export default function EditAdPage() {
   const {t} = useTranslation()
+
+  const router = useRouter()
+  const {id} = router.query
 
   const toast = useSuccessToast()
 
   const epoch = useEpoch()
-  const [{address, age, stake}] = useIdentity()
 
   const db = createAdDb(epoch?.epoch)
 
   const [current, send] = useMachine(editAdMachine, {
+    context: {id},
     actions: {
       onSuccess: () => {
         router.push('/ads/list')
@@ -52,18 +53,10 @@ export default function NewAdPage() {
       },
     },
     services: {
-      init: () => Promise.resolve(),
+      // eslint-disable-next-line no-shadow
+      init: ({id}) => db.get(id),
       submit: async context => {
-        await db.put({
-          ...context,
-          issuer: address,
-          status: AdStatus.Active,
-          key: buildTargetKey({
-            locale: context.lang,
-            age,
-            stake,
-          }),
-        })
+        await db.put({...context, status: AdStatus.Active})
         // await callRpc('dna_changeProfile', {
         //   info: `0x${objectToHex(
         //     // eslint-disable-next-line no-unused-vars
@@ -89,7 +82,7 @@ export default function NewAdPage() {
             alignSelf="stretch"
             mb={4}
           >
-            <PageTitle mb={0}>{t('New ad')}</PageTitle>
+            <PageTitle mb={0}>{t('Edit ad')}</PageTitle>
             <CloseButton
               onClick={() => {
                 send('CLOSE')
@@ -110,15 +103,18 @@ export default function NewAdPage() {
 
               <TabPanels>
                 <TabPanel>
-                  <AdForm
-                    onChange={ad => {
-                      send('UPDATE', {ad})
-                    }}
-                  />
+                  {eitherState(current, 'editing') && (
+                    <AdForm
+                      {...current.context}
+                      onChange={ad => {
+                        send('UPDATE', {ad})
+                      }}
+                    />
+                  )}
                 </TabPanel>
                 <TabPanel>
-                  <Stack spacing={6}>
-                    <Stack spacing={4}>
+                  <Stack spacing={6} w="480px">
+                    <Stack spacing={4} shouldWrapChildren>
                       <AdFormField label="Max burn rate" id="maxBurnRate">
                         <AdNumberInput />
                       </AdFormField>
@@ -150,9 +146,7 @@ export default function NewAdPage() {
           w="full"
         >
           <PrimaryButton
-            onClick={() => {
-              send('SUBMIT')
-            }}
+            onClick={() => send('SUBMIT')}
             isLoading={current.matches('submitting')}
           >
             {t('Save')}
