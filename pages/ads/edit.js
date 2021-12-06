@@ -16,9 +16,7 @@ import {Page, PageTitle} from '../../screens/app/components'
 import Layout from '../../shared/components/layout'
 import {PrimaryButton} from '../../shared/components/button'
 import {useSuccessToast} from '../../shared/hooks/use-toast'
-import {useEpoch} from '../../shared/providers/epoch-context'
 import {eitherState} from '../../shared/utils/utils'
-import {createAdDb} from '../../screens/ads/utils'
 import {
   AdNumberInput,
   AdFormField,
@@ -28,45 +26,40 @@ import {AdForm} from '../../screens/ads/containers'
 import {editAdMachine} from '../../screens/ads/hooks'
 import {AdStatus} from '../../screens/ads/types'
 import {SuccessAlert} from '../../shared/components/components'
+import db from '../../shared/utils/db'
 
 export default function EditAdPage() {
   const {t} = useTranslation()
 
   const router = useRouter()
-  const {id} = router.query
 
   const toast = useSuccessToast()
 
-  const epoch = useEpoch()
-
-  const db = createAdDb(epoch?.epoch)
-
   const [current, send] = useMachine(editAdMachine, {
-    context: {id},
     actions: {
       onSuccess: () => {
         router.push('/ads/list')
       },
-      onSaveBeforeClose: () => {
-        toast(t('Ad has been saved to drafts'))
+      onBeforeClose: ({didSaveDraft}) => {
+        if (didSaveDraft) toast(t('Ad has been saved to drafts'))
         router.push('/ads/list')
       },
     },
     services: {
-      // eslint-disable-next-line no-shadow
-      init: ({id}) => db.get(id),
-      submit: async context => {
-        await db.put({...context, status: AdStatus.Active})
+      init: () => db.ads.get(router.query.id),
+      submit: async ({id, ...context}) => {
+        await db.table('ads').update(id, {...context, status: AdStatus.Active})
         // await callRpc('dna_changeProfile', {
         //   info: `0x${objectToHex(
         //     // eslint-disable-next-line no-unused-vars
         //     buildProfile({ads: (await db.all()).map(({cover, ...ad}) => ad)})
         //   )}`,
         // })
+        return Promise.resolve()
       },
-      saveBeforeClose: context => {
-        const {status = AdStatus.Draft} = context
-        if (status === AdStatus.Draft) return db.put({...context, status})
+      close: ({status, ...context}) => {
+        if (status === AdStatus.Draft)
+          return db.ads.update({...context, status})
         return Promise.resolve()
       },
     },

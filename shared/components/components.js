@@ -37,19 +37,16 @@ import {
   Link,
   keyframes,
   useBreakpointValue,
-  Icon,
   Menu as ChakraMenu,
-  MenuButton as ChakraMenuButton,
-  MenuList as ChakraMenuList,
-  MenuItem as ChakraMenuItem,
-  MenuDivider as ChakraMenuDivider,
+  MenuButton,
+  MenuList,
 } from '@chakra-ui/react'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
 import NextLink from 'next/link'
 import dynamic from 'next/dynamic'
 import {rem} from '../theme'
-import {ChevronDownIcon} from './icons'
+import {ChevronDownIcon, MoreIcon} from './icons'
 import {openExternalUrl} from '../utils/utils'
 import {Heading} from './typo'
 import {FlatButton} from './button'
@@ -289,12 +286,9 @@ export function Dialog({
   title,
   children,
   shouldShowCloseButton = false,
-  isDesktop = true,
   ...props
 }) {
   const variant = useBreakpointValue(['mobile', 'initial'])
-  const Notice = isDesktop ? Modal : Drawer
-  const NoticeBody = isDesktop ? ModalContent : DrawerBody
   return (
     <Modal isCentered variant={variant} size="sm" {...props}>
       <ModalOverlay bg="xblack.080" />
@@ -507,69 +501,13 @@ export function Spinner({size = 8}) {
   )
 }
 
-export function Menu(props) {
+export function Menu({children, ...props}) {
   return (
-    <ChakraMenu autoSelect={false}>
-      <ChakraMenuButton
-        rounded="md"
-        py="3/2"
-        px="1/2"
-        _hover={{bg: 'gray.50'}}
-        _expanded={{bg: 'gray.50'}}
-        _focus={{outline: 0}}
-      >
-        <Icon name="more" size={5} />
-      </ChakraMenuButton>
-      <ChakraMenuList
-        placement="bottom-end"
-        border="none"
-        shadow="0 4px 6px 0 rgba(83, 86, 92, 0.24), 0 0 2px 0 rgba(83, 86, 92, 0.2)"
-        rounded="lg"
-        py={2}
-        minWidth="145px"
-        {...props}
-      />
+    <ChakraMenu autoSelect={false} placement="bottom-end" {...props}>
+      <MenuButton>
+        <MoreIcon boxSize={5} color="muted" />
+      </MenuButton>
+      <MenuList>{children}</MenuList>
     </ChakraMenu>
-  )
-}
-
-// eslint-disable-next-line react/display-name
-export const IconMenuItem = React.forwardRef(
-  ({icon, color, children, ...props}, ref) => (
-    <MenuItem ref={ref} color={color} {...props}>
-      <MenuItemIcon name={icon} color={color} />
-      {children}
-    </MenuItem>
-  )
-)
-
-// eslint-disable-next-line react/display-name
-export const MenuItem = React.forwardRef((props, ref) => (
-  <ChakraMenuItem
-    ref={ref}
-    fontWeight={500}
-    lineHeight="shorter"
-    px={3}
-    py="3/2"
-    _hover={{bg: 'gray.50'}}
-    _focus={{bg: 'gray.50'}}
-    _selected={{bg: 'gray.50'}}
-    _active={{bg: 'gray.50'}}
-    {...props}
-  />
-))
-
-export function MenuItemIcon({color = 'blue.500', ...props}) {
-  return <Icon size={5} mr={3} color={color} {...props} />
-}
-
-export function MenuDivider(props) {
-  return (
-    <ChakraMenuDivider
-      borderColor="gray.100"
-      borderWidth={1}
-      my={2}
-      {...props}
-    />
   )
 }

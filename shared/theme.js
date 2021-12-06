@@ -510,5 +510,40 @@ export const uiTheme = {
         },
       },
     },
+    Menu: {
+      baseStyle: {
+        button: {
+          borderRadius: 'md',
+          h: 8,
+          w: 6,
+          _hover: {bg: 'gray.50'},
+          _expanded: {bg: 'gray.50'},
+        },
+        list: {
+          border: 'none',
+          borderRadius: 'lg',
+          py: 2,
+          minW: '145px',
+          shadow:
+            '0 4px 6px 0 rgba(83, 86, 92, 0.24), 0 0 2px 0 rgba(83, 86, 92, 0.2)',
+          '&:focus:not([data-focus-visible-added])': {
+            shadow:
+              '0 4px 6px 0 rgba(83, 86, 92, 0.24), 0 0 2px 0 rgba(83, 86, 92, 0.2)',
+          },
+        },
+        item: {
+          fontWeight: 500,
+          px: 3,
+          py: '1.5',
+          _hover: {bg: 'gray.50'},
+          _focus: {bg: 'gray.50'},
+        },
+        divider: {
+          borderColor: 'gray.100',
+          borderWidth: 1,
+          my: '2',
+        },
+      },
+    },
   },
 }

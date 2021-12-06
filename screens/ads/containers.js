@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import * as React from 'react'
 import {
+  AspectRatio,
   Badge,
   Box,
   Button,
@@ -21,6 +22,7 @@ import {
   Textarea,
   useTheme,
   VisuallyHidden,
+  HStack,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
@@ -38,7 +40,7 @@ import {
   FillCenter,
   FormLabel,
   HDivider,
-  IconMenuItem,
+  MenuIconItem,
   Input,
   Menu,
   SuccessAlert,
@@ -67,7 +69,7 @@ import {AVAILABLE_LANGS} from '../../i18n'
 import {buildTargetKey, createAdDb, hexToObject, isEligibleAd} from './utils'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {useIdentity} from '../../shared/providers/identity-context'
-import {PhotoIcon, UploadIcon} from '../../shared/components/icons'
+import {OracleIcon, PhotoIcon, UploadIcon} from '../../shared/components/icons'
 
 export function BlockAdStat({label, value, children, ...props}) {
   return (
@@ -91,7 +93,7 @@ export function InlineAdStat({
   label,
   value,
   labelWidth,
-  fontSize,
+  fontSize = 'md',
   children,
   ...props
 }) {
@@ -220,8 +222,8 @@ export function AdBanner({limit = 5, ...props}) {
       </Stack>
       <Box>
         <Menu>
-          <IconMenuItem icon="ads">My Ads</IconMenuItem>
-          <IconMenuItem icon="cards">View all offers</IconMenuItem>
+          <MenuIconItem icon="ads">My Ads</MenuIconItem>
+          <MenuIconItem icon="cards">View all offers</MenuIconItem>
         </Menu>
       </Box>
     </Flex>
@@ -248,14 +250,15 @@ export function AdStatusText({children, status = children}) {
 
 export function AdCoverImage({ad, ...props}) {
   return (
-    <Image
-      src={urlFromBytes(ad.cover)}
-      fallbackSrc="/static/body-medium-pic-icn.svg"
-      bg="gray.50"
-      rounded="lg"
-      size={60}
-      {...props}
-    />
+    <AspectRatio ratio={1} w="60px">
+      <Image
+        src={urlFromBytes(ad.cover)}
+        fallbackSrc="/static/body-medium-pic-icn.svg"
+        bg="gray.50"
+        rounded="lg"
+        {...props}
+      />
+    </AspectRatio>
   )
 }
 
@@ -271,7 +274,16 @@ export function AdForm({onChange, ...ad}) {
     },
   })
 
-  const {title, cover, url, location, lang, age, os, stake} = current.context
+  const {
+    title,
+    cover,
+    url,
+    location,
+    language,
+    age,
+    os,
+    stake,
+  } = current.context
 
   return (
     <Stack spacing={6} w="lg">
@@ -333,13 +345,13 @@ export function AdForm({onChange, ...ad}) {
               type="file"
               icon={<UploadIcon boxSize={4} />}
             >
-              Upload cover
+              {t('Upload cover')}
             </IconButton>
           </Stack>
         </Stack>
       </FormSection>
       <FormSection>
-        <FormSectionTitle>Targeting conditions</FormSectionTitle>
+        <FormSectionTitle>{t('Targeting conditions')}</FormSectionTitle>
         <Stack spacing={4} shouldWrapChildren>
           <AdFormField label="Location" id="location">
             <Select
@@ -354,8 +366,8 @@ export function AdForm({onChange, ...ad}) {
           </AdFormField>
           <AdFormField label="Language" id="lang">
             <Select
-              value={lang}
-              onChange={e => send('CHANGE', {ad: {lang: e.target.value}})}
+              value={language}
+              onChange={e => send('CHANGE', {ad: {language: e.target.value}})}
             >
               <option></option>
               {AVAILABLE_LANGS.map(l => (
@@ -383,9 +395,9 @@ export function AdForm({onChange, ...ad}) {
               onChange={e => send('CHANGE', {ad: {os: e.target.value}})}
             >
               <option></option>
-              <option>macOS</option>
-              <option>Windows</option>
-              <option>Linux</option>
+              <option>{t('macOS')}</option>
+              <option>{t('Windows')}</option>
+              <option>{t('Linux')}</option>
             </Select>
           </AdFormField>
         </Stack>
@@ -467,7 +479,7 @@ export function PublishAdDrawer({ad, ...props}) {
   )
 }
 
-export function ReviewAdDrawer({ad, isMining, onSend, ...props}) {
+export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
   const {t} = useTranslation()
 
   return (
@@ -481,7 +493,7 @@ export function ReviewAdDrawer({ad, isMining, onSend, ...props}) {
             minH={12}
             rounded="xl"
           >
-            <Icon name="oracle" size={6} color="brandBlue.500" />
+            <OracleIcon boxSize={6} color="blue.500" />
           </FillCenter>
           <Heading color="brandGray.500" fontSize="lg" fontWeight={500}>
             {t('Send to Oracle Voting')}
@@ -492,8 +504,8 @@ export function ReviewAdDrawer({ad, isMining, onSend, ...props}) {
         <Stack spacing={6} color="brandGray.500" fontSize="md" p={6} pt={0}>
           <Stack spacing={3}>
             <Text>
-              Please keep in mind that you will not be able to edit the banner
-              after it has been submitted for verification
+              {t(`Please keep in mind that you will not be able to edit the banner
+              after it has been submitted for verification`)}
             </Text>
             {isMining && (
               <Badge
@@ -517,7 +529,7 @@ export function ReviewAdDrawer({ad, isMining, onSend, ...props}) {
           <FormControl>
             <Stack>
               <FormLabel htmlFor="amount">Review fee, DNA</FormLabel>
-              <Input id="amount" onChange={() => {}} />
+              <Input id="amount" />
             </Stack>
           </FormControl>
         </Stack>
@@ -525,7 +537,7 @@ export function ReviewAdDrawer({ad, isMining, onSend, ...props}) {
       <DrawerFooter
         spacing={2}
         borderTopWidth={1}
-        borderTopColor="gray.300"
+        borderTopColor="gray.100"
         py={3}
         px={4}
         position="absolute"
@@ -534,14 +546,13 @@ export function ReviewAdDrawer({ad, isMining, onSend, ...props}) {
         bottom={0}
       >
         <Stack isInline>
-          {/* eslint-disable-next-line react/destructuring-assignment */}
-          <SecondaryButton onClick={props.onClose}>Not now</SecondaryButton>
+          <SecondaryButton onClick={onCancel}>{t('Not now')}</SecondaryButton>
           <PrimaryButton
             isLoading={isMining}
-            loadingText="Sending..."
-            onClick={onSend}
+            loadingText={t('Mining...')}
+            onClick={onSubmit}
           >
-            Send
+            {t('Send')}
           </PrimaryButton>
         </Stack>
       </DrawerFooter>
@@ -621,19 +632,11 @@ export function AdStatusFilterButtonList({
   ...props
 }) {
   return (
-    <Flex
-      justify="space-between"
-      align="center"
-      alignSelf="stretch"
-      mb={8}
-      {...props}
-    >
-      <Stack spacing={2} isInline>
-        <AdStatusFilterContext.Provider value={{currentStatus, onChangeStatus}}>
-          {children}
-        </AdStatusFilterContext.Provider>
-      </Stack>
-    </Flex>
+    <HStack {...props}>
+      <AdStatusFilterContext.Provider value={{currentStatus, onChangeStatus}}>
+        {children}
+      </AdStatusFilterContext.Provider>
+    </HStack>
   )
 }
 

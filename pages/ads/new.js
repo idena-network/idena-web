@@ -12,9 +12,9 @@ import {
 import {useRouter} from 'next/router'
 import {useMachine} from '@xstate/react'
 import {useTranslation} from 'react-i18next'
+import nanoid from 'nanoid'
 import {Page, PageTitle} from '../../screens/app/components'
 import Layout from '../../shared/components/layout'
-import {buildTargetKey, createAdDb} from '../../screens/ads/utils'
 import {
   AdNumberInput,
   AdFormField,
@@ -24,10 +24,10 @@ import {editAdMachine} from '../../screens/ads/hooks'
 import {AdForm} from '../../screens/ads/containers'
 import {AdStatus} from '../../screens/ads/types'
 import {PrimaryButton} from '../../shared/components/button'
-import {useEpoch} from '../../shared/providers/epoch-context'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {useSuccessToast} from '../../shared/hooks/use-toast'
 import {SuccessAlert} from '../../shared/components/components'
+import db from '../../shared/utils/db'
 
 export default function NewAdPage() {
   const router = useRouter()
@@ -36,17 +36,14 @@ export default function NewAdPage() {
 
   const toast = useSuccessToast()
 
-  const epoch = useEpoch()
-  const [{address, age, stake}] = useIdentity()
-
-  const db = createAdDb(epoch?.epoch)
+  const [{address}] = useIdentity()
 
   const [current, send] = useMachine(editAdMachine, {
     actions: {
       onSuccess: () => {
         router.push('/ads/list')
       },
-      onSaveBeforeClose: () => {
+      onBeforeClose: () => {
         toast(t('Ad has been saved to drafts'))
         router.push('/ads/list')
       },
@@ -54,26 +51,34 @@ export default function NewAdPage() {
     services: {
       init: () => Promise.resolve(),
       submit: async context => {
-        await db.put({
+        const id = await db.table('ads').add({
           ...context,
-          issuer: address,
+          id: nanoid(),
+          author: address,
           status: AdStatus.Active,
-          key: buildTargetKey({
-            locale: context.lang,
-            age,
-            stake,
-          }),
         })
+
+        // await db.put({
+        //   ...context,
+        //   issuer: address,
+        //   status: AdStatus.Active,
+        //   key: buildTargetKey({
+        //     locale: context.lang,
+        //     age,
+        //     stake,
+        //   }),
+        // })
         // await callRpc('dna_changeProfile', {
         //   info: `0x${objectToHex(
         //     // eslint-disable-next-line no-unused-vars
         //     buildProfile({ads: (await db.all()).map(({cover, ...ad}) => ad)})
         //   )}`,
         // })
+        return id
       },
-      saveBeforeClose: context => {
-        const {status = AdStatus.Draft} = context
-        if (status === AdStatus.Draft) return db.put({...context, status})
+      close: ({id, status = AdStatus.Draft, ...context}) => {
+        if (status === AdStatus.Draft)
+          return db.ads.update(id, {...context, status})
         return Promise.resolve()
       },
     },

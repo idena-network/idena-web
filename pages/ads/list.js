@@ -1,8 +1,17 @@
 import React from 'react'
-import {Box, Flex, Stack, Link, HStack} from '@chakra-ui/react'
+import {
+  Box,
+  Flex,
+  Stack,
+  Link,
+  HStack,
+  MenuDivider,
+  MenuItem,
+} from '@chakra-ui/react'
 import NextLink from 'next/link'
 import dayjs from 'dayjs'
 import {useTranslation} from 'react-i18next'
+import {useRouter} from 'next/router'
 import {
   AdList,
   AdEntry,
@@ -31,18 +40,19 @@ import {
 import {useAdList} from '../../screens/ads/hooks'
 import {AdStatus} from '../../screens/ads/types'
 import {useSuccessToast} from '../../shared/hooks/use-toast'
-import {
-  HDivider,
-  IconMenuItem,
-  MenuDivider,
-  VDivider,
-} from '../../shared/components/components'
+import {Menu, HDivider, VDivider} from '../../shared/components/components'
 import IconLink from '../../shared/components/icon-link'
-import {Menu} from '../../shared/components/menu'
-import {PlusSolidIcon} from '../../shared/components/icons'
+import {
+  PlusSolidIcon,
+  DeleteIcon,
+  EditIcon,
+} from '../../shared/components/icons'
+import db from '../../shared/utils/db'
 
 export default function AdListPage() {
   const {t, i18n} = useTranslation()
+
+  const router = useRouter()
 
   const [{balance}] = useIdentity()
 
@@ -64,14 +74,10 @@ export default function AdListPage() {
 
   const toDna = toLocaleDna(i18n.language)
 
-  React.useEffect(() => {
-    console.log(currentFilter)
-  }, [currentFilter])
-
   return (
     <Layout>
       <Page as={Stack} spacing={4} mt={0 ?? 24}>
-        <PageTitle>My Ads</PageTitle>
+        <PageTitle>{t('My Ads')}</PageTitle>
         <Stack isInline spacing={20}>
           <BlockAdStat label="My balance">
             <AdStatNumber fontSize="lg">{toDna(balance)}</AdStatNumber>
@@ -112,7 +118,7 @@ export default function AdListPage() {
               cover,
               title,
               location,
-              lang,
+              language,
               age,
               os,
               stake,
@@ -121,11 +127,11 @@ export default function AdListPage() {
               // eslint-disable-next-line no-shadow
               status,
               contractHash,
-              issuer,
+              author,
             }) => (
               <AdEntry key={id}>
                 <Stack isInline spacing={5}>
-                  <Stack spacing={3} w={60}>
+                  <Stack spacing={3}>
                     <Box position="relative">
                       <AdCoverImage ad={{cover}} alt={title} />
                       {status === AdStatus.Idle && (
@@ -148,17 +154,24 @@ export default function AdListPage() {
                       <Stack isInline align="center">
                         <Box>
                           <Menu>
-                            <NextLink href={`/ads/edit?id=${id}`}>
-                              <IconMenuItem icon="edit">Edit</IconMenuItem>
-                            </NextLink>
-                            <MenuDivider />
-                            <IconMenuItem
-                              icon="delete"
-                              color="red.500"
-                              onClick={() => removeAd(id)}
+                            <MenuItem
+                              icon={<EditIcon boxSize={5} color="blue.500" />}
+                              onClick={() => {
+                                router.push(`/ads/edit?id=${id}`)
+                              }}
                             >
-                              Delete
-                            </IconMenuItem>
+                              {t('Edit')}
+                            </MenuItem>
+                            <MenuDivider />
+                            <MenuItem
+                              icon={<DeleteIcon boxSize={5} />}
+                              color="red.500"
+                              onClick={() => {
+                                removeAd(id)
+                              }}
+                            >
+                              {t('Delete')}
+                            </MenuItem>
                           </Menu>
                         </Box>
                         {status === AdStatus.Approved && (
@@ -167,7 +180,7 @@ export default function AdListPage() {
                               selectAd(id)
                             }}
                           >
-                            Publish
+                            {t('Publish')}
                           </SecondaryButton>
                         )}
                         {status === AdStatus.Active && (
@@ -176,29 +189,26 @@ export default function AdListPage() {
                               sendAdToReview(id)
                             }}
                           >
-                            Review
+                            {t('Review')}
                           </SecondaryButton>
                         )}
                         {status === AdStatus.Reviewing && (
                           <SecondaryButton
                             onClick={async () => {
-                              toast('STATUS')
-                              // toast(
-                              //   {
-                              //     ...(await createVotingDb(epoch?.epoch).get(
-                              //       contractHash
-                              //     )),
-                              //     ...mapVoting(
-                              //       await fetchVoting({
-                              //         contractHash,
-                              //         address: issuer,
-                              //       }).catch(() => ({}))
-                              //     ),
-                              //   }.status
-                              // )
+                              toast(
+                                {
+                                  ...(await db.votings.get(contractHash)),
+                                  // ...mapVoting(
+                                  //   await fetchVoting({
+                                  //     contractHash,
+                                  //     address: author,
+                                  //   }).catch(() => ({}))
+                                  // ),
+                                }.status
+                              )
                             }}
                           >
-                            Check status
+                            {t('Check status')}
                           </SecondaryButton>
                         )}
                       </Stack>
@@ -228,7 +238,10 @@ export default function AdListPage() {
                             label="Location"
                             value={location}
                           />
-                          <SmallInlineAdStat label="Language" value={lang} />
+                          <SmallInlineAdStat
+                            label="Language"
+                            value={language}
+                          />
                           <SmallInlineAdStat label="Stake" value={stake} />
                         </InlineAdGroup>
                         <InlineAdGroup labelWidth={24} flex={1}>
@@ -263,10 +276,11 @@ export default function AdListPage() {
 
         <ReviewAdDrawer
           isOpen={isSendingToReview}
+          onClose={cancel}
           isMining={isMining}
           ad={selectedAd}
-          onSend={submitAd}
-          onClose={cancel}
+          onSubmit={submitAd}
+          onCancel={cancel}
         />
       </Page>
 

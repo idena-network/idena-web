@@ -2,6 +2,7 @@ import {useMachine} from '@xstate/react'
 import {assign, createMachine, spawn} from 'xstate'
 import {log} from 'xstate/lib/actions'
 import {useAuthState} from '../../shared/providers/auth-context'
+import db from '../../shared/utils/db'
 import {
   areSameCaseInsensitive,
   byId,
@@ -35,7 +36,7 @@ export function useAdList() {
                 // eslint-disable-next-line no-shadow
                 filteredAds: ({status}, {data: {ads}}) =>
                   ads
-                    .filter(ad => areSameCaseInsensitive(ad.status, status))
+                    // .filter(ad => areSameCaseInsensitive(ad.status, status))
                     .map(ad => ({
                       ...ad,
                       // eslint-disable-next-line no-use-before-define
@@ -220,7 +221,7 @@ export function useAdList() {
     },
     services: {
       init: async () => ({
-        ads: [],
+        ads: await db.ads.toArray(),
         totalSpent: await fetchTotalSpent(coinbase),
       }),
       // eslint-disable-next-line no-shadow
@@ -450,8 +451,15 @@ export const editAdMachine = createMachine({
     },
     closing: {
       invoke: {
-        src: 'saveBeforeClose',
-        onDone: {actions: ['onSaveBeforeClose']},
+        src: 'close',
+        onDone: {
+          actions: [
+            assign({
+              didSaveDraft: (_, {data}) => Boolean(data),
+            }),
+            'onBeforeClose',
+          ],
+        },
       },
     },
   },
