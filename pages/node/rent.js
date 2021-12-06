@@ -32,7 +32,7 @@ import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import Layout from '../../shared/components/layout'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {SYNCING_DIFF} from '../../shared/providers/settings-context'
-import {useIdentity} from '../../shared/providers/identity-context'
+import {fetchIdentity} from '../../shared/api'
 
 // eslint-disable-next-line react/prop-types
 function ProviderStatus({url}) {
@@ -117,7 +117,13 @@ export default function Rent() {
     initialData: [],
   })
 
-  const [{state: identityState}] = useIdentity()
+  const {data: identity} = useQuery(
+    ['fetch-identity', coinbase],
+    () => fetchIdentity(coinbase, true),
+    {
+      enabled: !!coinbase,
+    }
+  )
 
   const sortedProviders = providers
     .filter(x => Boolean(x.slots))
@@ -150,38 +156,39 @@ export default function Rent() {
                 </TableRow>
               </thead>
               <tbody>
-                {sortedProviders.map((p, idx) => (
-                  <TableRow isLast={idx === sortedProviders.length - 1}>
-                    <TableCol>
-                      <Radio
-                        isChecked={state === idx}
-                        onClick={() => setState(idx)}
-                        borderColor="#d2d4d9"
-                      />
-                    </TableCol>
-                    <TableCol>
-                      <Flex direction="column">
-                        <Flex>{p.data.url}</Flex>
-                        <ProviderStatus url={p.data.url}></ProviderStatus>
-                      </Flex>
-                    </TableCol>
-                    <TableCol>
-                      <Link
-                        target="_blank"
-                        rel="noreferrer"
-                        color="brandBlue.100"
-                        href={`https://t.me/${p.data.ownerName}`}
-                      >
-                        {p.data.ownerName}
-                      </Link>
-                    </TableCol>
-                    <TableCol>{p.data.location}</TableCol>
-                    <TableCol className="text-right">{p.slots}</TableCol>
-                    <TableCol className="text-right">
-                      {GetProviderPrice(p.data, identityState)} iDNA
-                    </TableCol>
-                  </TableRow>
-                ))}
+                {identity &&
+                  sortedProviders.map((p, idx) => (
+                    <TableRow isLast={idx === sortedProviders.length - 1}>
+                      <TableCol>
+                        <Radio
+                          isChecked={state === idx}
+                          onClick={() => setState(idx)}
+                          borderColor="#d2d4d9"
+                        />
+                      </TableCol>
+                      <TableCol>
+                        <Flex direction="column">
+                          <Flex>{p.data.url}</Flex>
+                          <ProviderStatus url={p.data.url}></ProviderStatus>
+                        </Flex>
+                      </TableCol>
+                      <TableCol>
+                        <Link
+                          target="_blank"
+                          rel="noreferrer"
+                          color="brandBlue.100"
+                          href={`https://t.me/${p.data.ownerName}`}
+                        >
+                          {p.data.ownerName}
+                        </Link>
+                      </TableCol>
+                      <TableCol>{p.data.location}</TableCol>
+                      <TableCol className="text-right">{p.slots}</TableCol>
+                      <TableCol className="text-right">
+                        {GetProviderPrice(p.data, identity?.state)} iDNA
+                      </TableCol>
+                    </TableRow>
+                  ))}
               </tbody>
             </Table>
           </Box>
@@ -214,7 +221,7 @@ export default function Rent() {
         from={coinbase}
         amount={
           selectedProvider &&
-          GetProviderPrice(selectedProvider.data, identityState)
+          GetProviderPrice(selectedProvider.data, identity?.state)
         }
         to={selectedProvider && selectedProvider.data.address}
       />
