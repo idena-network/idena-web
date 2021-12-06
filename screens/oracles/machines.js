@@ -477,12 +477,11 @@ export const votingMachine = createMachine(
   }
 )
 
-export const createNewVotingMachine = (epoch, address) =>
-  Machine(
+export const createNewVotingMachine = () =>
+  createMachine(
     {
       context: {
-        epoch,
-        address,
+        oracleRewardsEstimates: [],
         options: [{id: 0}, {id: 1}],
         votingDuration: 4320,
         publicVotingDuration: 2160,
@@ -491,8 +490,21 @@ export const createNewVotingMachine = (epoch, address) =>
         shouldStartImmediately: true,
         dirtyBag: {},
       },
-      initial: 'preload',
+      initial: 'waiting',
       states: {
+        waiting: {
+          on: {
+            START: {
+              target: 'preload',
+              actions: [
+                assign({
+                  address: (_, {coinbase}) => coinbase,
+                  epoch: (_, {epoch}) => epoch,
+                }),
+              ],
+            },
+          },
+        },
         preload: {
           invoke: {
             src: ({committeeSize}) =>

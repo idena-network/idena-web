@@ -17,7 +17,7 @@ import {
   Divider,
   Button,
   IconButton,
-  RadioButtonGroup,
+  RadioGroup,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {
@@ -29,6 +29,7 @@ import {
   Tooltip,
 } from '../../shared/components/components'
 import {clampValue} from '../../shared/utils/utils'
+import {CrossSmallIcon} from '../../shared/components/icons'
 
 export function OracleDrawerHeader({
   icon,
@@ -272,7 +273,7 @@ export function VotingOptionInput({
   return (
     <React.Fragment>
       <Flex align="center" justify="space-between">
-        <Stack isInline spacing={1} flex={1}>
+        <Stack isInline spacing={1} flex={1} py={1}>
           <Flex h={6} w={6} align="center" justify="center">
             <Box bg="muted" borderRadius="full" h={1} w={1} />
           </Flex>
@@ -280,7 +281,7 @@ export function VotingOptionInput({
             border="none"
             px={0}
             h="auto"
-            _focus={null}
+            _focus={{border: 'none', outline: 'none'}}
             _placeholder={{
               color: 'muted',
             }}
@@ -291,7 +292,7 @@ export function VotingOptionInput({
           />
         </Stack>
         <IconButton
-          icon="cross-small"
+          icon={<CrossSmallIcon boxSize={4} />}
           isDisabled={isDisabled}
           bg="unset"
           color="muted"
@@ -431,7 +432,7 @@ export function PresetFormControl({tooltip, children, ...props}) {
 
 // eslint-disable-next-line react/display-name
 export const PresetFormControlOptionList = React.forwardRef((props, ref) => (
-  <RadioButtonGroup ref={ref} isInline {...props} />
+  <RadioGroup ref={ref} {...props} />
 ))
 
 // eslint-disable-next-line react/display-name

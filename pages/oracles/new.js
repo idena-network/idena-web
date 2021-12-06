@@ -6,7 +6,6 @@ import {
   Collapse,
   useDisclosure,
   useToast,
-  Icon,
   Flex,
   CloseButton,
   FormErrorMessage,
@@ -18,12 +17,7 @@ import duration from 'dayjs/plugin/duration'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import dayjs from 'dayjs'
 import {useRouter} from 'next/router'
-import {
-  FloatDebug,
-  Input,
-  SuccessAlert,
-  Toast,
-} from '../../shared/components/components'
+import {Input, SuccessAlert, Toast} from '../../shared/components/components'
 import {PrimaryButton} from '../../shared/components/button'
 import {createNewVotingMachine} from '../../screens/oracles/machines'
 import {
@@ -63,6 +57,7 @@ import Layout from '../../shared/components/layout'
 import {Page, PageTitle} from '../../screens/app/components'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useBalance} from '../../shared/hooks/use-balance'
+import {ChevronDownIcon} from '../../shared/components/icons'
 
 dayjs.extend(duration)
 dayjs.extend(relativeTime)
@@ -76,16 +71,11 @@ function NewVotingPage() {
 
   const {isOpen: isOpenAdvanced, onToggle: onToggleAdvanced} = useDisclosure()
 
-  const epochState = useEpoch()
+  const epochData = useEpoch()
   const {coinbase} = useAuthState()
   const {balance} = useBalance()
 
-  const epoch = epochState?.epoch ?? -1
-
-  const newVotingMachine = React.useMemo(
-    () => createNewVotingMachine(epoch, coinbase),
-    [coinbase, epoch]
-  )
+  const newVotingMachine = React.useMemo(() => createNewVotingMachine(), [])
 
   const [current, send, service] = useMachine(newVotingMachine, {
     actions: {
@@ -110,6 +100,10 @@ function NewVotingPage() {
       },
     },
   })
+
+  React.useEffect(() => {
+    if (epochData && coinbase) send('START', {epoch: epochData.epoch, coinbase})
+  }, [coinbase, epochData, send])
 
   const {
     options,
@@ -405,8 +399,8 @@ function NewVotingPage() {
                 <PresetFormControlInputBox>
                   <DnaInput
                     id="oracleReward"
-                    value={oracleReward * committeeSize}
-                    min={minOracleReward * committeeSize}
+                    value={oracleReward * committeeSize || 0}
+                    min={minOracleReward * committeeSize || 0}
                     onChange={({target: {id, value}}) => {
                       send('CHANGE', {
                         id,
@@ -452,9 +446,8 @@ function NewVotingPage() {
                 onClick={onToggleAdvanced}
               >
                 {t('Advanced settings')}
-                <Icon
-                  size={5}
-                  name="chevron-down"
+                <ChevronDownIcon
+                  boxSize={5}
                   color="muted"
                   ml={1}
                   transform={isOpenAdvanced ? 'rotate(180deg)' : ''}
@@ -462,7 +455,7 @@ function NewVotingPage() {
                 />
               </NewVotingFormSubtitle>
 
-              <Collapse isOpen={isOpenAdvanced} mt={2}>
+              <Collapse in={isOpenAdvanced} mt={2}>
                 <Stack spacing={3}>
                   <VotingDurationInput
                     id="publicVotingDuration"
