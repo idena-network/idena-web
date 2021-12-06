@@ -64,8 +64,11 @@ import {
   TelegramIcon,
   WalletIcon,
   TimerIcon,
+  OracleIcon,
 } from './icons'
 import {useTestValidationState} from '../providers/test-validation-context'
+import {TodoVotingCountBadge} from '../../screens/oracles/components'
+import useUnreadOraclesCount from '../hooks/use-unread-oracles-count'
 
 function Sidebar({isOpen, onClose}) {
   return (
@@ -224,6 +227,8 @@ function Nav({onClose}) {
   const {t} = useTranslation()
   const [{nickname}] = useIdentity()
   const {logout} = useAuthDispatch()
+  const [todoCount] = useUnreadOraclesCount()
+
   return (
     <Flex alignSelf="stretch">
       <List listStyleType="none" m={0} p={0} width="100%">
@@ -248,6 +253,18 @@ function Nav({onClose}) {
           text={t('Contacts')}
         ></NavItem>
         <NavItem
+          href="/oracles/list"
+          icon={<OracleIcon boxSize={[8, 5]} />}
+          text={t('Oracle voting')}
+          badge={
+            todoCount ? (
+              <TodoVotingCountBadge ml="auto">
+                {todoCount > 10 ? '10+' : todoCount}
+              </TodoVotingCountBadge>
+            ) : null
+          }
+        ></NavItem>
+        <NavItem
           href="/settings"
           icon={<SettingsIcon boxSize={[8, 5]} />}
           text={t('Settings')}
@@ -267,7 +284,7 @@ function Nav({onClose}) {
 }
 
 // eslint-disable-next-line react/prop-types
-function NavItem({href, icon, text, onClick}) {
+function NavItem({href, icon, text, onClick, badge}) {
   const router = useRouter()
   const active = router.pathname === href
   return (
@@ -294,6 +311,7 @@ function NavItem({href, icon, text, onClick}) {
         >
           {icon}
           <Text ml={2}>{text}</Text>
+          {badge}
         </ChakraLink>
       </NextLink>
     </ListItem>

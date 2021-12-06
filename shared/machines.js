@@ -1,6 +1,5 @@
 import {Machine, assign} from 'xstate'
 import dayjs from 'dayjs'
-import {log} from 'xstate/lib/actions'
 import {IdentityStatus} from './types'
 import {isVercelProduction} from './utils/utils'
 import {apiKeyStates} from './providers/settings-context'
@@ -80,11 +79,9 @@ export const createRestrictedModalMachine = () =>
       states: {
         idle: {},
         running: {
-          entry: log(),
           initial: 'loadData',
           states: {
             loadData: {
-              entry: log('get data'),
               invoke: {
                 src: 'getExternalData',
               },
@@ -95,7 +92,6 @@ export const createRestrictedModalMachine = () =>
                       pathname: (_, {data}) => data.pathname,
                       storage: ({storage}, {data}) => data.storage || storage,
                     }),
-                    log(),
                   ],
                   target: 'check',
                 },

@@ -150,3 +150,14 @@ export function useIsDesktop() {
   const isDesktop = useBreakpointValue([false, true])
   return isDesktop
 }
+
+export function clampValue(min, max, value) {
+  return Math.min(Math.max(value, min), max)
+}
+
+export function roundToPrecision(precision, value) {
+  return (
+    Math.ceil((Number(value) + Number.EPSILON) * 10 ** precision) /
+    10 ** precision
+  )
+}

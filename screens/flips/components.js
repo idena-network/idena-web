@@ -381,7 +381,7 @@ export function FlipOverlayText(props) {
 }
 
 export function FlipFilter(props) {
-  return <RadioGroup isInline spacing={2} {...props} />
+  return <RadioGroup spacing={2} {...props} />
 }
 
 export const FlipFilterOption = React.forwardRef(

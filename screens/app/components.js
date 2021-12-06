@@ -1,6 +1,7 @@
 /* eslint-disable react/prop-types */
 import {HamburgerIcon} from '@chakra-ui/icons'
 import {Flex, Heading} from '@chakra-ui/react'
+import {forwardRef} from 'react'
 
 export function LayoutContainer(props) {
   return (
@@ -15,9 +16,10 @@ export function LayoutContainer(props) {
   )
 }
 
-export function Page(props) {
+export const Page = forwardRef(function Page(props, ref) {
   return (
     <Flex
+      fef={ref}
       flexDirection="column"
       align="flex-start"
       flexGrow={999}
@@ -30,7 +32,7 @@ export function Page(props) {
       {...props}
     />
   )
-}
+})
 
 export function Hamburger({onClick, ...props}) {
   return (
