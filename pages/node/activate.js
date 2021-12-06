@@ -17,6 +17,7 @@ import {
   privateKeyToAddress,
   privateKeyToPublicKey,
 } from '../../shared/utils/crypto'
+import {validateInvitationCode} from '../../shared/utils/utils'
 
 export default function Activate() {
   const {privateKey} = useAuthState()
@@ -40,6 +41,8 @@ export default function Activate() {
 
     try {
       const trimmedCode = state.code.trim()
+      if (!validateInvitationCode(trimmedCode)) throw new Error()
+
       const from = privateKeyToAddress(trimmedCode)
 
       const rawTx = await getRawTx(

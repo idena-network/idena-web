@@ -70,6 +70,7 @@ import {
   eitherState,
   mapIdentityToFriendlyStatus,
   openExternalUrl,
+  validateInvitationCode,
 } from '../../shared/utils/utils'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
@@ -319,12 +320,18 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
 
   const sendActivateInviteTx = async () => {
     setSubmitting(true)
-    const trimmedCode = code.trim()
-    const from = trimmedCode
-      ? privateKeyToAddress(trimmedCode)
-      : privateKeyToAddress(privateKey)
 
     try {
+      const trimmedCode = code.trim()
+
+      if (trimmedCode) {
+        if (!validateInvitationCode(trimmedCode)) throw new Error()
+      }
+
+      const from = trimmedCode
+        ? privateKeyToAddress(trimmedCode)
+        : privateKeyToAddress(privateKey)
+
       const rawTx = await getRawTx(
         1,
         from,
