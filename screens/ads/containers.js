@@ -49,7 +49,6 @@ import {
   callRpc,
   // countryCodes,
   toLocaleDna,
-  urlFromBytes,
 } from '../../shared/utils/utils'
 // import {DnaInput, FillCenter} from '../oracles/components'
 import {
@@ -249,10 +248,14 @@ export function AdStatusText({children, status = children}) {
 }
 
 export function AdCoverImage({ad: {cover}, w, width = w, ...props}) {
+  const src = React.useMemo(() => URL.createObjectURL(new Blob([cover])), [
+    cover,
+  ])
+
   return (
     <AspectRatio ratio={1} w={width}>
       <Image
-        src={urlFromBytes(cover)}
+        src={src}
         fallbackSrc="/static/body-medium-pic-icn.svg"
         bg="gray.50"
         rounded="lg"
