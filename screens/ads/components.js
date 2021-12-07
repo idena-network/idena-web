@@ -4,6 +4,7 @@ import {
   Box,
   Flex,
   Stack,
+  StackDivider,
   StatLabel,
   StatNumber,
   FormControl,
@@ -36,14 +37,16 @@ export function SmallTargetFigure({children = 'Any', ...props}) {
 }
 
 export function AdList(props) {
-  return <Stack {...props} />
+  return (
+    <Stack
+      spacing="8"
+      divider={<StackDivider borderColor="gray.100" />}
+      {...props}
+    />
+  )
 }
 
-export function AdEntry(props) {
-  return <Box {...props} />
-}
-
-export function NoAds() {
+export function EmptyAdList() {
   const {t} = useTranslation()
   return (
     <Flex

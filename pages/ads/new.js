@@ -78,7 +78,7 @@ export default function NewAdPage() {
       },
       close: ({id, status = AdStatus.Draft, ...context}) => {
         if (status === AdStatus.Draft)
-          return db.ads.update(id, {...context, status})
+          return db.table('ads').update(id, {...context, status})
         return Promise.resolve()
       },
     },

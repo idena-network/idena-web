@@ -46,7 +46,7 @@ export default function EditAdPage() {
       },
     },
     services: {
-      init: () => db.ads.get(router.query.id),
+      init: () => db.table('ads').get(router.query.id),
       submit: async ({id, ...context}) => {
         await db.table('ads').update(id, {...context, status: AdStatus.Active})
         // await callRpc('dna_changeProfile', {
@@ -59,7 +59,7 @@ export default function EditAdPage() {
       },
       close: ({status, ...context}) => {
         if (status === AdStatus.Draft)
-          return db.ads.update({...context, status})
+          return db.table('ads').update({...context, status})
         return Promise.resolve()
       },
     },

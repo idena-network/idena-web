@@ -198,7 +198,7 @@ export function AdBanner({limit = 5, ...props}) {
           global.openExternal(url)
         }}
       >
-        <AdCoverImage ad={{cover}} size={10} />
+        <AdCoverImage ad={{cover}} w="10" />
         <Stack spacing={1}>
           <Text color>{title}</Text>
           <Stack isInline spacing={1}>
@@ -239,7 +239,7 @@ export function AdStatusText({children, status = children}) {
 
   return (
     <Text
-      color={(statusColor ?? 'brandGray')['500']}
+      color={(statusColor[status] ?? 'gray')['500']}
       fontWeight={500}
       textTransform="capitalize"
     >
@@ -248,11 +248,11 @@ export function AdStatusText({children, status = children}) {
   )
 }
 
-export function AdCoverImage({ad, ...props}) {
+export function AdCoverImage({ad: {cover}, w, width = w, ...props}) {
   return (
-    <AspectRatio ratio={1} w="60px">
+    <AspectRatio ratio={1} w={width}>
       <Image
-        src={urlFromBytes(ad.cover)}
+        src={urlFromBytes(cover)}
         fallbackSrc="/static/body-medium-pic-icn.svg"
         bg="gray.50"
         rounded="lg"
@@ -306,7 +306,7 @@ export function AdForm({onChange, ...ad}) {
           </Stack>
           <Stack spacing={4} alignItems="flex-start">
             {cover ? (
-              <AdCoverImage ad={{cover}} size={20} />
+              <AdCoverImage ad={{cover}} w="20" />
             ) : (
               <FillCenter
                 bg="gray.50"
@@ -332,7 +332,7 @@ export function AdForm({onChange, ...ad}) {
                     const [file] = files
                     if (hasImageType(file)) {
                       send('CHANGE', {
-                        ad: {cover: await file.arrayBuffer()},
+                        ad: {cover: file},
                       })
                     }
                   }
@@ -435,7 +435,7 @@ export function PublishAdDrawer({ad, ...props}) {
           </Text>
           <Stack spacing={6} bg="gray.50" p={6} rounded="lg">
             <Stack isInline spacing={5}>
-              <AdCoverImage ad={ad} />
+              <AdCoverImage ad={ad} w="10" />
               <Text fontWeight={500}>{ad.title}</Text>
             </Stack>
             <Stack spacing={3}>
@@ -522,7 +522,7 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
                 textTransform="initial"
                 {...props}
               >
-                Mining...
+                {t('Mining...')}
               </Badge>
             )}
           </Stack>
@@ -568,7 +568,11 @@ export function AdDrawer({
   ...props
 }) {
   const {i18n} = useTranslation()
+
+  const {title, url, author} = ad
+
   const totalBurnt = 0
+
   return (
     <ChakraDrawer {...props}>
       <DrawerOverlay bg="xblack.080">
@@ -583,21 +587,23 @@ export function AdDrawer({
               w={400}
               h={620}
             >
-              <Stack spacing={10}>
-                <Stack spacing={4}>
-                  <Stack spacing="3/2">
-                    <Text>{ad.title}</Text>
-                    <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
+              <Stack spacing="10">
+                <Stack spacing="4">
+                  <Stack spacing="1.5">
+                    <Heading as="h4" fontWeight="semibold" fontSize="md">
+                      {title}
+                    </Heading>
+                    <ExternalLink href={url}>{url}</ExternalLink>
                   </Stack>
-                  <AdCoverImage ad={ad} size="xs" objectFit="cover" />
+                  <AdCoverImage ad={ad} w={320} objectFit="cover" />
                 </Stack>
                 <Stack spacing={6}>
                   <Flex justify="space-between">
                     <BlockAdStat
                       label="Sponsored by"
-                      value={ad.issuer}
+                      value={author}
                       wordBreak="break-all"
-                      w={1 / 2}
+                      w="50%"
                     />
                     <BlockAdStat
                       label="Burned for 24hrs"
@@ -605,7 +611,7 @@ export function AdDrawer({
                     />
                   </Flex>
                   <Box>
-                    <SuccessAlert>
+                    <SuccessAlert fontSize="md">
                       Watching ads makes your coin valuable!
                     </SuccessAlert>
                   </Box>

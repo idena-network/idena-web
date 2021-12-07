@@ -12,19 +12,13 @@ import NextLink from 'next/link'
 import dayjs from 'dayjs'
 import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
-import {
-  AdList,
-  AdEntry,
-  NoAds,
-  AdStatNumber,
-} from '../../screens/ads/components'
+import {AdList, EmptyAdList, AdStatNumber} from '../../screens/ads/components'
 import {useIdentity} from '../../shared/providers/identity-context'
 import Layout from '../../shared/components/layout'
 import {Page, PageTitle} from '../../screens/app/components'
 import {SecondaryButton} from '../../shared/components/button'
 import {toLocaleDna} from '../../shared/utils/utils'
 import {
-  AdBanner,
   AdCoverImage,
   AdOverlayStatus,
   AdStatusFilterButton,
@@ -40,7 +34,7 @@ import {
 import {useAdList} from '../../screens/ads/hooks'
 import {AdStatus} from '../../screens/ads/types'
 import {useSuccessToast} from '../../shared/hooks/use-toast'
-import {Menu, HDivider, VDivider} from '../../shared/components/components'
+import {Menu, VDivider} from '../../shared/components/components'
 import IconLink from '../../shared/components/icon-link'
 import {
   PlusSolidIcon,
@@ -129,144 +123,128 @@ export default function AdListPage() {
               contractHash,
               author,
             }) => (
-              <AdEntry key={id}>
-                <Stack isInline spacing={5}>
-                  <Stack spacing={3}>
-                    <Box position="relative">
-                      <AdCoverImage ad={{cover}} alt={title} />
-                      {status === AdStatus.Idle && (
-                        <AdOverlayStatus status={status} />
-                      )}
-                    </Box>
-                    <AdStatusText status={status} />
-                  </Stack>
-                  <Box flex={1}>
-                    <Flex justify="space-between">
-                      <NextLink href={`/ads/edit?id=${id}`} passHref>
-                        <Link
-                          fontSize="mdx"
-                          fontWeight={500}
-                          _hover={{color: 'muted'}}
-                        >
-                          {title}
-                        </Link>
-                      </NextLink>
-                      <Stack isInline align="center">
-                        <Box>
-                          <Menu>
-                            <MenuItem
-                              icon={<EditIcon boxSize={5} color="blue.500" />}
-                              onClick={() => {
-                                router.push(`/ads/edit?id=${id}`)
-                              }}
-                            >
-                              {t('Edit')}
-                            </MenuItem>
-                            <MenuDivider />
-                            <MenuItem
-                              icon={<DeleteIcon boxSize={5} />}
-                              color="red.500"
-                              onClick={() => {
-                                removeAd(id)
-                              }}
-                            >
-                              {t('Delete')}
-                            </MenuItem>
-                          </Menu>
-                        </Box>
-                        {status === AdStatus.Approved && (
-                          <SecondaryButton
-                            onClick={() => {
-                              selectAd(id)
-                            }}
-                          >
-                            {t('Publish')}
-                          </SecondaryButton>
-                        )}
-                        {status === AdStatus.Active && (
-                          <SecondaryButton
-                            onClick={() => {
-                              sendAdToReview(id)
-                            }}
-                          >
-                            {t('Review')}
-                          </SecondaryButton>
-                        )}
-                        {status === AdStatus.Reviewing && (
-                          <SecondaryButton
-                            onClick={async () => {
-                              toast(
-                                {
-                                  ...(await db.votings.get(contractHash)),
-                                  // ...mapVoting(
-                                  //   await fetchVoting({
-                                  //     contractHash,
-                                  //     address: author,
-                                  //   }).catch(() => ({}))
-                                  // ),
-                                }.status
-                              )
-                            }}
-                          >
-                            {t('Check status')}
-                          </SecondaryButton>
-                        )}
-                      </Stack>
-                    </Flex>
-                    <Stack isInline spacing={60}>
-                      <BlockAdStat label="Spent, 4hrs" value={toDna(spent)} />
-                      <BlockAdStat
-                        label="Total spent, DNA"
-                        value={toDna(spent)}
-                      />
-                      <BlockAdStat
-                        label="Last tx"
-                        value={`${dayjs().diff(lastTx, 'ms')} ms ago`}
-                      />
-                    </Stack>
-                    <Stack
-                      isInline
-                      spacing={4}
-                      bg="gray.50"
-                      p={2}
-                      my={5}
-                      rounded="md"
-                    >
-                      <Stack flex={1} isInline px={2} pt={1}>
-                        <InlineAdGroup spacing="3/2" labelWidth={55} flex={1}>
-                          <SmallInlineAdStat
-                            label="Location"
-                            value={location}
-                          />
-                          <SmallInlineAdStat
-                            label="Language"
-                            value={language}
-                          />
-                          <SmallInlineAdStat label="Stake" value={stake} />
-                        </InlineAdGroup>
-                        <InlineAdGroup labelWidth={24} flex={1}>
-                          <SmallInlineAdStat label="Age" value={age} />
-                          <SmallInlineAdStat label="OS" value={os} />
-                        </InlineAdGroup>
-                      </Stack>
-                      <VDivider minH={68} h="full" />
-                      <Stack flex={1} justify="center">
-                        <InlineAdStat label="Competitors" value={10} />
-                        <InlineAdStat
-                          label="Max price"
-                          value={toLocaleDna(i18n.language)(0.000000000123)}
-                        />
-                      </Stack>
-                    </Stack>
+              <HStack key={id} spacing="5" align="flex-start">
+                <Stack spacing={3}>
+                  <Box position="relative">
+                    <AdCoverImage ad={{cover}} w="60px" />
+                    {status === AdStatus.Idle && (
+                      <AdOverlayStatus status={status} />
+                    )}
                   </Box>
+                  <AdStatusText status={status} />
                 </Stack>
-
-                {ads.length > 1 && <HDivider />}
-              </AdEntry>
+                <Box flex={1}>
+                  <Flex justify="space-between">
+                    <NextLink href={`/ads/edit?id=${id}`} passHref>
+                      <Link
+                        fontSize="mdx"
+                        fontWeight={500}
+                        _hover={{color: 'muted'}}
+                      >
+                        {title}
+                      </Link>
+                    </NextLink>
+                    <Stack isInline align="center">
+                      <Box>
+                        <Menu>
+                          <MenuItem
+                            icon={<EditIcon boxSize={5} color="blue.500" />}
+                            onClick={() => {
+                              router.push(`/ads/edit?id=${id}`)
+                            }}
+                          >
+                            {t('Edit')}
+                          </MenuItem>
+                          <MenuDivider />
+                          <MenuItem
+                            icon={<DeleteIcon boxSize={5} />}
+                            color="red.500"
+                            onClick={() => {
+                              removeAd(id)
+                            }}
+                          >
+                            {t('Delete')}
+                          </MenuItem>
+                        </Menu>
+                      </Box>
+                      {status === AdStatus.Approved && (
+                        <SecondaryButton
+                          onClick={() => {
+                            selectAd(id)
+                          }}
+                        >
+                          {t('Publish')}
+                        </SecondaryButton>
+                      )}
+                      {status === AdStatus.Active && (
+                        <SecondaryButton
+                          onClick={() => {
+                            sendAdToReview(id)
+                          }}
+                        >
+                          {t('Review')}
+                        </SecondaryButton>
+                      )}
+                      {status === AdStatus.Reviewing && (
+                        <SecondaryButton
+                          onClick={async () => {
+                            toast(
+                              {
+                                ...(await db.votings.get(contractHash)),
+                                // ...mapVoting(
+                                //   await fetchVoting({
+                                //     contractHash,
+                                //     address: author,
+                                //   }).catch(() => ({}))
+                                // ),
+                              }.status
+                            )
+                          }}
+                        >
+                          {t('Check status')}
+                        </SecondaryButton>
+                      )}
+                    </Stack>
+                  </Flex>
+                  <Stack isInline spacing={60}>
+                    <BlockAdStat label="Spent, 4hrs" value={toDna(spent)} />
+                    <BlockAdStat
+                      label="Total spent, DNA"
+                      value={toDna(spent)}
+                    />
+                    <BlockAdStat
+                      label="Last tx"
+                      value={`${dayjs().diff(lastTx, 'ms')} ms ago`}
+                    />
+                  </Stack>
+                  <HStack spacing={4} bg="gray.50" p={2} mt="5" rounded="md">
+                    <Stack flex={1} isInline px={2} pt={1}>
+                      <InlineAdGroup spacing="3/2" labelWidth={55} flex={1}>
+                        <SmallInlineAdStat label="Location" value={location} />
+                        <SmallInlineAdStat label="Language" value={language} />
+                        <SmallInlineAdStat label="Stake" value={stake} />
+                      </InlineAdGroup>
+                      <InlineAdGroup labelWidth={24} flex={1}>
+                        <SmallInlineAdStat label="Age" value={age} />
+                        <SmallInlineAdStat label="OS" value={os} />
+                      </InlineAdGroup>
+                    </Stack>
+                    <VDivider minH={68} h="full" />
+                    <Stack flex={1} justify="center">
+                      <InlineAdStat label="Competitors" value={10} />
+                      <InlineAdStat
+                        label="Max price"
+                        value={toLocaleDna(i18n.language)(0.000000000123)}
+                      />
+                    </Stack>
+                  </HStack>
+                </Box>
+              </HStack>
             )
           )}
         </AdList>
-        {isReady && ads.length === 0 && <NoAds />}
+
+        {isReady && ads.length === 0 && <EmptyAdList />}
 
         <PublishAdDrawer
           isOpen={isPublishing}

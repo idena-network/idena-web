@@ -266,7 +266,11 @@ export function useAdList() {
 
         // await db.put({...selectedAd, contractHash})
 
-        // return {txHash, contractHash}
+        return {
+          txHash:
+            '0x5af59d0196e165f66e6669cc8bac06c403e0b692f04feb7c09becf1a6755459d',
+          contractHash: '0xae2eeaf1944b4a48d7f167042cdb5bb599486236',
+        }
       },
       pollDeployVoting: ({txDeployHash}) => cb => {
         let timeoutId
@@ -287,7 +291,7 @@ export function useAdList() {
           clearTimeout(timeoutId)
         }
       },
-      startReviewVoting: async ({contractHash}, {amount = 100}) =>
+      startReviewVoting: async ({contractHash}, {amount = 100}) => {
         // let callContract = createContractCaller({
         //   contractHash,
         //   from: coinbase,
@@ -309,7 +313,9 @@ export function useAdList() {
         // })
 
         // return callContract('startVoting')
-        Promise.resolve(),
+        console.log({contractHash})
+        return Promise.resolve()
+      },
       pollStartVoting: ({txStartHash}) => cb => {
         let timeoutId
 
@@ -331,7 +337,7 @@ export function useAdList() {
       },
     },
     removeAd: async (_, {id}) => {
-      // await db.del(id)
+      await db.table('ads').delete(id)
     },
   })
 
