@@ -35,9 +35,9 @@ export function useAdList() {
               assign({
                 ads: (_, {data: {ads}}) => ads,
                 // eslint-disable-next-line no-shadow
-                filteredAds: ({status}, {data: {ads}}) =>
+                filteredAds: ({filter}, {data: {ads}}) =>
                   ads
-                    // .filter(ad => areSameCaseInsensitive(ad.status, status))
+                    .filter(ad => areSameCaseInsensitive(ad.status, filter))
                     .map(ad => ({
                       ...ad,
                       // eslint-disable-next-line no-use-before-define
@@ -265,7 +265,9 @@ export function useAdList() {
         //   status: VotingStatus.Deploying,
         // })
 
-        // await db.put({...selectedAd, contractHash})
+        await db
+          .table('ads')
+          .update(selectedAd.id, {status: AdStatus.Reviewing})
 
         return {
           txHash:
@@ -336,9 +338,7 @@ export function useAdList() {
           clearTimeout(timeoutId)
         }
       },
-    },
-    removeAd: async (_, {id}) => {
-      await db.table('ads').delete(id)
+      removeAd: (_, {id}) => db.table('ads').delete(id),
     },
   })
 

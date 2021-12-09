@@ -56,14 +56,14 @@ export default function AdListPage() {
     {
       ads,
       selectedAd,
-      filter: currentFilter,
+      filter,
       totalSpent,
       isReady,
       isPublishing,
       isSendingToReview,
       isMining,
     },
-    {filter, selectAd, removeAd, sendAdToReview, submitAd, cancel},
+    {filter: filterList, selectAd, removeAd, sendAdToReview, submitAd, cancel},
   ] = useAdList()
 
   const toDna = toLocaleDna(i18n.language)
@@ -81,20 +81,17 @@ export default function AdListPage() {
           </BlockAdStat>
         </Stack>
         <Flex align="center" justify="space-between" w="full">
-          <AdStatusFilterButtonList
-            currentStatus={currentFilter}
-            onChangeStatus={filter}
-          >
-            <AdStatusFilterButton status={AdStatus.Active}>
+          <AdStatusFilterButtonList value={filter} onChange={filterList}>
+            <AdStatusFilterButton value={AdStatus.Active}>
               {t('Active')}
             </AdStatusFilterButton>
-            <AdStatusFilterButton status={AdStatus.Draft}>
+            <AdStatusFilterButton value={AdStatus.Draft}>
               {t('Drafts')}
             </AdStatusFilterButton>
-            <AdStatusFilterButton status={AdStatus.Reviewing}>
+            <AdStatusFilterButton value={AdStatus.Reviewing}>
               {t('On review')}
             </AdStatusFilterButton>
-            <AdStatusFilterButton status={AdStatus.Rejected}>
+            <AdStatusFilterButton value={AdStatus.Rejected}>
               {t('Rejected')}
             </AdStatusFilterButton>
           </AdStatusFilterButtonList>
@@ -124,9 +121,9 @@ export default function AdListPage() {
               author,
             }) => (
               <HStack key={id} spacing="5" align="flex-start">
-                <Stack spacing={3}>
+                <Stack spacing={3} w="16">
                   <Box position="relative">
-                    <AdCoverImage ad={{cover}} w="60px" />
+                    <AdCoverImage ad={{cover}} />
                     {status === AdStatus.Idle && (
                       <AdOverlayStatus status={status} />
                     )}
@@ -190,7 +187,7 @@ export default function AdListPage() {
                           onClick={async () => {
                             toast(
                               {
-                                ...(await db.votings.get(contractHash)),
+                                ...(await db.table('ads').get(id)),
                                 // ...mapVoting(
                                 //   await fetchVoting({
                                 //     contractHash,
@@ -247,16 +244,15 @@ export default function AdListPage() {
         {isReady && ads.length === 0 && <EmptyAdList />}
 
         <PublishAdDrawer
+          ad={selectedAd}
           isOpen={isPublishing}
           onClose={cancel}
-          ad={selectedAd}
         />
 
         <ReviewAdDrawer
-          isOpen={isSendingToReview}
-          onClose={cancel}
-          isMining={isMining}
           ad={selectedAd}
+          isOpen={isSendingToReview}
+          isMining={true || isMining}
           onSubmit={submitAd}
           onCancel={cancel}
         />

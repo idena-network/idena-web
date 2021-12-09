@@ -224,7 +224,12 @@ export function AdStatusText({children, status = children}) {
   const color = useAdStatusColor(status)
 
   return (
-    <Text color={color} fontWeight={500} textTransform="capitalize">
+    <Text
+      color={color}
+      fontWeight={500}
+      textTransform="capitalize"
+      wordBreak="break-all"
+    >
       {status}
     </Text>
   )
@@ -450,8 +455,8 @@ export function PublishAdDrawer({ad, ...props}) {
         </Stack>
       </DrawerBody>
       <DrawerFooter
-        borderTopWidth={1}
-        borderTopColor="gray.300"
+        borderWidth={1}
+        borderColor="gray.100"
         py={3}
         px={4}
         position="absolute"
@@ -469,7 +474,7 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
   const {t} = useTranslation()
 
   return (
-    <AdDrawer isMining={isMining} ad={ad} {...props}>
+    <AdDrawer isMining={isMining} ad={ad} onClose={onCancel} {...props}>
       <DrawerHeader>
         <Stack spacing={4}>
           <FillCenter
@@ -618,35 +623,35 @@ export function AdDrawer({
 const AdStatusFilterContext = React.createContext()
 
 export function AdStatusFilterButtonList({
-  currentStatus,
-  onChangeStatus,
+  value,
+  onChange,
   children,
   ...props
 }) {
   return (
     <HStack {...props}>
-      <AdStatusFilterContext.Provider value={{currentStatus, onChangeStatus}}>
+      <AdStatusFilterContext.Provider value={{value, onChange}}>
         {children}
       </AdStatusFilterContext.Provider>
     </HStack>
   )
 }
 
-export function AdStatusFilterButton({status, children, ...props}) {
-  const {currentStatus, onChangeStatus} = React.useContext(
-    AdStatusFilterContext
-  )
+export function AdStatusFilterButton({value, onClick, ...props}) {
+  const {
+    value: currentValue,
+    onChange: onChangeCurrentValue,
+  } = React.useContext(AdStatusFilterContext)
 
   return (
     <Button
       variant="tab"
-      onClick={() => {
-        onChangeStatus(status)
+      isActive={value === currentValue}
+      onClick={e => {
+        onChangeCurrentValue(value)
+        if (onClick) onClick(e)
       }}
-      isActive={status === currentStatus}
       {...props}
-    >
-      {children || status}
-    </Button>
+    />
   )
 }
