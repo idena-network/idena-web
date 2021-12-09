@@ -20,7 +20,6 @@ import {
   Stat,
   Text,
   Textarea,
-  useTheme,
   VisuallyHidden,
   HStack,
 } from '@chakra-ui/react'
@@ -61,8 +60,7 @@ import {
   FormSectionTitle,
 } from './components'
 import {Fill} from '../../shared/components'
-import {AdStatus} from './types'
-import {adFormMachine} from './hooks'
+import {adFormMachine, useAdStatusColor} from './hooks'
 import {hasImageType} from '../../shared/utils/img'
 import {AVAILABLE_LANGS} from '../../i18n'
 import {buildTargetKey, createAdDb, hexToObject, isEligibleAd} from './utils'
@@ -114,14 +112,7 @@ export function SmallInlineAdStat(props) {
 }
 
 export function AdOverlayStatus({status}) {
-  const {colors} = useTheme()
-
-  const statusColor = {
-    [AdStatus.PartiallyShowing]: 'warning',
-    [AdStatus.NotShowing]: 'red',
-  }
-
-  const startColor = colors[statusColor[status]]?.['500'] ?? 'transparent'
+  const startColor = useAdStatusColor(status, 'transparent')
 
   return (
     <Fill
@@ -230,18 +221,10 @@ export function AdBanner({limit = 5, ...props}) {
 }
 
 export function AdStatusText({children, status = children}) {
-  const statusColor = {
-    [AdStatus.Showing]: 'green',
-    [AdStatus.NotShowing]: 'red',
-    [AdStatus.PartiallyShowing]: 'orange',
-  }
+  const color = useAdStatusColor(status)
 
   return (
-    <Text
-      color={(statusColor[status] ?? 'gray')['500']}
-      fontWeight={500}
-      textTransform="capitalize"
-    >
+    <Text color={color} fontWeight={500} textTransform="capitalize">
       {status}
     </Text>
   )

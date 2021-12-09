@@ -1,3 +1,4 @@
+import {useToken} from '@chakra-ui/react'
 import {useMachine} from '@xstate/react'
 import {assign, createMachine, spawn} from 'xstate'
 import {log} from 'xstate/lib/actions'
@@ -506,3 +507,15 @@ export const adFormMachine = createMachine({
     },
   },
 })
+
+export function useAdStatusColor(status, fallbackColor = 'gray.500') {
+  const statusColor = {
+    [AdStatus.Showing]: 'green',
+    [AdStatus.NotShowing]: 'red',
+    [AdStatus.PartiallyShowing]: 'orange',
+  }
+
+  const color = useToken('colors', `${statusColor[status]}.500`, fallbackColor)
+
+  return color
+}
