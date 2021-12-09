@@ -5,11 +5,7 @@ import {
   Badge,
   Box,
   Button,
-  Drawer as ChakraDrawer,
-  DrawerCloseButton,
-  DrawerContent,
   DrawerFooter,
-  DrawerOverlay,
   Flex,
   FormControl,
   Heading,
@@ -43,6 +39,7 @@ import {
   Input,
   Menu,
   SuccessAlert,
+  DrawerPromotionPortal,
 } from '../../shared/components/components'
 import {
   callRpc,
@@ -551,72 +548,55 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
   )
 }
 
-export function AdDrawer({
-  isCloseable = true,
-  isMining = true,
-  ad = {},
-  children,
-  ...props
-}) {
-  const {i18n} = useTranslation()
+export function AdDrawer({isMining = true, ad = {}, children, ...props}) {
+  return (
+    <Drawer {...props}>
+      {children}
+      {isMining && (
+        <DrawerPromotionPortal>
+          <AdPromotion {...ad} />
+        </DrawerPromotionPortal>
+      )}
+    </Drawer>
+  )
+}
 
-  const {title, url, author} = ad
-
-  const totalBurnt = 0
+function AdPromotion({title, url, author, cover, totalBurnt}) {
+  const {t, i18n} = useTranslation()
 
   return (
-    <ChakraDrawer {...props}>
-      <DrawerOverlay bg="xblack.080">
-        {isMining && (
-          <FillCenter h="full" pr={360}>
-            <Box
-              bg="white"
-              rounded="lg"
-              px={10}
-              pt={37}
-              pb={44}
-              w={400}
-              h={620}
-            >
-              <Stack spacing="10">
-                <Stack spacing="4">
-                  <Stack spacing="1.5">
-                    <Heading as="h4" fontWeight="semibold" fontSize="md">
-                      {title}
-                    </Heading>
-                    <ExternalLink href={url}>{url}</ExternalLink>
-                  </Stack>
-                  <AdCoverImage ad={ad} w={320} objectFit="cover" />
-                </Stack>
-                <Stack spacing={6}>
-                  <Flex justify="space-between">
-                    <BlockAdStat
-                      label="Sponsored by"
-                      value={author}
-                      wordBreak="break-all"
-                      w="50%"
-                    />
-                    <BlockAdStat
-                      label="Burned for 24hrs"
-                      value={toLocaleDna(i18n.language)(totalBurnt)}
-                    />
-                  </Flex>
-                  <Box>
-                    <SuccessAlert fontSize="md">
-                      Watching ads makes your coin valuable!
-                    </SuccessAlert>
-                  </Box>
-                </Stack>
-              </Stack>
-            </Box>
-          </FillCenter>
-        )}
-      </DrawerOverlay>
-      <DrawerContent px={8} py={12} maxW="sm">
-        {isCloseable && <DrawerCloseButton />}
-        {children}
-      </DrawerContent>
-    </ChakraDrawer>
+    <Box bg="white" rounded="lg" px={10} pt={37} pb={44} w={400} h={620}>
+      <Stack spacing="10">
+        <Stack spacing="4">
+          <Stack spacing="1.5">
+            <Heading as="h4" fontWeight="semibold" fontSize="md">
+              {title}
+            </Heading>
+            <ExternalLink href={url}>{url}</ExternalLink>
+          </Stack>
+          <AdCoverImage ad={{cover}} w={320} objectFit="cover" />
+        </Stack>
+        <Stack spacing={6}>
+          <Flex justify="space-between">
+            <BlockAdStat
+              label="Sponsored by"
+              value={author}
+              wordBreak="break-all"
+              w="50%"
+            />
+            <BlockAdStat
+              label="Burned for 24hrs"
+              value={toLocaleDna(i18n.language)(totalBurnt)}
+            />
+          </Flex>
+          <Box>
+            <SuccessAlert fontSize="md">
+              {t('Watching ads makes your coin valuable!')}
+            </SuccessAlert>
+          </Box>
+        </Stack>
+      </Stack>
+    </Box>
   )
 }
 

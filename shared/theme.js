@@ -545,5 +545,16 @@ export const uiTheme = {
         },
       },
     },
+    Drawer: {
+      baseStyle: {
+        overlay: {
+          bg: 'xblack.080',
+        },
+        footer: {
+          borderWidth: 1,
+          borderColor: 'gray.100',
+        },
+      },
+    },
   },
 }

@@ -243,18 +243,18 @@ export default function AdListPage() {
 
         {isReady && ads.length === 0 && <EmptyAdList />}
 
+        <ReviewAdDrawer
+          ad={selectedAd}
+          isOpen={isSendingToReview}
+          isMining={isMining}
+          onSubmit={submitAd}
+          onCancel={cancel}
+        />
+
         <PublishAdDrawer
           ad={selectedAd}
           isOpen={isPublishing}
           onClose={cancel}
-        />
-
-        <ReviewAdDrawer
-          ad={selectedAd}
-          isOpen={isSendingToReview}
-          isMining={true || isMining}
-          onSubmit={submitAd}
-          onCancel={cancel}
         />
       </Page>
 
