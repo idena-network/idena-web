@@ -100,8 +100,8 @@ export function ValidationScene(props) {
       }}
       pt={6}
       pb={[0, 3]}
-      pl={[8, 10]}
-      pr={[8, 6]}
+      pl={[0, 10]}
+      pr={[0, 6]}
       overflow="hidden"
       {...props}
     />
@@ -143,6 +143,7 @@ export function CurrentStep(props) {
       justify="center"
       flex={1}
       mt={['154px', 0]}
+      px={[8, 0]}
       mb={[0, 6]}
       {...props}
     />
