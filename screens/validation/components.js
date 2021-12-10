@@ -1697,7 +1697,7 @@ export function ValidationScreen({
   const flips = sessionFlips(state)
   const currentFlip = flips[currentIndex]
 
-  const scrollToCurrentFlip = (flipId) => {
+  const scrollToCurrentFlip = flipId => {
     scroller.scrollTo(`flipIcon${flipId}`, {
       duration: 250,
       smooth: true,
@@ -1705,6 +1705,13 @@ export function ValidationScreen({
       horizontal: true,
     })
   }
+
+  const element = document.querySelector('.block-swipe-nav')
+
+  element.addEventListener('touchstart', e => {
+    if (e.pageX > 10 && e.pageX < window.innerWidth - 10) return
+    e.preventDefault()
+  })
 
   const handlers = useSwipeable({
     onSwipedLeft: () => {
@@ -1763,7 +1770,7 @@ export function ValidationScreen({
           </Title>
         </Flex>
       </Header>
-      <div {...handlers}>
+      <div className="block-swipe-nav" {...handlers}>
         <CurrentStep order={[3, 2]}>
           <FlipChallenge>
             <ChakraFlex
