@@ -25,6 +25,7 @@ import {
   useBreakpointValue,
   useMediaQuery,
 } from '@chakra-ui/react'
+import {useSwipeable} from 'react-swipeable'
 import {useMachine} from '@xstate/react'
 import {Trans, useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
@@ -1695,6 +1696,28 @@ export function ValidationScreen({
   const flips = sessionFlips(state)
   const currentFlip = flips[currentIndex]
 
+  const scrollToCurrentFlip = (flipId) => {
+    scroller.scrollTo(`flipIcon${flipId}`, {
+      duration: 250,
+      smooth: true,
+      containerId: 'thumbnails',
+      horizontal: true,
+    })
+  }
+
+  const handlers = useSwipeable({
+    onSwipedLeft: () => {
+      send({type: 'NEXT'})
+      scrollToCurrentFlip(currentIndex + 1)
+    },
+    onSwipedRight: () => {
+      send({type: 'PREV'})
+      scrollToCurrentFlip(currentIndex - 1)
+    },
+    preventDefaultTouchmoveEvent: true,
+    trackMouse: true,
+  })
+
   return (
     <ValidationScene
       bg={isShortSession(state) ? theme.colors.black : theme.colors.white}
@@ -1739,163 +1762,165 @@ export function ValidationScreen({
           </Title>
         </Flex>
       </Header>
-      <CurrentStep order={[3, 2]}>
-        <FlipChallenge>
-          <ChakraFlex
-            order={[2, 1]}
-            w={['100%', 'auto']}
-            pb={[isLongSessionKeywords(state) ? '96px' : '16px', 0]}
-            justify="center"
-            align="center"
-            position="relative"
-          >
-            {currentFlip &&
-              ((currentFlip.fetched && !currentFlip.decoded) ||
-                currentFlip.failed) && (
-                <FailedFlipAnnotation>
-                  {t('No data available. Please skip the flip.')}
-                </FailedFlipAnnotation>
-              )}
-            <Flip
-              {...currentFlip}
-              variant={AnswerType.Left}
-              onChoose={hash =>
-                send({
-                  type: 'ANSWER',
-                  hash,
-                  option: AnswerType.Left,
-                })
-              }
-            />
-            <Flip
-              {...currentFlip}
-              variant={AnswerType.Right}
-              onChoose={hash =>
-                send({
-                  type: 'ANSWER',
-                  hash,
-                  option: AnswerType.Right,
-                })
-              }
-              onImageFail={() => send('REFETCH_FLIPS')}
-            />
-          </ChakraFlex>
-          {isLongSessionKeywords(state) && currentFlip && (
-            <FlipWords
-              order={[1, 2]}
-              key={currentFlip.hash}
-              currentFlip={currentFlip}
-              translations={translations}
-              onReport={onOpenReportDialog}
+      <div {...handlers}>
+        <CurrentStep order={[3, 2]}>
+          <FlipChallenge>
+            <ChakraFlex
+              order={[2, 1]}
+              w={['100%', 'auto']}
+              pb={[isLongSessionKeywords(state) ? '96px' : '16px', 0]}
+              justify="center"
+              align="center"
+              position="relative"
             >
-              <Stack spacing={[0, 4]}>
-                <Stack
-                  display={['none', 'flex']}
-                  isInline
-                  spacing={1}
-                  align="center"
-                >
-                  <Heading fontSize="base" fontWeight={500}>
-                    {t(`Is the flip correct?`)}
-                  </Heading>
-                  <IconButton
-                    icon={<InfoIcon />}
-                    bg="unset"
-                    fontSize={rem(20)}
-                    minW={5}
-                    w={5}
-                    h={5}
-                    _active={{
-                      bg: 'unset',
-                    }}
-                    _hover={{
-                      bg: 'unset',
-                    }}
-                    _focus={{
-                      outline: 'none',
-                    }}
-                    onClick={onOpenReportDialog}
-                  />
-                </Stack>
-                <QualificationActions>
-                  <QualificationButton
-                    size={size}
-                    isSelected={
-                      currentFlip.relevance === RelevanceType.Relevant
-                    }
-                    onClick={() =>
-                      send({
-                        type: 'TOGGLE_WORDS',
-                        hash: currentFlip.hash,
-                        relevance: RelevanceType.Relevant,
-                      })
-                    }
+              {currentFlip &&
+                ((currentFlip.fetched && !currentFlip.decoded) ||
+                  currentFlip.failed) && (
+                  <FailedFlipAnnotation>
+                    {t('No data available. Please skip the flip.')}
+                  </FailedFlipAnnotation>
+                )}
+              <Flip
+                {...currentFlip}
+                variant={AnswerType.Left}
+                onChoose={hash =>
+                  send({
+                    type: 'ANSWER',
+                    hash,
+                    option: AnswerType.Left,
+                  })
+                }
+              />
+              <Flip
+                {...currentFlip}
+                variant={AnswerType.Right}
+                onChoose={hash =>
+                  send({
+                    type: 'ANSWER',
+                    hash,
+                    option: AnswerType.Right,
+                  })
+                }
+                onImageFail={() => send('REFETCH_FLIPS')}
+              />
+            </ChakraFlex>
+            {isLongSessionKeywords(state) && currentFlip && (
+              <FlipWords
+                order={[1, 2]}
+                key={currentFlip.hash}
+                currentFlip={currentFlip}
+                translations={translations}
+                onReport={onOpenReportDialog}
+              >
+                <Stack spacing={[0, 4]}>
+                  <Stack
+                    display={['none', 'flex']}
+                    isInline
+                    spacing={1}
+                    align="center"
                   >
-                    {t('Both relevant')}
-                  </QualificationButton>
-                  <Tooltip
-                    label={t(
-                      'Please remove Report status from some other flips to continue'
-                    )}
-                    isOpen={isExceededTooltipOpen}
-                    placement="top"
-                    zIndex="tooltip"
-                  >
-                    <QualificationButton
-                      mt={[2, 0]}
-                      ml={[0, 2]}
-                      size={size}
-                      isSelected={
-                        currentFlip.relevance === RelevanceType.Irrelevant
-                      }
-                      bg={
-                        currentFlip.relevance === RelevanceType.Irrelevant
-                          ? 'red.500'
-                          : 'red.012'
-                      }
-                      color={
-                        currentFlip.relevance === RelevanceType.Irrelevant
-                          ? 'white'
-                          : 'red.500'
-                      }
-                      _hover={{
-                        bg:
-                          currentFlip.relevance === RelevanceType.Irrelevant
-                            ? 'red.500'
-                            : 'red.020',
-                      }}
+                    <Heading fontSize="base" fontWeight={500}>
+                      {t(`Is the flip correct?`)}
+                    </Heading>
+                    <IconButton
+                      icon={<InfoIcon />}
+                      bg="unset"
+                      fontSize={rem(20)}
+                      minW={5}
+                      w={5}
+                      h={5}
                       _active={{
-                        bg:
-                          currentFlip.relevance === RelevanceType.Irrelevant
-                            ? 'red.500'
-                            : 'red.020',
+                        bg: 'unset',
+                      }}
+                      _hover={{
+                        bg: 'unset',
                       }}
                       _focus={{
-                        boxShadow: '0 0 0 3px rgb(255 102 102 /0.50)',
                         outline: 'none',
                       }}
+                      onClick={onOpenReportDialog}
+                    />
+                  </Stack>
+                  <QualificationActions>
+                    <QualificationButton
+                      size={size}
+                      isSelected={
+                        currentFlip.relevance === RelevanceType.Relevant
+                      }
                       onClick={() =>
                         send({
                           type: 'TOGGLE_WORDS',
                           hash: currentFlip.hash,
-                          relevance: RelevanceType.Irrelevant,
+                          relevance: RelevanceType.Relevant,
                         })
                       }
                     >
-                      {t('Report')}{' '}
-                      {t('({{count}} left)', {
-                        count:
-                          availableReportsNumber(longFlips) -
-                          reportedFlipsCount,
-                      })}
+                      {t('Both relevant')}
                     </QualificationButton>
-                  </Tooltip>
-                </QualificationActions>
-              </Stack>
-            </FlipWords>
-          )}
-        </FlipChallenge>
-      </CurrentStep>
+                    <Tooltip
+                      label={t(
+                        'Please remove Report status from some other flips to continue'
+                      )}
+                      isOpen={isExceededTooltipOpen}
+                      placement="top"
+                      zIndex="tooltip"
+                    >
+                      <QualificationButton
+                        mt={[2, 0]}
+                        ml={[0, 2]}
+                        size={size}
+                        isSelected={
+                          currentFlip.relevance === RelevanceType.Irrelevant
+                        }
+                        bg={
+                          currentFlip.relevance === RelevanceType.Irrelevant
+                            ? 'red.500'
+                            : 'red.012'
+                        }
+                        color={
+                          currentFlip.relevance === RelevanceType.Irrelevant
+                            ? 'white'
+                            : 'red.500'
+                        }
+                        _hover={{
+                          bg:
+                            currentFlip.relevance === RelevanceType.Irrelevant
+                              ? 'red.500'
+                              : 'red.020',
+                        }}
+                        _active={{
+                          bg:
+                            currentFlip.relevance === RelevanceType.Irrelevant
+                              ? 'red.500'
+                              : 'red.020',
+                        }}
+                        _focus={{
+                          boxShadow: '0 0 0 3px rgb(255 102 102 /0.50)',
+                          outline: 'none',
+                        }}
+                        onClick={() =>
+                          send({
+                            type: 'TOGGLE_WORDS',
+                            hash: currentFlip.hash,
+                            relevance: RelevanceType.Irrelevant,
+                          })
+                        }
+                      >
+                        {t('Report')}{' '}
+                        {t('({{count}} left)', {
+                          count:
+                            availableReportsNumber(longFlips) -
+                            reportedFlipsCount,
+                        })}
+                      </QualificationButton>
+                    </Tooltip>
+                  </QualificationActions>
+                </Stack>
+              </FlipWords>
+            )}
+          </FlipChallenge>
+        </CurrentStep>
+      </div>
       <ActionBar order={[4, 3]}>
         <ActionBarItem />
         <ActionBarItem zIndex={2} justify="center">
