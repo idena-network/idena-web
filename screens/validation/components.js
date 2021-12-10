@@ -89,7 +89,6 @@ const ElementThumbnail = ScrollElement(Thumbnail)
 export function ValidationScene(props) {
   return (
     <ChakraFlex
-      className="block-swipe-nav"
       direction="column"
       h={['100%', '100vh']}
       maxW="full"
@@ -1670,7 +1669,7 @@ export function ValidationScreen({
   const router = useRouter()
 
   const preventSwipeBack = event => {
-    if (event.pageX > 50 && event.pageX < window.innerWidth - 50) return
+    if (event.pageX > 32 && event.pageX < window.innerWidth - 32) return
     event.preventDefault()
   }
   useEffect(() => {
@@ -1774,7 +1773,7 @@ export function ValidationScreen({
           </Title>
         </Flex>
       </Header>
-      <div {...handlers}>
+      <div className="block-swipe-nav" {...handlers}>
         <CurrentStep order={[3, 2]}>
           <FlipChallenge>
             <ChakraFlex
