@@ -1676,7 +1676,7 @@ export function ValidationScreen({
     const element = document.querySelector('.block-swipe-nav')
     element.addEventListener('touchstart', preventSwipeBack)
     return () => element.removeEventListener('touchstart', preventSwipeBack)
-  })
+  }, [])
 
   const {t} = useTranslation()
 
