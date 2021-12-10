@@ -1668,6 +1668,16 @@ export function ValidationScreen({
 }) {
   const router = useRouter()
 
+  const preventSwipeBack = event => {
+    if (event.pageX > 10 && event.pageX < window.innerWidth - 10) return
+    event.preventDefault()
+  }
+  useEffect(() => {
+    const element = document.querySelector('.block-swipe-nav')
+    element.addEventListener('touchstart', preventSwipeBack)
+    return () => element.removeEventListener('touchstart', preventSwipeBack)
+  })
+
   const {t} = useTranslation()
 
   const [isDesktop] = useMediaQuery('(min-width: 481px)')
@@ -1705,13 +1715,6 @@ export function ValidationScreen({
       horizontal: true,
     })
   }
-
-  const element = document.querySelector('.block-swipe-nav')
-
-  element.addEventListener('touchstart', e => {
-    if (e.pageX > 10 && e.pageX < window.innerWidth - 10) return
-    e.preventDefault()
-  })
 
   const handlers = useSwipeable({
     onSwipedLeft: () => {
