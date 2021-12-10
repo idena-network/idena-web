@@ -89,6 +89,7 @@
     "react-query": "^3.9.8",
     "react-scroll": "^1.8.4",
     "redact-object": "^3.0.1",
+    "react-swipeable": "^6.2.0",
     "reverse-line-reader": "^0.2.6",
     "rlp": "^2.2.2",
     "secp256k1": "^4.0.2",
