@@ -8,6 +8,7 @@ import {createValidationMachine} from '../../screens/validation/machine'
 import {
   persistValidationState,
   loadValidationState,
+  transformLog,
 } from '../../screens/validation/utils'
 import {ValidationScreen} from '../../screens/validation/components'
 import {useAuthState} from '../../shared/providers/auth-context'
@@ -94,7 +95,7 @@ function ValidationSession({
       },
     },
     state: loadValidationState(),
-    logger: async data => writeValidationLog(epoch, data),
+    logger: async data => writeValidationLog(epoch, transformLog(data)),
   })
 
   useEffect(() => {

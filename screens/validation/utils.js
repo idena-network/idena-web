@@ -254,3 +254,20 @@ const mobileClientType = parseInt(
 )
 
 export const webClientType = isMobile ? mobileClientType : browserClientType
+
+export const transformLog = data => {
+  if (typeof data === 'object') {
+    const {context, event} = data
+    if (event?.data instanceof Error) {
+      return {
+        context,
+        event: {
+          type: event.type,
+          data: event.data.message,
+        },
+      }
+    }
+    return {context, event}
+  }
+  return data
+}
