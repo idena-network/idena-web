@@ -120,10 +120,12 @@ export default function Restricted() {
   )
 
   useEffect(() => {
-    if ((provider && !provider.slots) || isError) {
+    if (identityState === IdentityStatus.Candidate) {
+      setState(options.CANDIDATE)
+    } else if ((provider && !provider.slots) || isError) {
       setState(options.BUY)
     }
-  }, [isError, provider])
+  }, [identityState, isError, provider])
 
   const waiting = submitting || isPurchasing
 
@@ -218,6 +220,14 @@ export default function Restricted() {
                   <Flex mt={4}>
                     <RadioGroup>
                       <Stack direction="column" spacing={3}>
+                        {identityState === IdentityStatus.Candidate && (
+                          <ChooseItemRadio
+                            isChecked={state === options.CANDIDATE}
+                            onChange={() => setState(options.CANDIDATE)}
+                          >
+                            <Text color="white">{t('Get free access')}</Text>
+                          </ChooseItemRadio>
+                        )}
                         {canProlong && (
                           <ChooseItemRadio
                             isChecked={state === options.PROLONG}
@@ -254,14 +264,6 @@ export default function Restricted() {
                             {t('Enter shared node API key')}
                           </Text>
                         </ChooseItemRadio>
-                        {identityState === IdentityStatus.Candidate && (
-                          <ChooseItemRadio
-                            isChecked={state === options.CANDIDATE}
-                            onChange={() => setState(options.CANDIDATE)}
-                          >
-                            <Text color="white">{t('Get free access')}</Text>
-                          </ChooseItemRadio>
-                        )}
                       </Stack>
                     </RadioGroup>
                   </Flex>
