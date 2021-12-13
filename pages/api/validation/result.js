@@ -17,6 +17,10 @@ export default async (req, res) => {
       return res.status(200).json(validation.data.result)
     }
 
+    if (new Date().getTime() < validation.data.time) {
+      return res.status(400).send('validation has not started yet')
+    }
+
     const shortFlips = validation.data.shortFlips.map(x => ({
       ...x,
       correct: x.rightAnswer === x.answer,
