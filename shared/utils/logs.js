@@ -26,7 +26,7 @@ export async function writeValidationLog(epoch, data) {
       .table('logs')
       .add({epoch, timestamp: new Date().toISOString(), log: redact(data)})
   } catch {
-    console.error('cannot write logs to IndexedDb')
+    console.error('cannot write logs to IndexedDb', data)
   }
 }
 
