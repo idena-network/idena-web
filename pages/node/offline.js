@@ -54,6 +54,7 @@ import {
   privateKeyToPublicKey,
   signMessage,
 } from '../../shared/utils/crypto'
+import {promiseTimeout} from '../../shared/utils/utils'
 
 const options = {
   BUY: 0,
@@ -201,7 +202,7 @@ export default function Offline() {
         }
 
         try {
-          await checkProvider(url)
+          await promiseTimeout(checkProvider(url), 2000)
           setError({type: errorType.KEY_EXPIRED})
         } catch (e) {
           setError({
