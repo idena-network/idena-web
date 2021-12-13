@@ -191,7 +191,7 @@ export default function Offline() {
     if (identity?.state === IdentityStatus.Candidate) {
       setState(options.CANDIDATE)
     }
-  }, [identity.state])
+  }, [identity])
 
   const waiting = submitting || isPurchasing
 
