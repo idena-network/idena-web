@@ -362,15 +362,18 @@ export default function Offline() {
               )}
             </Flex>
           </Flex>
-          {error.type === errorType.PROVIDER_UNAVAILABLE && (
-            <ProviderOfflineAlert url={url} provider={error.provider} />
-          )}
-          {error.type === errorType.KEY_EXPIRED && (
+
+          {step === steps.INITIAL &&
+            error.type === errorType.PROVIDER_UNAVAILABLE && (
+              <ProviderOfflineAlert url={url} provider={error.provider} />
+            )}
+          {step === steps.INITIAL && error.type === errorType.KEY_EXPIRED && (
             <KeyExpiredAlert url={url} apiKey={apiKey} />
           )}
-          {error.type === errorType.NODE_UNAVAILABLE && (
-            <NodeOfflineAlert url={url} />
-          )}
+          {step === steps.INITIAL &&
+            error.type === errorType.NODE_UNAVAILABLE && (
+              <NodeOfflineAlert url={url} />
+            )}
         </Flex>
         <Flex
           justify="center"
