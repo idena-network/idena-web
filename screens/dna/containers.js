@@ -47,7 +47,6 @@ import {
 } from './utils'
 import {ExclamationMarkIcon, GlobeIcon} from '../../shared/components/icons'
 import {useIdentity} from '../../shared/providers/identity-context'
-import {bufferToHex} from '../../shared/utils/string'
 import {getRawTx, sendRawTx} from '../../shared/api'
 
 export function DnaSignInDialog({
@@ -283,26 +282,15 @@ export function DnaSendDialog({
                     to,
                     amount,
                     null,
-                    bufferToHex(new TextEncoder().encode(comment))
+                    toHexString(new TextEncoder().encode(comment), true)
                   )
                 )
                 tx.sign(privateKey)
-                return `0x${tx.hash}`
+                return {hash: `0x${tx.hash}`, tx: `0x${tx.toHex()}`}
               })
-              .then(async hash => {
+              .then(async ({hash, tx}) => {
                 async function sendDna() {
-                  const tx = new Transaction().fromHex(
-                    await getRawTx(
-                      0,
-                      from,
-                      to,
-                      amount,
-                      null,
-                      bufferToHex(new TextEncoder().encode(comment))
-                    )
-                  )
-                  tx.sign(privateKey)
-                  return sendRawTx(`0x${tx.toHex()}`)
+                  return sendRawTx(tx)
                 }
 
                 if (isValidUrl(callbackUrl)) {
@@ -330,7 +318,8 @@ export function DnaSendDialog({
                         })
                       }
                     },
-                    onHtml: ({url}) => onDepositSuccess({hash, url}),
+                    onHtml: ({url}) =>
+                      sendDna().then(onDepositSuccess({hash, url})),
                   })
                     .catch(error => {
                       console.error(error)
