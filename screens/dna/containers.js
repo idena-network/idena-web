@@ -319,7 +319,7 @@ export function DnaSendDialog({
                       }
                     },
                     onHtml: ({url}) =>
-                      sendDna().then(onDepositSuccess({hash, url})),
+                      sendDna().then(() => onDepositSuccess({hash, url})),
                   })
                     .catch(error => {
                       console.error(error)
