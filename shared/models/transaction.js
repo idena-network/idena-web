@@ -83,13 +83,16 @@ export class Transaction {
     }
 
     if (this.amount) {
-      data.setAmount(toBuffer(this.amount))
+      const num = new BN(this.amount)
+      if (!num.isZero()) data.setAmount(toBuffer(num))
     }
     if (this.maxFee) {
-      data.setMaxfee(toBuffer(this.maxFee))
+      const num = new BN(this.maxFee)
+      if (!num.isZero()) data.setMaxfee(toBuffer(num))
     }
-    if (this.amount) {
-      data.setTips(toBuffer(this.tips))
+    if (this.tips) {
+      const num = new BN(this.tips)
+      if (!num.isZero()) data.setTips(toBuffer(num))
     }
     if (this.payload) {
       data.setPayload(toBuffer(this.payload))
