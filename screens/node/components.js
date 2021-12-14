@@ -7,8 +7,11 @@ import {
   Heading,
   Radio,
   Stack,
+  Link,
+  Alert,
 } from '@chakra-ui/react'
 import {useState} from 'react'
+import {useTranslation} from 'react-i18next'
 import {getRawTx, buyKey} from '../../shared/api'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {
@@ -190,5 +193,96 @@ export function ChooseItemRadio({isChecked, onChange, ...props}) {
       }}
       {...props}
     />
+  )
+}
+
+function ErrorAlert(props) {
+  return (
+    <Alert
+      status="error"
+      bg="red.500"
+      borderWidth="1px"
+      borderColor="red.050"
+      fontWeight={500}
+      color="white"
+      rounded="md"
+      px={6}
+      py={4}
+      w="480px"
+      mt={2}
+      {...props}
+    />
+  )
+}
+
+export function ProviderOfflineAlert({url, provider}) {
+  const {t} = useTranslation()
+  return (
+    <ErrorAlert>
+      <Flex direction="column" fontSize="mdx">
+        <Flex>
+          <Flex>
+            {t('The node is unavailable:', {
+              nsSeparator: '|',
+            })}
+          </Flex>
+          <Flex ml={1}>{url}</Flex>
+        </Flex>
+        <Flex>
+          <Flex>
+            {t('Please contact the node owner:', {
+              nsSeparator: '|',
+            })}
+          </Flex>
+          <Link href={`https://t.me/${provider}`} target="_blank" ml={1}>
+            {provider}
+            {' >'}
+          </Link>
+        </Flex>
+      </Flex>
+    </ErrorAlert>
+  )
+}
+
+export function NodeOfflineAlert({url}) {
+  const {t} = useTranslation()
+  return (
+    <ErrorAlert>
+      <Flex direction="column" fontSize="mdx">
+        <Flex>
+          <Flex>
+            {t('The node is unavailable:', {
+              nsSeparator: '|',
+            })}
+          </Flex>
+          <Flex ml={1}>{url}</Flex>
+        </Flex>
+      </Flex>
+    </ErrorAlert>
+  )
+}
+
+export function KeyExpiredAlert({url, apiKey}) {
+  const {t} = useTranslation()
+  return (
+    <ErrorAlert>
+      <Flex direction="column" fontSize="mdx">
+        <Flex>
+          <Flex>
+            {t('Can not connect to the node:', {
+              nsSeparator: '|',
+            })}
+          </Flex>
+          <Flex ml={1}>{url}</Flex>
+        </Flex>
+        <Flex>
+          <Flex>
+            {t('The API key {{apiKey}} is expired', {
+              apiKey,
+            })}
+          </Flex>
+        </Flex>
+      </Flex>
+    </ErrorAlert>
   )
 }

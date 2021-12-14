@@ -1,6 +1,5 @@
 import {DownloadIcon} from '@chakra-ui/icons'
 import {
-  Alert,
   AlertDialog,
   AlertDialogBody,
   AlertDialogCloseButton,
@@ -9,7 +8,6 @@ import {
   AlertDialogHeader,
   AlertDialogOverlay,
   Flex,
-  Link,
   RadioGroup,
   Stack,
   Text,
@@ -19,7 +17,12 @@ import {useRouter} from 'next/router'
 import {useEffect, useRef, useState} from 'react'
 import {Trans, useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
-import {ChooseItemRadio} from '../../screens/node/components'
+import {
+  ChooseItemRadio,
+  KeyExpiredAlert,
+  NodeOfflineAlert,
+  ProviderOfflineAlert,
+} from '../../screens/node/components'
 import {
   getCandidateKey,
   checkKey,
@@ -28,6 +31,7 @@ import {
   getProvider,
   getRawTx,
   activateKey,
+  checkProvider,
 } from '../../shared/api'
 
 import {SubHeading} from '../../shared/components'
@@ -50,6 +54,7 @@ import {
   privateKeyToPublicKey,
   signMessage,
 } from '../../shared/utils/crypto'
+import {promiseTimeout} from '../../shared/utils/utils'
 
 const options = {
   BUY: 0,
@@ -57,6 +62,18 @@ const options = {
   ACTIVATE: 2,
   CANDIDATE: 3,
   RESTRICTED: 4,
+}
+
+const steps = {
+  INITIAL: 0,
+  CONNECT: 1,
+}
+
+const errorType = {
+  NONE: 0,
+  NODE_UNAVAILABLE: 1,
+  PROVIDER_UNAVAILABLE: 2,
+  KEY_EXPIRED: 3,
 }
 
 export default function Offline() {
@@ -68,8 +85,9 @@ export default function Offline() {
   const {isOpen, onOpen, onClose} = useDisclosure()
   const cancelRef = useRef()
 
-  const [unavailableProvider, setUnavailableProvider] = useState(null)
+  const [error, setError] = useState({type: errorType.NONE})
   const [state, setState] = useState(options.BUY)
+  const [step, setStep] = useState(steps.INITIAL)
 
   const [submitting, setSubmitting] = useState(false)
 
@@ -178,14 +196,27 @@ export default function Offline() {
       try {
         const result = await checkKey(apiKey)
         const res = await getProvider(result.provider)
-        setUnavailableProvider({name: res.data.ownerName, url: res.data.url})
+
+        if (new URL(url).host !== new URL(res.data.url).host) {
+          throw new Error()
+        }
+
+        try {
+          await promiseTimeout(checkProvider(url), 2000)
+          setError({type: errorType.KEY_EXPIRED})
+        } catch (e) {
+          setError({
+            type: errorType.PROVIDER_UNAVAILABLE,
+            provider: res.data.ownerName,
+          })
+        }
       } catch (e) {
-        setUnavailableProvider(null)
+        setError({type: errorType.NODE_UNAVAILABLE})
       }
     }
 
     check()
-  }, [apiKey])
+  }, [apiKey, url])
 
   useEffect(() => {
     if (identity?.state === IdentityStatus.Candidate) {
@@ -230,121 +261,119 @@ export default function Offline() {
               px={10}
               py={7}
             >
-              <Flex>
-                <Text color="white" fontSize="lg">
-                  {t('Connect to Idena node')}
-                </Text>
-              </Flex>
+              {step === steps.INITIAL && (
+                <Flex direction="column" alignItems="center" mt={6}>
+                  <Flex>
+                    <Text color="white" fontSize="lg">
+                      {t('Offline')}
+                    </Text>
+                  </Flex>
 
-              <Flex mt={7}>
-                <Text color="white" fontSize="sm" opacity={0.5}>
-                  {t('Choose an option')}
-                </Text>
-              </Flex>
-              <Flex mt={4}>
-                <RadioGroup>
-                  <Stack direction="column" spacing={3}>
-                    {identity?.state === IdentityStatus.Candidate && (
-                      <ChooseItemRadio
-                        isChecked={state === options.CANDIDATE}
-                        onChange={() => setState(options.CANDIDATE)}
-                      >
-                        <Text color="white">{t('Get free access')}</Text>
-                      </ChooseItemRadio>
-                    )}
-                    <ChooseItemRadio
-                      isChecked={state === options.BUY}
-                      onChange={() => setState(options.BUY)}
+                  <Flex mt={4}>
+                    <Text fontSize="mdx" color="muted" textAlign="center">
+                      {t('Please connect to a shared node')}
+                    </Text>
+                  </Flex>
+                  <Flex justifyContent="center" mt={6}>
+                    <PrimaryButton onClick={() => setStep(steps.CONNECT)}>
+                      {t('New connection')}
+                    </PrimaryButton>
+                  </Flex>
+                </Flex>
+              )}
+              {step === steps.CONNECT && (
+                <>
+                  <Flex>
+                    <Text color="white" fontSize="lg">
+                      {t('Connect to Idena node')}
+                    </Text>
+                  </Flex>
+
+                  <Flex mt={7}>
+                    <Text color="white" fontSize="sm" opacity={0.5}>
+                      {t('Choose an option')}
+                    </Text>
+                  </Flex>
+                  <Flex mt={4}>
+                    <RadioGroup>
+                      <Stack direction="column" spacing={3}>
+                        {identity?.state === IdentityStatus.Candidate && (
+                          <ChooseItemRadio
+                            isChecked={state === options.CANDIDATE}
+                            onChange={() => setState(options.CANDIDATE)}
+                          >
+                            <Text color="white">{t('Get free access')}</Text>
+                          </ChooseItemRadio>
+                        )}
+                        <ChooseItemRadio
+                          isChecked={state === options.BUY}
+                          onChange={() => setState(options.BUY)}
+                        >
+                          <Text color="white">{t('Rent a shared node')}</Text>
+                        </ChooseItemRadio>
+                        <ChooseItemRadio
+                          isChecked={state === options.ENTER_KEY}
+                          onChange={() => setState(options.ENTER_KEY)}
+                        >
+                          <Text color="white">
+                            {t('Enter shared node API key')}
+                          </Text>
+                        </ChooseItemRadio>
+                        {[
+                          IdentityStatus.Undefined,
+                          IdentityStatus.Invite,
+                        ].includes(identity?.state) && (
+                          <ChooseItemRadio
+                            isChecked={state === options.ACTIVATE}
+                            onChange={() => setState(options.ACTIVATE)}
+                          >
+                            <Text color="white">
+                              {t('Activate invitation')}
+                            </Text>
+                          </ChooseItemRadio>
+                        )}
+                        {identity?.state !== IdentityStatus.Candidate && (
+                          <ChooseItemRadio
+                            isChecked={state === options.RESTRICTED}
+                            onChange={() => setState(options.RESTRICTED)}
+                          >
+                            <Text color="white">
+                              {t(
+                                'Get restricted access (can not be used for validation)'
+                              )}
+                            </Text>
+                          </ChooseItemRadio>
+                        )}
+                      </Stack>
+                    </RadioGroup>
+                  </Flex>
+                  <Flex mt="30px" mb={2}>
+                    <PrimaryButton
+                      ml="auto"
+                      onClick={process}
+                      isDisabled={waiting}
+                      isLoading={waiting}
+                      loadingText="Waiting..."
                     >
-                      <Text color="white">{t('Rent a shared node')}</Text>
-                    </ChooseItemRadio>
-                    <ChooseItemRadio
-                      isChecked={state === options.ENTER_KEY}
-                      onChange={() => setState(options.ENTER_KEY)}
-                    >
-                      <Text color="white">
-                        {t('Enter shared node API key')}
-                      </Text>
-                    </ChooseItemRadio>
-                    {[IdentityStatus.Undefined, IdentityStatus.Invite].includes(
-                      identity?.state
-                    ) && (
-                      <ChooseItemRadio
-                        isChecked={state === options.ACTIVATE}
-                        onChange={() => setState(options.ACTIVATE)}
-                      >
-                        <Text color="white">{t('Activate invitation')}</Text>
-                      </ChooseItemRadio>
-                    )}
-                    {identity?.state !== IdentityStatus.Candidate && (
-                      <ChooseItemRadio
-                        isChecked={state === options.RESTRICTED}
-                        onChange={() => setState(options.RESTRICTED)}
-                      >
-                        <Text color="white">
-                          {t(
-                            'Get restricted access (can not be used for validation)'
-                          )}
-                        </Text>
-                      </ChooseItemRadio>
-                    )}
-                  </Stack>
-                </RadioGroup>
-              </Flex>
-              <Flex mt="30px" mb={2}>
-                <PrimaryButton
-                  ml="auto"
-                  onClick={process}
-                  isDisabled={waiting}
-                  isLoading={waiting}
-                  loadingText="Waiting..."
-                >
-                  {t('Continue')}
-                </PrimaryButton>
-              </Flex>
+                      {t('Continue')}
+                    </PrimaryButton>
+                  </Flex>
+                </>
+              )}
             </Flex>
           </Flex>
-          {unavailableProvider && (
-            <Alert
-              status="error"
-              bg="red.500"
-              borderWidth="1px"
-              borderColor="red.050"
-              fontWeight={500}
-              color="white"
-              rounded="md"
-              px={6}
-              py={4}
-              w="480px"
-              mt={2}
-            >
-              <Flex direction="column" fontSize="mdx">
-                <Flex>
-                  <Flex>
-                    {t('The node is unavailable:', {
-                      nsSeparator: '|',
-                    })}
-                  </Flex>
-                  <Flex ml={1}>{unavailableProvider.url}</Flex>
-                </Flex>
-                <Flex>
-                  <Flex>
-                    {t('Please contact the node owner:', {
-                      nsSeparator: '|',
-                    })}
-                  </Flex>
-                  <Link
-                    href={`https://t.me/${unavailableProvider.name}`}
-                    target="_blank"
-                    ml={1}
-                  >
-                    {unavailableProvider.name}
-                    {' >'}
-                  </Link>
-                </Flex>
-              </Flex>
-            </Alert>
+
+          {step === steps.INITIAL &&
+            error.type === errorType.PROVIDER_UNAVAILABLE && (
+              <ProviderOfflineAlert url={url} provider={error.provider} />
+            )}
+          {step === steps.INITIAL && error.type === errorType.KEY_EXPIRED && (
+            <KeyExpiredAlert url={url} apiKey={apiKey} />
           )}
+          {step === steps.INITIAL &&
+            error.type === errorType.NODE_UNAVAILABLE && (
+              <NodeOfflineAlert url={url} />
+            )}
         </Flex>
         <Flex
           justify="center"
