@@ -1,12 +1,8 @@
 import sha3 from 'js-sha3'
 import secp256k1 from 'secp256k1'
+import BN from 'bn.js'
 import messages from './proto/models_pb'
-import {
-  toBuffer,
-  hexToUint8Array,
-  toHexString,
-  bufferToInt,
-} from '../utils/buffers'
+import {toBuffer, hexToUint8Array, toHexString} from '../utils/buffers'
 
 export class Transaction {
   constructor(nonce, epoch, type, to, amount, maxFee, tips, payload) {
@@ -33,9 +29,9 @@ export class Transaction {
     this.epoch = protoTxData.getEpoch()
     this.type = protoTxData.getType()
     this.to = toHexString(protoTxData.getTo(), true)
-    this.amount = bufferToInt(protoTxData.getAmount())
-    this.maxFee = bufferToInt(protoTxData.getMaxfee())
-    this.tips = bufferToInt(protoTxData.getTips())
+    this.amount = new BN(protoTxData.getAmount())
+    this.maxFee = new BN(protoTxData.getMaxfee())
+    this.tips = new BN(protoTxData.getTips())
     this.payload = protoTxData.getPayload()
 
     this.signature = protoTx.getSignature()
@@ -87,13 +83,16 @@ export class Transaction {
     }
 
     if (this.amount) {
-      data.setAmount(toBuffer(this.amount))
+      const num = new BN(this.amount)
+      if (!num.isZero()) data.setAmount(toBuffer(num))
     }
     if (this.maxFee) {
-      data.setMaxfee(toBuffer(this.maxFee))
+      const num = new BN(this.maxFee)
+      if (!num.isZero()) data.setMaxfee(toBuffer(num))
     }
-    if (this.amount) {
-      data.setTips(toBuffer(this.tips))
+    if (this.tips) {
+      const num = new BN(this.tips)
+      if (!num.isZero()) data.setTips(toBuffer(num))
     }
     if (this.payload) {
       data.setPayload(toBuffer(this.payload))

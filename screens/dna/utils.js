@@ -107,7 +107,7 @@ export async function handleCallbackUrl(
 ) {
   switch (callbackFormat) {
     case 'json': {
-      onJson(
+      return onJson(
         await (
           await fetch(callbackUrl, {
             headers: {
@@ -117,15 +117,13 @@ export async function handleCallbackUrl(
           })
         ).json()
       )
-      break
     }
 
     default:
     case 'html':
-      onHtml({
+      return onHtml({
         url: typeof callbackUrl === 'string' ? callbackUrl : callbackUrl.href,
       })
-      break
   }
 }
 

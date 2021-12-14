@@ -1,3 +1,5 @@
+import BN from 'bn.js'
+
 function isHexPrefixed(str) {
   return str.slice(0, 2) === '0x'
 }
@@ -7,14 +9,6 @@ export function stripHexPrefix(str) {
     return str
   }
   return isHexPrefixed(str) ? str.slice(2) : str
-}
-
-function intToHex(integer) {
-  if (integer < 0) {
-    throw new Error('Invalid integer as argument, must be unsigned!')
-  }
-  const hex = integer.toString(16)
-  return hex.length % 2 ? `0${hex}` : hex
 }
 
 function padToEven(a) {
@@ -28,13 +22,11 @@ export function bufferToInt(buf) {
   return parseInt(Buffer.from(buf).toString('hex'), 16)
 }
 
-function intToBuffer(integer) {
-  const hex = intToHex(integer)
-  return Buffer.from(hex, 'hex')
-}
-
 export function toBuffer(v) {
   if (!Buffer.isBuffer(v)) {
+    if (BN.isBN(v)) {
+      return v.toArrayLike(Buffer)
+    }
     if (typeof v === 'string') {
       if (isHexPrefixed(v)) {
         return Buffer.from(padToEven(stripHexPrefix(v)), 'hex')
@@ -45,7 +37,7 @@ export function toBuffer(v) {
       if (!v) {
         return Buffer.from([])
       }
-      return intToBuffer(v)
+      return new BN(v).toArrayLike(Buffer)
     }
     if (v === null || v === undefined) {
       return Buffer.from([])
