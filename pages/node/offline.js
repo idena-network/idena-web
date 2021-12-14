@@ -18,6 +18,7 @@ import {
 import {useRouter} from 'next/router'
 import {useEffect, useRef, useState} from 'react'
 import {Trans, useTranslation} from 'react-i18next'
+import {useQuery} from 'react-query'
 import {ChooseItemRadio} from '../../screens/node/components'
 import {
   getCandidateKey,
@@ -70,13 +71,19 @@ export default function Offline() {
   const [unavailableProvider, setUnavailableProvider] = useState(null)
   const [state, setState] = useState(options.BUY)
 
-  const [identityState, setIdentityState] = useState('')
-
   const [submitting, setSubmitting] = useState(false)
 
   const failToast = useFailToast()
 
   const {isPurchasing, savePurchase, setRestrictedKey} = useApikeyPurchasing()
+
+  const {data: identity} = useQuery(
+    ['fetch-identity', coinbase],
+    () => fetchIdentity(coinbase, true),
+    {
+      enabled: !!coinbase,
+    }
+  )
 
   const getKeyForCandidate = async () => {
     setSubmitting(true)
@@ -144,7 +151,7 @@ export default function Offline() {
       case options.BUY:
         return router.push('/node/rent')
       case options.ACTIVATE: {
-        if (identityState === IdentityStatus.Invite) {
+        if (identity?.state === IdentityStatus.Invite) {
           return activateInvite()
         }
         return router.push('/node/activate')
@@ -181,15 +188,10 @@ export default function Offline() {
   }, [apiKey])
 
   useEffect(() => {
-    async function load() {
-      try {
-        const identity = await fetchIdentity(coinbase, true)
-        setIdentityState(identity.state)
-        // eslint-disable-next-line no-empty
-      } catch (e) {}
+    if (identity?.state === IdentityStatus.Candidate) {
+      setState(options.CANDIDATE)
     }
-    load()
-  }, [coinbase])
+  }, [identity])
 
   const waiting = submitting || isPurchasing
 
@@ -242,6 +244,14 @@ export default function Offline() {
               <Flex mt={4}>
                 <RadioGroup>
                   <Stack direction="column" spacing={3}>
+                    {identity?.state === IdentityStatus.Candidate && (
+                      <ChooseItemRadio
+                        isChecked={state === options.CANDIDATE}
+                        onChange={() => setState(options.CANDIDATE)}
+                      >
+                        <Text color="white">{t('Get free access')}</Text>
+                      </ChooseItemRadio>
+                    )}
                     <ChooseItemRadio
                       isChecked={state === options.BUY}
                       onChange={() => setState(options.BUY)}
@@ -257,7 +267,7 @@ export default function Offline() {
                       </Text>
                     </ChooseItemRadio>
                     {[IdentityStatus.Undefined, IdentityStatus.Invite].includes(
-                      identityState
+                      identity?.state
                     ) && (
                       <ChooseItemRadio
                         isChecked={state === options.ACTIVATE}
@@ -266,15 +276,7 @@ export default function Offline() {
                         <Text color="white">{t('Activate invitation')}</Text>
                       </ChooseItemRadio>
                     )}
-                    {identityState === IdentityStatus.Candidate && (
-                      <ChooseItemRadio
-                        isChecked={state === options.CANDIDATE}
-                        onChange={() => setState(options.CANDIDATE)}
-                      >
-                        <Text color="white">{t('Get free access')}</Text>
-                      </ChooseItemRadio>
-                    )}
-                    {identityState !== IdentityStatus.Candidate && (
+                    {identity?.state !== IdentityStatus.Candidate && (
                       <ChooseItemRadio
                         isChecked={state === options.RESTRICTED}
                         onChange={() => setState(options.RESTRICTED)}
