@@ -1669,7 +1669,6 @@ export function ValidationScreen({
   const router = useRouter()
 
   const preventSwipeBack = event => {
-    if (event.pageX > 32 && event.pageX < window.innerWidth - 32) return
     event.preventDefault()
   }
   useEffect(() => {
@@ -1773,7 +1772,15 @@ export function ValidationScreen({
           </Title>
         </Flex>
       </Header>
-      <div className="block-swipe-nav" {...handlers}>
+      <div {...handlers}>
+        <ChakraBox
+          display={['block', 'none']}
+          className="block-swipe-nav"
+          position="absolute"
+          left={0}
+          w="32px"
+          h="100%"
+        />
         <CurrentStep order={[3, 2]}>
           <FlipChallenge>
             <ChakraFlex
