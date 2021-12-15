@@ -1,7 +1,8 @@
-import {CloseButton, Flex, Heading, Stack} from '@chakra-ui/react'
+import {Box, CloseButton, Flex, Heading, Stack} from '@chakra-ui/react'
 import dayjs from 'dayjs'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
+import React from 'react'
 import {Page} from '../../screens/app/components'
 import {CertificateCard} from '../../screens/try/components'
 import {GetNextUTCValidationDate} from '../../screens/try/utils'
@@ -9,6 +10,7 @@ import {Avatar} from '../../shared/components/components'
 import Layout from '../../shared/components/layout'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {CertificateType} from '../../shared/types'
+import {ArrowBackIcon} from '../../shared/components/icons'
 
 export default function Try() {
   const {t} = useTranslation()
@@ -18,16 +20,48 @@ export default function Try() {
   return (
     <Layout>
       <Page p={0}>
-        <Flex direction="column" flex={1} alignSelf="stretch" pb={10}>
+        <Flex
+          direction="column"
+          mx={[8, 0]}
+          flex={1}
+          alignSelf="stretch"
+          pb={10}
+        >
           <Flex
             align="center"
             alignSelf="stretch"
             justify="space-between"
+            pt={[12, 0]}
             my={8}
           >
-            <Stack isInline spacing={6} align="center" width="480px">
+            <Box
+              w="100%"
+              h={6}
+              position="absolute"
+              top="16px"
+              left={0}
+              display={['block', 'none']}
+            >
+              <ArrowBackIcon
+                fill="blue.500"
+                boxSize={6}
+                ml={4}
+                onClick={() => router.push('/home')}
+              ></ArrowBackIcon>
+            </Box>
+            <Flex
+              direction={['column', 'row']}
+              align="center"
+              width={['100%', '480px']}
+            >
               <Avatar address={coinbase} />
-              <Stack spacing={1}>
+              <Stack
+                mt={[5, 0]}
+                ml={[0, 6]}
+                w={['80%', 'auto']}
+                textAlign={['center', 'initial']}
+                spacing={1}
+              >
                 <Heading
                   as="h2"
                   fontSize="lg"
@@ -48,15 +82,16 @@ export default function Try() {
                   )}
                 </Heading>
               </Stack>
-            </Stack>
+            </Flex>
             <CloseButton
+              display={['none', 'flex']}
               alignSelf="flex-start"
               onClick={() => {
                 router.push('/home')
               }}
             />
           </Flex>
-          <Stack width="480px" spacing={5}>
+          <Stack width={['100%', "480px"]} spacing={5}>
             <CertificateCard
               title={t('Easy')}
               description={t('Pass the training validation immediately.')}
