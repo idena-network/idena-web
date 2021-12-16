@@ -1,9 +1,18 @@
 import dayjs from 'dayjs'
 import {assign} from 'xstate'
-import {VotingStatus} from '../../shared/types'
+import {BN} from 'bn.js'
+import Decimal from 'decimal.js'
+import {TxType, VotingStatus} from '../../shared/types'
 import {callRpc, roundToPrecision, toLocaleDna} from '../../shared/utils/utils'
 import {strip} from '../../shared/utils/obj'
 import {ContractRpcMode, VotingListFilter} from './types'
+import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
+import {getRawTx} from '../../shared/api'
+import {DeployContractAttachment} from '../../shared/models/deployContractAttachment'
+
+Decimal.set({toExpPos: 10000})
+
+const DNA_BASE = '1000000000000000000'
 
 export const isVotingStatus = targetStatus => ({status}) =>
   areSameCaseInsensitive(status, targetStatus)
@@ -21,7 +30,7 @@ export const setVotingStatus = status =>
   })
 
 export function apiUrl(path) {
-  return `https://api.idena.io/api/${path}`
+  return new URL(path, process.env.NEXT_PUBLIC_INDEXER_URL)
 }
 
 export async function fetchVotings({
@@ -32,10 +41,8 @@ export async function fetchVotings({
   limit = 20,
   ...params
 }) {
-  const url = new URL(
-    apiUrl(
-      own ? `Address/${address}/OracleVotingContracts` : 'OracleVotingContracts'
-    )
+  const url = apiUrl(
+    own ? `Address/${address}/OracleVotingContracts` : 'OracleVotingContracts'
   )
 
   const queryParams = {limit, all: all.toString(), oracle, ...params}
@@ -86,7 +93,7 @@ export async function fetchContractTxs({
   limit,
   continuationToken,
 }) {
-  const url = new URL(apiUrl('Contracts/AddressContractTxBalanceUpdates'))
+  const url = apiUrl('Contracts/AddressContractTxBalanceUpdates')
 
   Object.entries({
     address,
@@ -203,6 +210,61 @@ export function hexToObject(hex) {
   } catch {
     return {}
   }
+}
+
+export async function buildContractDeploymentTx(
+  {
+    title,
+    desc,
+    startDate,
+    votingDuration,
+    publicVotingDuration,
+    winnerThreshold = 66,
+    quorum,
+    committeeSize,
+    votingMinPayment = 0,
+    options = [],
+    ownerFee = 0,
+    shouldStartImmediately,
+    isFreeVoting,
+  },
+  {from, stake, gasCost, txFee},
+  mode = ContractRpcMode.Call
+) {
+  const args = buildDynamicArgs(
+    {
+      value: `0x${objectToHex({
+        title,
+        desc,
+        options: stripOptions(options),
+      })}`,
+    },
+    {
+      value: dayjs(shouldStartImmediately ? Date.now() : startDate).unix(),
+      format: 'uint64',
+    },
+    {value: votingDuration, format: 'uint64'},
+    {value: publicVotingDuration, format: 'uint64'},
+    {value: winnerThreshold, format: 'byte'},
+    {value: quorum, format: 'byte'},
+    {value: committeeSize, format: 'uint64'},
+    {
+      value: isFreeVoting ? 0 : votingMinPayment,
+      format: 'dna',
+    },
+    {value: ownerFee, format: 'byte'}
+  )
+
+  const payload = new DeployContractAttachment('0x02', argsToSlice(args))
+
+  return getRawTx(
+    TxType.DeployContractTx,
+    from,
+    null,
+    stake,
+    mode === ContractRpcMode.Call ? contractMaxFee(gasCost, txFee) : 0,
+    toHexString(payload.toBytes(), true)
+  )
 }
 
 export function buildContractDeploymentArgs(
@@ -551,3 +613,67 @@ export function minOracleRewardFromEstimates(data) {
 
 export const effectiveBalance = ({balance, ownerFee}) =>
   roundToPrecision(4, balance * (1 - (ownerFee || 0) / 100))
+
+function argToBytes(data) {
+  try {
+    switch (data.format) {
+      case 'byte': {
+        const val = parseInt(data.value, 10)
+        if (val >= 0 && val <= 255) {
+          return [val]
+        }
+        throw new Error('invalid byte value')
+      }
+      case 'int8': {
+        const val = parseInt(data.value, 10)
+        if (val >= 0 && val <= 255) {
+          return [val]
+        }
+        throw new Error('invalid int8 value')
+      }
+      case 'uint64': {
+        const res = new BN(data.value)
+        if (res.isNeg()) throw new Error('invalid uint64 value')
+        const arr = res.toArray('le')
+        return [...arr, ...new Array(8).fill(0)].slice(0, 8)
+      }
+      case 'int64': {
+        const arr = new BN(data.value).toArray('le')
+        return [...arr, ...new Array(8).fill(0)].slice(0, 8)
+      }
+      case 'string': {
+        return [...Buffer.from(data.value, 'utf8')]
+      }
+      case 'bigint': {
+        return new BN(data.value).toArray()
+      }
+      case 'hex': {
+        return [...hexToUint8Array(data.value)]
+      }
+      case 'dna': {
+        return new BN(
+          new Decimal(data.value).mul(new Decimal(DNA_BASE)).toString()
+        ).toArray()
+      }
+      default: {
+        return [...hexToUint8Array(data.value)]
+      }
+    }
+  } catch (e) {
+    throw new Error(
+      `cannot parse ${data.format} at index ${data.index}: ${e.message}`
+    )
+  }
+}
+
+export function argsToSlice(args) {
+  const maxIndex = Math.max(...args.map(x => x.index))
+
+  const result = new Array(maxIndex).fill(null)
+
+  args.forEach(element => {
+    result[element.index] = argToBytes(element)
+  })
+
+  return result
+}

@@ -51,6 +51,7 @@
     "cids": "^1.1.4",
     "cookie-cutter": "^0.2.0",
     "dayjs": "^1.8.14",
+    "decimal.js": "^10.3.1",
     "dequal": "^1.0.0",
     "dexie": "^3.0.2",
     "duckduckgo-images-api": "^1.0.5",

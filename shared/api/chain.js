@@ -79,3 +79,14 @@ export async function getRawTx(
   if (error) throw new Error(error.message)
   return result
 }
+
+export async function estimateRawTx(hex) {
+  const {data} = await api().post('/', {
+    method: 'bcn_estimateRawTx',
+    params: [hex],
+    id: 1,
+  })
+  const {result, error} = data
+  if (error) throw new Error(error.message)
+  return result
+}

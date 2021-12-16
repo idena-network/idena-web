@@ -25,6 +25,7 @@ import {
   minOracleRewardFromEstimates,
   fetchLastOpenVotings,
   hasLinklessOptions,
+  buildContractDeploymentTx,
 } from './utils'
 import {VotingStatus} from '../../shared/types'
 import {
@@ -36,6 +37,8 @@ import db from '../../shared/utils/db'
 
 import {ContractRpcMode, VotingListFilter} from './types'
 import {loadPersistentStateValue, persistItem} from '../../shared/utils/persist'
+import {Transaction} from '../../shared/models/transaction'
+import {estimateRawTx, sendRawTx} from '../../shared/api'
 
 export const votingListMachine = createMachine(
   {
@@ -498,6 +501,7 @@ export const createNewVotingMachine = () =>
               target: 'preload',
               actions: [
                 assign({
+                  privateKey: (_, {privateKey}) => privateKey,
                   address: (_, {coinbase}) => coinbase,
                   epoch: (_, {epoch}) => epoch,
                 }),
@@ -899,26 +903,40 @@ export const createNewVotingMachine = () =>
       services: {
         // eslint-disable-next-line no-shadow
         estimateDeployContract: async (voting, {from, balance, stake}) => {
-          const {error, ...result} = await callRpc(
-            'contract_estimateDeploy',
-            buildContractDeploymentArgs(
-              voting,
-              {from, stake},
-              ContractRpcMode.Estimate
-            )
+          const builtTx = await buildContractDeploymentTx(
+            voting,
+            {from, stake},
+            ContractRpcMode.Estimate
           )
-          if (error) throw new Error(error)
-          return {...result, from, balance, stake}
+
+          const tx = new Transaction().fromHex(builtTx)
+
+          tx.sign(voting.privateKey)
+
+          const hex = tx.toHex()
+
+          const result = await estimateRawTx(`0x${hex}`)
+
+          return {...result.receipt, from, balance, stake}
         },
         deployContract: async (
           // eslint-disable-next-line no-shadow
           {epoch, address, ...voting},
           {data: {contract, from, balance, stake, gasCost, txFee}}
         ) => {
-          const txHash = await callRpc(
-            'contract_deploy',
-            buildContractDeploymentArgs(voting, {from, stake, gasCost, txFee})
+          const builtTx = await buildContractDeploymentTx(
+            voting,
+            {from, stake, gasCost, txFee},
+            ContractRpcMode.Estimate
           )
+
+          const tx = new Transaction().fromHex(builtTx)
+
+          tx.sign(voting.privateKey)
+
+          const hex = tx.toHex()
+
+          const txHash = await sendRawTx(`0x${hex}`)
 
           const nextVoting = {
             ...voting,

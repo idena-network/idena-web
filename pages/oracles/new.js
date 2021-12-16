@@ -72,7 +72,7 @@ function NewVotingPage() {
   const {isOpen: isOpenAdvanced, onToggle: onToggleAdvanced} = useDisclosure()
 
   const epochData = useEpoch()
-  const {coinbase} = useAuthState()
+  const {coinbase, privateKey} = useAuthState()
   const {balance} = useBalance()
 
   const newVotingMachine = React.useMemo(() => createNewVotingMachine(), [])
@@ -102,8 +102,9 @@ function NewVotingPage() {
   })
 
   React.useEffect(() => {
-    if (epochData && coinbase) send('START', {epoch: epochData.epoch, coinbase})
-  }, [coinbase, epochData, send])
+    if (epochData && coinbase && privateKey)
+      send('START', {epoch: epochData.epoch, coinbase, privateKey})
+  }, [coinbase, epochData, privateKey, send])
 
   const {
     options,

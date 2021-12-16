@@ -1589,8 +1589,12 @@ export function NewOraclePresetDialog({onChoosePreset, onCancel, ...props}) {
           </Text>
           <RadioGroup spacing={0} onChange={value => setPreset(value)}>
             <Stack>
-              <Radio value="fact" alignItems="baseline" borderColor="gray.100">
-                <Stack spacing={1} pt={2} pb={3}>
+              <Radio
+                value="fact"
+                alignItems="flex-start"
+                borderColor="gray.100"
+              >
+                <Stack spacing={1}>
                   <Text>{t('Fact certification')}</Text>
                   <Text color="muted">
                     {t(
@@ -1599,8 +1603,12 @@ export function NewOraclePresetDialog({onChoosePreset, onCancel, ...props}) {
                   </Text>
                 </Stack>
               </Radio>
-              <Radio value="poll" alignItems="baseline" borderColor="gray.100">
-                <Stack spacing={1} pt={2} pb={3}>
+              <Radio
+                value="poll"
+                alignItems="flex-start"
+                borderColor="gray.100"
+              >
+                <Stack spacing={1}>
                   <Text>{t('Poll')}</Text>
                   <Text color="muted">
                     {t(
@@ -1611,10 +1619,10 @@ export function NewOraclePresetDialog({onChoosePreset, onCancel, ...props}) {
               </Radio>
               <Radio
                 value="decision"
-                alignItems="baseline"
+                alignItems="flex-start"
                 borderColor="gray.100"
               >
-                <Stack spacing={1} pt={2} pb={3}>
+                <Stack spacing={1}>
                   <Text>{t('Making decision')}</Text>
                   <Text color="muted">
                     {t('51% consensus is required to make a decision')}
