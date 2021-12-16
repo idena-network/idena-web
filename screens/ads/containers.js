@@ -18,6 +18,7 @@ import {
   Textarea,
   VisuallyHidden,
   HStack,
+  Center,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
@@ -60,7 +61,7 @@ import {Fill} from '../../shared/components'
 import {adFormMachine, useAdStatusColor} from './hooks'
 import {hasImageType} from '../../shared/utils/img'
 import {AVAILABLE_LANGS} from '../../i18n'
-import {buildTargetKey, createAdDb, hexToObject, isEligibleAd} from './utils'
+import {buildTargetKey, createAdDb, hexToAd, isEligibleAd} from './utils'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {OracleIcon, PhotoIcon, UploadIcon} from '../../shared/components/icons'
@@ -144,7 +145,7 @@ export function AdBanner({limit = 5, ...props}) {
           // eslint-disable-next-line no-shadow
           targetedAds.slice(0, limit).forEach(async ({address}) => {
             const res = await callRpc('dna_profile', address)
-            const {ads} = hexToObject(res.info ?? {})
+            const {ads} = hexToAd(res.info ?? {})
             if (ads?.length > 0) {
               const [ad] = ads
               setShowingAd({
@@ -233,9 +234,7 @@ export function AdStatusText({children, status = children}) {
 }
 
 export function AdCoverImage({ad: {cover}, w, width = w, ...props}) {
-  const src = React.useMemo(() => URL.createObjectURL(new Blob([cover])), [
-    cover,
-  ])
+  const src = React.useMemo(() => cover && URL.createObjectURL(cover), [cover])
 
   return (
     <AspectRatio ratio={1} w={width}>
@@ -474,7 +473,7 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
     <AdDrawer isMining={isMining} ad={ad} onClose={onCancel} {...props}>
       <DrawerHeader>
         <Stack spacing={4}>
-          <FillCenter
+          <Center
             alignSelf="flex-start"
             bg="blue.012"
             w={12}
@@ -482,14 +481,14 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
             rounded="xl"
           >
             <OracleIcon boxSize={6} color="blue.500" />
-          </FillCenter>
-          <Heading color="brandGray.500" fontSize="lg" fontWeight={500}>
+          </Center>
+          <Heading color="gray.500" fontSize="lg" fontWeight={500}>
             {t('Send to Oracle Voting')}
           </Heading>
         </Stack>
       </DrawerHeader>
       <DrawerBody overflowY="auto" mx={-6}>
-        <Stack spacing={6} color="brandGray.500" fontSize="md" p={6} pt={0}>
+        <Stack spacing={6} color="gray.500" fontSize="md" p={6} pt={0}>
           <Stack spacing={3}>
             <Text>
               {t(`Please keep in mind that you will not be able to edit the banner
@@ -522,18 +521,8 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
           </FormControl>
         </Stack>
       </DrawerBody>
-      <DrawerFooter
-        spacing={2}
-        borderTopWidth={1}
-        borderTopColor="gray.100"
-        py={3}
-        px={4}
-        position="absolute"
-        left={0}
-        right={0}
-        bottom={0}
-      >
-        <Stack isInline>
+      <DrawerFooter>
+        <HStack>
           <SecondaryButton onClick={onCancel}>{t('Not now')}</SecondaryButton>
           <PrimaryButton
             isLoading={isMining}
@@ -542,7 +531,7 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
           >
             {t('Send')}
           </PrimaryButton>
-        </Stack>
+        </HStack>
       </DrawerFooter>
     </AdDrawer>
   )

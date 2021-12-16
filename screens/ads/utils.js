@@ -1,3 +1,4 @@
+import {stripHexPrefix, toHexString} from '../../shared/utils/buffers'
 import {areSameCaseInsensitive, callRpc} from '../../shared/utils/utils'
 
 const dbProxy = {}
@@ -71,7 +72,7 @@ export const isEligibleAd = (targetKey, key) => {
 }
 
 export async function fetchProfileAds(address) {
-  return hexToObject((await callRpc('dna_profile', address)).info).ads ?? []
+  return hexToAd((await callRpc('dna_profile', address)).info).ads ?? []
 }
 
 export async function fetchTotalSpent(address) {
@@ -116,13 +117,24 @@ export function detectOs() {
   }
 }
 
-export function hexToObject(hex) {
+export function hexToAd(hex) {
   try {
     return JSON.parse(
-      new TextDecoder().decode(Buffer.from(hex.substring(2), 'hex'))
+      new TextDecoder().decode(Buffer.from(stripHexPrefix(hex), 'hex'))
     )
   } catch {
-    global.logger.error('cannot parse hex string', hex)
+    console.error('cannot parse hex string', hex)
     return {}
   }
+}
+
+export async function adToHex({cover, ...ad}) {
+  return Buffer.from(
+    new TextEncoder().encode(
+      JSON.stringify({
+        ...ad,
+        cover: Buffer.from(await cover.arrayBuffer()).toString('hex'),
+      })
+    )
+  ).toString('hex')
 }
