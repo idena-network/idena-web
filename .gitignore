@@ -98,6 +98,4 @@ datadir
 .DS_Store
 
 main/node/**
-.env.local
-.env.production
-
+.env.*
