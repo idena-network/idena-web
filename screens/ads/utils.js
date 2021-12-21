@@ -1,5 +1,7 @@
-import {stripHexPrefix, toHexString} from '../../shared/utils/buffers'
+import nanoid from 'nanoid'
+import {stripHexPrefix} from '../../shared/utils/buffers'
 import {areSameCaseInsensitive, callRpc} from '../../shared/utils/utils'
+import profilePb from '../../shared/models/proto/profile_pb'
 
 const dbProxy = {}
 const createEpochDb = () => {}
@@ -128,13 +130,47 @@ export function hexToAd(hex) {
   }
 }
 
-export async function adToHex({cover, ...ad}) {
-  return Buffer.from(
-    new TextEncoder().encode(
-      JSON.stringify({
-        ...ad,
-        cover: Buffer.from(await cover.arrayBuffer()).toString('hex'),
-      })
-    )
-  ).toString('hex')
+export async function profileToHex({
+  id = nanoid(),
+  title,
+  url,
+  cover,
+  author,
+  location,
+  language,
+  age,
+  os,
+  stake,
+}) {
+  const ad = new profilePb.Ad()
+  ad.setId(id)
+  ad.setTitle(title)
+  ad.setUrl(url)
+  ad.setCover(new Uint8Array(await cover.arrayBuffer()))
+  ad.setAuthor(author)
+
+  const key = new profilePb.AdKey()
+  key.setLocation(location)
+  key.setLanguage(language)
+  key.setAge(age)
+  key.setOs(os)
+  key.setStake(stake)
+
+  const adItem = new profilePb.Profile.AdItem()
+  adItem.setAd(ad)
+  adItem.setKey(key)
+
+  const profile = new profilePb.Profile()
+  profile.setAdsList([adItem])
+
+  console.log({
+    ad: profile
+      .getAdsList()[0]
+      .getAd()
+      .getTitle(),
+    profile,
+    profileBinary: profile.serializeBinary(),
+  })
+
+  return Buffer.from(profile.serializeBinary()).toString('hex')
 }

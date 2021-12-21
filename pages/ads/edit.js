@@ -31,7 +31,7 @@ import db from '../../shared/utils/db'
 export default function EditAdPage() {
   const {t} = useTranslation()
 
-  const router = useRouter()
+  const {query, ...router} = useRouter()
 
   const toast = useSuccessToast()
 
@@ -46,22 +46,13 @@ export default function EditAdPage() {
       },
     },
     services: {
-      init: () => db.table('ads').get(router.query.id),
-      submit: async ({id, ...context}) => {
-        await db.table('ads').update(id, {...context, status: AdStatus.Active})
-        // await callRpc('dna_changeProfile', {
-        //   info: `0x${objectToHex(
-        //     // eslint-disable-next-line no-unused-vars
-        //     buildProfile({ads: (await db.all()).map(({cover, ...ad}) => ad)})
-        //   )}`,
-        // })
-        return Promise.resolve()
-      },
-      close: ({status, ...context}) => {
-        if (status === AdStatus.Draft)
-          return db.table('ads').update({...context, status})
-        return Promise.resolve()
-      },
+      init: () => db.table('ads').get(query.id),
+      submit: async ({id, ...context}) =>
+        db.table('ads').update(id, {...context, status: AdStatus.Active}),
+      close: ({status, ...context}) =>
+        status === AdStatus.Draft
+          ? db.table('ads').update({...context, status})
+          : Promise.resolve(),
     },
   })
 
@@ -106,7 +97,7 @@ export default function EditAdPage() {
                   )}
                 </TabPanel>
                 <TabPanel>
-                  <Stack spacing={6} w="480px">
+                  <Stack spacing={6}>
                     <Stack spacing={4} shouldWrapChildren>
                       <AdFormField label="Max burn rate" id="maxBurnRate">
                         <AdNumberInput />

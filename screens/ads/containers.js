@@ -364,7 +364,7 @@ export function AdForm({onChange, ...ad}) {
           </AdFormField>
           <AdFormField label="Age" id="age">
             <AdNumberInput
-              defaulValue={age}
+              value={age}
               onBlur={({target: {value}}) => send('CHANGE', {ad: {age: value}})}
             />
           </AdFormField>

@@ -12,7 +12,7 @@ import {
   HASH_IN_MEMPOOL,
 } from '../../shared/utils/utils'
 import {AdStatus} from './types'
-import {buildAdReviewVoting, fetchTotalSpent} from './utils'
+import {profileToHex, buildAdReviewVoting, fetchTotalSpent} from './utils'
 
 export function useAdList() {
   const adListMachine = createMachine({
@@ -123,7 +123,7 @@ export function useAdList() {
                       log(),
                     ],
                   },
-                  onError: {actions: ['onError']},
+                  onError: {actions: ['onError', log()]},
                 },
               },
               miningDeploy: {
@@ -224,6 +224,7 @@ export function useAdList() {
       init: async () => ({
         ads: await db.ads.toArray(),
         totalSpent: await fetchTotalSpent(coinbase),
+        profileToHex: profileToHex((await db.ads.toArray())[3]),
       }),
       // eslint-disable-next-line no-shadow
       sendToReview: async ({selectedAd}, {from = coinbase, stake = 10000}) => {
@@ -265,6 +266,14 @@ export function useAdList() {
         //   status: VotingStatus.Deploying,
         // })
 
+        const profileCid = await callRpc(
+          'ipfs_add',
+          `0x${await profileToHex({...selectedAd, author: coinbase})}`,
+          false
+        )
+
+        await callRpc('dna_changeProfile', {info: profileCid})
+
         await db
           .table('ads')
           .update(selectedAd.id, {status: AdStatus.Reviewing})
@@ -273,6 +282,7 @@ export function useAdList() {
           txHash:
             '0x5af59d0196e165f66e6669cc8bac06c403e0b692f04feb7c09becf1a6755459d',
           contractHash: '0xae2eeaf1944b4a48d7f167042cdb5bb599486236',
+          profileCid,
         }
       },
       pollDeployVoting: ({txDeployHash}) => cb => {

@@ -1,0 +1,26 @@
+syntax = "proto3";
+package profile;
+
+message Profile {
+  message AdItem {
+    AdKey key = 1;
+    Ad ad = 2;
+  }
+  repeated AdItem ads = 1;
+}
+
+message Ad {
+  string id = 1;
+  string title = 2;
+  string url = 3;
+  bytes cover = 4;
+  string author = 5;
+}
+
+message AdKey {
+  string location = 1;
+  string language = 2;
+  int32 age = 3;
+  string os = 4;
+  int32 stake = 5;
+}
