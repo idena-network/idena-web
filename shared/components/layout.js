@@ -3,6 +3,7 @@ import React from 'react'
 import {useRouter} from 'next/router'
 import {
   Alert,
+  Checkbox,
   Flex,
   ListItem,
   Stack,
@@ -25,6 +26,7 @@ import {useTestValidationState} from '../providers/test-validation-context'
 import {EpochPeriod, IdentityStatus} from '../types'
 import {Dialog, DialogBody, DialogFooter} from './components'
 import {PrimaryButton, SecondaryButton} from './button'
+import {openExternalUrl} from '../utils/utils'
 
 export default function Layout(props) {
   const {auth} = useAuthState()
@@ -76,6 +78,23 @@ function NormalApp({children, canRedirect = true}) {
     settings.apiKeyState,
   ])
 
+  const [didConnectIdenaBot, setDidConnectIdenaBot] = React.useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return JSON.parse(localStorage.getItem('connectIdenaBot'))
+      } catch {
+        return null
+      }
+    }
+    return null
+  })
+
+  React.useEffect(() => {
+    if (typeof didConnectIdenaBot === 'boolean') {
+      localStorage.setItem('connectIdenaBot', didConnectIdenaBot)
+    }
+  }, [didConnectIdenaBot])
+
   return (
     <Flex
       as="section"
@@ -84,27 +103,33 @@ function NormalApp({children, canRedirect = true}) {
       h={['auto', '100vh']}
       overflowY="auto"
     >
-      <MyIdenaBotAlert />
+      {!didConnectIdenaBot && (
+        <MyIdenaBotAlert
+          onConnect={() => {
+            setDidConnectIdenaBot(true)
+          }}
+        />
+      )}
 
       {children}
 
       {currentTrainingValidation && (
         <ValidationToast epoch={testValidationEpoch} isTestValidation />
       )}
-
       {epoch && <ValidationToast epoch={epoch} identity={identity} />}
-
       <Notifications />
     </Flex>
   )
 }
 
-function MyIdenaBotAlert() {
+function MyIdenaBotAlert({onConnect}) {
   const {t} = useTranslation()
 
   const [{state}] = useIdentity()
 
   const myIdenaBotDisclosure = useDisclosure()
+
+  const [doNotShowAgain, setDoNotShowAgain] = React.useState()
 
   const eitherState = (...states) => states.some(s => s === state)
 
@@ -112,8 +137,9 @@ function MyIdenaBotAlert() {
     <>
       <Alert
         variant="solid"
-        boxShadow="0 3px 12px 0 rgb(255 163 102 /0.1), 0 2px 3px 0 rgb(255 163 102 /0.2)"
         justifyContent="center"
+        flexShrink={0}
+        boxShadow="0 3px 12px 0 rgb(255 163 102 /0.1), 0 2px 3px 0 rgb(255 163 102 /0.2)"
         color="white"
         fontWeight={500}
         fontSize="md"
@@ -131,7 +157,11 @@ function MyIdenaBotAlert() {
         your status`)}
       </Alert>
 
-      <Dialog title="🤖 Subscribe to @MyIdenaBot" {...myIdenaBotDisclosure}>
+      <Dialog
+        title="🤖 Subscribe to @MyIdenaBot"
+        size="md"
+        {...myIdenaBotDisclosure}
+      >
         <DialogBody>
           <Stack>
             <Text>
@@ -194,12 +224,30 @@ function MyIdenaBotAlert() {
             )}
           </Stack>
         </DialogBody>
-        <DialogFooter>
-          <SecondaryButton onClick={myIdenaBotDisclosure.onClose}>
-            Not now
+        <DialogFooter align="center">
+          <Checkbox
+            isChecked={doNotShowAgain}
+            onChange={e => {
+              setDoNotShowAgain(e.target.checked)
+            }}
+          >
+            {t('Do not show again')}
+          </Checkbox>
+          <SecondaryButton
+            onClick={() => {
+              myIdenaBotDisclosure.onClose()
+              if (doNotShowAgain) onConnect()
+            }}
+          >
+            {t('Not now')}
           </SecondaryButton>
-          <PrimaryButton onClick={myIdenaBotDisclosure.onClose}>
-            Connect
+          <PrimaryButton
+            onClick={() => {
+              openExternalUrl('//t.me/MyIdenaBot')
+              onConnect()
+            }}
+          >
+            {t('Connect')}
           </PrimaryButton>
         </DialogFooter>
       </Dialog>
