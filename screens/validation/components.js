@@ -2080,7 +2080,7 @@ export function ValidationScreen({
         }
         title={t('Earn rewards for reporting')}
         subtitle={t(
-          'Report bad flips and get rewarded if these flips are reported by more that 50% of other participants'
+          'Report bad flips and get rewarded if these flips are reported by more than 50% of other participants'
         )}
         onClose={() => {
           if (state.matches('longSession.solve.answer.finishFlips')) {
