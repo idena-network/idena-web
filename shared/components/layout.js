@@ -152,13 +152,12 @@ function MyIdenaBotAlert({onConnect}) {
         cursor="pointer"
         onClick={myIdenaBotDisclosure.onOpen}
       >
-        🤖{' '}
         {t(`Subscribe to @MyIdenaBot to get personalized notifications based on
         your status`)}
       </Alert>
 
       <Dialog
-        title="🤖 Subscribe to @MyIdenaBot"
+        title="Subscribe to @MyIdenaBot"
         size="md"
         {...myIdenaBotDisclosure}
       >
