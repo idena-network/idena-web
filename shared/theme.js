@@ -444,6 +444,13 @@ export const uiTheme = {
           dialogContainer: {alignItems: 'flex-end'},
         },
       },
+      sizes: {
+        md: {
+          dialog: {
+            maxW: '480px',
+          },
+        },
+      },
     },
   },
 }

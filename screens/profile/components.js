@@ -1355,6 +1355,7 @@ export function MyIdenaBotAlert() {
                 ]}
               />
             )}
+
             {eitherState(IdentityStatus.Zombie, IdentityStatus.Suspended) && (
               <IdenaBotFeatureList
                 features={[
@@ -1403,7 +1404,7 @@ export function MyIdenaBotAlert() {
 
 function IdenaBotFeatureList({features, listSeparator = ';'}) {
   return (
-    <UnorderedList spacing={1} styleType="'- '">
+    <UnorderedList spacing={1} styleType="'- '" pl="2.5">
       {features.map((feature, idx) => (
         <ListItem textTransform="lowercase">
           {feature}
