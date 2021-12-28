@@ -2,7 +2,6 @@
 import React from 'react'
 import {useRouter} from 'next/router'
 import {Flex, useDisclosure} from '@chakra-ui/react'
-import {useTranslation} from 'react-i18next'
 import Sidebar from './sidebar'
 import Notifications from './notifications'
 import {shouldStartValidation} from '../../screens/validation/utils'
@@ -16,16 +15,22 @@ import {useEpoch} from '../providers/epoch-context'
 import {useTestValidationState} from '../providers/test-validation-context'
 import {EpochPeriod} from '../types'
 
-export default function Layout(props) {
+export default function Layout({didConnectIdenaBot, ...props}) {
+  const {asPath} = useRouter()
+
   const {auth} = useAuthState()
-  const {isOpen, onOpen, onClose} = useDisclosure()
+
+  const sidebarDisclosure = useDisclosure()
 
   return (
     <LayoutContainer>
       {auth ? (
         <>
-          <Hamburger onClick={onOpen} />
-          <Sidebar isOpen={isOpen} onClose={onClose} />
+          <Hamburger
+            onClick={sidebarDisclosure.onOpen}
+            top={didConnectIdenaBot || !asPath.startsWith('/home') ? 4 : 24}
+          />
+          <Sidebar {...sidebarDisclosure} />
           <NormalApp {...props} />
         </>
       ) : (
@@ -37,8 +42,6 @@ export default function Layout(props) {
 
 function NormalApp({children, canRedirect = true}) {
   const router = useRouter()
-
-  const {t} = useTranslation()
 
   const epoch = useEpoch()
   const [identity] = useIdentity()

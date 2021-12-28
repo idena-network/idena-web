@@ -66,7 +66,7 @@ import {
   TimerIcon,
 } from './icons'
 
-function Sidebar({isOpen, onClose, ...props}) {
+function Sidebar({isOpen, onClose}) {
   return (
     <Flex
       backgroundColor="gray.500"
@@ -80,7 +80,6 @@ function Sidebar({isOpen, onClose, ...props}) {
       position={['fixed', 'relative']}
       direction="column"
       display={[isOpen ? 'flex' : 'none', 'flex']}
-      {...props}
     >
       <Flex justifyContent="space-between" alignItems="center">
         <ApiStatus />

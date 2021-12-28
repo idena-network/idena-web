@@ -1245,7 +1245,7 @@ export function KillForm({isOpen, onClose}) {
   )
 }
 
-export function MyIdenaBotAlert() {
+export function MyIdenaBotAlert({onConnect}) {
   const {t} = useTranslation()
 
   const [{state}] = useIdentity()
@@ -1254,29 +1254,12 @@ export function MyIdenaBotAlert() {
 
   const [doNotShowAgain, setDoNotShowAgain] = React.useState()
 
-  const [didConnectIdenaBot, setDidConnectIdenaBot] = React.useState(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        return JSON.parse(localStorage.getItem('connectIdenaBot'))
-      } catch {
-        return null
-      }
-    }
-    return null
-  })
-
-  React.useEffect(() => {
-    if (typeof didConnectIdenaBot === 'boolean') {
-      localStorage.setItem('connectIdenaBot', didConnectIdenaBot)
-    }
-  }, [didConnectIdenaBot])
-
   const connectButtonRef = React.useRef()
 
   // eslint-disable-next-line no-shadow
   const eitherState = (...states) => states.some(s => s === state)
 
-  return didConnectIdenaBot ? null : (
+  return (
     <>
       <Alert
         variant="solid"
@@ -1382,7 +1365,7 @@ export function MyIdenaBotAlert() {
           <SecondaryButton
             onClick={() => {
               myIdenaBotDisclosure.onClose()
-              if (doNotShowAgain) setDidConnectIdenaBot(true)
+              if (doNotShowAgain) onConnect()
             }}
           >
             {t('Not now')}
@@ -1391,7 +1374,7 @@ export function MyIdenaBotAlert() {
             ref={connectButtonRef}
             onClick={() => {
               openExternalUrl('https://t.me/MyIdenaBot')
-              setDidConnectIdenaBot(true)
+              onConnect()
             }}
           >
             {t('Connect')}
@@ -1406,7 +1389,7 @@ function IdenaBotFeatureList({features, listSeparator = ';'}) {
   return (
     <UnorderedList spacing={1} styleType="'- '" pl="2.5">
       {features.map((feature, idx) => (
-        <ListItem textTransform="lowercase">
+        <ListItem key={feature} textTransform="lowercase">
           {feature}
           {idx < features.length - 1 ? listSeparator : '.'}
         </ListItem>

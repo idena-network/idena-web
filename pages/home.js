@@ -64,6 +64,7 @@ import {
 import {useSuccessToast} from '../shared/hooks/use-toast'
 import {persistItem} from '../shared/utils/persist'
 import {isValidDnaUrl} from '../screens/dna/utils'
+import {useIdenaBot} from '../screens/profile/hooks'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -197,9 +198,11 @@ export default function ProfilePage() {
     IdentityStatus.Newbie,
   ].includes(state)
 
+  const [didConnectIdenaBot, connectIdenaBot] = useIdenaBot()
+
   return (
-    <Layout canRedirect={!dnaUrl}>
-      <MyIdenaBotAlert />
+    <Layout canRedirect={!dnaUrl} didConnectIdenaBot={didConnectIdenaBot}>
+      {!didConnectIdenaBot && <MyIdenaBotAlert onConnect={connectIdenaBot} />}
 
       <Page>
         <PageTitle mb={8} display={['none', 'block']}>
