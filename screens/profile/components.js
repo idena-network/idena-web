@@ -1389,7 +1389,7 @@ export function MyIdenaBotAlert() {
           <PrimaryButton
             ref={connectButtonRef}
             onClick={() => {
-              global.openExternal('https://t.me/MyIdenaBot')
+              openExternalUrl('https://t.me/MyIdenaBot')
               setDidConnectIdenaBot(true)
             }}
           >
