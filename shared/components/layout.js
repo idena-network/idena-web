@@ -1,16 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from 'react'
 import {useRouter} from 'next/router'
-import {
-  Alert,
-  Checkbox,
-  Flex,
-  ListItem,
-  Stack,
-  Text,
-  UnorderedList,
-  useDisclosure,
-} from '@chakra-ui/react'
+import {Flex, useDisclosure} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import Sidebar from './sidebar'
 import Notifications from './notifications'
@@ -23,10 +14,7 @@ import {apiKeyStates, useSettingsState} from '../providers/settings-context'
 import {useIdentity} from '../providers/identity-context'
 import {useEpoch} from '../providers/epoch-context'
 import {useTestValidationState} from '../providers/test-validation-context'
-import {EpochPeriod, IdentityStatus} from '../types'
-import {Dialog, DialogBody, DialogFooter} from './components'
-import {PrimaryButton, SecondaryButton} from './button'
-import {openExternalUrl} from '../utils/utils'
+import {EpochPeriod} from '../types'
 
 export default function Layout(props) {
   const {auth} = useAuthState()
@@ -78,23 +66,6 @@ function NormalApp({children, canRedirect = true}) {
     settings.apiKeyState,
   ])
 
-  const [didConnectIdenaBot, setDidConnectIdenaBot] = React.useState(() => {
-    if (typeof window !== 'undefined') {
-      try {
-        return JSON.parse(localStorage.getItem('connectIdenaBot'))
-      } catch {
-        return null
-      }
-    }
-    return null
-  })
-
-  React.useEffect(() => {
-    if (typeof didConnectIdenaBot === 'boolean') {
-      localStorage.setItem('connectIdenaBot', didConnectIdenaBot)
-    }
-  }, [didConnectIdenaBot])
-
   return (
     <Flex
       as="section"
@@ -103,14 +74,6 @@ function NormalApp({children, canRedirect = true}) {
       h={['auto', '100vh']}
       overflowY="auto"
     >
-      {!didConnectIdenaBot && (
-        <MyIdenaBotAlert
-          onConnect={() => {
-            setDidConnectIdenaBot(true)
-          }}
-        />
-      )}
-
       {children}
 
       {currentTrainingValidation && (
@@ -119,150 +82,5 @@ function NormalApp({children, canRedirect = true}) {
       {epoch && <ValidationToast epoch={epoch} identity={identity} />}
       <Notifications />
     </Flex>
-  )
-}
-
-function MyIdenaBotAlert({onConnect}) {
-  const {t} = useTranslation()
-
-  const [{state}] = useIdentity()
-
-  const myIdenaBotDisclosure = useDisclosure()
-
-  const [doNotShowAgain, setDoNotShowAgain] = React.useState()
-
-  const eitherState = (...states) => states.some(s => s === state)
-
-  return (
-    <>
-      <Alert
-        variant="solid"
-        justifyContent="center"
-        flexShrink={0}
-        boxShadow="0 3px 12px 0 rgb(255 163 102 /0.1), 0 2px 3px 0 rgb(255 163 102 /0.2)"
-        color="white"
-        fontWeight={500}
-        fontSize="md"
-        rounded="md"
-        p={3}
-        m={2}
-        mb={0}
-        w="auto"
-        zIndex="banner"
-        cursor="pointer"
-        onClick={myIdenaBotDisclosure.onOpen}
-      >
-        {t(`Subscribe to @MyIdenaBot to get personalized notifications based on
-        your status`)}
-      </Alert>
-
-      <Dialog
-        title="Subscribe to @MyIdenaBot"
-        size="md"
-        {...myIdenaBotDisclosure}
-      >
-        <DialogBody>
-          <Stack>
-            <Text>
-              MyIdenaBot reminds you about important actions based on your
-              identity status:
-            </Text>
-
-            {eitherState(IdentityStatus.Undefined) && (
-              <IdenaBotFeatureList
-                features={[
-                  'next validation reminder',
-                  'notification when you get an invite',
-                  'reminder to activate your invite',
-                  'your validation results when validation consensus is reached',
-                ]}
-              />
-            )}
-
-            {eitherState(IdentityStatus.Invite, IdentityStatus.Candidate) && (
-              <IdenaBotFeatureList
-                features={[
-                  'next validation reminder',
-                  'your validation results when validation consensus is reached',
-                ]}
-              />
-            )}
-
-            {eitherState(IdentityStatus.Newbie) && (
-              <IdenaBotFeatureList
-                features={[
-                  'next validation reminder',
-                  'reminder to create flips if you haven’t done it yet and the validation is coming',
-                  'your validation results when validation consensus is reached',
-                ]}
-              />
-            )}
-
-            {eitherState(IdentityStatus.Verified, IdentityStatus.Human) && (
-              <IdenaBotFeatureList
-                features={[
-                  'next validation reminder',
-                  'reminder to create flips',
-                  'your validation results when validation consensus is reached',
-                  'reminder to share your remaining invites',
-                  'reminder to submit extra flips to get more rewards',
-                  'status update of all your invitees to check if they are ready for the validation (activated invites, submitted flips)',
-                ]}
-              />
-            )}
-            {eitherState(IdentityStatus.Zombie, IdentityStatus.Suspended) && (
-              <IdenaBotFeatureList
-                features={[
-                  'next validation reminder',
-                  'your validation results when validation consensus is reached',
-                  'reminder to share your remaining invites',
-                  'reminder to submit extra flips to get more rewards',
-                  'status update of all your invitees to check if they are ready for the validation (activated invites, submitted flips)',
-                ]}
-              />
-            )}
-          </Stack>
-        </DialogBody>
-        <DialogFooter align="center">
-          <Checkbox
-            isChecked={doNotShowAgain}
-            onChange={e => {
-              setDoNotShowAgain(e.target.checked)
-            }}
-          >
-            {t('Do not show again')}
-          </Checkbox>
-          <SecondaryButton
-            onClick={() => {
-              myIdenaBotDisclosure.onClose()
-              if (doNotShowAgain) onConnect()
-            }}
-          >
-            {t('Not now')}
-          </SecondaryButton>
-          <PrimaryButton
-            onClick={() => {
-              openExternalUrl('//t.me/MyIdenaBot')
-              onConnect()
-            }}
-          >
-            {t('Connect')}
-          </PrimaryButton>
-        </DialogFooter>
-      </Dialog>
-    </>
-  )
-}
-
-function IdenaBotFeatureList({features, listSeparator = ';'}) {
-  return (
-    <UnorderedList spacing={1} styleType="'- '" pl={2}>
-      {features.map((feature, idx) => (
-        <ListItem textTransform="lowercase">
-          {feature}
-          {idx < features.length - 1 ? listSeparator : '.'}
-        </ListItem>
-      ))}
-    </UnorderedList>
   )
 }

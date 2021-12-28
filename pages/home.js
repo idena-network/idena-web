@@ -24,6 +24,7 @@ import {
   KillForm,
   AnnotatedUserStatistics,
   WideLink,
+  MyIdenaBotAlert,
 } from '../screens/profile/components'
 import Layout from '../shared/components/layout'
 import {IdentityStatus, OnboardingStep} from '../shared/types'
@@ -198,6 +199,8 @@ export default function ProfilePage() {
 
   return (
     <Layout canRedirect={!dnaUrl}>
+      <MyIdenaBotAlert />
+
       <Page>
         <PageTitle mb={8} display={['none', 'block']}>
           {t('Profile')}

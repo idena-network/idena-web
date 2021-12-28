@@ -24,6 +24,10 @@ import {
   Divider,
   useBreakpointValue,
   useClipboard,
+  Checkbox,
+  UnorderedList,
+  ListItem,
+  useDisclosure,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
@@ -41,9 +45,16 @@ import {
   DrawerFooter,
   Toast,
   FormControlWithLabel,
+  DialogFooter,
+  DialogBody,
+  Dialog,
 } from '../../shared/components/components'
 import {rem} from '../../shared/theme'
-import {FlatButton, PrimaryButton} from '../../shared/components/button'
+import {
+  FlatButton,
+  PrimaryButton,
+  SecondaryButton,
+} from '../../shared/components/button'
 import {IdentityStatus, NodeType} from '../../shared/types'
 import {NotificationType} from '../../shared/providers/notification-context'
 import {Notification, Snackbar} from '../../shared/components/notifications'
@@ -1231,5 +1242,174 @@ export function KillForm({isOpen, onClose}) {
         </Box>
       </DrawerFooter>
     </Drawer>
+  )
+}
+
+export function MyIdenaBotAlert() {
+  const {t} = useTranslation()
+
+  const [{state}] = useIdentity()
+
+  const myIdenaBotDisclosure = useDisclosure()
+
+  const [doNotShowAgain, setDoNotShowAgain] = React.useState()
+
+  const [didConnectIdenaBot, setDidConnectIdenaBot] = React.useState(() => {
+    if (typeof window !== 'undefined') {
+      try {
+        return JSON.parse(localStorage.getItem('connectIdenaBot'))
+      } catch {
+        return null
+      }
+    }
+    return null
+  })
+
+  React.useEffect(() => {
+    if (typeof didConnectIdenaBot === 'boolean') {
+      localStorage.setItem('connectIdenaBot', didConnectIdenaBot)
+    }
+  }, [didConnectIdenaBot])
+
+  const connectButtonRef = React.useRef()
+
+  // eslint-disable-next-line no-shadow
+  const eitherState = (...states) => states.some(s => s === state)
+
+  return didConnectIdenaBot ? null : (
+    <>
+      <Alert
+        variant="solid"
+        justifyContent="center"
+        flexShrink={0}
+        boxShadow="0 3px 12px 0 rgb(255 163 102 /0.1), 0 2px 3px 0 rgb(255 163 102 /0.2)"
+        color="white"
+        cursor="pointer"
+        fontWeight={500}
+        rounded="md"
+        p={3}
+        mt={2}
+        mx={2}
+        w="auto"
+        onClick={myIdenaBotDisclosure.onOpen}
+      >
+        {t(`Subscribe to @MyIdenaBot to get personalized notifications based on
+        your status`)}
+      </Alert>
+
+      <Dialog
+        title="Subscribe to @MyIdenaBot"
+        size="md"
+        initialFocusRef={connectButtonRef}
+        {...myIdenaBotDisclosure}
+      >
+        <DialogBody>
+          <Stack>
+            <Text>
+              {t(
+                `MyIdenaBot reminds you about important actions based on your
+              identity status:`,
+                {nsSeparator: '!!'}
+              )}
+            </Text>
+
+            {eitherState(IdentityStatus.Undefined) && (
+              <IdenaBotFeatureList
+                features={[
+                  'next validation reminder',
+                  'notification when you get an invite',
+                  'reminder to activate your invite',
+                  'your validation results when validation consensus is reached',
+                ]}
+              />
+            )}
+
+            {eitherState(IdentityStatus.Invite, IdentityStatus.Candidate) && (
+              <IdenaBotFeatureList
+                features={[
+                  'next validation reminder',
+                  'your validation results when validation consensus is reached',
+                ]}
+              />
+            )}
+
+            {eitherState(IdentityStatus.Newbie) && (
+              <IdenaBotFeatureList
+                features={[
+                  'next validation reminder',
+                  'reminder to create flips if you haven’t done it yet and the validation is coming',
+                  'your validation results when validation consensus is reached',
+                ]}
+              />
+            )}
+
+            {eitherState(IdentityStatus.Verified, IdentityStatus.Human) && (
+              <IdenaBotFeatureList
+                features={[
+                  'next validation reminder',
+                  'reminder to create flips',
+                  'your validation results when validation consensus is reached',
+                  'reminder to share your remaining invites',
+                  'reminder to submit extra flips to get more rewards',
+                  'status update of all your invitees to check if they are ready for the validation (activated invites, submitted flips)',
+                ]}
+              />
+            )}
+            {eitherState(IdentityStatus.Zombie, IdentityStatus.Suspended) && (
+              <IdenaBotFeatureList
+                features={[
+                  'next validation reminder',
+                  'your validation results when validation consensus is reached',
+                  'reminder to share your remaining invites',
+                  'reminder to submit extra flips to get more rewards',
+                  'status update of all your invitees to check if they are ready for the validation (activated invites, submitted flips)',
+                ]}
+              />
+            )}
+          </Stack>
+        </DialogBody>
+        <DialogFooter align="center">
+          <Checkbox
+            borderColor="gray.100"
+            isChecked={doNotShowAgain}
+            onChange={e => {
+              setDoNotShowAgain(e.target.checked)
+            }}
+          >
+            {t('Do not show again')}
+          </Checkbox>
+          <SecondaryButton
+            onClick={() => {
+              myIdenaBotDisclosure.onClose()
+              if (doNotShowAgain) setDidConnectIdenaBot(true)
+            }}
+          >
+            {t('Not now')}
+          </SecondaryButton>
+          <PrimaryButton
+            ref={connectButtonRef}
+            onClick={() => {
+              global.openExternal('https://t.me/MyIdenaBot')
+              setDidConnectIdenaBot(true)
+            }}
+          >
+            {t('Connect')}
+          </PrimaryButton>
+        </DialogFooter>
+      </Dialog>
+    </>
+  )
+}
+
+function IdenaBotFeatureList({features, listSeparator = ';'}) {
+  return (
+    <UnorderedList spacing={1} styleType="'- '">
+      {features.map((feature, idx) => (
+        <ListItem textTransform="lowercase">
+          {feature}
+          {idx < features.length - 1 ? listSeparator : '.'}
+        </ListItem>
+      ))}
+    </UnorderedList>
   )
 }
