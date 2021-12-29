@@ -3,30 +3,29 @@ import {assign, createMachine} from 'xstate'
 
 export function useIdenaBot() {
   const [current, send] = useMachine(
-    () =>
-      createMachine({
-        context: {
-          connected: undefined,
-        },
-        initial: 'loading',
-        states: {
-          loading: {
-            invoke: {
-              src: 'loadConnectionStatus',
-            },
-            on: {
-              CONNECTED: 'connected',
-              DISCONNECTED: 'disconnected',
-            },
+    createMachine({
+      context: {
+        connected: undefined,
+      },
+      initial: 'loading',
+      states: {
+        loading: {
+          invoke: {
+            src: 'loadConnectionStatus',
           },
-          connected: {
-            entry: [assign({connected: true}), 'persist'],
-          },
-          disconnected: {
-            on: {CONNECT: 'connected'},
+          on: {
+            CONNECTED: 'connected',
+            DISCONNECTED: 'disconnected',
           },
         },
-      }),
+        connected: {
+          entry: [assign({connected: true}), 'persist'],
+        },
+        disconnected: {
+          on: {CONNECT: 'connected'},
+        },
+      },
+    }),
     {
       services: {
         loadConnectionStatus: () => cb => {
