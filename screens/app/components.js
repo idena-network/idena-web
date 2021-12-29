@@ -32,7 +32,7 @@ export function Page(props) {
   )
 }
 
-export function Hamburger({onClick}) {
+export function Hamburger({onClick, ...props}) {
   return (
     <Flex
       position="absolute"
@@ -41,6 +41,7 @@ export function Hamburger({onClick}) {
       zIndex={2}
       onClick={onClick}
       display={['flex', 'none']}
+      {...props}
     >
       <HamburgerIcon boxSize={7} color="blue.500" />
     </Flex>
