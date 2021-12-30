@@ -77,6 +77,7 @@ export const TxType = {
 }
 
 export const OnboardingStep = {
+  StartTraining: 'startTrainig',
   ActivateInvite: 'activateInvite',
   Validate: 'validate',
   CreateFlips: 'createFlips',

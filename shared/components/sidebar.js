@@ -65,6 +65,7 @@ import {
   WalletIcon,
   TimerIcon,
 } from './icons'
+import {useTestValidationState} from '../providers/test-validation-context'
 
 function Sidebar({isOpen, onClose}) {
   return (
@@ -335,6 +336,7 @@ function ActionPanel({onClose}) {
   const isPromotingNextOnboardingStep =
     currentPeriod === EpochPeriod.None &&
     (eitherOnboardingState(
+      onboardingPromotingStep(OnboardingStep.StartTraining),
       onboardingPromotingStep(OnboardingStep.ActivateInvite),
       onboardingPromotingStep(OnboardingStep.ActivateMining)
     ) ||
@@ -365,6 +367,7 @@ function ActionPanel({onClose}) {
         onClick={() => {
           if (
             eitherOnboardingState(
+              OnboardingStep.StartTraining,
               OnboardingStep.ActivateInvite,
               OnboardingStep.ActivateMining
             )
@@ -633,6 +636,8 @@ function CurrentTask({epoch, period}) {
 
   const [identity] = useIdentity()
 
+  const {hasSuccessTrainingValidation} = useTestValidationState()
+
   const [currentOnboarding] = useOnboarding()
 
   if (!period || !identity || !identity.state) return null
@@ -648,6 +653,9 @@ function CurrentTask({epoch, period}) {
       } = identity
 
       switch (true) {
+        case status === IdentityStatus.Undefined &&
+          !hasSuccessTrainingValidation:
+          return t('Start training')
         case canActivateInvite:
           return status === IdentityStatus.Invite
             ? t('Accept invitation')
