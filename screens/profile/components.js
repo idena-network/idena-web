@@ -320,7 +320,7 @@ export function UserStatLabelTooltip(props) {
 }
 
 export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
-  {children, ...props},
+  {onSuccess, children, ...props},
   ref
 ) {
   const {t} = useTranslation()
@@ -335,7 +335,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
   const [code, setCode] = React.useState('')
   const [submitting, setSubmitting] = useState(false)
 
-  const [{mining}, setHash] = useTx()
+  const [{mining, mined}, setHash] = useTx()
 
   const {isPurchasing, needToPurchase, savePurchase} = useApikeyPurchasing()
 
@@ -390,6 +390,12 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
       setSubmitting(false)
     }
   }
+
+  useEffect(() => {
+    if (mined && onSuccess) {
+      onSuccess()
+    }
+  }, [mined, onSuccess])
 
   const waiting = submitting || isPurchasing || mining
 
@@ -1658,7 +1664,7 @@ export function ActivateInvitationDialog({onClose, ...props}) {
       {...props}
     >
       <DialogBody mb={0}>
-        <ActivateInviteForm mt={3}>
+        <ActivateInviteForm mt={3} onSuccess={onClose}>
           <SecondaryButton onClick={onClose}>{t('Cancel')}</SecondaryButton>
         </ActivateInviteForm>
       </DialogBody>

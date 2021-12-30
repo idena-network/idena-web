@@ -114,7 +114,7 @@ export default function useTx(initialHash, useGuestKey) {
         }
       }
     },
-    hash && !state.mined ? 1000 * 10 : null
+    hash && !state.mined ? 1000 * 5 : null
   )
 
   return [state, setHash]
