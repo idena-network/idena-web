@@ -1772,7 +1772,7 @@ export function ValidationScreen({
           </Title>
         </Flex>
       </Header>
-      <div {...handlers}>
+      <ChakraBox order={[3, 2]} {...handlers}>
         <ChakraBox
           display={['block', 'none']}
           className="block-swipe-nav"
@@ -1781,7 +1781,7 @@ export function ValidationScreen({
           w="32px"
           h="100%"
         />
-        <CurrentStep order={[3, 2]}>
+        <CurrentStep>
           <FlipChallenge>
             <ChakraFlex
               order={[2, 1]}
@@ -1938,7 +1938,7 @@ export function ValidationScreen({
             )}
           </FlipChallenge>
         </CurrentStep>
-      </div>
+      </ChakraBox>
       <ActionBar order={[4, 3]}>
         <ActionBarItem />
         <ActionBarItem zIndex={2} justify="center">
