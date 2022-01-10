@@ -29,7 +29,7 @@ export const IconButton = React.forwardRef((props, ref) => (
       bg: 'blue.50',
     }}
     {...props}
-  ></ChakraButton>
+  />
 ))
 
 export function FlatButton({children, ...props}) {

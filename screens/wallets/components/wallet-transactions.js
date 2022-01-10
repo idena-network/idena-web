@@ -3,11 +3,10 @@ import PropTypes from 'prop-types'
 import {ellipsis, rgba} from 'polished'
 import {useTranslation} from 'react-i18next'
 import {useInfiniteQuery} from 'react-query'
-import {Flex, Stack} from '@chakra-ui/react'
+import {Box, Flex, Divider, Stack, Table, Thead, Tbody} from '@chakra-ui/react'
 import theme, {rem} from '../../../shared/theme'
 import Avatar from '../../../shared/components/avatar'
 import {
-  Table,
   TableCol,
   TableRow,
   TableHeaderCol,
@@ -18,7 +17,7 @@ import {FlatButton} from '../../../shared/components/button'
 import {Skeleton} from '../../../shared/components/components'
 import {lowerCase} from '../../../shared/utils/utils'
 
-function RowStatus({direction, type, isMining, walletName, ...props}) {
+function RowStatus({direction, type, isMining, walletName, tx, ...props}) {
   const txColor =
     direction === 'Sent' ? theme.colors.danger : theme.colors.primary
 
@@ -26,45 +25,62 @@ function RowStatus({direction, type, isMining, walletName, ...props}) {
 
   return (
     <div {...props} className="status">
-      <div className="icn">
+      <Box
+        h={[10, 8]}
+        w={[10, 8]}
+        backgroundColor={rgba(iconColor, 0.12)}
+        color={iconColor}
+        borderRadius={['12px', '8px']}
+        mt={['6px', 0]}
+        mr={[4, 3]}
+        p={2}
+        float="left"
+        fontSize={['130%', '100%']}
+        textAlign="center"
+      >
         {direction === 'Sent' ? (
           <i className="icon icon--up_arrow" />
         ) : (
           <i className="icon icon--down_arrow" />
         )}
-      </div>
-      <div className="content">
-        <div className="type">{type}</div>
-        <div
-          className="name"
-          style={{
-            color: theme.colors.muted,
-          }}
+      </Box>
+      <Box className="content" overflow="hidden" pt={['2px', '3px']}>
+        <Flex
+          fontSize={['base', 'md']}
+          fontWeight={[500, 400]}
+          justify={['space-between', 'flex-start']}
         >
-          {walletName}
-        </div>
-      </div>
-      <style jsx>{`
-        .icn {
-          width: 32px;
-          height: 32px;
-          border-radius: 8px;
-          padding: ${rem(8)};
-          text-align: center;
-          float: left;
-          margin-right: ${rem(12)};
-          background-color: ${rgba(iconColor, 0.12)};
-          color: ${iconColor};
-        }
-        .content {
-          overflow: hidden;
-          padding-top: ${rem(3)};
-        }
-        .name {
-          font-size: ${rem(13)};
-          font-weight: 500;
-        }
-      `}</style>
+          <Box
+            className="type"
+            textOverflow={['ellipsis', 'initial']}
+            overflow={['hidden', 'auto']}
+            maxW={['50%', 'auto']}
+            whiteSpace={['nowrap', 'initial']}
+          >
+            {type}
+          </Box>
+          <Box display={['block', 'none']}>
+            {/* eslint-disable-next-line react/prop-types */}
+            {(tx.type === 'kill' && 'See in Explorer...') ||
+              // eslint-disable-next-line react/prop-types
+              (tx.amount === '0' ? '\u2013' : tx.signAmount + ' iDNA')}
+          </Box>
+        </Flex>
+        <Flex justify={['space-between', 'flex-start']}>
+          <Box display={['block', 'none']}>
+            {/* eslint-disable-next-line react/prop-types */}
+            {!tx.timestamp ? '\u2013' : new Date(tx.timestamp).toLocaleDateString()}
+          </Box>
+          <Box
+            className="name"
+            color={theme.colors.muted}
+            fontSize="md"
+            fontWeight={500}
+          >
+            {walletName}
+          </Box>
+        </Flex>
+      </Box>
     </div>
   )
 }
@@ -149,7 +165,7 @@ function WalletTransactions({address}) {
   return (
     <div>
       <Table style={{tableLayout: 'fixed'}}>
-        <thead>
+        <Thead display={['none', 'table-header-group']}>
           <TableRow>
             <TableHeaderCol>{t('Transaction')}</TableHeaderCol>
             <TableHeaderCol>{t('Address')}</TableHeaderCol>
@@ -162,8 +178,8 @@ function WalletTransactions({address}) {
             <TableHeaderCol>{t('Date')}</TableHeaderCol>
             <TableHeaderCol>{t('Blockchain transaction ID')}</TableHeaderCol>
           </TableRow>
-        </thead>
-        <tbody>
+        </Thead>
+        <Tbody>
           {!isLoading &&
             data &&
             data.pages.map((group, i) => (
@@ -176,10 +192,11 @@ function WalletTransactions({address}) {
                         direction={tx.direction}
                         type={tx.typeName}
                         walletName="Main"
+                        tx={tx}
                       />
                     </TableCol>
 
-                    <TableCol>
+                    <TableCol display={['none', 'table-cell']}>
                       {(!tx.to && '\u2013') || (
                         <Flex align="center">
                           <Avatar
@@ -201,7 +218,10 @@ function WalletTransactions({address}) {
                       )}
                     </TableCol>
 
-                    <TableCol className="text-right">
+                    <TableCol
+                      display={['none', 'table-cell']}
+                      textAlign="right"
+                    >
                       <div
                         style={{
                           color:
@@ -215,7 +235,10 @@ function WalletTransactions({address}) {
                       </div>
                     </TableCol>
 
-                    <TableCol className="text-right">
+                    <TableCol
+                      display={['none', 'table-cell']}
+                      textAlign="right"
+                    >
                       {(!tx.isMining &&
                         (tx.fee === '0' ? '\u2013' : tx.fee)) || (
                         <div>
@@ -226,13 +249,13 @@ function WalletTransactions({address}) {
 
                       {}
                     </TableCol>
-                    <TableCol>
+                    <TableCol display={['none', 'table-cell']}>
                       {!tx.timestamp
                         ? '\u2013'
                         : new Date(tx.timestamp).toLocaleString()}
                     </TableCol>
 
-                    <TableCol>
+                    <TableCol display={['none', 'table-cell']}>
                       <div>
                         <div>
                           {tx.isMining ? t('Mining...') : t('Confirmed')}
@@ -246,7 +269,7 @@ function WalletTransactions({address}) {
                 ))}
               </React.Fragment>
             ))}
-        </tbody>
+        </Tbody>
       </Table>
       {isLoading && (
         <Stack spacing={2} mt={2}>

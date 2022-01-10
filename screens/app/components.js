@@ -53,3 +53,18 @@ export function PageTitle(props) {
     <Heading as="h1" fontSize="xl" fontWeight={500} py={2} mb={4} {...props} />
   )
 }
+
+export function PageTitleNew(props) {
+  return (
+    <Heading
+      as="h1"
+      fontSize={['base', 'xl']}
+      fontWeight={['bold', 500]}
+      textAlign={['center', 'initial']}
+      py={2}
+      mb={4}
+      w={['100%', 'auto']}
+      {...props}
+    />
+  )
+}

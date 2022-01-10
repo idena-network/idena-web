@@ -454,5 +454,22 @@ export const uiTheme = {
         },
       },
     },
+    Table: {
+      baseStyle: {
+        table: {
+          fontVariantNumeric: 'normal',
+          width: '100%',
+        },
+      },
+      sizes: {
+        md: {
+          td: {
+            px: 3,
+            py: 2,
+            lineHeight: 'inherit',
+          },
+        },
+      },
+    },
   },
 }

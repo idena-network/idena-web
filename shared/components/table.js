@@ -1,6 +1,7 @@
 /* eslint-disable react/jsx-curly-brace-presence */
 import React from 'react'
 import PropTypes from 'prop-types'
+import {Thead, Tbody, Th, Tr, Td, Box, Divider} from '@chakra-ui/react'
 import theme, {rem} from '../theme'
 
 export function Table({children, ...props}) {
@@ -24,12 +25,12 @@ const RowContext = React.createContext()
 // eslint-disable-next-line react/prop-types
 export function TableRow({children, isLast, ...props}) {
   return (
-    <tr {...props}>
+    <Tr {...props}>
       <RowContext.Provider value={{isLast}}>{children}</RowContext.Provider>
       <style jsx>{`
         width: 100%;
       `}</style>
-    </tr>
+    </Tr>
   )
 }
 
@@ -38,20 +39,49 @@ export function TableCol({children, color, ...props}) {
   const {isLast} = React.useContext(RowContext)
 
   return (
-    <td {...props}>
+    <Td
+      px={[0, 3]}
+      pb={[0, 2]}
+      borderBottom={[
+        'none',
+        isLast ? 'none' : `solid 1px ${theme.colors.gray2}`,
+      ]}
+      color={color || 'inherit'}
+      {...props}
+    >
       {children}
       <style jsx>{`
-        td {
-          padding: ${rem(8)} ${rem(12)};
-          color: ${color || 'inherit'};
-          border-bottom: ${isLast ? 'none' : `solid 1px ${theme.colors.gray2}`};
-        }
-
         td.text-right {
           text-align: right;
         }
       `}</style>
-    </td>
+      <Divider
+        display={['block', 'none']}
+        color="gray.100"
+        mt="6px"
+        ml={14}
+        w="auto"
+      />
+    </Td>
+  )
+}
+
+// eslint-disable-next-line react/prop-types
+export function TableColMobile({children, color, ...props}) {
+  const {isLast} = React.useContext(RowContext)
+
+  return (
+    <Td
+      color={color || 'inherit'}
+      {...props}
+    >
+      {children}
+      <style jsx>{`
+        td.text-right {
+          text-align: right;
+        }
+      `}</style>
+    </Td>
   )
 }
 

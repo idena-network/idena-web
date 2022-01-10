@@ -5,8 +5,9 @@ import {MdMoreVert} from 'react-icons/md'
 import {margin, position, borderRadius} from 'polished'
 import {useTranslation} from 'react-i18next'
 import {useTheme} from '@emotion/react'
+import {Flex as ChakraFlex, Box} from '@chakra-ui/react'
 import useClickOutside from '../../../shared/hooks/use-click-outside'
-import {Box, Absolute} from '../../../shared/components'
+import {Absolute} from '../../../shared/components'
 import Flex from '../../../shared/components/flex'
 import theme, {rem} from '../../../shared/theme'
 import {IconButton} from '../../../shared/components/button'
@@ -76,16 +77,14 @@ function WalletCard({
 
   return (
     <Box
-      bg={isSelected ? theme.colors.primary : theme.colors.gray}
+      background={isSelected ? theme.colors.primary : theme.colors.gray}
+      borderRadius="8px"
       color={isSelected ? theme.colors.white : theme.colors.primary2}
-      padding={rem(theme.spacings.medium16)}
-      style={{
-        borderRadius: rem(8),
-        minWidth: rem(195),
-        position: 'relative',
-        ...margin(0, theme.spacings.medium24, 0, 0),
-      }}
-      w={rem(315)}
+      position="relative"
+      p={4}
+      mr={6}
+      minW="195px"
+      w={['196px', '315px']}
       {...props}
     >
       <div className="title">

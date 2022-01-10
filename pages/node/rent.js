@@ -10,7 +10,7 @@ import {
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {rem} from 'polished'
-import {useState} from 'react'
+import React, {useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
 import {BuySharedNodeForm} from '../../screens/node/components'
@@ -182,8 +182,8 @@ export default function Rent() {
                         </Link>
                       </TableCol>
                       <TableCol>{p.data.location}</TableCol>
-                      <TableCol className="text-right">{p.slots}</TableCol>
-                      <TableCol className="text-right">
+                      <TableCol textAlign="right">{p.slots}</TableCol>
+                      <TableCol textAlign="right">
                         {GetProviderPrice(p.data, identity?.state)} iDNA
                       </TableCol>
                     </TableRow>
