@@ -208,6 +208,8 @@ export default function ProfilePage() {
   const shouldStartIdenaJourney =
     state === IdentityStatus.Undefined && !hasSuccessTrainingValidation
 
+  const onboardingPopoverPlacement = useBreakpointValue(['top', 'bottom'])
+
   return (
     <Layout canRedirect={!dnaUrl} didConnectIdenaBot={didConnectIdenaBot}>
       {!didConnectIdenaBot && <MyIdenaBotAlert onConnect={connectIdenaBot} />}
@@ -227,41 +229,32 @@ export default function ProfilePage() {
             align={['center', 'initial']}
             ref={activateInviteRef}
           >
-            <UserInlineCard address={coinbase} state={state} h={['auto', 24]} />
+            <UserInlineCard
+              address={coinbase}
+              state={state}
+              h={['auto', 24]}
+              mb={[2, 0]}
+            />
             {canActivateInvite && (
               <Box w={['100%', 'initial']} pb={[8, 0]}>
                 <OnboardingPopover
                   isOpen={isOpenActivateInvitePopover}
-                  placement="bottom"
+                  placement={onboardingPopoverPlacement}
                 >
                   <PopoverTrigger>
-                    <Stack
-                      spacing={6}
-                      bg={['transparent', 'white']}
-                      borderRadius="lg"
-                      boxShadow={[
-                        'none',
-                        '0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)',
-                      ]}
-                      px={[0, 10]}
-                      py={[0, 8]}
-                      pos="relative"
-                      zIndex={5}
-                    >
-                      {shouldStartIdenaJourney ? (
-                        <StartIdenaJourneyPanel
-                          onHasActivationCode={activateInviteDisclosure.onOpen}
-                        />
-                      ) : state === IdentityStatus.Invite ? (
-                        <AcceptInvitationPanel
-                          onHowToGetInvitation={onOpenActivateInvitePopover}
-                        />
-                      ) : (
-                        <ActivateInvitationPanel
-                          onHowToGetInvitation={onOpenActivateInvitePopover}
-                        />
-                      )}
-                    </Stack>
+                    {shouldStartIdenaJourney ? (
+                      <StartIdenaJourneyPanel
+                        onHasActivationCode={activateInviteDisclosure.onOpen}
+                      />
+                    ) : state === IdentityStatus.Invite ? (
+                      <AcceptInvitationPanel
+                        onHowToGetInvitation={onOpenActivateInvitePopover}
+                      />
+                    ) : (
+                      <ActivateInvitationPanel
+                        onHowToGetInvitation={onOpenActivateInvitePopover}
+                      />
+                    )}
                   </PopoverTrigger>
                   {shouldStartIdenaJourney ? (
                     <StartIdenaJourneyOnboardingContent
@@ -297,7 +290,6 @@ export default function ProfilePage() {
                 <>
                   <WideLink
                     display={['initial', 'none']}
-                    pt={5}
                     pb={3}
                     label="Open in blockchain explorer"
                     href={`https://scan.idena.io/address/${address}`}

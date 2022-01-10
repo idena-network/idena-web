@@ -318,6 +318,7 @@ function ActionPanel({onClose}) {
     if (
       eitherState(
         currentOnboarding,
+        onboardingShowingStep(OnboardingStep.StartTraining),
         onboardingShowingStep(OnboardingStep.ActivateInvite)
       )
     )

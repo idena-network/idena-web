@@ -414,6 +414,8 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
       {hasBeenInvited ? (
         <Flex justify="flex-end">
           <PrimaryButton
+            size={size}
+            w={['100%', 'auto']}
             isLoading={waiting}
             loadingText={t('Mining...')}
             type="submit"
@@ -493,7 +495,21 @@ export const AcceptInvitationPanel = React.forwardRef(
     const {t} = useTranslation()
 
     return (
-      <React.Fragment ref={ref} {...props}>
+      <Stack
+        spacing={[0, 6]}
+        bg={['transparent', 'white']}
+        borderRadius="lg"
+        boxShadow={[
+          'none',
+          '0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)',
+        ]}
+        px={[0, 10]}
+        py={[0, 8]}
+        pos="relative"
+        zIndex={5}
+        ref={ref}
+        {...props}
+      >
         <Stack display={['none', 'flex']}>
           <Heading as="h3" fontWeight={500} fontSize="lg">
             {t('Congratulations!')}
@@ -525,7 +541,7 @@ export const AcceptInvitationPanel = React.forwardRef(
             />
           </ActivateInviteForm>
         </Box>
-      </React.Fragment>
+      </Stack>
     )
   }
 )
@@ -535,7 +551,21 @@ export const ActivateInvitationPanel = React.forwardRef(
     const {t} = useTranslation()
 
     return (
-      <React.Fragment ref={ref} {...props}>
+      <Stack
+        spacing={[0, 6]}
+        bg={['transparent', 'white']}
+        borderRadius="lg"
+        boxShadow={[
+          'none',
+          '0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)',
+        ]}
+        px={[0, 10]}
+        py={[0, 8]}
+        pos="relative"
+        zIndex={5}
+        ref={ref}
+        {...props}
+      >
         <Stack display={['none', 'flex']}>
           <Heading as="h3" fontWeight={500} fontSize="lg">
             {t('Join the upcoming validation')}
@@ -567,7 +597,7 @@ export const ActivateInvitationPanel = React.forwardRef(
             />
           </ActivateInviteForm>
         </Box>
-      </React.Fragment>
+      </Stack>
     )
   }
 )
@@ -579,23 +609,41 @@ export const StartIdenaJourneyPanel = React.forwardRef(
     const router = useRouter()
 
     const size = useBreakpointValue(['lg', 'md'])
+    const isInine = useBreakpointValue([false, true])
 
     return (
-      <React.Fragment ref={ref} {...props}>
-        <Stack display={['none', 'flex']}>
+      <Stack
+        spacing={6}
+        bg="white"
+        borderRadius="lg"
+        boxShadow="0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)"
+        px={6}
+        py={6}
+        pos="relative"
+        zIndex={5}
+        ref={ref}
+        {...props}
+      >
+        <Stack>
           <Heading as="h3" fontWeight={500} fontSize="lg">
             {t('Start your Idena journey')}
           </Heading>
           <Text color="muted">
             {t(
-              'Pass the training validation and get your training certificate.'
+              'Prepare yourself for the validation ceremony. Pass the training validation and get your training validation certificate. It will help you to get an invitation code.'
             )}
           </Text>
         </Stack>
         <Box>
-          <Stack spacing={[0, 4]} isInline align="center" justify="flex-end">
+          <Stack
+            spacing={[6, 4]}
+            isInline={isInine}
+            align="center"
+            justify="flex-end"
+            direction={['column-reverse', 'row']}
+          >
             <Button
-              display={['none', 'inline-flex']}
+              display={['flex', 'inline-flex']}
               variant="link"
               onClick={onHasActivationCode}
               colorScheme="blue"
@@ -614,13 +662,12 @@ export const StartIdenaJourneyPanel = React.forwardRef(
               onClick={() => router.push('/try')}
               size={size}
               w={['100%', 'auto']}
-              ml={[0, 'initial']}
             >
               {t('Start now')}
             </PrimaryButton>
           </Stack>
         </Box>
-      </React.Fragment>
+      </Stack>
     )
   }
 )
@@ -676,7 +723,7 @@ export const ActivateInviteOnboardingContent = ({onDismiss}) => {
   return (
     <OnboardingPopoverContent
       gutter={10}
-      title={t('Accept invitation')}
+      title={t('How to get an invitation code')}
       zIndex={2}
       onDismiss={onDismiss}
     >
@@ -716,41 +763,25 @@ export const ActivateInviteOnboardingContent = ({onDismiss}) => {
 
 export const StartIdenaJourneyOnboardingContent = ({onDismiss}) => {
   const {t} = useTranslation()
-  const router = useRouter()
 
   return (
     <OnboardingPopoverContent
       gutter={10}
-      title={t('Where to start')}
+      title={t('Why do I need the training?')}
       zIndex={2}
       onDismiss={onDismiss}
     >
       <Stack>
         <Text fontSize="sm">
           {t(
-            'Pass the training validation and get a certificate which you can provide to a validated member to get an invitation code'
+            'Idena validation is by invitation only. Invitations are distributed by validated people.'
           )}
         </Text>
-        <OnboardingPopoverContentIconRow
-          icon={<TestValidationIcon boxSize={5} color="white" />}
-          _hover={{
-            bg: '#689aff',
-          }}
-          px={4}
-          py={2}
-          cursor="pointer"
-          onClick={() => router.push('/try')}
-          borderRadius="lg"
-        >
-          <Box>
-            <Text p={0} py={0} h={18} fontSize="md">
-              {t('Test yourself')}
-            </Text>
-            <Text fontSize="sm" color="rgba(255, 255, 255, 0.56)">
-              {t('Training validation')}
-            </Text>
-          </Box>
-        </OnboardingPopoverContentIconRow>
+        <Text fontSize="sm">
+          {t(
+            'Start with the training validation and get a certificate which proves that you are prepared for the real validation. Then you can use your certificate to apply for an invitation.'
+          )}
+        </Text>
       </Stack>
     </OnboardingPopoverContent>
   )
@@ -1527,6 +1558,8 @@ export function MyIdenaBotAlert({onConnect}) {
   // eslint-disable-next-line no-shadow
   const eitherState = (...states) => states.some(s => s === state)
 
+  const size = useBreakpointValue(['sm', 'md'])
+
   return (
     <>
       <Alert
@@ -1550,7 +1583,7 @@ export function MyIdenaBotAlert({onConnect}) {
 
       <Dialog
         title="Subscribe to @MyIdenaBot"
-        size="md"
+        size={size}
         initialFocusRef={connectButtonRef}
         {...myIdenaBotDisclosure}
       >
@@ -1657,15 +1690,12 @@ export function ActivateInvitationDialog({onClose, ...props}) {
   const {t} = useTranslation()
 
   return (
-    <Dialog
-      title={t('Invite activation')}
-      size="md"
-      onClose={onClose}
-      {...props}
-    >
+    <Dialog title={t('Invite activation')} onClose={onClose} {...props}>
       <DialogBody mb={0}>
-        <ActivateInviteForm mt={3} onSuccess={onClose}>
-          <SecondaryButton onClick={onClose}>{t('Cancel')}</SecondaryButton>
+        <ActivateInviteForm onSuccess={onClose}>
+          <SecondaryButton display={['none', 'initial']} onClick={onClose}>
+            {t('Cancel')}
+          </SecondaryButton>
         </ActivateInviteForm>
       </DialogBody>
     </Dialog>
