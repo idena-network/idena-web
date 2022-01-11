@@ -372,6 +372,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
 
         const result = await activateKey(coinbase, `0x${hex}`, providers)
         savePurchase(result.id, result.provider)
+        setHash(result.txHash)
       } else {
         const result = await sendRawTx(`0x${hex}`)
         setHash(result)
@@ -391,13 +392,13 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
     }
   }
 
+  const waiting = submitting || isPurchasing || mining
+
   useEffect(() => {
-    if (mined && onSuccess) {
+    if (!waiting && mined && onSuccess) {
       onSuccess()
     }
-  }, [mined, onSuccess])
-
-  const waiting = submitting || isPurchasing || mining
+  }, [mined, waiting, onSuccess])
 
   const hasBeenInvited = state === IdentityStatus.Invite
 

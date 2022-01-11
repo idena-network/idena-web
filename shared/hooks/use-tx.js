@@ -95,9 +95,9 @@ export default function useTx(initialHash, useGuestKey) {
       if (error) {
         dispatch({type: 'fail', error})
       }
-      // if (result === null) {
-      //   dispatch({type: 'missing'})
-      // }
+      if (result === null) {
+        dispatch({type: 'missing'})
+      }
       if (result !== null) {
         const {blockHash} = result
         if (blockHash === HASH_IN_MEMPOOL) {
