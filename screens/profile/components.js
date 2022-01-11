@@ -327,7 +327,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
 
   const failToast = useFailToast()
   const size = useBreakpointValue(['lg', 'md'])
-  const placeholderValue = useBreakpointValue(['Invitation code', ''])
+  const placeholderValue = useBreakpointValue(['Enter invitation code', ''])
 
   const [{state}, {waitStateUpdate}] = useIdentity()
   const {coinbase, privateKey} = useAuthState()
