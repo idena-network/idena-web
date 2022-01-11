@@ -4,9 +4,10 @@ import {
   Checkbox,
   Flex,
   Box,
+  Button,
   Text,
   useBreakpointValue,
-  useClipboard,
+  useClipboard, Heading,
 } from '@chakra-ui/react'
 import React, {useState, useEffect} from 'react'
 import {useRouter} from 'next/router'
@@ -55,6 +56,7 @@ export default function CreateKey() {
   const {t} = useTranslation()
   const size = useBreakpointValue(['lg', 'md'])
   const variant = useBreakpointValue(['mobile', 'initial'])
+  const buttonVariant = useBreakpointValue(['primaryFlat', 'secondary'])
   const successToast = useSuccessToast()
 
   const router = useRouter()
@@ -461,9 +463,10 @@ export default function CreateKey() {
                       w={['100%', 'initial']}
                       direction={['column', 'initial']}
                     >
-                      <SecondaryButton
+                      <Button
                         order={[2, 1]}
                         size={size}
+                        variant={buttonVariant}
                         w={['100%', 'initial']}
                         type="button"
                         mt={[4, 0]}
@@ -472,7 +475,7 @@ export default function CreateKey() {
                         onClick={() => setState({...state, showQrDialog: true})}
                       >
                         {t('Show QR code')}
-                      </SecondaryButton>
+                      </Button>
                       <PrimaryButton
                         order={[1, 2]}
                         w={['100%', 'initial']}

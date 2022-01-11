@@ -423,6 +423,7 @@ export const uiTheme = {
         },
         mobile: {
           field: {
+            border: '2px solid',
             borderColor: 'gray.100',
             _hover: {
               borderColor: 'gray.100',
@@ -433,6 +434,7 @@ export const uiTheme = {
             _disabled: {
               bg: 'xblack.016',
               color: 'xwhite.016',
+              borderColor: 'xblack.008',
             },
           },
         },
