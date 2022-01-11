@@ -64,6 +64,10 @@ export function OnboardingProvider({children}) {
           ...createStep(OnboardingStep.StartTraining, {
             on: {
               [OnboardingStep.ActivateInvite]: OnboardingStep.ActivateInvite,
+              [OnboardingStep.Validate]: {
+                actions: 'reward',
+                target: OnboardingStep.Validate,
+              },
               SHOW: '.showing',
             },
           }),
