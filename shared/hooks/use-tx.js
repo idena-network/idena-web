@@ -95,9 +95,9 @@ export default function useTx(initialHash, useGuestKey) {
       if (error) {
         dispatch({type: 'fail', error})
       }
-      // if (result === null) {
-      //   dispatch({type: 'missing'})
-      // }
+      if (result === null) {
+        dispatch({type: 'missing'})
+      }
       if (result !== null) {
         const {blockHash} = result
         if (blockHash === HASH_IN_MEMPOOL) {
@@ -114,7 +114,7 @@ export default function useTx(initialHash, useGuestKey) {
         }
       }
     },
-    hash && !state.mined ? 1000 * 10 : null
+    hash && !state.mined ? 1000 * 5 : null
   )
 
   return [state, setHash]

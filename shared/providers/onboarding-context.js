@@ -9,6 +9,7 @@ import {rewardWithConfetti, shouldCreateFlips} from '../utils/onboarding'
 import {loadPersistentState, persistState} from '../utils/persist'
 import {useEpoch} from './epoch-context'
 import {useIdentity} from './identity-context'
+import {useTestValidationState} from './test-validation-context'
 
 const OnboardingContext = React.createContext()
 
@@ -16,6 +17,7 @@ export function OnboardingProvider({children}) {
   const epoch = useEpoch()
 
   const [identity] = useIdentity()
+  const {hasSuccessTrainingValidation} = useTestValidationState()
 
   const createStep = (step, config) => ({
     [step]: {
@@ -51,6 +53,7 @@ export function OnboardingProvider({children}) {
         states: {
           unknown: {
             on: {
+              [OnboardingStep.StartTraining]: OnboardingStep.StartTraining,
               [OnboardingStep.ActivateInvite]: OnboardingStep.ActivateInvite,
               [OnboardingStep.Validate]: OnboardingStep.Validate,
               [OnboardingStep.ActivateMining]: OnboardingStep.ActivateMining,
@@ -58,6 +61,16 @@ export function OnboardingProvider({children}) {
               UPDATE_IDENTITY: {actions: ['setIdentity']},
             },
           },
+          ...createStep(OnboardingStep.StartTraining, {
+            on: {
+              [OnboardingStep.ActivateInvite]: OnboardingStep.ActivateInvite,
+              [OnboardingStep.Validate]: {
+                actions: 'reward',
+                target: OnboardingStep.Validate,
+              },
+              SHOW: '.showing',
+            },
+          }),
           ...createStep(OnboardingStep.ActivateInvite, {
             on: {
               [OnboardingStep.Validate]: OnboardingStep.Validate,
@@ -139,6 +152,9 @@ export function OnboardingProvider({children}) {
       send(
         (() => {
           switch (true) {
+            case identity.state === IdentityStatus.Undefined &&
+              !hasSuccessTrainingValidation:
+              return OnboardingStep.StartTraining
             case identity.canActivateInvite:
               return OnboardingStep.ActivateInvite
             case identity.age === 1 &&
@@ -155,7 +171,7 @@ export function OnboardingProvider({children}) {
         {identity}
       )
     }
-  }, [epoch, identity, send])
+  }, [epoch, hasSuccessTrainingValidation, identity, send])
 
   return (
     <OnboardingContext.Provider

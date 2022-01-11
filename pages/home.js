@@ -1,7 +1,7 @@
+/* eslint-disable no-nested-ternary */
 import React, {useEffect} from 'react'
 import {
   Box,
-  Heading,
   PopoverTrigger,
   Stack,
   Text,
@@ -18,22 +18,23 @@ import {
   UserInlineCard,
   UserStatList,
   UserStatistics,
-  ActivateInviteForm,
   ValidationResultToast,
   ActivateMiningForm,
   KillForm,
   AnnotatedUserStatistics,
   WideLink,
   MyIdenaBotAlert,
+  ActivateInvitationPanel,
+  AcceptInvitationPanel,
+  StartIdenaJourneyPanel,
+  AcceptInviteOnboardingContent,
+  ActivateInviteOnboardingContent,
+  StartIdenaJourneyOnboardingContent,
+  ActivateInvitationDialog,
 } from '../screens/profile/components'
 import Layout from '../shared/components/layout'
 import {IdentityStatus, OnboardingStep} from '../shared/types'
-import {
-  toPercent,
-  toLocaleDna,
-  eitherState,
-  openExternalUrl,
-} from '../shared/utils/utils'
+import {toPercent, toLocaleDna, eitherState} from '../shared/utils/utils'
 import {
   hasPersistedValidationResults,
   shouldExpectValidationResults,
@@ -47,7 +48,6 @@ import {useOnboarding} from '../shared/providers/onboarding-context'
 import {
   OnboardingPopover,
   OnboardingPopoverContent,
-  OnboardingPopoverContentIconRow,
 } from '../shared/components/onboarding'
 import {onboardingShowingStep} from '../shared/utils/onboarding'
 import {useScroll} from '../shared/hooks/use-scroll'
@@ -58,13 +58,13 @@ import {
   DeleteIcon,
   OpenExplorerIcon,
   PhotoIcon,
-  TelegramIcon,
   TestValidationIcon,
 } from '../shared/components/icons'
 import {useSuccessToast} from '../shared/hooks/use-toast'
 import {persistItem} from '../shared/utils/persist'
 import {isValidDnaUrl} from '../screens/dna/utils'
 import {useIdenaBot} from '../screens/profile/hooks'
+import {useTestValidationState} from '../shared/providers/test-validation-context'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -160,6 +160,8 @@ export default function ProfilePage() {
     {dismissCurrentTask, next: nextOnboardingTask},
   ] = useOnboarding()
 
+  const {hasSuccessTrainingValidation} = useTestValidationState()
+
   const eitherOnboardingState = (...states) =>
     eitherState(currentOnboarding, ...states)
 
@@ -168,6 +170,8 @@ export default function ProfilePage() {
     onOpen: onOpenActivateInvitePopover,
     onClose: onCloseActivateInvitePopover,
   } = useDisclosure()
+
+  const activateInviteDisclosure = useDisclosure()
 
   const activateInviteRef = React.useRef()
 
@@ -178,6 +182,7 @@ export default function ProfilePage() {
       isOpenActivateInvitePopover ||
       eitherState(
         currentOnboarding,
+        onboardingShowingStep(OnboardingStep.StartTraining),
         onboardingShowingStep(OnboardingStep.ActivateInvite)
       )
     ) {
@@ -200,6 +205,11 @@ export default function ProfilePage() {
 
   const [didConnectIdenaBot, connectIdenaBot] = useIdenaBot()
 
+  const shouldStartIdenaJourney =
+    state === IdentityStatus.Undefined && !hasSuccessTrainingValidation
+
+  const onboardingPopoverPlacement = useBreakpointValue(['top', 'bottom'])
+
   return (
     <Layout canRedirect={!dnaUrl} didConnectIdenaBot={didConnectIdenaBot}>
       {!didConnectIdenaBot && <MyIdenaBotAlert onConnect={connectIdenaBot} />}
@@ -219,169 +229,55 @@ export default function ProfilePage() {
             align={['center', 'initial']}
             ref={activateInviteRef}
           >
-            <UserInlineCard address={coinbase} state={state} h={['auto', 24]} />
+            <UserInlineCard
+              address={coinbase}
+              state={state}
+              h={['auto', 24]}
+              mb={[2, 0]}
+            />
             {canActivateInvite && (
               <Box w={['100%', 'initial']} pb={[8, 0]}>
                 <OnboardingPopover
                   isOpen={isOpenActivateInvitePopover}
-                  placement="bottom"
+                  placement={onboardingPopoverPlacement}
                 >
                   <PopoverTrigger>
-                    <Stack
-                      spacing={6}
-                      bg={['transparent', 'white']}
-                      borderRadius="lg"
-                      boxShadow={[
-                        'none',
-                        '0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)',
-                      ]}
-                      px={[0, 10]}
-                      py={[0, 8]}
-                      pos="relative"
-                      zIndex={5}
-                    >
-                      <Stack display={['none', 'flex']}>
-                        <Heading as="h3" fontWeight={500} fontSize="lg">
-                          {state === IdentityStatus.Invite
-                            ? t('Congratulations!')
-                            : t('Join the upcoming validation')}
-                        </Heading>
-                        <Text color="muted">
-                          {state === IdentityStatus.Invite
-                            ? t(
-                                'You have been invited to join the upcoming validation ceremony. Click the button below to accept the invitation.'
-                              )
-                            : t(
-                                'To take part in the validation, you need an invitation code. Invitations can be provided by validated identities.'
-                              )}
-                        </Text>
-                      </Stack>
-                      <Box>
-                        <ActivateInviteForm
-                          onHowToGetInvitation={onOpenActivateInvitePopover}
-                        />
-                      </Box>
-                    </Stack>
+                    {shouldStartIdenaJourney ? (
+                      <StartIdenaJourneyPanel
+                        onHasActivationCode={activateInviteDisclosure.onOpen}
+                      />
+                    ) : state === IdentityStatus.Invite ? (
+                      <AcceptInvitationPanel
+                        onHowToGetInvitation={onOpenActivateInvitePopover}
+                      />
+                    ) : (
+                      <ActivateInvitationPanel
+                        onHowToGetInvitation={onOpenActivateInvitePopover}
+                      />
+                    )}
                   </PopoverTrigger>
-                  <OnboardingPopoverContent
-                    gutter={10}
-                    title={
-                      state === IdentityStatus.Invite
-                        ? t('Accept invitation')
-                        : t('How to get an invitation code')
-                    }
-                    zIndex={2}
-                    onDismiss={() => {
-                      dismissCurrentTask()
-                      onCloseActivateInvitePopover()
-                    }}
-                  >
-                    <Stack spacing={5}>
-                      {state === IdentityStatus.Invite ? (
-                        <Stack>
-                          <Text fontSize="sm">
-                            {t(
-                              'You are invited to join the upcoming validation. Please accept the invitation.'
-                            )}
-                          </Text>
-                          <Text fontSize="sm">
-                            {t('Prepare yourself with training validation')}
-                          </Text>
-                          <OnboardingPopoverContentIconRow
-                            icon={
-                              <TestValidationIcon boxSize={5} color="white" />
-                            }
-                            _hover={{
-                              bg: '#689aff',
-                            }}
-                            px={4}
-                            py={2}
-                            cursor="pointer"
-                            onClick={() => router.push('/try')}
-                            borderRadius="lg"
-                          >
-                            <Box>
-                              <Text p={0} py={0} h={18} fontSize="md">
-                                {t('Test yourself')}
-                              </Text>
-                              <Text
-                                fontSize="sm"
-                                color="rgba(255, 255, 255, 0.56)"
-                              >
-                                {t('Training validation')}
-                              </Text>
-                            </Box>
-                          </OnboardingPopoverContentIconRow>
-                        </Stack>
-                      ) : (
-                        <Stack>
-                          <Text fontSize="sm">
-                            {t(
-                              '1. Join the official Idena public Telegram group and follow instructions in the pinned message.'
-                            )}
-                          </Text>
-                          <OnboardingPopoverContentIconRow
-                            icon={<TelegramIcon boxSize={5} />}
-                            _hover={{
-                              bg: '#689aff',
-                            }}
-                            px={4}
-                            py={2}
-                            cursor="pointer"
-                            onClick={() => {
-                              const win = openExternalUrl(
-                                'https://t.me/IdenaNetworkPublic'
-                              )
-                              win.focus()
-                            }}
-                            borderRadius="lg"
-                          >
-                            <Box>
-                              <Text p={0} py={0} h={18} fontSize="md">
-                                https://t.me/IdenaNetworkPublic
-                              </Text>
-                              <Text
-                                fontSize="sm"
-                                color="rgba(255, 255, 255, 0.56)"
-                              >
-                                {t('Official group')}
-                              </Text>
-                            </Box>
-                          </OnboardingPopoverContentIconRow>
-                          <Text fontSize="sm">
-                            {t(
-                              '2. Pass the training validation and get a certificate which you can provide to a validated member to get an invitation code'
-                            )}
-                          </Text>
-                          <OnboardingPopoverContentIconRow
-                            icon={
-                              <TestValidationIcon boxSize={5} color="white" />
-                            }
-                            _hover={{
-                              bg: '#689aff',
-                            }}
-                            px={4}
-                            py={2}
-                            cursor="pointer"
-                            onClick={() => router.push('/try')}
-                            borderRadius="lg"
-                          >
-                            <Box>
-                              <Text p={0} py={0} h={18} fontSize="md">
-                                {t('Test yourself')}
-                              </Text>
-                              <Text
-                                fontSize="sm"
-                                color="rgba(255, 255, 255, 0.56)"
-                              >
-                                {t('Training validation')}
-                              </Text>
-                            </Box>
-                          </OnboardingPopoverContentIconRow>
-                        </Stack>
-                      )}
-                    </Stack>
-                  </OnboardingPopoverContent>
+                  {shouldStartIdenaJourney ? (
+                    <StartIdenaJourneyOnboardingContent
+                      onDismiss={() => {
+                        dismissCurrentTask()
+                        onCloseActivateInvitePopover()
+                      }}
+                    />
+                  ) : state === IdentityStatus.Invite ? (
+                    <AcceptInviteOnboardingContent
+                      onDismiss={() => {
+                        dismissCurrentTask()
+                        onCloseActivateInvitePopover()
+                      }}
+                    />
+                  ) : (
+                    <ActivateInviteOnboardingContent
+                      onDismiss={() => {
+                        dismissCurrentTask()
+                        onCloseActivateInvitePopover()
+                      }}
+                    />
+                  )}
                 </OnboardingPopover>
               </Box>
             )}
@@ -394,7 +290,6 @@ export default function ProfilePage() {
                 <>
                   <WideLink
                     display={['initial', 'none']}
-                    pt={5}
                     pb={3}
                     label="Open in blockchain explorer"
                     href={`https://scan.idena.io/address/${address}`}
@@ -648,6 +543,7 @@ export default function ProfilePage() {
         {showValidationResults && epoch && (
           <ValidationResultToast epoch={epoch.epoch} />
         )}
+        <ActivateInvitationDialog {...activateInviteDisclosure} />
       </Page>
     </Layout>
   )

@@ -81,18 +81,49 @@ function TestValidationProvider({children}) {
     localStorageKey(coinbase)
   )
 
+  const [initialized, setInitialized] = useState(false)
+
+  // inital loading from localStorage
   useEffect(() => {
     if (coinbase) {
-      const prevState = loadPersistentState(localStorageKey(coinbase))
-      if (prevState) {
-        setState({...prevState, shouldPersist: false})
-      } else {
+      try {
+        const prevState = loadPersistentState(localStorageKey(coinbase))
+        if (prevState) {
+          setState({...prevState, shouldPersist: false})
+        }
+      } catch {
         setState(initStateValue)
+      } finally {
+        setInitialized(true)
       }
-    } else {
-      setState(initStateValue)
     }
   }, [coinbase, setState])
+
+  // try to load from cloud storage
+  useEffect(() => {
+    async function load() {
+      try {
+        const signature = signMessage(coinbase, privateKey)
+        const persistedState = await restoreTestValidation(
+          toHexString(signature),
+          coinbase
+        )
+
+        if (persistedState) {
+          setState(prevState => {
+            if (prevState.timestamp <= persistedState.timestamp)
+              return {...persistedState, shouldPersist: false}
+            return {...prevState, shouldPersist: true}
+          })
+        }
+        // eslint-disable-next-line no-empty
+      } catch {}
+    }
+
+    if (coinbase && initialized) {
+      load()
+    }
+  }, [coinbase, initialized, privateKey, setState])
 
   useEffect(() => {
     async function persist() {
@@ -108,31 +139,6 @@ function TestValidationProvider({children}) {
       persist()
     }
   }, [coinbase, privateKey, state])
-
-  useEffect(() => {
-    async function load() {
-      try {
-        const signature = signMessage(coinbase, privateKey)
-        const persistedState = await restoreTestValidation(
-          toHexString(signature),
-          coinbase
-        )
-
-        if (persistedState) {
-          setState(prevState => {
-            if (prevState.timestamp <= persistedState.timestamp)
-              return {...persistedState, shouldPersist: false}
-            return {...prevState, shouldPersist: false}
-          })
-        }
-        // eslint-disable-next-line no-empty
-      } catch {}
-    }
-
-    if (coinbase) {
-      load()
-    }
-  }, [coinbase, privateKey, setState])
 
   const checkValidation = async id => {
     const result = await getResult(id)
@@ -254,8 +260,18 @@ function TestValidationProvider({children}) {
     currentPeriod: getEpochPeriod(state.current?.startTime),
   }
 
+  const isSuccess = type =>
+    state.validations?.[type]?.actionType === CertificateActionType.Passed
+
+  const hasSuccessTrainingValidation =
+    isSuccess(CertificateType.Easy) ||
+    isSuccess(CertificateType.Medium) ||
+    isSuccess(CertificateType.Hard)
+
   return (
-    <TestValidationStateContext.Provider value={{...state, epoch}}>
+    <TestValidationStateContext.Provider
+      value={{...state, epoch, hasSuccessTrainingValidation}}
+    >
       <TestVlidationDispatchContext.Provider
         value={{scheduleValidation, checkValidation, cancelValidation}}
       >
