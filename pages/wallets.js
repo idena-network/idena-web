@@ -7,9 +7,9 @@ import {
   Heading,
   Flex as ChakraFlex,
   Box as ChakraBox,
-  useBreakpointValue,
   Box,
 } from '@chakra-ui/react'
+import {useRouter} from 'next/router'
 import theme, {rem} from '../shared/theme'
 import {Link} from '../shared/components'
 import Flex from '../shared/components/flex'
@@ -26,11 +26,12 @@ import {fetchBalance} from '../shared/api/wallet'
 import WalletCard from '../screens/wallets/components/wallet-card'
 import {IconButton} from '../shared/components/button'
 import {Avatar} from '../shared/components/components'
-import {OpenExplorerIcon} from '../shared/components/icons'
+import {AngleArrowBackIcon, OpenExplorerIcon} from '../shared/components/icons'
 import {WideLink} from '../screens/profile/components'
 
 export default function Index() {
   const {t} = useTranslation()
+  const router = useRouter()
 
   const {coinbase} = useAuthState()
 
@@ -51,6 +52,16 @@ export default function Index() {
   return (
     <Layout>
       <Page>
+        <AngleArrowBackIcon
+          position="absolute"
+          left={4}
+          top="28px"
+          h="28px"
+          w="28px"
+          onClick={() => {
+            router.push('/home')
+          }}
+        />
         <PageTitleNew>{t('Wallets')}</PageTitleNew>
         <ChakraBox w="100%">
           <ChakraFlex
@@ -135,7 +146,13 @@ export default function Index() {
             </Box>
           </WideLink>
 
-          <Heading fontSize={['md', 'lg']} color={['muted', 'brandGray.500']} fontWeight={[400, 500]} mb={2} mt={[4, 8]}>
+          <Heading
+            fontSize={['md', 'lg']}
+            color={['muted', 'brandGray.500']}
+            fontWeight={[400, 500]}
+            mb={2}
+            mt={[4, 8]}
+          >
             {t('Recent transactions')}
           </Heading>
 

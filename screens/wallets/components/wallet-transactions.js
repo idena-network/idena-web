@@ -3,7 +3,23 @@ import PropTypes from 'prop-types'
 import {ellipsis, rgba} from 'polished'
 import {useTranslation} from 'react-i18next'
 import {useInfiniteQuery} from 'react-query'
-import {Box, Flex, Divider, Stack, Table, Thead, Tbody} from '@chakra-ui/react'
+import {
+  Box,
+  Flex,
+  Text,
+  Divider,
+  Drawer,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerBody,
+  DrawerHeader,
+  Stack,
+  Table,
+  Thead,
+  Tbody,
+  useDisclosure,
+  useBreakpointValue,
+} from '@chakra-ui/react'
 import theme, {rem} from '../../../shared/theme'
 import Avatar from '../../../shared/components/avatar'
 import {
@@ -15,7 +31,13 @@ import {
 import {fetchApiTransactions} from '../../../shared/api/wallet'
 import {FlatButton} from '../../../shared/components/button'
 import {Skeleton} from '../../../shared/components/components'
-import {lowerCase} from '../../../shared/utils/utils'
+import {dummyAddress, lowerCase} from '../../../shared/utils/utils'
+import {Heading} from '../../../shared/components'
+import {
+  AngleArrowBackIcon,
+  OpenExplorerIcon,
+} from '../../../shared/components/icons'
+import {WideLink} from '../../profile/components'
 
 function RowStatus({direction, type, isMining, walletName, tx, ...props}) {
   const txColor =
@@ -23,8 +45,16 @@ function RowStatus({direction, type, isMining, walletName, tx, ...props}) {
 
   const iconColor = isMining ? theme.colors.muted : txColor
 
+  const {
+    isOpen: isOpenTxDetailDrawer,
+    onOpen: onOpenTxDetailDrawer,
+    onClose: onCloseTxDetailDrawer,
+  } = useDisclosure()
+
+  const onDrawerOpen = useBreakpointValue([onOpenTxDetailDrawer, () => {}])
+
   return (
-    <div {...props} className="status">
+    <Box {...props} onClick={onDrawerOpen} className="status">
       <Box
         h={[10, 8]}
         w={[10, 8]}
@@ -63,13 +93,16 @@ function RowStatus({direction, type, isMining, walletName, tx, ...props}) {
             {/* eslint-disable-next-line react/prop-types */}
             {(tx.type === 'kill' && 'See in Explorer...') ||
               // eslint-disable-next-line react/prop-types
-              (tx.amount === '0' ? '\u2013' : tx.signAmount + ' iDNA')}
+              (tx.amount === '0' ? '\u2013' : `${tx.signAmount} iDNA`)}
           </Box>
         </Flex>
         <Flex justify={['space-between', 'flex-start']}>
           <Box display={['block', 'none']}>
             {/* eslint-disable-next-line react/prop-types */}
-            {!tx.timestamp ? '\u2013' : new Date(tx.timestamp).toLocaleDateString()}
+            {!tx.timestamp
+              ? '\u2013'
+              : // eslint-disable-next-line react/prop-types
+                new Date(tx.timestamp).toLocaleDateString()}
           </Box>
           <Box
             className="name"
@@ -81,7 +114,13 @@ function RowStatus({direction, type, isMining, walletName, tx, ...props}) {
           </Box>
         </Flex>
       </Box>
-    </div>
+
+      <TransactionDetailDrawer
+        tx={tx}
+        isOpen={isOpenTxDetailDrawer}
+        onClose={onCloseTxDetailDrawer}
+      />
+    </Box>
   )
 }
 
@@ -302,6 +341,93 @@ function WalletTransactions({address}) {
         </div>
       )}
     </div>
+  )
+}
+
+// eslint-disable-next-line react/prop-types
+function TransactionDetailDrawer({tx, onClose, ...props}) {
+  const {t} = useTranslation(['translation', 'error'])
+
+  return (
+    <Drawer placement="bottom" size="full" {...props}>
+      <DrawerOverlay />
+      <DrawerContent>
+        <DrawerHeader>
+          <AngleArrowBackIcon
+            position="absolute"
+            left={4}
+            top="55px"
+            onClick={onClose}
+          />
+          <Flex direction="column" textAlign="center" mt={10}>
+            <Text fontSize="16px" fontWeight="bold" color="brandGray.500">
+              {/* eslint-disable-next-line react/prop-types */}
+              {tx.typeName}
+            </Text>
+            <Text fontSize="mdx" fontWeight="normal" color="gray.300">
+              Transaction
+            </Text>
+          </Flex>
+        </DrawerHeader>
+        <DrawerBody px={8}>
+          <TransactionRow
+            title={
+              // eslint-disable-next-line react/prop-types
+              tx.direction === 'Sent' ? t('To') : `${t('From')} smart contract`
+            }
+            value={tx.counterPartyWallet ? `${t('wallet')} Main` : t('address')}
+          />
+          <TransactionRow title="Transaction ID" value={tx.hash} />
+          <TransactionRow
+            title="Amount"
+            value={
+              (tx.type === 'kill' && 'See in Explorer...') ||
+              (tx.amount === '0' ? '\u2013' : tx.signAmount)
+            }
+          />
+          <TransactionRow
+            title="Fee"
+            value={
+              (!tx.isMining && (tx.fee === '0' ? '\u2013' : tx.fee)) ||
+              tx.maxFee
+            }
+          />
+          <TransactionRow
+            mb={6}
+            title="Date"
+            value={
+              !tx.timestamp ? '\u2013' : new Date(tx.timestamp).toLocaleString()
+            }
+          />
+          <WideLink
+            display={['initial', 'none']}
+            label={t('More details in Explorer')}
+            href={`https://scan.idena.io/transaction/${tx.hash}`}
+            isNewTab
+          >
+            <Box boxSize={8} backgroundColor="brandBlue.10" borderRadius="10px">
+              <OpenExplorerIcon boxSize={5} mt="6px" ml="6px" />
+            </Box>
+          </WideLink>
+        </DrawerBody>
+      </DrawerContent>
+    </Drawer>
+  )
+}
+
+// eslint-disable-next-line react/prop-types
+function TransactionRow({title, value, children, ...props}) {
+  return (
+    <Flex direction="column" mt={2} {...props}>
+      <Text fontSize="base" fontWeight={500} color="brandGray.500">
+        {title}
+      </Text>
+      <Text fontSize="base" fontWeight={400} color="gray.300">
+        {value}
+      </Text>
+      {children}
+      <Divider mt="11px" />
+    </Flex>
   )
 }
 

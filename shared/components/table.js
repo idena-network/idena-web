@@ -56,7 +56,7 @@ export function TableCol({children, color, ...props}) {
         }
       `}</style>
       <Divider
-        display={['block', 'none']}
+        display={[isLast ? 'none' : 'block', 'none']}
         color="gray.100"
         mt="6px"
         ml={14}

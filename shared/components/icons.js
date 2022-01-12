@@ -520,6 +520,14 @@ export const ArrowBackIcon = createIcon({
   ),
 })
 
+export const AngleArrowBackIcon = createIcon({
+  displayName: 'ArrowBackIcon',
+  viewBox: '0 0 28 28',
+  path: (
+    <path stroke="#578FFF" strokeWidth="2" fill="none" d="m18 23-9-9 9-9" />
+  ),
+})
+
 export const CopyIcon = createIcon({
   displayName: 'CopyIcon',
   viewBox: '0 0 24 24',
