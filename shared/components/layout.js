@@ -15,7 +15,11 @@ import {useEpoch} from '../providers/epoch-context'
 import {useTestValidationState} from '../providers/test-validation-context'
 import {EpochPeriod} from '../types'
 
-export default function Layout({didConnectIdenaBot, ...props}) {
+export default function Layout({
+  showHamburger = true,
+  didConnectIdenaBot,
+  ...props
+}) {
   const {asPath} = useRouter()
 
   const {auth} = useAuthState()
@@ -26,10 +30,12 @@ export default function Layout({didConnectIdenaBot, ...props}) {
     <LayoutContainer>
       {auth ? (
         <>
-          <Hamburger
-            onClick={sidebarDisclosure.onOpen}
-            top={didConnectIdenaBot || !asPath.startsWith('/home') ? 4 : 24}
-          />
+          {showHamburger && (
+            <Hamburger
+              onClick={sidebarDisclosure.onOpen}
+              top={didConnectIdenaBot || !asPath.startsWith('/home') ? 4 : 24}
+            />
+          )}
           <Sidebar {...sidebarDisclosure} />
           <NormalApp {...props} />
         </>

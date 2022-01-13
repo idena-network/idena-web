@@ -155,7 +155,7 @@ function SettingsProvider({children}) {
     async function softCheckIsSyncing() {
       try {
         const lastBlock = await getLastBlock()
-        const indexerResult = lastBlock?.result?.height
+        const indexerResult = lastBlock?.height
         if (!indexerResult) return false
 
         const chain = await fetchSync()

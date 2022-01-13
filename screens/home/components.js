@@ -1,6 +1,6 @@
 /* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/prop-types */
-import React, {useEffect, useState} from 'react'
+import React, {forwardRef, useEffect, useState} from 'react'
 import {
   Stack,
   Heading,
@@ -28,6 +28,11 @@ import {
   UnorderedList,
   ListItem,
   useDisclosure,
+  Tab,
+  TabPanel,
+  InputGroup,
+  InputLeftElement,
+  useTab,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
@@ -49,6 +54,7 @@ import {
   DialogFooter,
   DialogBody,
   Dialog,
+  TextLink,
 } from '../../shared/components/components'
 import {rem} from '../../shared/theme'
 import {
@@ -491,7 +497,7 @@ export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
 })
 
 export const AcceptInvitationPanel = React.forwardRef(
-  function AcceptInvitationPanel({onHowToGetInvitation, ...props}, ref) {
+  function AcceptInvitationPanel(props, ref) {
     const {t} = useTranslation()
 
     return (
@@ -522,17 +528,10 @@ export const AcceptInvitationPanel = React.forwardRef(
         </Stack>
         <Box>
           <ActivateInviteForm>
-            <Button
-              display={['none', 'inline-flex']}
-              variant="link"
-              leftIcon={<InfoIcon boxSize={4} />}
-              onClick={onHowToGetInvitation}
-              colorScheme="blue"
-              _active={{}}
-              fontWeight={500}
-            >
+            <TextLink href="/home/get-invitation" display={['none', 'initial']}>
+              <InfoIcon boxSize={4} mr={2} mt={-1} />
               {t('How to get an invitation?')}
-            </Button>
+            </TextLink>
             <Divider
               display={['none', 'block']}
               borderColor="gray.100"
@@ -547,7 +546,7 @@ export const AcceptInvitationPanel = React.forwardRef(
 )
 
 export const ActivateInvitationPanel = React.forwardRef(
-  function ActivateInvitationPanel({onHowToGetInvitation, ...props}, ref) {
+  function ActivateInvitationPanel(props, ref) {
     const {t} = useTranslation()
 
     return (
@@ -578,17 +577,10 @@ export const ActivateInvitationPanel = React.forwardRef(
         </Stack>
         <Box>
           <ActivateInviteForm>
-            <Button
-              display={['none', 'inline-flex']}
-              variant="link"
-              leftIcon={<InfoIcon boxSize={4} />}
-              onClick={onHowToGetInvitation}
-              colorScheme="blue"
-              _active={{}}
-              fontWeight={500}
-            >
+            <TextLink href="/home/get-invitation" display={['none', 'initial']}>
+              <InfoIcon boxSize={4} mr={2} mt={-1} />
               {t('How to get an invitation?')}
-            </Button>
+            </TextLink>
             <Divider
               display={['none', 'block']}
               borderColor="gray.100"
@@ -617,8 +609,8 @@ export const StartIdenaJourneyPanel = React.forwardRef(
         bg="white"
         borderRadius="lg"
         boxShadow="0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)"
-        px={6}
-        py={6}
+        px={[6, 10]}
+        py={[6, 8]}
         pos="relative"
         zIndex={5}
         ref={ref}
@@ -1712,5 +1704,100 @@ function IdenaBotFeatureList({features, listSeparator = ';'}) {
         </ListItem>
       ))}
     </UnorderedList>
+  )
+}
+
+export const GetInvitationTab = forwardRef(({icon, title, ...props}, ref) => {
+  const isMobile = useBreakpointValue([true, false])
+  const tabProps = useTab({...props, ref})
+  const isSelected = !!tabProps['aria-selected']
+  return (
+    <Tab
+      color="gray.300"
+      fontWeight="500"
+      _selected={{
+        color: 'blue.500',
+        bg: ['gray.500', 'gray.50'],
+        borderRadius: 'md',
+      }}
+      mr={[0, 2]}
+      w={['25%', null]}
+      {...props}
+    >
+      {isMobile
+        ? React.cloneElement(icon, {
+            boxSize: 5,
+            filter: !isSelected ? 'invert(75%)' : 'none',
+            color: 'gray.50',
+          })
+        : title}
+    </Tab>
+  )
+})
+
+export function GetInvitationTabPanel(props) {
+  return (
+    <TabPanel p={0} pt={[6, 8]} color={['gray.300', 'inherit']} {...props} />
+  )
+}
+
+export function GetInvitationTabTitle(props) {
+  return (
+    <Text
+      display={['block', 'none']}
+      fontSize="lg"
+      color="gray.500"
+      fontWeight="500"
+      mb={2}
+      {...props}
+    />
+  )
+}
+
+export function GetInvitationTwitterInput({value, onChange}) {
+  const [inputAddonVisible, setInputAddonVisible] = useState(false)
+  const size = useBreakpointValue(['lg', 'md'])
+
+  return (
+    <InputGroup size={size}>
+      <InputLeftElement
+        pointerEvents="none"
+        color="gray.300"
+        fontSize="md"
+        // eslint-disable-next-line react/no-children-prop
+        children="@"
+        display={inputAddonVisible ? 'inherit' : 'none'}
+      />
+      <Input
+        onFocus={() => setInputAddonVisible(true)}
+        onBlur={() => !value && setInputAddonVisible(false)}
+        onChange={e => onChange(e.target.value)}
+        pl={[10, 6]}
+      />
+    </InputGroup>
+  )
+}
+
+export function GetInvitationCopyButton({value, ...props}) {
+  const {hasCopied, onCopy} = useClipboard(value)
+  const {t} = useTranslation()
+
+  return (
+    <Flex alignSelf={['center', 'flex-start']} pt={[5, 0]} {...props}>
+      {hasCopied ? (
+        <Text
+          fontSize={['mobile', 'md']}
+          lineHeight={['18px', null]}
+          color="green.500"
+          fontWeight={500}
+        >
+          {t('Copied!')}
+        </Text>
+      ) : (
+        <FlatButton fontWeight={500} onClick={onCopy}>
+          {t('Copy')}
+        </FlatButton>
+      )}
+    </Flex>
   )
 }
