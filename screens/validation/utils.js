@@ -258,12 +258,20 @@ export const webClientType = isMobile ? mobileClientType : browserClientType
 export const transformLog = data => {
   if (typeof data === 'object') {
     const {context, event} = data
+
     if (event?.data instanceof Error) {
+      const error = event.data
+      let {message} = error
+
+      if (error.response) message = error.response.data
+      else if (error.request)
+        message = error.request.message || 'Request failed'
+
       return {
         context,
         event: {
           type: event.type,
-          data: event.data.message,
+          data: message,
         },
       }
     }

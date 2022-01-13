@@ -784,7 +784,10 @@ export const createValidationMachine = ({
                                   log(),
                                 ],
                                 cond: (_, {data}) =>
-                                  data === 'tx with same hash already exists',
+                                  [
+                                    'multiple ceremony transaction',
+                                    'tx with same hash already exists',
+                                  ].some(x => data.includes(x)),
                               },
                               {
                                 target: 'fail',
@@ -1233,7 +1236,10 @@ export const createValidationMachine = ({
                                   log(),
                                 ],
                                 cond: (_, {data}) =>
-                                  data === 'tx with same hash already exists',
+                                  [
+                                    'multiple ceremony transaction',
+                                    'tx with same hash already exists',
+                                  ].some(x => data.includes(x)),
                               },
                               {
                                 target: 'fail',
@@ -1326,7 +1332,10 @@ export const createValidationMachine = ({
                               log(),
                             ],
                             cond: (_, {data}) =>
-                              data === 'tx with same hash already exists',
+                              [
+                                'multiple ceremony transaction',
+                                'tx with same hash already exists',
+                              ].some(x => data.includes(x)),
                           },
                           {
                             target: 'fail',
