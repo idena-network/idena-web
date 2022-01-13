@@ -783,8 +783,7 @@ export const createValidationMachine = ({
                                   }),
                                   log(),
                                 ],
-                                cond: (_, {data}) =>
-                                  data === 'tx with same hash already exists',
+                                cond: 'shouldSkipTxError',
                               },
                               {
                                 target: 'fail',
@@ -1232,8 +1231,7 @@ export const createValidationMachine = ({
                                   send('FORCE_SUBMIT_SHORT_ANSWERS'),
                                   log(),
                                 ],
-                                cond: (_, {data}) =>
-                                  data === 'tx with same hash already exists',
+                                cond: 'shouldSkipTxError',
                               },
                               {
                                 target: 'fail',
@@ -1325,8 +1323,7 @@ export const createValidationMachine = ({
                               }),
                               log(),
                             ],
-                            cond: (_, {data}) =>
-                              data === 'tx with same hash already exists',
+                            cond: 'shouldSkipTxError',
                           },
                           {
                             target: 'fail',
@@ -1587,6 +1584,11 @@ export const createValidationMachine = ({
         },
         shouldTranslate: ({translations, longFlips, currentIndex}) =>
           shouldTranslate(translations, longFlips[currentIndex]),
+        shouldSkipTxError: (_, {data}) =>
+          [
+            'multiple ceremony transaction',
+            'tx with same hash already exists',
+          ].some(x => data.includes(x)),
       },
     }
   )
