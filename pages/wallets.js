@@ -122,6 +122,7 @@ export default function Index() {
               }}
             >
               <WalletCard
+                address={coinbase}
                 wallet={{name: 'Main', balance, isStake: false}}
                 isSelected
                 onSend={() => setIsTransferFormOpen(true)}

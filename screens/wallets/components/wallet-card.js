@@ -5,7 +5,25 @@ import {MdMoreVert} from 'react-icons/md'
 import {margin, position, borderRadius} from 'polished'
 import {useTranslation} from 'react-i18next'
 import {useTheme} from '@emotion/react'
-import {Flex as ChakraFlex, Box} from '@chakra-ui/react'
+import {
+  Flex as ChakraFlex,
+  Box,
+  Button,
+  Divider,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerHeader,
+  DrawerBody,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  Text,
+  useMediaQuery,
+  useBreakpointValue,
+  useDisclosure,
+} from '@chakra-ui/react'
 import useClickOutside from '../../../shared/hooks/use-click-outside'
 import {Absolute} from '../../../shared/components'
 import Flex from '../../../shared/components/flex'
@@ -13,6 +31,7 @@ import theme, {rem} from '../../../shared/theme'
 import {IconButton} from '../../../shared/components/button'
 
 import {Skeleton} from '../../../shared/components/components'
+import {useIsDesktop} from '../../../shared/utils/utils'
 
 // eslint-disable-next-line react/display-name
 const WalletMenu = forwardRef((props, ref) => (
@@ -57,6 +76,7 @@ WalletMenuItem.propTypes = {
 }
 
 function WalletCard({
+  address,
   wallet,
   isSelected,
   onSend,
@@ -68,6 +88,20 @@ function WalletCard({
 
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef()
+  const isDesktop = useBreakpointValue([false, true])
+
+  const {
+    isOpen: isOpenWalletCardModal,
+    onOpen: onOpenWalletCardModal,
+    onClose: onCloseWalletCardModal,
+  } = useDisclosure()
+
+  const onModalOpen = useBreakpointValue([
+    onOpenWalletCardModal,
+    () => {
+      setIsMenuOpen(!isMenuOpen)
+    },
+  ])
 
   useClickOutside(menuRef, () => {
     setIsMenuOpen(false)
@@ -101,10 +135,7 @@ function WalletCard({
       {!isStake && (
         <>
           <div className="action">
-            <MdMoreVert
-              onClick={() => setIsMenuOpen(!isMenuOpen)}
-              style={{cursor: 'pointer'}}
-            />
+            <MdMoreVert onClick={onModalOpen} style={{cursor: 'pointer'}} />
           </div>
 
           <Box my={theme.spacings.normal} css={{marginBottom: 0}} w="150px">
@@ -154,6 +185,15 @@ function WalletCard({
         <div className="value">{balance} iDNA</div>
       )}
 
+      <CardMenuModal
+        address={address}
+        wallet={wallet}
+        isOpen={isOpenWalletCardModal}
+        onClose={onCloseWalletCardModal}
+        onSendClick={onSend}
+        onReceiveClick={onReceive}
+      />
+
       <style jsx>{`
         .title {
           margin-bottom: ${rem(17)};
@@ -190,6 +230,88 @@ WalletCard.propTypes = {
 
   onSend: PropTypes.func,
   onReceive: PropTypes.func,
+}
+
+// eslint-disable-next-line react/prop-types
+function CardMenuModal({
+  address,
+  wallet,
+  onClose,
+  onSendClick,
+  onReceiveClick,
+  ...props
+}) {
+  const {t} = useTranslation(['translation', 'error'])
+
+  return (
+    <Modal variant="mobile" {...props}>
+      <ModalOverlay />
+      <ModalContent backgroundColor="transparent" mb={10}>
+        <ModalBody px={2}>
+          <ChakraFlex
+            direction="column"
+            align="center"
+            backgroundColor="white"
+            borderRadius="14px"
+          >
+            <Text my={4} fontSize="mdx" fontWeight="normal" color="muted">
+              {t('Choose an option')}
+            </Text>
+            <Divider />
+            <Button
+              onClick={async () => {
+                onSendClick(wallet)
+              }}
+              size="lgx"
+              variant="primaryFlat"
+              w="100%"
+              color="brandBlue.800"
+            >
+              Send
+            </Button>
+            <Divider />
+            <Button
+              onClick={async () => {
+                onReceiveClick(wallet)
+              }}
+              size="lgx"
+              variant="primaryFlat"
+              w="100%"
+              color="brandBlue.800"
+            >
+              Receive
+            </Button>
+            <Divider />
+            <Button
+              onClick={() => {
+                window.open(
+                  `https://scan.idena.io/address/${address}#rewards`,
+                  '_blank'
+                )
+              }}
+              size="lgx"
+              variant="primaryFlat"
+              w="100%"
+              color="brandBlue.800"
+            >
+              Details
+            </Button>
+          </ChakraFlex>
+          <ChakraFlex backgroundColor="white" borderRadius="14px" mt={2}>
+            <Button
+              onClick={onClose}
+              size="lgx"
+              variant="primaryFlat"
+              w="100%"
+              color="brandBlue.800"
+            >
+              Cancel
+            </Button>
+          </ChakraFlex>
+        </ModalBody>
+      </ModalContent>
+    </Modal>
+  )
 }
 
 export default WalletCard

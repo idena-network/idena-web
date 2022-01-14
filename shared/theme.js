@@ -193,6 +193,7 @@ export const uiTheme = {
       500: 'rgb(87, 143, 255)',
       600: '#447ceb',
       700: '#447ceb',
+      800: '#0388ef',
     },
     xblack: {
       '008': 'rgb(0 0 0 /0.08)',
@@ -312,6 +313,13 @@ export const uiTheme = {
           borderRadius: 'lg',
           fontSize: '15px',
           fontWeight: '400',
+        },
+        lgx: {
+          h: 14,
+          px: 3,
+          borderRadius: '14px',
+          fontSize: '20px',
+          fontWeight: '500',
         },
       },
       variants: {

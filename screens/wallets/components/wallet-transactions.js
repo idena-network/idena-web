@@ -369,15 +369,26 @@ function TransactionDetailDrawer({tx, onClose, ...props}) {
             </Text>
           </Flex>
         </DrawerHeader>
-        <DrawerBody px={8}>
+        <DrawerBody pt={0} px={8}>
           <TransactionRow
+            position="relative"
+            valueWidth="80%"
             title={
               // eslint-disable-next-line react/prop-types
-              tx.direction === 'Sent' ? t('To') : `${t('From')} smart contract`
+              `${tx.direction === 'Sent' ? t('To') : t('From')} smart contract`
             }
-            value={tx.counterPartyWallet ? `${t('wallet')} Main` : t('address')}
-          />
-          <TransactionRow title="Transaction ID" value={tx.hash} />
+            value={(!tx.to && '\u2013') || tx.counterParty}
+          >
+            {!!tx.to && (
+              <Box position="absolute" top={2} right={-6}>
+                <Avatar
+                  username={lowerCase(tx.counterParty)}
+                  size={40}
+                  css={{margin: '0px !important'}}
+                />
+              </Box>
+            )}
+          </TransactionRow>
           <TransactionRow
             title="Amount"
             value={
@@ -393,12 +404,12 @@ function TransactionDetailDrawer({tx, onClose, ...props}) {
             }
           />
           <TransactionRow
-            mb={6}
             title="Date"
             value={
               !tx.timestamp ? '\u2013' : new Date(tx.timestamp).toLocaleString()
             }
           />
+          <TransactionRow mb={6} title="Transaction ID" value={tx.hash} />
           <WideLink
             display={['initial', 'none']}
             label={t('More details in Explorer')}
@@ -415,14 +426,19 @@ function TransactionDetailDrawer({tx, onClose, ...props}) {
   )
 }
 
-// eslint-disable-next-line react/prop-types
-function TransactionRow({title, value, children, ...props}) {
+function TransactionRow({
+  title,
+  value,
+  valueWidth = 'auto',
+  children,
+  ...props
+}) {
   return (
     <Flex direction="column" mt={2} {...props}>
       <Text fontSize="base" fontWeight={500} color="brandGray.500">
         {title}
       </Text>
-      <Text fontSize="base" fontWeight={400} color="gray.300">
+      <Text fontSize="base" w={valueWidth} fontWeight={400} color="gray.300">
         {value}
       </Text>
       {children}

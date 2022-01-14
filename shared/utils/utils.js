@@ -2,6 +2,7 @@ import dayjs from 'dayjs'
 import {getRpcParams} from '../api/api-client'
 import {IdentityStatus} from '../types'
 import {stripHexPrefix} from './buffers'
+import {useMediaQuery} from "@chakra-ui/react";
 
 export const HASH_IN_MEMPOOL =
   '0x0000000000000000000000000000000000000000000000000000000000000000'
@@ -143,4 +144,8 @@ export function validateInvitationCode(code) {
   } catch {
     return false
   }
+}
+
+export function useIsDesktop() {
+  return useMediaQuery('(min-width: 481px)')
 }
