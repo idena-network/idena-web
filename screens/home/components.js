@@ -596,7 +596,7 @@ export const ActivateInviteOnboardingContent = ({onDismiss}) => {
           )}
         </Text>
         <OnboardingPopoverContentIconRow
-          icon={<TelegramIcon boxSize={5} />}
+          icon={<TelegramIcon boxSize={6} />}
           _hover={{
             bg: '#689aff',
           }}
@@ -1630,37 +1630,39 @@ function IdenaBotFeatureList({features, listSeparator = ';'}) {
   )
 }
 
-export const GetInvitationTab = forwardRef(({icon, title, ...props}, ref) => {
-  const isMobile = useBreakpointValue([true, false])
-  const tabProps = useTab({...props, ref})
-  const isSelected = !!tabProps['aria-selected']
-  return (
-    <Tab
-      color="gray.300"
-      fontWeight="500"
-      _selected={{
-        color: 'blue.500',
-        bg: ['gray.500', 'gray.50'],
-        borderRadius: 'md',
-      }}
-      mr={[0, 2]}
-      w={['25%', null]}
-      {...props}
-    >
-      {isMobile
-        ? React.cloneElement(icon, {
-            boxSize: 5,
-            filter: !isSelected ? 'invert(75%)' : 'none',
-            color: 'gray.50',
-          })
-        : title}
-    </Tab>
-  )
-})
+export const GetInvitationTab = forwardRef(
+  ({iconSelected, icon, title, ...props}, ref) => {
+    const isMobile = useBreakpointValue([true, false])
+    const tabProps = useTab({...props, ref})
+    const isSelected = !!tabProps['aria-selected']
+    return (
+      <Tab
+        color="gray.300"
+        fontWeight="500"
+        _selected={{
+          color: 'blue.500',
+          bg: ['gray.500', 'gray.50'],
+          borderRadius: 'md',
+        }}
+        mr={[0, 2]}
+        w={['25%', null]}
+        {...tabProps}
+        py={3 / 2}
+      >
+        {isMobile
+          ? React.cloneElement(isSelected ? iconSelected : icon, {
+              boxSize: 6,
+              color: isSelected ? 'white' : 'gray.500',
+            })
+          : title}
+      </Tab>
+    )
+  }
+)
 
 export function GetInvitationTabPanel(props) {
   return (
-    <TabPanel p={0} pt={[6, 8]} color={['gray.300', 'inherit']} {...props} />
+    <TabPanel p={0} pt={[6, 8]} color={['gray.300', 'initial']} {...props} />
   )
 }
 
@@ -1689,7 +1691,7 @@ export function GetInvitationTwitterInput({value, onChange}) {
         fontSize="md"
         // eslint-disable-next-line react/no-children-prop
         children="@"
-        display={inputAddonVisible ? 'inherit' : 'none'}
+        display={inputAddonVisible ? 'flex' : 'none'}
       />
       <Input
         onFocus={() => setInputAddonVisible(true)}

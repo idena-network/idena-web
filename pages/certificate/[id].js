@@ -193,7 +193,7 @@ export default function Certificate({id, certificate}) {
               )}`}
               _hover={{color: 'blue.500'}}
             >
-              <TelegramIcon boxSize={4} />
+              <TelegramIcon boxSize={5} />
             </Link>
           </Flex>
         </Flex>

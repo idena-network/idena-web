@@ -25,7 +25,15 @@ import {
 } from '../../screens/home/components'
 import {getInvitationCode} from '../../shared/api/self'
 import {PrimaryButton} from '../../shared/components/button'
-import {TelegramIcon} from '../../shared/components/icons'
+import {
+  DiscordIcon,
+  DiscordInvertedIcon,
+  RedditIcon,
+  RedditInvertedIcon,
+  TelegramIcon,
+  TelegramInvertedIcon,
+  TwitterIcon,
+} from '../../shared/components/icons'
 import Layout from '../../shared/components/layout'
 import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
 
@@ -104,10 +112,26 @@ export default function GetInvitation() {
 
           <Tabs variant="unstyled" mt={8}>
             <TabList bg={['gray.50', 'white']} p={[1, 0]} borderRadius="md">
-              <GetInvitationTab icon={<TelegramIcon />} title="Telegram" />
-              <GetInvitationTab icon={<TelegramIcon />} title="Discord" />
-              <GetInvitationTab icon={<TelegramIcon />} title="Twitter" />
-              <GetInvitationTab icon={<TelegramIcon />} title="Reddit" />
+              <GetInvitationTab
+                iconSelected={<TelegramInvertedIcon />}
+                icon={<TelegramIcon />}
+                title="Telegram"
+              />
+              <GetInvitationTab
+                iconSelected={<DiscordInvertedIcon />}
+                icon={<DiscordIcon />}
+                title="Discord"
+              />
+              <GetInvitationTab
+                iconSelected={<TwitterIcon />}
+                icon={<TwitterIcon />}
+                title="Twitter"
+              />
+              <GetInvitationTab
+                iconSelected={<RedditInvertedIcon />}
+                icon={<RedditIcon />}
+                title="Reddit"
+              />
             </TabList>
             <TabPanels>
               <GetInvitationTabPanel>
