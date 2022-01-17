@@ -3,6 +3,7 @@ import {useToast} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
 import {useMachine} from '@xstate/react'
+import cookie from 'cookie-cutter'
 import {useInterval} from '../hooks/use-interval'
 
 import {didValidate} from '../../screens/validation/utils'
@@ -42,6 +43,19 @@ export function AppProvider({tabId, ...props}) {
   const [{apiKeyState}] = useSettings()
 
   const {auth} = useAuthState()
+
+  useEffect(() => {
+    const refLink = router.query.ref
+    if (!refLink || !epoch) {
+      return
+    }
+
+    const refId = cookie.get('refId')
+    if (refId && refId !== refLink) {
+      return
+    }
+    cookie.set('refId', refLink, {expires: new Date(epoch.nextValidation)})
+  }, [router.query.ref, epoch])
 
   // make only one tab active
   useEffect(() => {

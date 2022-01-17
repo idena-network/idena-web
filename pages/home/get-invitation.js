@@ -14,6 +14,7 @@ import {
 import {useRouter} from 'next/router'
 import {useState} from 'react'
 import {Trans, useTranslation} from 'react-i18next'
+import cookie from 'cookie-cutter'
 import {Page, PageTitle} from '../../screens/app/components'
 import {
   GetInvitationCopyButton,
@@ -47,7 +48,7 @@ export default function GetInvitation() {
     const name = nickname.startsWith('@') ? nickname.substring(1) : nickname
 
     try {
-      const {invitation} = await getInvitationCode(name)
+      const {invitation} = await getInvitationCode(name, cookie.get('refId'))
       setCode(invitation)
       successToast(t('Your invitation code has been generated successfully!'))
     } catch (e) {
