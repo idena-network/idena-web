@@ -38,7 +38,6 @@ import {useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
 import {useMachine} from '@xstate/react'
 import {useQuery} from 'react-query'
-import {InfoIcon} from '@chakra-ui/icons'
 import {useRouter} from 'next/router'
 import {
   Avatar,
@@ -73,22 +72,10 @@ import {
 import {createTimerMachine} from '../../shared/machines'
 import {usePersistence} from '../../shared/hooks/use-persistent-state'
 import {useAuthState} from '../../shared/providers/auth-context'
-import {Transaction} from '../../shared/models/transaction'
-import {
-  activateKey,
-  getAvailableProviders,
-  getRawTx,
-  sendRawTx,
-} from '../../shared/api'
-import {
-  privateKeyToAddress,
-  privateKeyToPublicKey,
-} from '../../shared/utils/crypto'
 import {
   eitherState,
   mapIdentityToFriendlyStatus,
   openExternalUrl,
-  validateInvitationCode,
 } from '../../shared/utils/utils'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
@@ -100,17 +87,12 @@ import {
   TestValidationIcon,
   UserIcon,
 } from '../../shared/components/icons'
-import {useFailToast} from '../../shared/hooks/use-toast'
-import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
-import useTx from '../../shared/hooks/use-tx'
-import {
-  sendActivateInvitation,
-  sendSuccessValidation,
-} from '../../shared/utils/analytics'
+import {sendSuccessValidation} from '../../shared/utils/analytics'
 import {
   OnboardingPopoverContent,
   OnboardingPopoverContentIconRow,
 } from '../../shared/components/onboarding'
+import {useInviteActivation} from './hooks'
 
 export function UserInlineCard({address, state, ...props}) {
   return (
@@ -325,247 +307,56 @@ export function UserStatLabelTooltip(props) {
   return <Tooltip placement="top" zIndex="tooltip" {...props} />
 }
 
-export const ActivateInviteForm = React.forwardRef(function ActivateInviteForm(
-  {onSuccess, children, ...props},
-  ref
-) {
+function PasteButton(props) {
   const {t} = useTranslation()
-
-  const failToast = useFailToast()
-  const size = useBreakpointValue(['lg', 'md'])
-  const placeholderValue = useBreakpointValue(['Enter invitation code', ''])
-
-  const [{state}, {waitStateUpdate}] = useIdentity()
-  const {coinbase, privateKey} = useAuthState()
-
-  const [code, setCode] = React.useState('')
-  const [submitting, setSubmitting] = useState(false)
-
-  const [{mining}, setHash] = useTx()
-
-  const {isPurchasing, needToPurchase, savePurchase} = useApikeyPurchasing()
-
-  const sendActivateInviteTx = async () => {
-    setSubmitting(true)
-
-    try {
-      const trimmedCode = code.trim()
-
-      if (trimmedCode) {
-        if (!validateInvitationCode(trimmedCode)) throw new Error()
-      }
-
-      const from = trimmedCode
-        ? privateKeyToAddress(trimmedCode)
-        : privateKeyToAddress(privateKey)
-
-      const rawTx = await getRawTx(
-        1,
-        from,
-        coinbase,
-        0,
-        0,
-        privateKeyToPublicKey(privateKey)
-      )
-
-      const tx = new Transaction().fromHex(rawTx)
-      tx.sign(trimmedCode || privateKey)
-
-      const hex = tx.toHex()
-
-      if (needToPurchase) {
-        const providers = await getAvailableProviders()
-
-        const result = await activateKey(coinbase, `0x${hex}`, providers)
-        savePurchase(result.id, result.provider)
-      } else {
-        const result = await sendRawTx(`0x${hex}`)
-        setHash(result)
-
-        // need to wait identity state update manually, because nothing changes in memory
-        waitStateUpdate()
-      }
-      sendActivateInvitation(coinbase)
-    } catch (e) {
-      failToast(
-        `Failed to activate invite: ${
-          e.response ? e.response.data : 'invitation is invalid'
-        }`
-      )
-    } finally {
-      setSubmitting(false)
-    }
-  }
-
-  const waiting = submitting || isPurchasing || mining
-
-  useEffect(() => {
-    if (state === IdentityStatus.Candidate && onSuccess) {
-      onSuccess()
-    }
-  }, [onSuccess, state])
-
-  const hasBeenInvited = state === IdentityStatus.Invite
-
   return (
-    <Box
-      ref={ref}
-      as="form"
-      onSubmit={async e => {
-        e.preventDefault()
-        await sendActivateInviteTx(code)
-      }}
+    <Button
+      variant="ghost"
+      bg="unset"
+      color="muted"
+      fontWeight={500}
+      h="unset"
+      p={0}
+      _hover={{bg: 'unset'}}
+      _active={{bg: 'unset'}}
+      _focus={{boxShadow: 'none'}}
       {...props}
     >
-      {hasBeenInvited ? (
-        <Flex justify="flex-end">
-          <PrimaryButton
-            size={size}
-            w={['100%', 'auto']}
-            isLoading={waiting}
-            loadingText={t('Mining...')}
-            type="submit"
-          >
-            {t('Accept invitation')}
-          </PrimaryButton>
-        </Flex>
-      ) : (
-        <Stack spacing={[4, 6]}>
-          <FormControl>
-            <Stack spacing={3}>
-              <Flex
-                display={['none', 'flex']}
-                justify="space-between"
-                align="center"
-              >
-                <FormLabel htmlFor="code" p={0} m={0}>
-                  {t('Enter invitation code')}
-                </FormLabel>
-                <Button
-                  variant="ghost"
-                  isDisabled={waiting}
-                  bg="unset"
-                  color="muted"
-                  fontWeight={500}
-                  h="unset"
-                  p={0}
-                  _hover={{bg: 'unset'}}
-                  _active={{bg: 'unset'}}
-                  _focus={{boxShadow: 'none'}}
-                  onClick={() =>
-                    navigator.clipboard.readText().then(text => setCode(text))
-                  }
-                >
-                  {t('Paste')}
-                </Button>
-              </Flex>
-              <Input
-                id="code"
-                size={size}
-                value={code}
-                bg={['white', 'auto']}
-                placeholder={placeholderValue}
-                isDisabled={waiting}
-                resize="none"
-                _disabled={{
-                  bg: 'gray.50',
-                }}
-                _placeholder={{
-                  color: 'muted',
-                }}
-                onChange={e => setCode(e.target.value)}
-              />
-            </Stack>
-          </FormControl>
-          <Stack spacing={[0, 4]} isInline align="center" justify="flex-end">
-            {children}
-            <PrimaryButton
-              size={size}
-              w={['100%', 'auto']}
-              ml={[0, 'initial']}
-              isLoading={waiting}
-              loadingText={t('Mining...')}
-              type="submit"
-            >
-              {t('Activate invitation')}
-            </PrimaryButton>
-          </Stack>
-        </Stack>
-      )}
-    </Box>
+      {t('Paste')}
+    </Button>
+  )
+}
+
+const InvitationPanel = React.forwardRef(function InvitationPanel(props, ref) {
+  return (
+    <Stack
+      bg="white"
+      spacing={6}
+      borderRadius="lg"
+      boxShadow="0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)"
+      px={[7, 10]}
+      py={[7, 8]}
+      pos="relative"
+      zIndex={5}
+      ref={ref}
+      {...props}
+    />
   )
 })
-
-export const AcceptInvitationPanel = React.forwardRef(
-  function AcceptInvitationPanel(props, ref) {
-    const {t} = useTranslation()
-
-    return (
-      <Stack
-        spacing={[0, 6]}
-        bg={['transparent', 'white']}
-        borderRadius="lg"
-        boxShadow={[
-          'none',
-          '0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)',
-        ]}
-        px={[0, 10]}
-        py={[0, 8]}
-        pos="relative"
-        zIndex={5}
-        ref={ref}
-        {...props}
-      >
-        <Stack display={['none', 'flex']}>
-          <Heading as="h3" fontWeight={500} fontSize="lg">
-            {t('Congratulations!')}
-          </Heading>
-          <Text color="muted">
-            {t(
-              'You have been invited to join the upcoming validation ceremony. Click the button below to accept the invitation.'
-            )}
-          </Text>
-        </Stack>
-        <Box>
-          <ActivateInviteForm>
-            <TextLink href="/home/get-invitation" display={['none', 'initial']}>
-              <InfoIcon boxSize={4} mr={2} mt={-1} />
-              {t('How to get an invitation?')}
-            </TextLink>
-            <Divider
-              display={['none', 'block']}
-              borderColor="gray.100"
-              orientation="vertical"
-              h={6}
-            />
-          </ActivateInviteForm>
-        </Box>
-      </Stack>
-    )
-  }
-)
 
 export const ActivateInvitationPanel = React.forwardRef(
   function ActivateInvitationPanel(props, ref) {
     const {t} = useTranslation()
 
+    const size = useBreakpointValue(['lg', 'md'])
+
+    const [code, setCode] = useState('')
+
+    const [{isMining}, {activateInvite}] = useInviteActivation()
+
     return (
-      <Stack
-        spacing={[0, 6]}
-        bg={['transparent', 'white']}
-        borderRadius="lg"
-        boxShadow={[
-          'none',
-          '0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)',
-        ]}
-        px={[0, 10]}
-        py={[0, 8]}
-        pos="relative"
-        zIndex={5}
-        ref={ref}
-        {...props}
-      >
-        <Stack display={['none', 'flex']}>
+      <InvitationPanel {...props} ref={ref}>
+        <Stack>
           <Heading as="h3" fontWeight={500} fontSize="lg">
             {t('Join the upcoming validation')}
           </Heading>
@@ -575,10 +366,47 @@ export const ActivateInvitationPanel = React.forwardRef(
             )}
           </Text>
         </Stack>
-        <Box>
-          <ActivateInviteForm>
-            <TextLink href="/home/get-invitation" display={['none', 'initial']}>
-              <InfoIcon boxSize={4} mr={2} mt={-1} />
+        <Box
+          as="form"
+          onSubmit={async e => {
+            e.preventDefault()
+            await activateInvite(code)
+          }}
+        >
+          <FormControl>
+            <Stack spacing={[2, 3]}>
+              <Flex justify="space-between" align="center">
+                <FormLabel htmlFor="code" p={0} m={0} fontSize={['base', 'md']}>
+                  {t('Enter invitation code')}
+                </FormLabel>
+                <PasteButton
+                  isDisabled={isMining}
+                  onClick={() =>
+                    navigator.clipboard.readText().then(text => setCode(text))
+                  }
+                />
+              </Flex>
+              <Input
+                size={size}
+                value={code}
+                isDisabled={isMining}
+                onChange={e => setCode(e.target.value)}
+              />
+            </Stack>
+          </FormControl>
+          <Stack
+            mt={4}
+            align="center"
+            justify="flex-end"
+            direction={['column-reverse', 'row']}
+            spacing={[0, 4]}
+          >
+            <TextLink
+              href="/home/get-invitation"
+              mt={[5, 0]}
+              fontSize={['mobile', 'md']}
+              fontWeight={500}
+            >
               {t('How to get an invitation?')}
             </TextLink>
             <Divider
@@ -587,9 +415,61 @@ export const ActivateInvitationPanel = React.forwardRef(
               orientation="vertical"
               h={6}
             />
-          </ActivateInviteForm>
+            <PrimaryButton
+              size={size}
+              w={['100%', 'auto']}
+              type="submit"
+              isLoading={isMining}
+              loadingText={t('Mining...')}
+            >
+              {t('Activate invitation')}
+            </PrimaryButton>
+          </Stack>
         </Box>
-      </Stack>
+      </InvitationPanel>
+    )
+  }
+)
+
+export const AcceptInvitationPanel = React.forwardRef(
+  function AcceptInvitationPanel(props, ref) {
+    const {t} = useTranslation()
+    const size = useBreakpointValue(['lg', 'md'])
+
+    const [{isMining}, {activateInvite}] = useInviteActivation()
+
+    return (
+      <InvitationPanel {...props} ref={ref}>
+        <Stack>
+          <Heading as="h3" fontWeight={500} fontSize="lg">
+            {t('Congratulations!')}
+          </Heading>
+          <Text color="muted">
+            {t(
+              'You have been invited to join the upcoming validation ceremony. Click the button below to accept the invitation.'
+            )}
+          </Text>
+        </Stack>
+        <Box
+          as="form"
+          onSubmit={async e => {
+            e.preventDefault()
+            await activateInvite()
+          }}
+        >
+          <Flex justify="flex-end">
+            <PrimaryButton
+              size={size}
+              w={['100%', 'auto']}
+              isLoading={isMining}
+              loadingText={t('Mining...')}
+              type="submit"
+            >
+              {t('Accept invitation')}
+            </PrimaryButton>
+          </Flex>
+        </Box>
+      </InvitationPanel>
     )
   }
 )
@@ -604,18 +484,7 @@ export const StartIdenaJourneyPanel = React.forwardRef(
     const isInine = useBreakpointValue([false, true])
 
     return (
-      <Stack
-        spacing={6}
-        bg="white"
-        borderRadius="lg"
-        boxShadow="0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)"
-        px={[6, 10]}
-        py={[6, 8]}
-        pos="relative"
-        zIndex={5}
-        ref={ref}
-        {...props}
-      >
+      <InvitationPanel {...props} ref={ref}>
         <Stack>
           <Heading as="h3" fontWeight={500} fontSize="lg">
             {t('Start your Idena journey')}
@@ -641,6 +510,7 @@ export const StartIdenaJourneyPanel = React.forwardRef(
               colorScheme="blue"
               _active={{}}
               fontWeight={500}
+              size={size}
             >
               {t('I have an invitation code')}
             </Button>
@@ -659,7 +529,7 @@ export const StartIdenaJourneyPanel = React.forwardRef(
             </PrimaryButton>
           </Stack>
         </Box>
-      </Stack>
+      </InvitationPanel>
     )
   }
 )
@@ -1681,14 +1551,67 @@ export function MyIdenaBotAlert({onConnect}) {
 export function ActivateInvitationDialog({onClose, ...props}) {
   const {t} = useTranslation()
 
+  const [code, setCode] = useState('')
+
+  const [{isMining, isSuccess}, {activateInvite}] = useInviteActivation()
+
+  const size = useBreakpointValue(['lg', 'md'])
+
+  useEffect(() => {
+    if (!isMining && isSuccess) onClose()
+  }, [isMining, isSuccess, onClose])
+
   return (
     <Dialog title={t('Invite activation')} onClose={onClose} {...props}>
       <DialogBody mb={0}>
-        <ActivateInviteForm onSuccess={onClose}>
-          <SecondaryButton display={['none', 'initial']} onClick={onClose}>
-            {t('Cancel')}
-          </SecondaryButton>
-        </ActivateInviteForm>
+        <Box
+          mt={4}
+          as="form"
+          onSubmit={async e => {
+            e.preventDefault()
+            await activateInvite(code)
+          }}
+        >
+          <FormControl>
+            <Stack spacing={[2, 3]}>
+              <Flex justify="space-between" align="center">
+                <FormLabel htmlFor="code" p={0} m={0} fontSize={['base', 'md']}>
+                  {t('Enter invitation code')}
+                </FormLabel>
+                <PasteButton
+                  isDisabled={isMining}
+                  onClick={() =>
+                    navigator.clipboard.readText().then(text => setCode(text))
+                  }
+                />
+              </Flex>
+              <Input
+                size={size}
+                value={code}
+                isDisabled={isMining}
+                onChange={e => setCode(e.target.value)}
+              />
+            </Stack>
+          </FormControl>
+          <Flex mt={4} align="center" justifyContent="flex-end">
+            <SecondaryButton
+              display={['none', 'initial']}
+              onClick={onClose}
+              mr={2}
+            >
+              {t('Cancel')}
+            </SecondaryButton>
+            <PrimaryButton
+              size={size}
+              w={['100%', 'auto']}
+              type="submit"
+              isLoading={isMining}
+              loadingText={t('Mining...')}
+            >
+              {t('Activate invitation')}
+            </PrimaryButton>
+          </Flex>
+        </Box>
       </DialogBody>
     </Dialog>
   )

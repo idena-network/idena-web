@@ -102,7 +102,7 @@ export default function GetInvitation() {
             )}
           </Text>
 
-          <Tabs variant="unstyled" mt={8} defaultIndex={2}>
+          <Tabs variant="unstyled" mt={8}>
             <TabList bg={['gray.50', 'white']} p={[1, 0]} borderRadius="md">
               <GetInvitationTab icon={<TelegramIcon />} title="Telegram" />
               <GetInvitationTab icon={<TelegramIcon />} title="Discord" />
