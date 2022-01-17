@@ -429,6 +429,22 @@ export const uiTheme = {
             },
           },
         },
+        outlineMobile: {
+          field: {
+            border: '2px solid',
+            borderColor: 'gray.100',
+            _hover: {
+              borderColor: 'gray.100',
+            },
+            _placeholder: {
+              color: 'muted',
+            },
+            _disabled: {
+              bg: 'gray.50',
+              color: 'muted',
+            },
+          },
+        },
         mobile: {
           field: {
             border: '2px solid',

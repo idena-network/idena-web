@@ -1,7 +1,7 @@
 import React, {useState} from 'react'
 import PropTypes from 'prop-types'
 import {useTranslation} from 'react-i18next'
-import {Box, Flex, Heading, Stack} from '@chakra-ui/react'
+import {Box, Flex, Heading, Stack, useBreakpointValue} from '@chakra-ui/react'
 import {useNotificationDispatch} from '../../../shared/providers/notification-context'
 import {
   Drawer,
@@ -29,6 +29,9 @@ function TransferForm({isOpen, onClose}) {
   const [amount, setAmount] = useState()
 
   const [submitting, setSubmitting] = useState(false)
+  const size = useBreakpointValue(['lg', 'md'])
+  const variant = useBreakpointValue(['outlineMobile', 'outline'])
+  const labelFontSize = useBreakpointValue(['base', 'md'])
 
   const {addNotification, addError} = useNotificationDispatch()
 
@@ -75,44 +78,76 @@ function TransferForm({isOpen, onClose}) {
   return (
     <Drawer isOpen={isOpen} onClose={onClose}>
       <DrawerHeader mb={8}>
-        <Flex
-          align="center"
-          justify="center"
-          h={12}
-          w={12}
-          rounded="xl"
-          bg="blue.012"
-        >
-          <SendOutIcon boxSize={6} color="blue.500" />
+        <Flex direction="column" textAlign={['center', 'start']}>
+          <Flex
+            order={[2, 1]}
+            align="center"
+            justify="center"
+            mt={[8, 0]}
+            h={12}
+            w={12}
+            rounded="xl"
+            bg="red.012"
+          >
+            <SendOutIcon boxSize={6} />
+          </Flex>
+          <Heading
+            order={[1, 2]}
+            color="brandGray.500"
+            fontSize={['base', 'lg']}
+            fontWeight={[['bold', 500]]}
+            lineHeight="base"
+            mt={[0, 4]}
+          >
+            Send iDNA
+          </Heading>
         </Flex>
-        <Heading
-          color="brandGray.500"
-          fontSize="lg"
-          fontWeight={500}
-          lineHeight="base"
-          mt={4}
-        >
-          Send iDNA
-        </Heading>
       </DrawerHeader>
       <DrawerBody>
-        <Stack spacing={5}>
-          <FormControlWithLabel label={t('From')}>
-            <Input value={coinbase} isDisabled />
+        <Stack spacing={[4, 5]}>
+          <FormControlWithLabel label={t('From')} labelFontSize={labelFontSize}>
+            <Input
+              value={coinbase}
+              backgroundColor={['gray.50', 'gray.100']}
+              size={size}
+              variant={variant}
+              isDisabled
+            />
           </FormControlWithLabel>
-          <FormControlWithLabel label={t('To')}>
-            <Input value={to} onChange={e => setTo(e.target.value)} />
+          <FormControlWithLabel label={t('To')} labelFontSize={labelFontSize}>
+            <Input
+              value={to}
+              variant={variant}
+              borderColor="gray.100"
+              size={size}
+              onChange={e => setTo(e.target.value)}
+            />
           </FormControlWithLabel>
-          <FormControlWithLabel label={t('Amount')}>
+          <FormControlWithLabel
+            label={t('Amount')}
+            labelFontSize={labelFontSize}
+          >
             <Input
               value={amount}
+              variant={variant}
               type="number"
+              size={size}
               onChange={e => setAmount(e.target.value)}
             />
           </FormControlWithLabel>
+          <PrimaryButton
+            display={['flex', 'none']}
+            fontSize="mobile"
+            size="lg"
+            onClick={send}
+            isLoading={submitting}
+            loadingText={t('Mining...')}
+          >
+            {t('Send')}
+          </PrimaryButton>
         </Stack>
       </DrawerBody>
-      <DrawerFooter>
+      <DrawerFooter display={['none', 'flex']}>
         <Box
           alignSelf="stretch"
           borderTop="1px"

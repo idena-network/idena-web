@@ -551,6 +551,26 @@ export const QrScanIcon = createIcon({
 
 export const SendOutIcon = createIcon({
   displayName: 'SendOutIcon',
+  viewBox: '0 0 32 32',
+  path: (
+    <g fill="none" fillRule="evenodd">
+      <path fill="none" d="M0 0h32v32H0z" />
+      <path
+        d="M10 8.8c-3.309 0-6 2.691-6 6s2.691 6 6 6 6-2.691 6-6-2.691-6-6-6M10 24C4.927 24 .8 19.873.8 14.8c0-5.073 4.127-9.2 9.2-9.2 5.073 0 9.2 4.127 9.2 9.2 0 5.073-4.127 9.2-9.2 9.2"
+        fill="#F66"
+      />
+      <path
+        d="M22.388 15.03a12.322 12.322 0 0 1-.76 4.036c.49.868.772 1.868.772 2.934 0 3.309-2.692 6-6 6-1.316 0-2.53-.43-3.52-1.152-.926.222-1.887.352-2.88.352-.414 0-.824-.022-1.228-.062A9.2 9.2 0 0 0 16.4 31.2c5.072 0 9.2-4.127 9.2-9.2 0-2.786-1.25-5.28-3.212-6.97"
+        fill="#F66"
+        opacity=".4"
+      />
+      <path fill="#F66" d="M32 6.4 25.6.8v4H20V8h5.6v4z" />
+    </g>
+  ),
+})
+
+export const ReceiveIcon = createIcon({
+  displayName: 'ReceiveIcon',
   viewBox: '0 0 20 20',
   path: (
     <path

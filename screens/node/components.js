@@ -22,7 +22,7 @@ import {
   FormLabel,
   Input,
 } from '../../shared/components/components'
-import {SendOutIcon} from '../../shared/components/icons'
+import {ReceiveIcon} from '../../shared/components/icons'
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
 import useRpc from '../../shared/hooks/use-rpc'
 import {useFailToast} from '../../shared/hooks/use-toast'
@@ -94,7 +94,7 @@ export function BuySharedNodeForm({
           rounded="xl"
           bg="blue.012"
         >
-          <SendOutIcon boxSize={6} color="blue.500" />
+          <ReceiveIcon boxSize={6} color="blue.500" />
         </Flex>
         <Heading
           color="brandGray.500"

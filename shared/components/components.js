@@ -38,7 +38,7 @@ import {
   keyframes,
   useBreakpointValue,
 } from '@chakra-ui/react'
-import {borderRadius} from 'polished'
+import {borderRadius, size} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
 import NextLink from 'next/link'
 import dynamic from 'next/dynamic'
@@ -65,22 +65,27 @@ export function Debug({children}) {
 }
 
 export function Drawer({isCloseable = true, children, ...props}) {
-  const placement = useBreakpointValue(['bottom', 'right'])
-  const maxWidth = useBreakpointValue(['fit-content!important', 360])
+  const maxWidth = useBreakpointValue(['auto', 360])
+  const drawerSize = useBreakpointValue(['full', 'xs'])
+  const closeButtonSize = useBreakpointValue(['lg', 'md'])
 
   return (
-    <ChakraDrawer placement={placement} {...props}>
+    <ChakraDrawer placement="right" {...props}>
       <DrawerOverlay bg="xblack.080" />
       <DrawerContent
-        mx={[3, 0]}
-        mb={[9, 0]}
-        px={[6, 8]}
-        pt={[6, 12]}
+        px={8}
+        pt={['56px', 12]}
         pb={4}
+        size={drawerSize}
         maxW={maxWidth}
-        borderRadius={['8px', 0]}
       >
-        {isCloseable && <DrawerCloseButton />}
+        {isCloseable && (
+          <DrawerCloseButton
+            mt={[10, 0]}
+            size={closeButtonSize}
+            color={['brandBlue.100', 'initial']}
+          />
+        )}
         {children}
       </DrawerContent>
     </ChakraDrawer>
@@ -102,10 +107,10 @@ export function FormLabel(props) {
   return <ChakraFormLabel fontWeight={500} color="brandGray.500" {...props} />
 }
 
-export function FormControlWithLabel({label, children, ...props}) {
+export function FormControlWithLabel({label, labelFontSize = 'md', children, ...props}) {
   return (
     <FormControl {...props}>
-      <FormLabel color="brandGray.500" mb={2}>
+      <FormLabel fontSize={labelFontSize} color="brandGray.500" mb={2}>
         {label}
       </FormLabel>
       {children}
