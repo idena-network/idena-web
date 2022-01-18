@@ -1,4 +1,5 @@
 import {
+  Box,
   CloseButton,
   Flex,
   Link,
@@ -12,7 +13,7 @@ import {
   useBreakpointValue,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
-import {useState} from 'react'
+import {useRef, useState} from 'react'
 import {Trans, useTranslation} from 'react-i18next'
 import cookie from 'cookie-cutter'
 import {Page, PageTitle} from '../../screens/app/components'
@@ -36,6 +37,7 @@ import {
 } from '../../shared/components/icons'
 import Layout from '../../shared/components/layout'
 import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
+import {useScroll} from '../../shared/hooks/use-scroll'
 
 export default function GetInvitation() {
   const router = useRouter()
@@ -51,6 +53,10 @@ export default function GetInvitation() {
 
   const size = useBreakpointValue(['lg', 'md'])
 
+  const invitationCodeRef = useRef()
+
+  const {scrollTo: scrollToCode} = useScroll(invitationCodeRef)
+
   const getCode = async () => {
     setIsWaiting(true)
     const name = nickname.startsWith('@') ? nickname.substring(1) : nickname
@@ -59,6 +65,7 @@ export default function GetInvitation() {
       const {invitation} = await getInvitationCode(name, cookie.get('refId'))
       setCode(invitation)
       successToast(t('Your invitation code has been generated successfully!'))
+      scrollToCode()
     } catch (e) {
       failToast(e.message)
     } finally {
@@ -137,7 +144,7 @@ export default function GetInvitation() {
               <GetInvitationTabPanel>
                 <GetInvitationTabTitle>Telegram</GetInvitationTabTitle>
                 <Text>
-                  <Trans t={t}>
+                  <Trans t={t} i18nKey="joinIdenaTelegram">
                     Join the official{' '}
                     <Link
                       href="https://t.me/IdenaNetworkPublic"
@@ -153,7 +160,7 @@ export default function GetInvitation() {
               <GetInvitationTabPanel>
                 <GetInvitationTabTitle>Discord</GetInvitationTabTitle>
                 <Text>
-                  <Trans t={t}>
+                  <Trans t={t} i18nKey="joinIdenaDiscord">
                     Join{' '}
                     <Link
                       href="https://discord.gg/8BusRj7"
@@ -183,10 +190,20 @@ export default function GetInvitation() {
                   <ListItem>
                     <Stack spacing={4}>
                       <Text>
-                        {t(
-                          'Send a tweet with a hashtag #IdenaInvite from your account. To get an invite, your account should be older than 1 year or older than two months and have at least 50 followers. The tweet should say:',
-                          {nsSeparator: '|'}
-                        )}
+                        <Trans t={t} i18nKey="joinIdenaTwitterSendTweet">
+                          <Link
+                            target="_blank"
+                            color="blue.500"
+                            rel="noreferrer"
+                            href="https://twitter.com/intent/tweet?text=I%20want%20to%20join%20%40IdenaNetwork%20to%20become%20a%20validator%20of%20the%20first%20Proof-of-Person%20blockchain%20%23IdenaInvite%0A%0Ahttps://www.idena.io"
+                          >
+                            Send a tweet
+                          </Link>{' '}
+                          with a hashtag #IdenaInvite from your account. To get
+                          an invite, your account should be older than 1 year or
+                          older than two months and have at least 50 followers.
+                          The tweet should say:'
+                        </Trans>
                       </Text>
                       <Flex mt={4} p={[7, 10]} borderRadius="md" bg="gray.50">
                         <Flex direction={['column', 'row']}>
@@ -221,7 +238,7 @@ export default function GetInvitation() {
                   <ListItem>
                     <Stack spacing={4} pt={2}>
                       <Text>
-                        <Trans>
+                        <Trans t={t} i18nKey="joinIdenaTwitterGetCode">
                           Enter your twitter name and click{' '}
                           <i>Get an invitation code</i> button. The code will be
                           shown automatically.
@@ -280,6 +297,7 @@ export default function GetInvitation() {
                           </PrimaryButton>
                         </Flex>
                       )}
+                      <Box ref={invitationCodeRef}></Box>
                     </Stack>
                   </ListItem>
                 </OrderedList>
@@ -287,7 +305,7 @@ export default function GetInvitation() {
               <GetInvitationTabPanel>
                 <GetInvitationTabTitle>Reddit</GetInvitationTabTitle>
                 <Text color="gray.500">
-                  <Trans t={t}>
+                  <Trans t={t} i18nKey="joinIdenaReddit">
                     Join{' '}
                     <Link
                       href="https://www.reddit.com/r/Idena/"
