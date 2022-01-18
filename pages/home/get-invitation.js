@@ -202,7 +202,7 @@ export default function GetInvitation() {
                           with a hashtag #IdenaInvite from your account. To get
                           an invite, your account should be older than 1 year or
                           older than two months and have at least 50 followers.
-                          The tweet should say:'
+                          The tweet should say:
                         </Trans>
                       </Text>
                       <Flex mt={4} p={[7, 10]} borderRadius="md" bg="gray.50">

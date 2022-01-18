@@ -13,7 +13,7 @@ import {
   markFlipsArchived,
 } from '../../screens/flips/utils'
 import {loadPersistentState, persistState} from '../utils/persist'
-import {ntp, openExternalUrl} from '../utils/utils'
+import {isVercelProduction, ntp, openExternalUrl} from '../utils/utils'
 import {Toast} from '../components/components'
 import {useEpoch} from './epoch-context'
 import {
@@ -54,7 +54,10 @@ export function AppProvider({tabId, ...props}) {
     if (refId && refId !== refLink) {
       return
     }
-    cookie.set('refId', refLink, {expires: new Date(epoch.nextValidation)})
+    cookie.set('refId', refLink, {
+      expires: new Date(epoch.nextValidation),
+      domain: isVercelProduction ? '.idena.io' : null,
+    })
   }, [router.query.ref, epoch])
 
   // make only one tab active
