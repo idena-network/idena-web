@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import {getRpcParams} from '../api/api-client'
 import {IdentityStatus} from '../types'
 import {stripHexPrefix} from './buffers'
-import {useMediaQuery} from "@chakra-ui/react";
+import {useBreakpointValue, useMediaQuery} from "@chakra-ui/react";
 
 export const HASH_IN_MEMPOOL =
   '0x0000000000000000000000000000000000000000000000000000000000000000'
@@ -147,5 +147,6 @@ export function validateInvitationCode(code) {
 }
 
 export function useIsDesktop() {
-  return useMediaQuery('(min-width: 481px)')
+  const isDesktop = useBreakpointValue([false, true])
+  return isDesktop
 }
