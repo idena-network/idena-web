@@ -1,5 +1,5 @@
 export function useScroll(ref) {
   return {
-    scrollTo: () => ref.current.scrollIntoView(),
+    scrollTo: () => ref.current?.scrollIntoView(),
   }
 }

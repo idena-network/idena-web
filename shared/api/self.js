@@ -82,3 +82,14 @@ export async function restoreTestValidation(signature, coinbase) {
 
   return data
 }
+
+export async function getInvitationCode(name, refId) {
+  try {
+    const {data} = await axios.get('/api/get-invitation-code', {
+      params: {name, refId},
+    })
+    return data
+  } catch (e) {
+    throw new Error(e.response?.data)
+  }
+}

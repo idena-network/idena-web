@@ -70,7 +70,7 @@ import {
   UploadIcon,
   UpvoteIcon,
 } from '../../shared/components/icons'
-import {WideLink} from '../profile/components'
+import {WideLink} from '../home/components'
 import {useAuthState} from '../../shared/providers/auth-context'
 
 export function FlipPageTitle({onClose, ...props}) {

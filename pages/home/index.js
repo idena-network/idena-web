@@ -13,7 +13,7 @@ import {
 import {useTranslation} from 'react-i18next'
 import {useQuery, useQueryClient} from 'react-query'
 import {useRouter} from 'next/router'
-import {Page, PageTitle} from '../screens/app/components'
+import {Page, PageTitle} from '../../screens/app/components'
 import {
   UserInlineCard,
   UserStatList,
@@ -31,26 +31,26 @@ import {
   ActivateInviteOnboardingContent,
   StartIdenaJourneyOnboardingContent,
   ActivateInvitationDialog,
-} from '../screens/profile/components'
-import Layout from '../shared/components/layout'
-import {IdentityStatus, OnboardingStep} from '../shared/types'
-import {toPercent, toLocaleDna, eitherState} from '../shared/utils/utils'
+} from '../../screens/home/components'
+import Layout from '../../shared/components/layout'
+import {IdentityStatus, OnboardingStep} from '../../shared/types'
+import {toPercent, toLocaleDna, eitherState} from '../../shared/utils/utils'
 import {
   hasPersistedValidationResults,
   shouldExpectValidationResults,
-} from '../screens/validation/utils'
-import {useIdentity} from '../shared/providers/identity-context'
-import {useEpoch} from '../shared/providers/epoch-context'
-import {fetchBalance} from '../shared/api/wallet'
-import {useAuthState} from '../shared/providers/auth-context'
-import {ExternalLink, TextLink} from '../shared/components/components'
-import {useOnboarding} from '../shared/providers/onboarding-context'
+} from '../../screens/validation/utils'
+import {useIdentity} from '../../shared/providers/identity-context'
+import {useEpoch} from '../../shared/providers/epoch-context'
+import {fetchBalance} from '../../shared/api/wallet'
+import {useAuthState} from '../../shared/providers/auth-context'
+import {ExternalLink, TextLink} from '../../shared/components/components'
+import {useOnboarding} from '../../shared/providers/onboarding-context'
 import {
   OnboardingPopover,
   OnboardingPopoverContent,
-} from '../shared/components/onboarding'
-import {onboardingShowingStep} from '../shared/utils/onboarding'
-import {useScroll} from '../shared/hooks/use-scroll'
+} from '../../shared/components/onboarding'
+import {onboardingShowingStep} from '../../shared/utils/onboarding'
+import {useScroll} from '../../shared/hooks/use-scroll'
 import {
   AddUserIcon,
   ChevronDownIcon,
@@ -59,12 +59,12 @@ import {
   OpenExplorerIcon,
   PhotoIcon,
   TestValidationIcon,
-} from '../shared/components/icons'
-import {useSuccessToast} from '../shared/hooks/use-toast'
-import {persistItem} from '../shared/utils/persist'
-import {isValidDnaUrl} from '../screens/dna/utils'
-import {useIdenaBot} from '../screens/profile/hooks'
-import {useTestValidationState} from '../shared/providers/test-validation-context'
+} from '../../shared/components/icons'
+import {useSuccessToast} from '../../shared/hooks/use-toast'
+import {persistItem} from '../../shared/utils/persist'
+import {isValidDnaUrl} from '../../screens/dna/utils'
+import {useIdenaBot} from '../../screens/home/hooks'
+import {useTestValidationState} from '../../shared/providers/test-validation-context'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -247,13 +247,9 @@ export default function ProfilePage() {
                         onHasActivationCode={activateInviteDisclosure.onOpen}
                       />
                     ) : state === IdentityStatus.Invite ? (
-                      <AcceptInvitationPanel
-                        onHowToGetInvitation={onOpenActivateInvitePopover}
-                      />
+                      <AcceptInvitationPanel />
                     ) : (
-                      <ActivateInvitationPanel
-                        onHowToGetInvitation={onOpenActivateInvitePopover}
-                      />
+                      <ActivateInvitationPanel />
                     )}
                   </PopoverTrigger>
                   {shouldStartIdenaJourney ? (

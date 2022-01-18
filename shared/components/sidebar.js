@@ -511,7 +511,7 @@ function ActionPanel({onClose}) {
             >
               <Stack spacing={5}>
                 <OnboardingPopoverContentIconRow
-                  icon={<TelegramIcon boxSize={5} />}
+                  icon={<TelegramIcon boxSize={6} />}
                 >
                   <Trans i18nKey="onboardingValidateSubscribe" t={t}>
                     <OnboardingLinkButton href="https://t.me/IdenaAnnouncements">

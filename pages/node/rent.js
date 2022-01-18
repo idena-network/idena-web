@@ -59,8 +59,7 @@ function ProviderStatus({url}) {
     }
   )
 
-  const blocksCount =
-    indexerData?.result?.height - syncingData?.result?.currentBlock
+  const blocksCount = indexerData?.height - syncingData?.currentBlock
 
   const outOfSync =
     isSuccess &&
