@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
-import {Alert, AlertIcon, FormControl, Stack} from '@chakra-ui/react'
-import {Link} from '../../shared/components'
+import {Alert, AlertIcon, FormControl, Link, Stack} from '@chakra-ui/react'
 import theme, {rem} from '../../shared/theme'
 import Flex from '../../shared/components/flex'
 import SettingsLayout from './layout'
@@ -19,7 +18,11 @@ import {
 import {PrimaryButton} from '../../shared/components/button'
 import {checkKey, getProvider} from '../../shared/api'
 
-const BASIC_ERROR = 'Node is unavailable.'
+const ERROR_TYPE = {
+  None: 0,
+  Basic: 1,
+  Provider: 2,
+}
 
 function Settings() {
   const {t} = useTranslation()
@@ -32,7 +35,9 @@ function Settings() {
     apiKey: settingsState.apiKey || '',
   })
 
-  const [offlineError, setOfflineError] = useState(BASIC_ERROR)
+  const [offlineError, setOfflineError] = useState({
+    type: ERROR_TYPE.Basic,
+  })
 
   useEffect(() => {
     setState({url: settingsState.url, apiKey: settingsState.apiKey})
@@ -49,16 +54,19 @@ function Settings() {
       try {
         const result = await checkKey(settingsState.apiKey)
         const provider = await getProvider(result.provider)
-        setOfflineError(
-          `This node is unavailable. Please contact the node owner: ${provider.data.ownerName}`
-        )
+        setOfflineError({
+          type: ERROR_TYPE.Provider,
+          provider: provider.data.ownerName,
+        })
       } catch (e) {
-        setOfflineError(BASIC_ERROR)
+        setOfflineError({
+          type: ERROR_TYPE.Basic,
+        })
       }
     }
 
     if (settingsState.apiKeyState === apiKeyStates.OFFLINE) check()
-    else setOfflineError('')
+    else setOfflineError({type: ERROR_TYPE.None})
   }, [settingsState.apiKeyState, settingsState.url, settingsState.apiKey])
 
   return (
@@ -100,7 +108,25 @@ function Settings() {
                 size={5}
                 mr={3}
               ></AlertIcon>
-              {t(offlineError, {nsSeparator: 'null'})}
+              {offlineError.type === ERROR_TYPE.Basic &&
+                t('Node is unavailable.')}
+              {offlineError.type === ERROR_TYPE.Provider && (
+                <>
+                  {t('Node is unavailable.')}{' '}
+                  {t('Please contact the node owner:', {
+                    nsSeparator: '|',
+                  })}{' '}
+                  <Link
+                    href={`https://t.me/${offlineError.provider}`}
+                    target="_blank"
+                    ml={1}
+                    color="blue.500"
+                  >
+                    {offlineError.provider}
+                    {' >'}
+                  </Link>
+                </>
+              )}
             </Alert>
           )}
         <FormControl>
