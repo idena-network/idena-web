@@ -455,7 +455,7 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
           </Heading>
         </Stack>
       </DrawerHeader>
-      <DrawerBody overflowY="auto" mx={-6}>
+      <DrawerBody overflowY="auto" mx={-6} mb={10}>
         <Stack spacing={6} color="gray.500" fontSize="md" p={6} pt={0}>
           <Stack spacing={3}>
             <Text>
@@ -481,6 +481,22 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
               </Badge>
             )}
           </Stack>
+          <Stack spacing={6} bg="gray.50" p={6} rounded="lg">
+            <Stack isInline spacing={5}>
+              <AdCoverImage ad={ad} w="10" />
+              <Text fontWeight={500}>{ad.title}</Text>
+            </Stack>
+            <Stack spacing={3}>
+              <HDivider />
+              <Stack>
+                <SmallInlineAdStat label="Location" value={ad.location} />
+                <SmallInlineAdStat label="Language" value={ad.lang} />
+                <SmallInlineAdStat label="Stake" value={ad.stake} />
+                <SmallInlineAdStat label="Age" value={ad.age} />
+                <SmallInlineAdStat label="OS" value={ad.os} />
+              </Stack>
+            </Stack>
+          </Stack>
           <FormControl>
             <Stack>
               <FormLabel htmlFor="amount">Review fee, DNA</FormLabel>
@@ -489,7 +505,7 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
           </FormControl>
         </Stack>
       </DrawerBody>
-      <DrawerFooter>
+      <DrawerFooter bg="white">
         <HStack>
           <SecondaryButton onClick={onCancel}>{t('Not now')}</SecondaryButton>
           <PrimaryButton
