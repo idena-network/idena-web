@@ -37,7 +37,7 @@ import {
   AngleArrowBackIcon,
   OpenExplorerIcon,
 } from '../../../shared/components/icons'
-import {WideLink} from '../../profile/components'
+import {WideLink} from '../../home/components'
 
 function RowStatus({direction, type, isMining, walletName, tx, ...props}) {
   const txColor =

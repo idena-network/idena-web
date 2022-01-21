@@ -27,7 +27,7 @@ import WalletCard from '../screens/wallets/components/wallet-card'
 import {IconButton} from '../shared/components/button'
 import {Avatar} from '../shared/components/components'
 import {AngleArrowBackIcon, OpenExplorerIcon} from '../shared/components/icons'
-import {WideLink} from '../screens/profile/components'
+import {WideLink} from '../screens/home/components'
 
 export default function Index() {
   const {t} = useTranslation()
