@@ -130,5 +130,12 @@ export const isVercelProduction =
 export const lowerCase = str => str?.toLowerCase()
 
 export function areSameCaseInsensitive(a, b) {
-  return a?.toUpperCase() === b?.toUpperCase()
+  return a.localeCompare(b, undefined, {sensitivity: 'base'}) === 0
+}
+
+export function roundToPrecision(precision, value) {
+  return (
+    Math.ceil((Number(value) + Number.EPSILON) * 10 ** precision) /
+    10 ** precision
+  )
 }

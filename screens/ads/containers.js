@@ -9,7 +9,6 @@ import {
   Flex,
   FormControl,
   Heading,
-  Icon,
   Image,
   Select,
   Stack,
@@ -36,18 +35,16 @@ import {
   FillCenter,
   FormLabel,
   HDivider,
-  MenuIconItem,
   Input,
   Menu,
   SuccessAlert,
   DrawerPromotionPortal,
 } from '../../shared/components/components'
 import {
-  callRpc,
+  openExternalUrl,
   // countryCodes,
   toLocaleDna,
 } from '../../shared/utils/utils'
-// import {DnaInput, FillCenter} from '../oracles/components'
 import {
   AdFormField,
   AdInput,
@@ -58,13 +55,17 @@ import {
   FormSectionTitle,
 } from './components'
 import {Fill} from '../../shared/components'
-import {adFormMachine, useAdStatusColor} from './hooks'
+import {adFormMachine, useAdRotation, useAdStatusColor} from './hooks'
 import {hasImageType} from '../../shared/utils/img'
 import {AVAILABLE_LANGS} from '../../i18n'
-import {buildTargetKey, createAdDb, hexToAd, isEligibleAd} from './utils'
-import {useEpoch} from '../../shared/providers/epoch-context'
 import {useIdentity} from '../../shared/providers/identity-context'
-import {OracleIcon, PhotoIcon, UploadIcon} from '../../shared/components/icons'
+import {
+  AdsIcon,
+  OracleIcon,
+  PhotoIcon,
+  UploadIcon,
+} from '../../shared/components/icons'
+import {MenuItem} from '../../shared/components/menu'
 
 export function BlockAdStat({label, value, children, ...props}) {
   return (
@@ -121,43 +122,10 @@ export function AdOverlayStatus({status}) {
 }
 
 export function AdBanner({limit = 5, ...props}) {
-  const {i18n} = useTranslation()
+  const [{address}] = useIdentity()
 
-  const epoch = useEpoch()
-  const [{address, age, stake}] = useIdentity()
-
-  const [showingAd, setShowingAd] = React.useState()
-
-  React.useEffect(() => {
-    if (epoch?.epoch) {
-      const targetKey = buildTargetKey({
-        locale: i18n.language,
-        age,
-        stake,
-      })
-
-      callRpc('bcn_burntCoins').then(result => {
-        if (result) {
-          const targetedAds = result.filter(({key}) =>
-            isEligibleAd(targetKey, key)
-          )
-
-          // eslint-disable-next-line no-shadow
-          targetedAds.slice(0, limit).forEach(async ({address}) => {
-            const res = await callRpc('dna_profile', address)
-            const {ads} = hexToAd(res.info ?? {})
-            if (ads?.length > 0) {
-              const [ad] = ads
-              setShowingAd({
-                ...ad,
-                ...(await createAdDb(epoch?.epoch).get(ad.id)),
-              })
-            }
-          })
-        }
-      })
-    }
-  }, [age, epoch, i18n.language, limit, stake])
+  const ads = useAdRotation()
+  const [showingAd] = ads.slice(0, limit)
 
   const {
     title = 'Your tagline here',
@@ -183,7 +151,7 @@ export function AdBanner({limit = 5, ...props}) {
         isInline
         cursor="pointer"
         onClick={() => {
-          global.openExternal(url)
+          openExternalUrl(url)
         }}
       >
         <AdCoverImage ad={{cover}} w="10" />
@@ -210,8 +178,8 @@ export function AdBanner({limit = 5, ...props}) {
       </Stack>
       <Box>
         <Menu>
-          <MenuIconItem icon="ads">My Ads</MenuIconItem>
-          <MenuIconItem icon="cards">View all offers</MenuIconItem>
+          <MenuItem icon="ads">My Ads</MenuItem>
+          <MenuItem icon="cards">View all offers</MenuItem>
         </Menu>
       </Box>
     </Flex>
@@ -393,11 +361,11 @@ export function AdForm({onChange, ...ad}) {
   )
 }
 
-export function PublishAdDrawer({ad, ...props}) {
+export function PublishAdDrawer({ad, onCancel, ...props}) {
   const {i18n} = useTranslation()
 
   return (
-    <Drawer {...props}>
+    <Drawer onClose={onCancel} {...props}>
       <DrawerHeader>
         <Stack spacing={4}>
           <FillCenter
@@ -407,7 +375,7 @@ export function PublishAdDrawer({ad, ...props}) {
             minH={12}
             rounded="xl"
           >
-            <Icon name="ads" size={6} color="brandBlue.500" />
+            <AdsIcon boxSize={6} color="blue.500" />
           </FillCenter>
           <Heading fontSize="lg" fontWeight={500}>
             Pay

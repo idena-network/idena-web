@@ -2,6 +2,7 @@ import {useToken} from '@chakra-ui/react'
 import {useMachine} from '@xstate/react'
 import {assign, createMachine, spawn} from 'xstate'
 import {log} from 'xstate/lib/actions'
+import protobuf from 'protobufjs'
 import {useAuthState} from '../../shared/providers/auth-context'
 import db from '../../shared/utils/db'
 import {
@@ -9,12 +10,30 @@ import {
   byId,
   callRpc,
   eitherState,
-  HASH_IN_MEMPOOL,
 } from '../../shared/utils/utils'
 import {AdStatus} from './types'
-import {profileToHex, buildAdReviewVoting, fetchTotalSpent} from './utils'
+import {
+  buildAdReviewVoting,
+  fetchTotalSpent,
+  currentOs,
+  isReviewingAd,
+  pollTx,
+} from './utils'
+import profilePb from '../../shared/models/proto/profile_pb'
+import {
+  buildContractDeploymentArgs,
+  createContractCaller,
+  fetchVoting,
+  mapVoting,
+} from '../oracles/utils'
+import {ContractRpcMode} from '../oracles/types'
+import {useFailToast} from '../../shared/hooks/use-toast'
 
 export function useAdList() {
+  const failToast = useFailToast()
+
+  const {coinbase} = useAuthState()
+
   const adListMachine = createMachine({
     id: 'adList',
     context: {
@@ -24,11 +43,11 @@ export function useAdList() {
       filter: AdStatus.Active,
       totalSpent: 0,
     },
-    initial: 'init',
+    initial: 'load',
     states: {
-      init: {
+      load: {
         invoke: {
-          src: 'init',
+          src: 'load',
           onDone: {
             target: 'ready',
             actions: [
@@ -62,43 +81,35 @@ export function useAdList() {
                   assign({
                     filter: (_, {value}) => value,
                     filteredAds: ({ads}, {value}) =>
-                      // eslint-disable-next-line no-shadow
                       ads.filter(({status}) =>
-                        areSameCaseInsensitive(status, value)
+                        value === AdStatus.Reviewing
+                          ? isReviewingAd({status})
+                          : areSameCaseInsensitive(status, value)
                       ),
                   }),
                   log(),
                 ],
               },
-              REVIEW: {
-                target: 'sendingToReview',
+              SEND_AD_TO_REVIEW: {
+                target: 'sendToReview',
                 actions: [
                   assign({
                     selectedAd: ({ads}, ad) => ads.find(byId(ad)),
                   }),
                 ],
               },
-              REMOVE_AD: {
-                target: 'removingAd',
+              PUBLISH_AD: {
+                target: 'publish',
                 actions: [
                   assign({
-                    ads: ({ads}, {id}) => ads.filter(ad => ad.id !== id),
-                    // eslint-disable-next-line no-shadow
-                    filteredAds: ({filteredAds}, {id}) =>
-                      filteredAds.filter(ad => ad.id !== id),
+                    selectedAd: ({ads}, ad) => ads.find(byId(ad)),
                   }),
                 ],
               },
+              REMOVE_AD: 'removeAd',
             },
           },
-          removingAd: {
-            invoke: {
-              src: 'removeAd',
-              onDone: 'idle',
-              onError: {actions: ['onError']},
-            },
-          },
-          sendingToReview: {
+          sendToReview: {
             on: {
               CANCEL: 'idle',
             },
@@ -114,240 +125,241 @@ export function useAdList() {
                 invoke: {
                   src: 'sendToReview',
                   onDone: {
-                    target: 'miningDeploy',
+                    target: 'mineDeployVoting',
                     actions: [
-                      assign({
-                        txDeployHash: (_, {data}) => data.txHash,
-                        contractHash: (_, {data}) => data.contractHash,
-                      }),
-                      log(),
+                      assign(
+                        (
+                          // eslint-disable-next-line no-shadow
+                          {ads, selectedAd, filter, ...context},
+                          {data: {deployVotingTxHash, votingAddress, adCid}}
+                        ) => {
+                          const mapToReviewingAd = ad => ({
+                            ...ad,
+                            status: AdStatus.Reviewing,
+                            deployVotingTxHash,
+                            votingAddress,
+                            adCid,
+                          })
+
+                          const nextAds = ads.map(ad =>
+                            ad.id === selectedAd.id ? mapToReviewingAd(ad) : ad
+                          )
+
+                          return {
+                            ...context,
+                            ads: nextAds,
+                            filteredAds: nextAds.filter(
+                              ad => ad.status === filter
+                            ),
+                            selectedAd: mapToReviewingAd(selectedAd),
+                          }
+                        }
+                      ),
                     ],
                   },
                   onError: {actions: ['onError', log()]},
                 },
               },
-              miningDeploy: {
-                invoke: {src: 'pollDeployVoting'},
+              mineDeployVoting: {
+                invoke: {src: 'mineDeployVoting'},
                 on: {
-                  MINED: {
-                    target: 'startingVoting',
-                    actions: [log()],
-                  },
+                  MINED: 'startVoting',
+                  MINING_FAILED: 'miningFailed',
                 },
               },
-              startingVoting: {
+              startVoting: {
                 invoke: {
-                  src: 'startReviewVoting',
+                  src: 'startVoting',
                   onDone: {
-                    target: 'miningStartVoting',
+                    target: 'mineStartVoting',
                     actions: [
-                      assign({
-                        txStartHash: (_, {data}) => data,
-                      }),
-                      log(),
+                      assign(
+                        (
+                          // eslint-disable-next-line no-shadow
+                          {ads, selectedAd, filter, ...context},
+                          {data: {startVotingTxHash}}
+                        ) => {
+                          const mapToStartedReviewingAd = ad => ({
+                            ...ad,
+                            startVotingTxHash,
+                          })
+
+                          const nextAds = ads.map(ad =>
+                            ad.id === selectedAd.id
+                              ? mapToStartedReviewingAd(ad)
+                              : ad
+                          )
+
+                          return {
+                            ...context,
+                            ads: nextAds,
+                            filteredAds: nextAds.filter(
+                              ad => ad.status === filter
+                            ),
+                            selectedAd: mapToStartedReviewingAd(selectedAd),
+                          }
+                        }
+                      ),
                     ],
                   },
                 },
               },
-              miningStartVoting: {
-                invoke: {src: 'pollStartVoting'},
+              mineStartVoting: {
+                invoke: {src: 'mineStartVoting'},
                 on: {
-                  MINED: {
-                    target: '#adList.ready.idle',
-                    actions: [
-                      // eslint-disable-next-line no-shadow
-                      assign(({ads, selectedAd, status}) => {
-                        const applyReviewingStatus = ad => ({
-                          ...ad,
-                          status: AdStatus.Reviewing,
-                        })
-
-                        const nextAds = ads.map(ad =>
-                          ad.id === selectedAd.id
-                            ? {
-                                ...applyReviewingStatus(ad),
-                                ref: spawn(
-                                  // eslint-disable-next-line no-use-before-define
-                                  adMachine.withContext(
-                                    applyReviewingStatus(ad)
-                                  )
-                                ),
-                              }
-                            : ad
-                        )
-
-                        return {
-                          ads: nextAds,
-                          filteredAds: nextAds.filter(
-                            ad => ad.status === status
-                          ),
-                          selectedAd: applyReviewingStatus(selectedAd),
-                        }
-                      }),
-                      'onSentToReview',
-                      log(),
-                    ],
-                  },
+                  MINED: '#adList.ready.idle',
+                  MINING_FAILED: 'miningFailed',
                   TX_NULL: {actions: ['onError']},
                 },
+              },
+              miningFailed: {entry: ['onError']},
+            },
+          },
+          publish: {
+            on: {
+              CANCEL: 'idle',
+            },
+          },
+          removeAd: {
+            invoke: {
+              src: 'removeAd',
+              onDone: {
+                target: 'idle',
+                actions: [
+                  assign({
+                    ads: ({ads}, {id}) => ads.filter(ad => ad.id !== id),
+                    // eslint-disable-next-line no-shadow
+                    filteredAds: ({filteredAds}, {id}) =>
+                      filteredAds.filter(ad => ad.id !== id),
+                  }),
+                ],
+              },
+              onError: {
+                actions: ['onError'],
               },
             },
           },
         },
       },
-      fail: {},
-    },
-    on: {
-      SELECT: {
-        actions: [
-          assign({
-            selectedAd: ({ads}, {id}) => ads.find(a => a.id === id),
-          }),
-        ],
+      fail: {
+        entry: ['onError'],
       },
     },
   })
 
-  const {coinbase} = useAuthState()
-
   const [current, send] = useMachine(adListMachine, {
     actions: {
-      // eslint-disable-next-line no-unused-vars
-      // onSentToReview: asEffect(({selectedAd: {ref, ...ad}}) => {
-      //   db.put(ad)
-      // }),
-      // onError: (_, {data: {message}}) => {
-      //   toastError(message)
-      // },
+      onError: (_, {data: {message}}) => {
+        failToast(message)
+      },
     },
     services: {
-      init: async () => ({
-        ads: await db.ads.toArray(),
+      load: async () => ({
+        ads: await Promise.all(
+          (await db.ads.toArray()).map(async ad => ({
+            ...ad,
+            status: ad.votingAddress
+              ? mapVoting(
+                  (await fetchVoting({
+                    contractHash: ad.votingAddress,
+                  }).catch(() => null)) ?? ad
+                ).status
+              : ad.status,
+          }))
+        ),
         totalSpent: await fetchTotalSpent(coinbase),
-        profileToHex: profileToHex((await db.ads.toArray())[3]),
       }),
-      // eslint-disable-next-line no-shadow
-      sendToReview: async ({selectedAd}, {from = coinbase, stake = 10000}) => {
-        const voting = buildAdReviewVoting(selectedAd)
+      sendToReview: async (
+        {selectedAd: {id, title, url, cover, author}},
+        {from = coinbase, stake = 8000}
+      ) => {
+        const root = await protobuf.load('/static/pb/profile.proto')
 
-        // const {error, contract: contractHash, gasCost, txFee} = await callRpc(
-        //   'contract_estimateDeploy',
-        //   buildContractDeploymentArgs(
-        //     voting,
-        //     {from, stake},
-        //     ContractRpcMode.Estimate
-        //   )
-        // )
+        const AdContentMessage = root.lookupType('profile.AdContent')
 
-        // if (error) throw new Error(error)
+        const adContent = AdContentMessage.create({
+          id,
+          title,
+          url,
+          cover: await cover.arrayBuffer(),
+          author,
+        })
 
-        // const txHash = await callRpc(
-        //   'contract_deploy',
-        //   buildContractDeploymentArgs(voting, {
-        //     from,
-        //     stake,
-        //     gasCost,
-        //     txFee,
-        //   })
-        // )
+        const adContentHex = Buffer.from(
+          AdContentMessage.encode(adContent).finish()
+        ).toString('hex')
 
-        // const nextVoting = {
-        //   ...voting,
-        //   contractHash,
-        //   issuer: coinbase,
-        //   createDate: Date.now(),
-        //   startDate: Date.now(),
-        //   finishDate: votingFinishDate(voting),
-        // }
+        const adCid = await callRpc('ipfs_add', `0x${adContentHex}`, false)
 
-        // await createVotingDb(epoch?.epoch).put({
-        //   ...nextVoting,
-        //   id: contractHash,
-        //   status: VotingStatus.Deploying,
-        // })
+        const voting = buildAdReviewVoting({title, adCid})
 
-        const profileCid = await callRpc(
-          'ipfs_add',
-          `0x${await profileToHex({...selectedAd, author: coinbase})}`,
-          false
+        const {contract: votingAddress, gasCost, txFee} = await callRpc(
+          'contract_estimateDeploy',
+          buildContractDeploymentArgs(
+            voting,
+            {from, stake},
+            ContractRpcMode.Estimate
+          )
         )
 
-        await callRpc('dna_changeProfile', {info: profileCid})
+        const txHash = await callRpc(
+          'contract_deploy',
+          buildContractDeploymentArgs(voting, {
+            from,
+            stake,
+            gasCost,
+            txFee,
+          })
+        )
 
         await db
           .table('ads')
-          .update(selectedAd.id, {status: AdStatus.Reviewing})
+          .update(id, {status: AdStatus.Reviewing, votingAddress, adCid})
 
         return {
-          txHash:
-            '0x5af59d0196e165f66e6669cc8bac06c403e0b692f04feb7c09becf1a6755459d',
-          contractHash: '0xae2eeaf1944b4a48d7f167042cdb5bb599486236',
-          profileCid,
+          deployVotingTxHash: txHash,
+          votingAddress,
+          adCid,
         }
       },
-      pollDeployVoting: ({txDeployHash}) => cb => {
-        let timeoutId
+      mineDeployVoting: (_, {data: {deployVotingTxHash}}) => cb =>
+        pollTx(deployVotingTxHash, cb),
+      // eslint-disable-next-line no-shadow
+      startVoting: async ({selectedAd}, {amount = 1000}) => {
+        const {votingAddress} = selectedAd
 
-        const fetchStatus = async () => {
-          try {
-            const result = await callRpc('bcn_transaction', txDeployHash)
-            if (result.blockHash !== HASH_IN_MEMPOOL) cb({type: 'MINED'})
-            else timeoutId = setTimeout(fetchStatus, 10 * 1000)
-          } catch (error) {
-            cb('TX_NULL', {error: error?.message})
-          }
-        }
+        console.log({
+          selectedAd,
+          votingAddress,
+        })
 
-        timeoutId = setTimeout(fetchStatus, 10 * 1000)
+        let callContract = createContractCaller({
+          contractHash: votingAddress,
+          from: coinbase,
+          amount,
+        })
 
-        return () => {
-          clearTimeout(timeoutId)
-        }
-      },
-      startReviewVoting: async ({contractHash}, {amount = 100}) => {
-        // let callContract = createContractCaller({
-        //   contractHash,
-        //   from: coinbase,
-        //   amount,
-        // })
+        const {error, gasCost, txFee} = await callContract(
+          'startVoting',
+          ContractRpcMode.Estimate
+        )
 
-        // const {error, gasCost, txFee} = await callContract(
-        //   'startVoting',
-        //   ContractRpcMode.Estimate
-        // )
+        if (error) throw new Error(error)
 
-        // if (error) throw new Error(error)
-        // callContract = createContractCaller({
-        //   contractHash,
-        //   from: address,
-        //   amount,
-        //   gasCost: Number(gasCost),
-        //   txFee: Number(txFee),
-        // })
+        callContract = createContractCaller({
+          contractHash: votingAddress,
+          from: coinbase,
+          amount,
+          gasCost: Number(gasCost),
+          txFee: Number(txFee),
+        })
 
-        // return callContract('startVoting')
-        console.log({contractHash})
-        return Promise.resolve()
-      },
-      pollStartVoting: ({txStartHash}) => cb => {
-        let timeoutId
-
-        const fetchStatus = async () => {
-          try {
-            const result = await callRpc('bcn_transaction', txStartHash)
-            if (result.blockHash !== HASH_IN_MEMPOOL) cb({type: 'MINED'})
-            else timeoutId = setTimeout(fetchStatus, 10 * 1000)
-          } catch (error) {
-            cb('TX_NULL', {data: error})
-          }
-        }
-
-        timeoutId = setTimeout(fetchStatus, 10 * 1000)
-
-        return () => {
-          clearTimeout(timeoutId)
+        return {
+          startVotingTxHash: await callContract('startVoting'),
         }
       },
+      mineStartVoting: (_, {data: {startVotingTxHash}}) => cb =>
+        pollTx(startVotingTxHash, cb),
       removeAd: (_, {id}) => db.table('ads').delete(id),
     },
   })
@@ -363,26 +375,25 @@ export function useAdList() {
       filter,
       totalSpent,
       isReady: eitherCurrentState('ready'),
-      isPublishing: eitherCurrentState('ready.publishing'),
-      isSendingToReview: eitherCurrentState('ready.sendingToReview'),
+      isPublishing: eitherCurrentState('ready.publish'),
+      isSendingToReview: eitherCurrentState('ready.sendToReview'),
       isMining: eitherCurrentState(
-        'ready.sendingToReview.miningDeploy',
-        'ready.sendingToReview.startingVoting',
-        'ready.sendingToReview.miningStartVoting'
+        'ready.sendToReview.mineDeployVoting',
+        'ready.sendToReview.mineStartVoting'
       ),
     },
     {
       filter(value) {
         send('FILTER', {value})
       },
-      selectAd(id) {
-        send('SELECT', {id})
-      },
       removeAd(id) {
         send('REMOVE_AD', {id})
       },
       sendAdToReview(id) {
-        send('REVIEW', {id})
+        send('SEND_AD_TO_REVIEW', {id})
+      },
+      publishAd(id) {
+        send('PUBLISH_AD', {id})
       },
       submitAd() {
         send('SUBMIT')
@@ -528,4 +539,97 @@ export function useAdStatusColor(status, fallbackColor = 'gray.500') {
   const color = useToken('colors', `${statusColor[status]}.500`, fallbackColor)
 
   return color
+}
+
+export function useAdRotation() {
+  useMachine(() =>
+    createMachine({
+      context: {
+        burntCoins: [],
+      },
+      initial: 'idle',
+      states: {
+        idle: {
+          on: {
+            START: {
+              target: 'fetchBurntCoins',
+              actions: [
+                assign({
+                  identity: (_, {identity}) => identity,
+                }),
+              ],
+            },
+          },
+        },
+        fetchBurntCoins: {
+          invoke: {
+            src: () => callRpc('bcn_burntCoins'),
+            onDone: {
+              target: 'fetchAds',
+              actions: [
+                assign({
+                  burntCoins: ({identity}, {data}) =>
+                    data
+                      .filter(({key}) => {
+                        const adKey = new profilePb.AdKey().deserializeBinary(
+                          Buffer.from(key, 'hex')
+                        )
+                        return (
+                          areSameCaseInsensitive(
+                            navigator.language,
+                            adKey.language
+                          ) &&
+                          identity.age >= adKey.age &&
+                          identity.stake >= adKey.stake &&
+                          areSameCaseInsensitive(currentOs(), adKey.os)
+                        )
+                      })
+                      .slice(0, 5),
+                }),
+              ],
+            },
+            onError: {actions: log()},
+          },
+        },
+        fetchAds: {
+          invoke: {
+            src: ({burntCoins}) =>
+              Promise.all(
+                burntCoins.map(async ({address}) => {
+                  const {info: profileCid} = await callRpc(
+                    'dna_profile',
+                    address
+                  )
+                  const profileIpfs = await callRpc('ipfs_get', profileCid)
+                  const profile = new profilePb.Profile().deserializeBinary(
+                    Buffer.from(profileIpfs, 'hex')
+                  )
+
+                  return profile.ads
+                })
+              ),
+            onDone: {
+              actions: [
+                assign({
+                  ads: (_, {data}) => data,
+                }),
+              ],
+            },
+            onError: {
+              actions: [log()],
+            },
+          },
+        },
+        checkAds: {
+          invoke: {
+            src: ({ads}) =>
+              ads.filter(async ({votingAddress, ad}) => {
+                const {state, adHash} = await fetchVoting(votingAddress)
+                return state === 'approved' && adHash === ad
+              }),
+          },
+        },
+      },
+    })
+  )
 }

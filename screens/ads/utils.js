@@ -1,58 +1,15 @@
 import nanoid from 'nanoid'
 import {stripHexPrefix} from '../../shared/utils/buffers'
-import {areSameCaseInsensitive, callRpc} from '../../shared/utils/utils'
+import {
+  areSameCaseInsensitive,
+  callRpc,
+  HASH_IN_MEMPOOL,
+} from '../../shared/utils/utils'
 import profilePb from '../../shared/models/proto/profile_pb'
+import {AdStatus} from './types'
+import {VotingStatus} from '../../shared/types'
 
-const dbProxy = {}
-const createEpochDb = () => {}
-
-export function createAdDb(epoch = -1) {
-  const ns = [epoch, 'ads']
-
-  const db = createEpochDb(...ns)
-
-  const coverDbArgs = [['covers', ...ns], {valueEncoding: 'binary'}]
-
-  return {
-    async put({cover, ...ad}) {
-      const id = await db.put(ad)
-      if (cover) await dbProxy.put(id, cover, ...coverDbArgs)
-      return id
-    },
-    async get(id) {
-      return {
-        ...(await db.get(id).catch(() => {})),
-        cover: await dbProxy.get(id, ...coverDbArgs).catch(() => null),
-      }
-    },
-    async getAsHex(id) {
-      return dbProxy.get(id, ns, {
-        valueEncoding: 'hex',
-      })
-    },
-    async all() {
-      return Promise.all(
-        (await db.all()).map(async ({id, ...ad}) => ({
-          id,
-          cover: await dbProxy.get(id, ...coverDbArgs).catch(() => null),
-          ...ad,
-        }))
-      )
-    },
-    del(id) {
-      return db.del(id)
-    },
-    clear() {
-      return db.clear()
-    },
-  }
-}
-
-export function buildProfile({ads}) {
-  return {ads}
-}
-
-export function buildTargetKey({locale, age, stake, os = detectOs()}) {
+export function buildTargetKey({locale, age, stake, os = currentOs()}) {
   return JSON.stringify({locale, age, stake: Math.floor(stake), os})
 }
 
@@ -87,9 +44,10 @@ export async function fetchTotalSpent(address) {
   )
 }
 
-export const buildAdReviewVoting = ({title}) => ({
+export const buildAdReviewVoting = ({title, adCid}) => ({
   title: 'Is this ads propriate?',
-  desc: title,
+  desc: `title: ${title}, cid: ${adCid}`,
+  adCid,
   startDate: Date.now(),
   votingDuration: 4320 * 3,
   publicVotingDuration: 2160,
@@ -104,18 +62,23 @@ export const buildAdReviewVoting = ({title}) => ({
   ownerFee: 0,
 })
 
-export function detectOs() {
+export function currentOs() {
+  const {userAgent: ua, platform} = navigator
   switch (true) {
-    case navigator.appVersion.includes('Win'):
-      return 'win'
-    case navigator.appVersion.includes('Mac'):
-      return 'mac'
-    case navigator.appVersion.includes('Linux'):
-      return 'linux'
-    case navigator.appVersion.includes('X11'):
-      return 'unix'
+    case /Android/.test(ua):
+      return 'Android'
+    case /iPhone|iPad|iPod/.test(platform):
+      return 'iOS'
+    case /Win/.test(platform):
+      return 'Windows'
+    case /Mac/.test(platform):
+      return 'Mac'
+    case /CrOS/.test(ua):
+      return 'Chrome OS'
+    case /Firefox/.test(ua):
+      return 'Firefox OS'
     default:
-      return undefined
+      return null
   }
 }
 
@@ -163,14 +126,48 @@ export async function profileToHex({
   const profile = new profilePb.Profile()
   profile.setAdsList([adItem])
 
-  console.log({
-    ad: profile
-      .getAdsList()[0]
-      .getAd()
-      .getTitle(),
-    profile,
-    profileBinary: profile.serializeBinary(),
-  })
-
   return Buffer.from(profile.serializeBinary()).toString('hex')
+}
+
+export const isReviewingAd = ({status}) =>
+  [
+    AdStatus.Reviewing,
+    VotingStatus.Pending,
+    VotingStatus.Open,
+    VotingStatus.Voted,
+    VotingStatus.Counting,
+  ].some(s => status.localeCompare(s, [], {sensitivity: 'base'}) === 0)
+
+export const isApprovedAd = ({status}) =>
+  [AdStatus.Approved, VotingStatus.Archived].some(
+    s => status.localeCompare(s, [], {sensitivity: 'base'}) === 0
+  )
+
+export function pollTx(txHash, cb) {
+  let timeoutId
+
+  const fetchStatus = async () => {
+    console.log({txHash})
+    try {
+      const {blockHash} = await callRpc('bcn_transaction', txHash)
+
+      if (blockHash === HASH_IN_MEMPOOL) {
+        timeoutId = setTimeout(fetchStatus, 10 * 1000)
+      } else {
+        const {success, error} = await callRpc('bcn_txReceipt', txHash)
+
+        if (success) cb({type: 'MINED'})
+        else if (error) cb({type: 'MINING_FAILED'})
+        else timeoutId = setTimeout(fetchStatus, 10 * 1000)
+      }
+    } catch (error) {
+      cb('TX_NULL', {data: {message: 'Transaction does not exist'}})
+    }
+  }
+
+  timeoutId = setTimeout(fetchStatus, 10 * 1000)
+
+  return () => {
+    clearTimeout(timeoutId)
+  }
 }

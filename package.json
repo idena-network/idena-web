@@ -76,6 +76,7 @@
     "polished": "^3.3.0",
     "progress-stream": "^2.0.0",
     "prop-types": "^15.6.2",
+    "protobufjs": "^6.11.2",
     "qrcode.react": "^0.9.3",
     "react": "^17.0.2",
     "react-beautiful-dnd": "^10.0.4",

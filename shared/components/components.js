@@ -433,7 +433,7 @@ export const VDivider = React.forwardRef(function VDivider(props, ref) {
 })
 
 export const HDivider = React.forwardRef(function HDivider(props, ref) {
-  return <Divider ref={ref} borderColor="gray.300" my={0} {...props} />
+  return <Divider ref={ref} borderColor="gray.100" my={0} {...props} />
 })
 
 export function SmallText(props) {

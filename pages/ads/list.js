@@ -42,6 +42,9 @@ import {
   EditIcon,
 } from '../../shared/components/icons'
 import db from '../../shared/utils/db'
+import {fetchVoting, mapVoting} from '../../screens/oracles/utils'
+import {VotingStatus} from '../../shared/types'
+import {isApprovedAd, isReviewingAd} from '../../screens/ads/utils'
 
 export default function AdListPage() {
   const {t, i18n} = useTranslation()
@@ -63,7 +66,7 @@ export default function AdListPage() {
       isSendingToReview,
       isMining,
     },
-    {filter: filterList, selectAd, removeAd, sendAdToReview, submitAd, cancel},
+    {filter: filterList, publishAd, removeAd, sendAdToReview, submitAd, cancel},
   ] = useAdList()
 
   const toDna = toLocaleDna(i18n.language)
@@ -91,6 +94,9 @@ export default function AdListPage() {
             <AdStatusFilterButton value={AdStatus.Reviewing}>
               {t('On review')}
             </AdStatusFilterButton>
+            <AdStatusFilterButton value={VotingStatus.Archived}>
+              {t('Approved')}
+            </AdStatusFilterButton>
             <AdStatusFilterButton value={AdStatus.Rejected}>
               {t('Rejected')}
             </AdStatusFilterButton>
@@ -115,10 +121,8 @@ export default function AdListPage() {
               stake,
               burnt: spent = 0,
               lastTx = dayjs(),
-              // eslint-disable-next-line no-shadow
               status,
-              contractHash,
-              author,
+              votingAddress,
             }) => (
               <HStack key={id} spacing="5" align="flex-start">
                 <Stack spacing={3} w="16">
@@ -164,10 +168,10 @@ export default function AdListPage() {
                           </MenuItem>
                         </Menu>
                       </Box>
-                      {status === AdStatus.Approved && (
+                      {isApprovedAd({status}) && (
                         <SecondaryButton
                           onClick={() => {
-                            selectAd(id)
+                            publishAd(id)
                           }}
                         >
                           {t('Publish')}
@@ -182,18 +186,17 @@ export default function AdListPage() {
                           {t('Review')}
                         </SecondaryButton>
                       )}
-                      {status === AdStatus.Reviewing && (
+                      {isReviewingAd({status}) && (
                         <SecondaryButton
                           onClick={async () => {
                             toast(
                               {
                                 ...(await db.table('ads').get(id)),
-                                // ...mapVoting(
-                                //   await fetchVoting({
-                                //     contractHash,
-                                //     address: author,
-                                //   }).catch(() => ({}))
-                                // ),
+                                ...mapVoting(
+                                  await fetchVoting({
+                                    contractHash: votingAddress,
+                                  }).catch(() => ({}))
+                                ),
                               }.status
                             )
                           }}
@@ -254,7 +257,9 @@ export default function AdListPage() {
         <PublishAdDrawer
           ad={selectedAd}
           isOpen={isPublishing}
-          onClose={cancel}
+          isMining={isMining}
+          onSubmit={submitAd}
+          onCancel={cancel}
         />
       </Page>
 
