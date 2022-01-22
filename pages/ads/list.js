@@ -19,6 +19,7 @@ import {Page, PageTitle} from '../../screens/app/components'
 import {SecondaryButton} from '../../shared/components/button'
 import {toLocaleDna} from '../../shared/utils/utils'
 import {
+  AdBanner,
   AdCoverImage,
   AdOverlayStatus,
   AdStatusFilterButton,
@@ -73,7 +74,7 @@ export default function AdListPage() {
 
   return (
     <Layout>
-      <Page as={Stack} spacing={4} mt={0 ?? 24}>
+      <Page as={Stack} spacing={4} mt={14}>
         <PageTitle>{t('My Ads')}</PageTitle>
         <Stack isInline spacing={20}>
           <BlockAdStat label="My balance">
@@ -262,10 +263,9 @@ export default function AdListPage() {
           onCancel={cancel}
         />
       </Page>
-
-      {/* <Box position="fixed" top={4} left={48} w="full">
+      <Box position="absolute" left={200} top={0} right={0} zIndex="banner">
         <AdBanner />
-      </Box> */}
+      </Box>
     </Layout>
   )
 }

@@ -3,6 +3,7 @@ import {useMachine} from '@xstate/react'
 import {assign, createMachine, spawn} from 'xstate'
 import {log} from 'xstate/lib/actions'
 import protobuf from 'protobufjs'
+import React from 'react'
 import {useAuthState} from '../../shared/providers/auth-context'
 import db from '../../shared/utils/db'
 import {
@@ -15,11 +16,14 @@ import {AdStatus} from './types'
 import {
   buildAdReviewVoting,
   fetchTotalSpent,
-  currentOs,
   isReviewingAd,
+  pollContractTx,
+  buildAdKeyHex,
+  buildProfileHex,
   pollTx,
+  fetchProfileAds,
+  fetchProfileAd,
 } from './utils'
-import profilePb from '../../shared/models/proto/profile_pb'
 import {
   buildContractDeploymentArgs,
   createContractCaller,
@@ -28,6 +32,7 @@ import {
 } from '../oracles/utils'
 import {ContractRpcMode} from '../oracles/types'
 import {useFailToast} from '../../shared/hooks/use-toast'
+import {useIdentity} from '../../shared/providers/identity-context'
 
 export function useAdList() {
   const failToast = useFailToast()
@@ -94,7 +99,7 @@ export function useAdList() {
                 target: 'sendToReview',
                 actions: [
                   assign({
-                    selectedAd: ({ads}, ad) => ads.find(byId(ad)),
+                    selectedAd: ({ads}, {id}) => ads.find(byId({id})),
                   }),
                 ],
               },
@@ -102,7 +107,7 @@ export function useAdList() {
                 target: 'publish',
                 actions: [
                   assign({
-                    selectedAd: ({ads}, ad) => ads.find(byId(ad)),
+                    selectedAd: ({ads}, {id}) => ads.find(byId({id})),
                   }),
                 ],
               },
@@ -219,6 +224,59 @@ export function useAdList() {
             on: {
               CANCEL: 'idle',
             },
+            initial: 'preview',
+            states: {
+              preview: {
+                entry: [log()],
+                on: {SUBMIT: 'submitting'},
+              },
+              submitting: {
+                entry: [log()],
+                invoke: {
+                  src: 'publishAd',
+                  onDone: {
+                    target: 'mining',
+                    actions: [
+                      assign(
+                        (
+                          // eslint-disable-next-line no-shadow
+                          {ads, selectedAd, filter, ...context},
+                          {data: {profileChangeHash, profileCid}}
+                        ) => {
+                          const mapToPublishedAd = ad => ({
+                            ...ad,
+                            profileChangeHash,
+                            profileCid,
+                          })
+
+                          const nextAds = ads.map(ad =>
+                            ad.id === selectedAd.id ? mapToPublishedAd(ad) : ad
+                          )
+
+                          return {
+                            ...context,
+                            ads: nextAds,
+                            filteredAds: nextAds.filter(
+                              ad => ad.status === filter
+                            ),
+                            selectedAd: mapToPublishedAd(selectedAd),
+                          }
+                        }
+                      ),
+                      log(),
+                    ],
+                  },
+                  onError: {actions: [log()]},
+                },
+              },
+              mining: {
+                invoke: {src: 'pollPublishAd'},
+                on: {
+                  MINED: '#adList.ready.idle',
+                  TX_NULL: {actions: ['onError']},
+                },
+              },
+            },
           },
           removeAd: {
             invoke: {
@@ -281,7 +339,7 @@ export function useAdList() {
           id,
           title,
           url,
-          cover: await cover.arrayBuffer(),
+          cover: new Uint8Array(await cover.arrayBuffer()),
           author,
         })
 
@@ -323,7 +381,7 @@ export function useAdList() {
         }
       },
       mineDeployVoting: (_, {data: {deployVotingTxHash}}) => cb =>
-        pollTx(deployVotingTxHash, cb),
+        pollContractTx(deployVotingTxHash, cb),
       // eslint-disable-next-line no-shadow
       startVoting: async ({selectedAd}, {amount = 1000}) => {
         const {votingAddress} = selectedAd
@@ -359,27 +417,61 @@ export function useAdList() {
         }
       },
       mineStartVoting: (_, {data: {startVotingTxHash}}) => cb =>
-        pollTx(startVotingTxHash, cb),
+        pollContractTx(startVotingTxHash, cb),
+      // eslint-disable-next-line no-shadow
+      publishAd: async ({selectedAd}) => {
+        const {id, language, age, stake, os, adCid, votingAddress} = selectedAd
+
+        const ads = await fetchProfileAds(coinbase)
+
+        console.log({ads})
+
+        const profileHex = await buildProfileHex([
+          ...ads,
+          {
+            key: {language, age, stake, os},
+            cid: adCid,
+            votingAddress,
+          },
+        ])
+
+        const profileCid = await callRpc('ipfs_add', `0x${profileHex}`, false)
+
+        const profileChangeHash = await callRpc('dna_sendChangeProfileTx', {
+          sender: coinbase,
+          cid: profileCid,
+        })
+
+        await callRpc('dna_storeToIpfs', {cid: profileCid})
+
+        await db
+          .table('ads')
+          .update(id, {adKeyHex: await buildAdKeyHex(selectedAd), profileCid})
+
+        return {
+          profileChangeHash,
+          profileCid,
+        }
+      },
+      minePublishAd: (_, {data: {profileChangeHash}}) => cb =>
+        pollTx(profileChangeHash, cb),
       removeAd: (_, {id}) => db.table('ads').delete(id),
     },
   })
-
-  const {filteredAds, selectedAd, filter, totalSpent} = current.context
 
   const eitherCurrentState = (...states) => eitherState(current, ...states)
 
   return [
     {
-      ads: filteredAds,
-      selectedAd,
-      filter,
-      totalSpent,
+      ...current.context,
+      ads: current.context.filteredAds,
       isReady: eitherCurrentState('ready'),
       isPublishing: eitherCurrentState('ready.publish'),
       isSendingToReview: eitherCurrentState('ready.sendToReview'),
       isMining: eitherCurrentState(
         'ready.sendToReview.mineDeployVoting',
-        'ready.sendToReview.mineStartVoting'
+        'ready.sendToReview.mineStartVoting',
+        'ready.publish.mining'
       ),
     },
     {
@@ -541,51 +633,64 @@ export function useAdStatusColor(status, fallbackColor = 'gray.500') {
   return color
 }
 
-export function useAdRotation() {
-  useMachine(() =>
+export function useAdRotation(limit = 5) {
+  const [current, send] = useMachine(() =>
     createMachine({
       context: {
+        ads: [],
         burntCoins: [],
       },
       initial: 'idle',
       states: {
         idle: {
           on: {
-            START: {
-              target: 'fetchBurntCoins',
-              actions: [
-                assign({
-                  identity: (_, {identity}) => identity,
-                }),
-              ],
-            },
+            START: 'fetchBurntCoins',
           },
         },
         fetchBurntCoins: {
           invoke: {
-            src: () => callRpc('bcn_burntCoins'),
+            src: async () => {
+              const burntCoins = await callRpc('bcn_burntCoins')
+
+              const decodedBurntCoins = await Promise.all(
+                (burntCoins ?? []).map(async item => {
+                  const AdKeyType = (
+                    await protobuf.load('/static/pb/profile.proto')
+                  ).lookupType('profile.AdKey')
+
+                  return {
+                    ...item,
+                    decodedAdKey: AdKeyType.decode(
+                      Buffer.from(item.key, 'hex')
+                    ),
+                  }
+                })
+              )
+
+              return decodedBurntCoins
+            },
             onDone: {
               target: 'fetchAds',
               actions: [
                 assign({
-                  burntCoins: ({identity}, {data}) =>
+                  burntCoins: (_, {data}) =>
                     data
-                      .filter(({key}) => {
-                        const adKey = new profilePb.AdKey().deserializeBinary(
-                          Buffer.from(key, 'hex')
-                        )
-                        return (
-                          areSameCaseInsensitive(
-                            navigator.language,
-                            adKey.language
-                          ) &&
-                          identity.age >= adKey.age &&
-                          identity.stake >= adKey.stake &&
-                          areSameCaseInsensitive(currentOs(), adKey.os)
-                        )
-                      })
-                      .slice(0, 5),
+                      // .filter(
+                      //   ({decodedAdKey}) =>
+                      //     false &&
+                      //     areSameCaseInsensitive(
+                      //       navigator?.language,
+                      //       decodedAdKey.language
+                      //     ) &&
+                      //     // eslint-disable-next-line no-use-before-define
+                      //     identity.age >= decodedAdKey.age &&
+                      //     // eslint-disable-next-line no-use-before-define
+                      //     identity.stake >= decodedAdKey.stake &&
+                      //     areSameCaseInsensitive(currentOs(), decodedAdKey.os)
+                      // )
+                      ?.slice(0, limit) ?? [],
                 }),
+                log(),
               ],
             },
             onError: {actions: log()},
@@ -595,17 +700,15 @@ export function useAdRotation() {
           invoke: {
             src: ({burntCoins}) =>
               Promise.all(
-                burntCoins.map(async ({address}) => {
-                  const {info: profileCid} = await callRpc(
-                    'dna_profile',
-                    address
-                  )
-                  const profileIpfs = await callRpc('ipfs_get', profileCid)
-                  const profile = new profilePb.Profile().deserializeBinary(
-                    Buffer.from(profileIpfs, 'hex')
-                  )
+                burntCoins.map(async ({address, key}) => {
+                  const profileAds = await fetchProfileAds(address)
 
-                  return profile.ads
+                  const ads = await Promise.all(
+                    profileAds
+                      .filter(ad => buildAdKeyHex(ad.key) !== key)
+                      .map(ad => fetchProfileAd(ad.cid))
+                  )
+                  return ads[0]
                 })
               ),
             onDone: {
@@ -613,6 +716,7 @@ export function useAdRotation() {
                 assign({
                   ads: (_, {data}) => data,
                 }),
+                log(),
               ],
             },
             onError: {
@@ -620,16 +724,26 @@ export function useAdRotation() {
             },
           },
         },
-        checkAds: {
-          invoke: {
-            src: ({ads}) =>
-              ads.filter(async ({votingAddress, ad}) => {
-                const {state, adHash} = await fetchVoting(votingAddress)
-                return state === 'approved' && adHash === ad
-              }),
-          },
-        },
+        // checkAds: {
+        //   invoke: {
+        //     src: ({ads}) =>
+        //       ads.filter(async ({votingAddress, ad}) => {
+        //         const {state, adHash} = await fetchVoting(votingAddress)
+        //         return state === 'approved' && adHash === ad
+        //       }),
+        //   },
+        // },
       },
     })
   )
+
+  const [identity] = useIdentity()
+
+  React.useEffect(() => {
+    if (identity.address) {
+      send('START')
+    }
+  }, [identity.address, send])
+
+  return current.context.ads
 }

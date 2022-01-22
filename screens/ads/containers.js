@@ -18,9 +18,11 @@ import {
   VisuallyHidden,
   HStack,
   Center,
+  MenuItem,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
+import {useRouter} from 'next/router'
 import {
   IconButton,
   PrimaryButton,
@@ -36,15 +38,11 @@ import {
   FormLabel,
   HDivider,
   Input,
-  Menu,
   SuccessAlert,
   DrawerPromotionPortal,
+  Menu,
 } from '../../shared/components/components'
-import {
-  openExternalUrl,
-  // countryCodes,
-  toLocaleDna,
-} from '../../shared/utils/utils'
+import {openExternalUrl, toLocaleDna} from '../../shared/utils/utils'
 import {
   AdFormField,
   AdInput,
@@ -58,14 +56,14 @@ import {Fill} from '../../shared/components'
 import {adFormMachine, useAdRotation, useAdStatusColor} from './hooks'
 import {hasImageType} from '../../shared/utils/img'
 import {AVAILABLE_LANGS} from '../../i18n'
-import {useIdentity} from '../../shared/providers/identity-context'
 import {
   AdsIcon,
   OracleIcon,
   PhotoIcon,
+  PicIcon,
   UploadIcon,
 } from '../../shared/components/icons'
-import {MenuItem} from '../../shared/components/menu'
+import {countryCodes} from './utils'
 
 export function BlockAdStat({label, value, children, ...props}) {
   return (
@@ -121,68 +119,70 @@ export function AdOverlayStatus({status}) {
   )
 }
 
-export function AdBanner({limit = 5, ...props}) {
-  const [{address}] = useIdentity()
+export function AdBanner({limit = 5}) {
+  const {t} = useTranslation()
 
-  const ads = useAdRotation()
-  const [showingAd] = ads.slice(0, limit)
+  const router = useRouter()
 
-  const {
-    title = 'Your tagline here',
-    cover,
-    issuer = address,
-    url = 'https://idena.io',
-  } = showingAd ?? {}
+  const [showingAd] = useAdRotation(limit)
 
   return (
     <Flex
       align="center"
       justify="space-between"
       borderBottomWidth={1}
-      borderBottomColor="gray.300"
+      borderBottomColor="gray.100"
       px={4}
       py={2}
-      position="sticky"
-      top={0}
-      zIndex="banner"
-      {...props}
     >
-      <Stack
-        isInline
-        cursor="pointer"
-        onClick={() => {
-          openExternalUrl(url)
-        }}
-      >
-        <AdCoverImage ad={{cover}} w="10" />
-        <Stack spacing={1}>
-          <Text color>{title}</Text>
-          <Stack isInline spacing={1}>
-            <Avatar
-              address={issuer}
-              size={14}
-              borderWidth={1}
-              borderColor="gray.016"
-              rounded="sm"
-            />
-            <Text
-              color="muted"
-              fontSize="sm"
-              fontWeight={500}
-              lineHeight="base"
-            >
-              {issuer}
-            </Text>
-          </Stack>
-        </Stack>
-      </Stack>
+      <AdBannerActiveAd {...showingAd} />
       <Box>
         <Menu>
-          <MenuItem icon="ads">My Ads</MenuItem>
-          <MenuItem icon="cards">View all offers</MenuItem>
+          <MenuItem
+            icon={<AdsIcon boxSize={5} color="blue.500" />}
+            onClick={() => {
+              router.push(`/ads/list`)
+            }}
+          >
+            {t('My Ads')}
+          </MenuItem>
+          <MenuItem icon={<PicIcon boxSize={5} color="blue.500" />}>
+            {t('View all offers')}
+          </MenuItem>
         </Menu>
       </Box>
     </Flex>
+  )
+}
+
+function AdBannerActiveAd({title, url, cover, author}) {
+  return (
+    <HStack
+      cursor="pointer"
+      onClick={() => {
+        openExternalUrl(url)
+      }}
+    >
+      <AdCoverImage
+        ad={{cover: new Blob([cover], {type: 'image/jpeg'})}}
+        w={10}
+      />
+      <Stack spacing={1}>
+        <Text>{title}</Text>
+        <HStack spacing={1}>
+          <Avatar
+            address={author}
+            size={4}
+            borderWidth={1}
+            borderColor="brandGray.016"
+            rounded="sm"
+          />
+          <Text color="muted" fontSize="sm" fontWeight={500} lineHeight="base">
+            {author}
+          </Text>
+        </HStack>
+      </Stack>
+    </HStack>
   )
 }
 
@@ -314,12 +314,14 @@ export function AdForm({onChange, ...ad}) {
               onChange={e => send('CHANGE', {ad: {location: e.target.value}})}
             >
               <option></option>
-              {Object.values(['USA', 'CA']).map(c => (
-                <option key={c}>{c}</option>
+              {countryCodes.map(c => (
+                <option key={c.code} value={c.code}>
+                  {c.name}
+                </option>
               ))}
             </Select>
           </AdFormField>
-          <AdFormField label="Language" id="lang">
+          <AdFormField label="Language" id="language">
             <Select
               value={language}
               onChange={e => send('CHANGE', {ad: {language: e.target.value}})}
@@ -333,7 +335,7 @@ export function AdForm({onChange, ...ad}) {
           <AdFormField label="Age" id="age">
             <AdNumberInput
               value={age}
-              onBlur={({target: {value}}) => send('CHANGE', {ad: {age: value}})}
+              onChange={value => send('CHANGE', {ad: {age: value}})}
             />
           </AdFormField>
           <AdFormField label="Stake" id="stake">
@@ -358,79 +360,6 @@ export function AdForm({onChange, ...ad}) {
         </Stack>
       </FormSection>
     </Stack>
-  )
-}
-
-export function PublishAdDrawer({ad, onCancel, ...props}) {
-  const {i18n} = useTranslation()
-
-  return (
-    <Drawer onClose={onCancel} {...props}>
-      <DrawerHeader>
-        <Stack spacing={4}>
-          <FillCenter
-            alignSelf="flex-start"
-            bg="blue.012"
-            w={12}
-            minH={12}
-            rounded="xl"
-          >
-            <AdsIcon boxSize={6} color="blue.500" />
-          </FillCenter>
-          <Heading fontSize="lg" fontWeight={500}>
-            Pay
-          </Heading>
-        </Stack>
-      </DrawerHeader>
-      <DrawerBody overflowY="auto" mx={-6}>
-        <Stack spacing={6} color="brandGray.500" fontSize="md" p={6} pt={0}>
-          <Text>
-            In order to make your ads visible for Idena users you need to burn
-            more coins than competitors targeting the same audience.
-          </Text>
-          <Stack spacing={6} bg="gray.50" p={6} rounded="lg">
-            <Stack isInline spacing={5}>
-              <AdCoverImage ad={ad} w="10" />
-              <Text fontWeight={500}>{ad.title}</Text>
-            </Stack>
-            <Stack spacing={3}>
-              <HDivider />
-              <Stack>
-                <InlineAdStat label="Competitors" value={10} />
-                <InlineAdStat
-                  label="Max price"
-                  value={toLocaleDna(i18n.language)(0.22)}
-                />
-              </Stack>
-              <HDivider />
-              <Stack>
-                <SmallInlineAdStat label="Location" value={ad.location} />
-                <SmallInlineAdStat label="Language" value={ad.lang} />
-                <SmallInlineAdStat label="Stake" value={ad.stake} />
-                <SmallInlineAdStat label="Age" value={ad.age} />
-                <SmallInlineAdStat label="OS" value={ad.os} />
-              </Stack>
-            </Stack>
-          </Stack>
-          <FormControl>
-            <FormLabel htmlFor="amount">Amount, DNA</FormLabel>
-            <Input id="amount" />
-          </FormControl>
-        </Stack>
-      </DrawerBody>
-      <DrawerFooter
-        borderWidth={1}
-        borderColor="gray.100"
-        py={3}
-        px={4}
-        position="absolute"
-        left={0}
-        right={0}
-        bottom={0}
-      >
-        <PrimaryButton>Burn</PrimaryButton>
-      </DrawerFooter>
-    </Drawer>
   )
 }
 
@@ -475,7 +404,6 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
                 h={8}
                 px={3}
                 textTransform="initial"
-                {...props}
               >
                 {t('Mining...')}
               </Badge>
@@ -518,6 +446,97 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
         </HStack>
       </DrawerFooter>
     </AdDrawer>
+  )
+}
+
+export function PublishAdDrawer({ad, isMining, onSubmit, onCancel, ...props}) {
+  const {t, i18n} = useTranslation()
+
+  return (
+    <Drawer onClose={onCancel} {...props}>
+      <DrawerHeader>
+        <Stack spacing={4}>
+          <FillCenter
+            alignSelf="flex-start"
+            bg="blue.012"
+            w={12}
+            minH={12}
+            rounded="xl"
+          >
+            <AdsIcon boxSize={6} color="blue.500" />
+          </FillCenter>
+          <Heading fontSize="lg" fontWeight={500}>
+            Pay
+          </Heading>
+        </Stack>
+      </DrawerHeader>
+      <DrawerBody overflowY="auto" mx={-6} mb={10}>
+        <Stack spacing={6} color="brandGray.500" fontSize="md" p={6} pt={0}>
+          <Text>
+            In order to make your ads visible for Idena users you need to burn
+            more coins than competitors targeting the same audience.
+          </Text>
+          {isMining && (
+            <Badge
+              display="inline-flex"
+              alignItems="center"
+              alignSelf="flex-start"
+              variantColor="orange"
+              bg="orange.020"
+              color="orange.500"
+              fontWeight="normal"
+              rounded="xl"
+              h={8}
+              px={3}
+              textTransform="initial"
+            >
+              {t('Mining...')}
+            </Badge>
+          )}
+          <Stack spacing={6} bg="gray.50" p={6} rounded="lg">
+            <Stack isInline spacing={5}>
+              <AdCoverImage ad={ad} w="10" />
+              <Text fontWeight={500}>{ad.title}</Text>
+            </Stack>
+            <Stack spacing={3}>
+              <HDivider />
+              <Stack>
+                <InlineAdStat label="Competitors" value={10} />
+                <InlineAdStat
+                  label="Max price"
+                  value={toLocaleDna(i18n.language)(0.22)}
+                />
+              </Stack>
+              <HDivider />
+              <Stack>
+                <SmallInlineAdStat label="Location" value={ad.location} />
+                <SmallInlineAdStat label="Language" value={ad.lang} />
+                <SmallInlineAdStat label="Stake" value={ad.stake} />
+                <SmallInlineAdStat label="Age" value={ad.age} />
+                <SmallInlineAdStat label="OS" value={ad.os} />
+              </Stack>
+            </Stack>
+          </Stack>
+          <FormControl>
+            <FormLabel htmlFor="amount">Amount, DNA</FormLabel>
+            <Input id="amount" />
+          </FormControl>
+        </Stack>
+      </DrawerBody>
+      <DrawerFooter
+        borderWidth={1}
+        borderColor="gray.100"
+        py={3}
+        px={4}
+        position="absolute"
+        left={0}
+        right={0}
+        bottom={0}
+        onClick={onSubmit}
+      >
+        <PrimaryButton>Publish</PrimaryButton>
+      </DrawerFooter>
+    </Drawer>
   )
 }
 

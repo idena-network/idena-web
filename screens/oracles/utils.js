@@ -227,6 +227,7 @@ export function buildContractDeploymentArgs(
     ownerFee = 0,
     shouldStartImmediately,
     isFreeVoting,
+    adCid,
   },
   {from, stake, gasCost, txFee},
   mode = ContractRpcMode.Call
@@ -243,6 +244,7 @@ export function buildContractDeploymentArgs(
           title,
           desc,
           options: stripOptions(options),
+          adCid,
         })}`,
       },
       {
