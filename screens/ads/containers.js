@@ -19,6 +19,8 @@ import {
   HStack,
   Center,
   MenuItem,
+  LinkBox,
+  LinkOverlay,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
@@ -42,7 +44,7 @@ import {
   DrawerPromotionPortal,
   Menu,
 } from '../../shared/components/components'
-import {openExternalUrl, toLocaleDna} from '../../shared/utils/utils'
+import {toLocaleDna} from '../../shared/utils/utils'
 import {
   AdFormField,
   AdInput,
@@ -63,7 +65,7 @@ import {
   PicIcon,
   UploadIcon,
 } from '../../shared/components/icons'
-import {countryCodes} from './utils'
+import {countryCodes, OS} from './utils'
 
 export function BlockAdStat({label, value, children, ...props}) {
   return (
@@ -155,20 +157,23 @@ export function AdBanner({limit = 5}) {
   )
 }
 
-function AdBannerActiveAd({title, url, cover, author}) {
+function AdBannerActiveAd({
+  title = 'Your ad may be here',
+  url = 'https://idena.io',
+  cover,
+  author = `0x${'0'.repeat(40)}`,
+}) {
+  const adCover = React.useMemo(() => new Blob([cover], {type: 'image/jpeg'}), [
+    cover,
+  ])
+
   return (
-    <HStack
-      cursor="pointer"
-      onClick={() => {
-        openExternalUrl(url)
-      }}
-    >
-      <AdCoverImage
-        ad={{cover: new Blob([cover], {type: 'image/jpeg'})}}
-        w={10}
-      />
+    <LinkBox as={HStack} spacing={2}>
+      <AdCoverImage ad={{cover: adCover}} w={10} />
       <Stack spacing={1}>
-        <Text>{title}</Text>
+        <LinkOverlay href={url} target="_blank">
+          <Text lineHeight="none">{title}</Text>
+        </LinkOverlay>
         <HStack spacing={1}>
           <Avatar
             address={author}
@@ -177,12 +182,12 @@ function AdBannerActiveAd({title, url, cover, author}) {
             borderColor="brandGray.016"
             rounded="sm"
           />
-          <Text color="muted" fontSize="sm" fontWeight={500} lineHeight="base">
+          <Text color="muted" fontSize="sm" fontWeight={500}>
             {author}
           </Text>
         </HStack>
       </Stack>
-    </HStack>
+    </LinkBox>
   )
 }
 
@@ -352,9 +357,11 @@ export function AdForm({onChange, ...ad}) {
               onChange={e => send('CHANGE', {ad: {os: e.target.value}})}
             >
               <option></option>
-              <option>{t('macOS')}</option>
-              <option>{t('Windows')}</option>
-              <option>{t('Linux')}</option>
+              {Object.entries(OS).map(([k, v]) => (
+                <option key={v} value={v}>
+                  {k}
+                </option>
+              ))}
             </Select>
           </AdFormField>
         </Stack>

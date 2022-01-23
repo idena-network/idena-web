@@ -1,6 +1,6 @@
 import {useToken} from '@chakra-ui/react'
 import {useMachine} from '@xstate/react'
-import {assign, createMachine, spawn} from 'xstate'
+import {assign, createMachine} from 'xstate'
 import {log} from 'xstate/lib/actions'
 import protobuf from 'protobufjs'
 import React from 'react'
@@ -23,6 +23,8 @@ import {
   pollTx,
   fetchProfileAds,
   fetchProfileAd,
+  currentOs,
+  isTargetedAd,
 } from './utils'
 import {
   buildContractDeploymentArgs,
@@ -58,16 +60,8 @@ export function useAdList() {
             actions: [
               assign({
                 ads: (_, {data: {ads}}) => ads,
-                // eslint-disable-next-line no-shadow
                 filteredAds: ({filter}, {data: {ads}}) =>
-                  ads
-                    .filter(ad => areSameCaseInsensitive(ad.status, filter))
-                    .map(ad => ({
-                      ...ad,
-                      // eslint-disable-next-line no-use-before-define
-                      ref: spawn(adMachine.withContext(ad)),
-                    })),
-                // eslint-disable-next-line no-shadow
+                  ads.filter(ad => areSameCaseInsensitive(ad.status, filter)),
                 totalSpent: (_, {data: {totalSpent}}) => totalSpent,
               }),
               log(),
@@ -424,8 +418,6 @@ export function useAdList() {
 
         const ads = await fetchProfileAds(coinbase)
 
-        console.log({ads})
-
         const profileHex = await buildProfileHex([
           ...ads,
           {
@@ -634,6 +626,8 @@ export function useAdStatusColor(status, fallbackColor = 'gray.500') {
 }
 
 export function useAdRotation(limit = 5) {
+  const [identity] = useIdentity()
+
   const [current, send] = useMachine(() =>
     createMachine({
       context: {
@@ -675,19 +669,18 @@ export function useAdRotation(limit = 5) {
                 assign({
                   burntCoins: (_, {data}) =>
                     data
-                      // .filter(
-                      //   ({decodedAdKey}) =>
-                      //     false &&
-                      //     areSameCaseInsensitive(
-                      //       navigator?.language,
-                      //       decodedAdKey.language
-                      //     ) &&
-                      //     // eslint-disable-next-line no-use-before-define
-                      //     identity.age >= decodedAdKey.age &&
-                      //     // eslint-disable-next-line no-use-before-define
-                      //     identity.stake >= decodedAdKey.stake &&
-                      //     areSameCaseInsensitive(currentOs(), decodedAdKey.os)
-                      // )
+                      .filter(({decodedAdKey}) =>
+                        isTargetedAd(
+                          {...decodedAdKey},
+                          {
+                            language: new Intl.Locale(navigator?.language)
+                              .language,
+                            os: currentOs(),
+                            age: identity.age,
+                            stake: identity.stake,
+                          }
+                        )
+                      )
                       ?.slice(0, limit) ?? [],
                 }),
                 log(),
@@ -736,8 +729,6 @@ export function useAdRotation(limit = 5) {
       },
     })
   )
-
-  const [identity] = useIdentity()
 
   React.useEffect(() => {
     if (identity.address) {

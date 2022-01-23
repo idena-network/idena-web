@@ -12,8 +12,8 @@ import NextLink from 'next/link'
 import dayjs from 'dayjs'
 import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
+import {useQuery} from 'react-query'
 import {AdList, EmptyAdList, AdStatNumber} from '../../screens/ads/components'
-import {useIdentity} from '../../shared/providers/identity-context'
 import Layout from '../../shared/components/layout'
 import {Page, PageTitle} from '../../screens/app/components'
 import {SecondaryButton} from '../../shared/components/button'
@@ -46,13 +46,22 @@ import db from '../../shared/utils/db'
 import {fetchVoting, mapVoting} from '../../screens/oracles/utils'
 import {VotingStatus} from '../../shared/types'
 import {isApprovedAd, isReviewingAd} from '../../screens/ads/utils'
+import {fetchBalance} from '../../shared/api/wallet'
+import {useAuthState} from '../../shared/providers/auth-context'
 
 export default function AdListPage() {
   const {t, i18n} = useTranslation()
 
   const router = useRouter()
 
-  const [{balance}] = useIdentity()
+  const {coinbase} = useAuthState()
+
+  const {
+    data: {balance},
+  } = useQuery(['get-balance', coinbase], () => fetchBalance(coinbase), {
+    initialData: {balance: 0, stake: 0},
+    enabled: !!coinbase,
+  })
 
   const toast = useSuccessToast()
 
@@ -77,8 +86,10 @@ export default function AdListPage() {
       <Page as={Stack} spacing={4} mt={14}>
         <PageTitle>{t('My Ads')}</PageTitle>
         <Stack isInline spacing={20}>
-          <BlockAdStat label="My balance">
-            <AdStatNumber fontSize="lg">{toDna(balance)}</AdStatNumber>
+          <BlockAdStat label="My balance" w="2xs">
+            <AdStatNumber fontSize="lg" isTruncated>
+              {toDna(balance)}
+            </AdStatNumber>
           </BlockAdStat>
           <BlockAdStat label="Total spent, 4hrs">
             <AdStatNumber fontSize="lg">{toDna(totalSpent)}</AdStatNumber>

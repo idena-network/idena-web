@@ -25,8 +25,6 @@ export async function buildAdKeyHex({language, age, stake, os = currentOs()}) {
   const encodedAdKey = AdKeyType.encode(adKeyMessage).finish()
 
   return Buffer.from(encodedAdKey).toString('hex')
-
-  // return JSON.stringify({locale, age, stake: Math.floor(stake), os})
 }
 
 export async function buildProfileHex(ads) {
@@ -38,48 +36,46 @@ export async function buildProfileHex(ads) {
 
   const encodedProfile = ProfileType.encode(profileMessage).finish()
 
-  const profileHex = Buffer.from(encodedProfile).toString('hex')
-
-  return profileHex
+  return Buffer.from(encodedProfile).toString('hex')
 }
 
-export const isEligibleAd = (targetKey, key) => {
-  const {
-    locale: keyLocale,
-    age: keyAge,
-    stake: keyStake,
-    os: keyOs,
-  } = JSON.parse(key)
-
-  const {locale, age, stake, os} = JSON.parse(targetKey)
+export const isTargetedAd = (
+  {language: adLanguage, os: adOS, age: adAge, stake: adStake},
+  {language: targetLanguage, os: targetOS, age: targetAge, stake: targetStake}
+) => {
+  console.log([
+    {targetLanguage, adLanguage},
+    {targetOS, adOS},
+    {targetAge: Number(targetAge), adAge: Number(adAge)},
+    {targetStake: Number(targetStake), adStake: Number(adStake)},
+  ])
   return (
-    areSameCaseInsensitive(keyLocale, locale) &&
-    age >= keyAge &&
-    stake >= keyStake &&
-    areSameCaseInsensitive(keyOs, os)
+    areSameCaseInsensitive(targetLanguage, adLanguage) &&
+    areSameCaseInsensitive(targetOS, adOS) &&
+    Number(targetAge) >= Number(adAge) &&
+    Number(targetStake) >= Number(adStake)
   )
 }
 
 export async function fetchProfileAds(address) {
-  const {profileHash: profileCid} = await callRpc('dna_identity', address)
+  try {
+    const {profileHash: profileCid} = await callRpc('dna_identity', address)
 
-  if (profileCid) {
+    if (!profileCid) return []
+
     const profileHex = await callRpc('ipfs_get', profileCid)
 
-    if (profileHex) {
-      const ProfileType = (
-        await protobuf.load('/static/pb/profile.proto')
-      ).lookupType('profile.Profile')
+    const ProfileType = (
+      await protobuf.load('/static/pb/profile.proto')
+    ).lookupType('profile.Profile')
 
-      const {ads} = ProfileType.decode(Buffer.from(profileHex.slice(2), 'hex'))
+    const {ads} = ProfileType.decode(Buffer.from(profileHex.slice(2), 'hex'))
 
-      return ads
-    }
-
+    return ads
+  } catch {
+    console.error('Error fetching ads for identity', address)
     return []
   }
-
-  return []
 }
 
 export async function fetchProfileAd(cid) {
@@ -124,21 +120,31 @@ export const buildAdReviewVoting = ({title, adCid}) => ({
   ownerFee: 0,
 })
 
+export const OS = {
+  Windows: 'windows',
+  macOS: 'macos',
+  Linux: 'linux',
+  iOS: 'ios',
+  Android: 'android',
+  ChromeOS: 'chromeos',
+  FirefoxOS: 'firefoxos',
+}
+
 export function currentOs() {
   const {userAgent: ua, platform} = navigator
   switch (true) {
     case /Android/.test(ua):
-      return 'Android'
+      return OS.Android
     case /iPhone|iPad|iPod/.test(platform):
-      return 'iOS'
+      return OS.iOS
     case /Win/.test(platform):
-      return 'Windows'
+      return OS.Windows
     case /Mac/.test(platform):
-      return 'Mac'
+      return OS.macOS
     case /CrOS/.test(ua):
-      return 'Chrome OS'
+      return OS.ChromeOS
     case /Firefox/.test(ua):
-      return 'Firefox OS'
+      return OS.FirefoxOS
     default:
       return null
   }
