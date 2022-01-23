@@ -131,20 +131,17 @@ export const OS = {
 }
 
 export function currentOs() {
-  const {userAgent: ua, platform} = navigator
   switch (true) {
-    case /Android/.test(ua):
+    case /Android/.test(navigator.userAgent):
       return OS.Android
-    case /iPhone|iPad|iPod/.test(platform):
+    case /iPhone|iPad|iPod/.test(navigator.userAgent):
       return OS.iOS
-    case /Win/.test(platform):
+    case /Win/.test(navigator.userAgent):
       return OS.Windows
-    case /Mac/.test(platform):
+    case /Mac/.test(navigator.userAgent):
       return OS.macOS
-    case /CrOS/.test(ua):
-      return OS.ChromeOS
-    case /Firefox/.test(ua):
-      return OS.FirefoxOS
+    case /Linux/.test(navigator.userAgent):
+      return OS.Linux
     default:
       return null
   }
