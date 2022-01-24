@@ -24,7 +24,7 @@ import {
 import {getKeyById, getProvider} from '../api'
 import {useIdentity} from './identity-context'
 import {useAuthState} from './auth-context'
-import {createRestrictedModalMachine} from '../machines'
+import {restrictedModalMachine} from '../machines'
 import {useDeferredVotes} from '../../screens/oracles/hooks'
 
 const AppContext = React.createContext()
@@ -151,11 +151,6 @@ export function AppProvider({tabId, ...props}) {
       }
     },
     apiKeyId && apiKeyData?.provider ? 3000 : null
-  )
-
-  const restrictedModalMachine = useMemo(
-    () => createRestrictedModalMachine(),
-    []
   )
 
   const [, send] = useMachine(restrictedModalMachine, {
