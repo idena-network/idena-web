@@ -4,6 +4,7 @@ import {assign, createMachine} from 'xstate'
 import {log} from 'xstate/lib/actions'
 import protobuf from 'protobufjs'
 import React from 'react'
+import {useTranslation} from 'react-i18next'
 import {useAuthState} from '../../shared/providers/auth-context'
 import db from '../../shared/utils/db'
 import {
@@ -12,11 +13,10 @@ import {
   callRpc,
   eitherState,
 } from '../../shared/utils/utils'
-import {AdStatus} from './types'
+import {AdStatus, AdVotingOption} from './types'
 import {
   buildAdReviewVoting,
   fetchTotalSpent,
-  isReviewingAd,
   pollContractTx,
   buildAdKeyHex,
   buildProfileHex,
@@ -25,279 +25,293 @@ import {
   fetchProfileAd,
   currentOs,
   isTargetedAd,
+  filterAdsByStatus,
 } from './utils'
 import {
   buildContractDeploymentArgs,
   createContractCaller,
+  fetchNetworkSize,
+  fetchOracleRewardsEstimates,
   fetchVoting,
   mapVoting,
+  minOracleRewardFromEstimates,
+  votingBalance,
+  votingMinStake,
 } from '../oracles/utils'
 import {ContractRpcMode} from '../oracles/types'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import {useIdentity} from '../../shared/providers/identity-context'
+import {VotingStatus} from '../../shared/types'
+import {capitalize} from '../../shared/utils/string'
+
+const adListMachine = createMachine({
+  id: 'adList',
+  context: {
+    selectedAd: {},
+    ads: [],
+    filteredAds: [],
+    totalSpent: 0,
+  },
+  initial: 'load',
+  states: {
+    load: {
+      invoke: {
+        src: 'load',
+        onDone: {
+          target: 'ready',
+          actions: [
+            assign({
+              ads: (_, {data: {ads}}) => ads,
+              filteredAds: (_, {data: {ads, filter}}) =>
+                filterAdsByStatus(ads, filter),
+              totalSpent: (_, {data: {totalSpent}}) => totalSpent,
+              filter: (_, {data: {filter}}) => filter ?? AdStatus.Active,
+            }),
+            log(),
+          ],
+        },
+        onError: {target: 'fail', actions: [log()]},
+      },
+    },
+    ready: {
+      initial: 'idle',
+      states: {
+        idle: {
+          on: {
+            FILTER: {
+              actions: [
+                assign({
+                  filter: (_, {value}) => value,
+                  filteredAds: ({ads}, {value}) =>
+                    filterAdsByStatus(ads, value),
+                }),
+                ({filter}) => localStorage.setItem('adListFilter', filter),
+                log(),
+              ],
+            },
+            SEND_AD_TO_REVIEW: {
+              target: 'sendToReview',
+              actions: [
+                assign({
+                  selectedAd: ({ads}, {id}) => ads.find(byId({id})),
+                }),
+              ],
+            },
+            PUBLISH_AD: {
+              target: 'publish',
+              actions: [
+                assign({
+                  selectedAd: ({ads}, {id}) => ads.find(byId({id})),
+                }),
+              ],
+            },
+            REMOVE_AD: 'removeAd',
+          },
+        },
+        sendToReview: {
+          on: {
+            CANCEL: 'idle',
+          },
+          initial: 'preview',
+          states: {
+            preview: {
+              on: {
+                SUBMIT: {
+                  target: 'submitting',
+                  actions: [
+                    assign({
+                      oracleAmount: (_, {amount}) => amount,
+                    }),
+                  ],
+                },
+              },
+            },
+            submitting: {
+              entry: [log()],
+              invoke: {
+                src: 'sendToReview',
+                onDone: {
+                  target: 'mineDeployVoting',
+                  actions: [
+                    assign(
+                      (
+                        // eslint-disable-next-line no-shadow
+                        {ads, selectedAd, filter, ...context},
+                        {data: {deployVotingTxHash, votingAddress, adCid}}
+                      ) => {
+                        const mapToReviewingAd = ad => ({
+                          ...ad,
+                          status: AdStatus.Reviewing,
+                          deployVotingTxHash,
+                          votingAddress,
+                          adCid,
+                        })
+
+                        const nextAds = ads.map(ad =>
+                          ad.id === selectedAd.id ? mapToReviewingAd(ad) : ad
+                        )
+
+                        return {
+                          ...context,
+                          ads: nextAds,
+                          filteredAds: nextAds.filter(
+                            ad => ad.status === filter
+                          ),
+                          selectedAd: mapToReviewingAd(selectedAd),
+                        }
+                      }
+                    ),
+                  ],
+                },
+                onError: {actions: ['onError', log()]},
+              },
+            },
+            mineDeployVoting: {
+              invoke: {src: 'mineDeployVoting'},
+              on: {
+                MINED: 'startVoting',
+                MINING_FAILED: 'miningFailed',
+              },
+            },
+            startVoting: {
+              invoke: {
+                src: 'startVoting',
+                onDone: {
+                  target: 'mineStartVoting',
+                  actions: [
+                    assign(
+                      (
+                        // eslint-disable-next-line no-unused-vars
+                        {ads, selectedAd, filter, oracleAmount, ...context},
+                        {data: {startVotingTxHash}}
+                      ) => {
+                        const mapToStartedReviewingAd = ad => ({
+                          ...ad,
+                          startVotingTxHash,
+                        })
+
+                        const nextAds = ads.map(ad =>
+                          ad.id === selectedAd.id
+                            ? mapToStartedReviewingAd(ad)
+                            : ad
+                        )
+
+                        return {
+                          ...context,
+                          ads: nextAds,
+                          filteredAds: nextAds.filter(
+                            ad => ad.status === filter
+                          ),
+                          selectedAd: mapToStartedReviewingAd(selectedAd),
+                          filter,
+                        }
+                      }
+                    ),
+                  ],
+                },
+              },
+            },
+            mineStartVoting: {
+              invoke: {src: 'mineStartVoting'},
+              on: {
+                MINED: '#adList.ready.idle',
+                MINING_FAILED: 'miningFailed',
+                TX_NULL: {actions: ['onError']},
+              },
+            },
+            miningFailed: {entry: ['onError']},
+          },
+        },
+        publish: {
+          on: {
+            CANCEL: 'idle',
+          },
+          initial: 'preview',
+          states: {
+            preview: {
+              entry: [log()],
+              on: {SUBMIT: 'submitting'},
+            },
+            submitting: {
+              entry: [log()],
+              invoke: {
+                src: 'publishAd',
+                onDone: {
+                  target: 'mining',
+                  actions: [
+                    assign(
+                      (
+                        // eslint-disable-next-line no-shadow
+                        {ads, selectedAd, filter, ...context},
+                        {data: {profileChangeHash, profileCid}}
+                      ) => {
+                        const mapToPublishedAd = ad => ({
+                          ...ad,
+                          profileChangeHash,
+                          profileCid,
+                        })
+
+                        const nextAds = ads.map(ad =>
+                          ad.id === selectedAd.id ? mapToPublishedAd(ad) : ad
+                        )
+
+                        return {
+                          ...context,
+                          ads: nextAds,
+                          filteredAds: nextAds.filter(
+                            ad => ad.status === filter
+                          ),
+                          selectedAd: mapToPublishedAd(selectedAd),
+                        }
+                      }
+                    ),
+                    log(),
+                  ],
+                },
+                onError: {actions: [log()]},
+              },
+            },
+            mining: {
+              invoke: {src: 'pollPublishAd'},
+              on: {
+                MINED: '#adList.ready.idle',
+                TX_NULL: {actions: ['onError']},
+              },
+            },
+          },
+        },
+        removeAd: {
+          invoke: {
+            src: 'removeAd',
+            onDone: {
+              target: 'idle',
+              actions: [
+                assign({
+                  ads: ({ads}, {data: removedAd}) =>
+                    ads.filter(ad => ad.id !== removedAd),
+                  filteredAds: ({filteredAds}, {data: removedAd}) =>
+                    filteredAds.filter(ad => ad.id !== removedAd),
+                }),
+                log(),
+              ],
+            },
+            onError: {
+              actions: ['onError'],
+            },
+          },
+        },
+      },
+    },
+    fail: {
+      entry: ['onError'],
+    },
+  },
+})
 
 export function useAdList() {
   const failToast = useFailToast()
 
   const {coinbase} = useAuthState()
-
-  const adListMachine = createMachine({
-    id: 'adList',
-    context: {
-      selectedAd: {},
-      ads: [],
-      filteredAds: [],
-      filter: AdStatus.Active,
-      totalSpent: 0,
-    },
-    initial: 'load',
-    states: {
-      load: {
-        invoke: {
-          src: 'load',
-          onDone: {
-            target: 'ready',
-            actions: [
-              assign({
-                ads: (_, {data: {ads}}) => ads,
-                filteredAds: ({filter}, {data: {ads}}) =>
-                  ads.filter(ad => areSameCaseInsensitive(ad.status, filter)),
-                totalSpent: (_, {data: {totalSpent}}) => totalSpent,
-              }),
-              log(),
-            ],
-          },
-          onError: {target: 'fail', actions: [log()]},
-        },
-      },
-      ready: {
-        initial: 'idle',
-        states: {
-          idle: {
-            on: {
-              FILTER: {
-                actions: [
-                  assign({
-                    filter: (_, {value}) => value,
-                    filteredAds: ({ads}, {value}) =>
-                      ads.filter(({status}) =>
-                        value === AdStatus.Reviewing
-                          ? isReviewingAd({status})
-                          : areSameCaseInsensitive(status, value)
-                      ),
-                  }),
-                  log(),
-                ],
-              },
-              SEND_AD_TO_REVIEW: {
-                target: 'sendToReview',
-                actions: [
-                  assign({
-                    selectedAd: ({ads}, {id}) => ads.find(byId({id})),
-                  }),
-                ],
-              },
-              PUBLISH_AD: {
-                target: 'publish',
-                actions: [
-                  assign({
-                    selectedAd: ({ads}, {id}) => ads.find(byId({id})),
-                  }),
-                ],
-              },
-              REMOVE_AD: 'removeAd',
-            },
-          },
-          sendToReview: {
-            on: {
-              CANCEL: 'idle',
-            },
-            initial: 'preview',
-            states: {
-              preview: {
-                on: {
-                  SUBMIT: 'submitting',
-                },
-              },
-              submitting: {
-                entry: [log()],
-                invoke: {
-                  src: 'sendToReview',
-                  onDone: {
-                    target: 'mineDeployVoting',
-                    actions: [
-                      assign(
-                        (
-                          // eslint-disable-next-line no-shadow
-                          {ads, selectedAd, filter, ...context},
-                          {data: {deployVotingTxHash, votingAddress, adCid}}
-                        ) => {
-                          const mapToReviewingAd = ad => ({
-                            ...ad,
-                            status: AdStatus.Reviewing,
-                            deployVotingTxHash,
-                            votingAddress,
-                            adCid,
-                          })
-
-                          const nextAds = ads.map(ad =>
-                            ad.id === selectedAd.id ? mapToReviewingAd(ad) : ad
-                          )
-
-                          return {
-                            ...context,
-                            ads: nextAds,
-                            filteredAds: nextAds.filter(
-                              ad => ad.status === filter
-                            ),
-                            selectedAd: mapToReviewingAd(selectedAd),
-                          }
-                        }
-                      ),
-                    ],
-                  },
-                  onError: {actions: ['onError', log()]},
-                },
-              },
-              mineDeployVoting: {
-                invoke: {src: 'mineDeployVoting'},
-                on: {
-                  MINED: 'startVoting',
-                  MINING_FAILED: 'miningFailed',
-                },
-              },
-              startVoting: {
-                invoke: {
-                  src: 'startVoting',
-                  onDone: {
-                    target: 'mineStartVoting',
-                    actions: [
-                      assign(
-                        (
-                          // eslint-disable-next-line no-shadow
-                          {ads, selectedAd, filter, ...context},
-                          {data: {startVotingTxHash}}
-                        ) => {
-                          const mapToStartedReviewingAd = ad => ({
-                            ...ad,
-                            startVotingTxHash,
-                          })
-
-                          const nextAds = ads.map(ad =>
-                            ad.id === selectedAd.id
-                              ? mapToStartedReviewingAd(ad)
-                              : ad
-                          )
-
-                          return {
-                            ...context,
-                            ads: nextAds,
-                            filteredAds: nextAds.filter(
-                              ad => ad.status === filter
-                            ),
-                            selectedAd: mapToStartedReviewingAd(selectedAd),
-                          }
-                        }
-                      ),
-                    ],
-                  },
-                },
-              },
-              mineStartVoting: {
-                invoke: {src: 'mineStartVoting'},
-                on: {
-                  MINED: '#adList.ready.idle',
-                  MINING_FAILED: 'miningFailed',
-                  TX_NULL: {actions: ['onError']},
-                },
-              },
-              miningFailed: {entry: ['onError']},
-            },
-          },
-          publish: {
-            on: {
-              CANCEL: 'idle',
-            },
-            initial: 'preview',
-            states: {
-              preview: {
-                entry: [log()],
-                on: {SUBMIT: 'submitting'},
-              },
-              submitting: {
-                entry: [log()],
-                invoke: {
-                  src: 'publishAd',
-                  onDone: {
-                    target: 'mining',
-                    actions: [
-                      assign(
-                        (
-                          // eslint-disable-next-line no-shadow
-                          {ads, selectedAd, filter, ...context},
-                          {data: {profileChangeHash, profileCid}}
-                        ) => {
-                          const mapToPublishedAd = ad => ({
-                            ...ad,
-                            profileChangeHash,
-                            profileCid,
-                          })
-
-                          const nextAds = ads.map(ad =>
-                            ad.id === selectedAd.id ? mapToPublishedAd(ad) : ad
-                          )
-
-                          return {
-                            ...context,
-                            ads: nextAds,
-                            filteredAds: nextAds.filter(
-                              ad => ad.status === filter
-                            ),
-                            selectedAd: mapToPublishedAd(selectedAd),
-                          }
-                        }
-                      ),
-                      log(),
-                    ],
-                  },
-                  onError: {actions: [log()]},
-                },
-              },
-              mining: {
-                invoke: {src: 'pollPublishAd'},
-                on: {
-                  MINED: '#adList.ready.idle',
-                  TX_NULL: {actions: ['onError']},
-                },
-              },
-            },
-          },
-          removeAd: {
-            invoke: {
-              src: 'removeAd',
-              onDone: {
-                target: 'idle',
-                actions: [
-                  assign({
-                    ads: ({ads}, {id}) => ads.filter(ad => ad.id !== id),
-                    // eslint-disable-next-line no-shadow
-                    filteredAds: ({filteredAds}, {id}) =>
-                      filteredAds.filter(ad => ad.id !== id),
-                  }),
-                ],
-              },
-              onError: {
-                actions: ['onError'],
-              },
-            },
-          },
-        },
-      },
-      fail: {
-        entry: ['onError'],
-      },
-    },
-  })
 
   const [current, send] = useMachine(adListMachine, {
     actions: {
@@ -306,24 +320,74 @@ export function useAdList() {
       },
     },
     services: {
-      load: async () => ({
-        ads: await Promise.all(
-          (await db.ads.toArray()).map(async ad => ({
-            ...ad,
-            status: ad.votingAddress
-              ? mapVoting(
-                  (await fetchVoting({
+      load: async () => {
+        const ads = await Promise.all(
+          (await db.ads.toArray()).map(async ad => {
+            let {status} = ad
+
+            if (ad.votingAddress) {
+              try {
+                const adVoting = mapVoting(
+                  await fetchVoting({
                     contractHash: ad.votingAddress,
-                  }).catch(() => null)) ?? ad
-                ).status
-              : ad.status,
-          }))
-        ),
-        totalSpent: await fetchTotalSpent(coinbase),
-      }),
+                  })
+                )
+
+                if (
+                  areSameCaseInsensitive(adVoting.status, VotingStatus.Archived)
+                ) {
+                  const {votes, options} = adVoting
+
+                  if (votes?.length > 0) {
+                    const {id: approveOptionId} = options.find(option =>
+                      areSameCaseInsensitive(
+                        option.value,
+                        AdVotingOption.Approve
+                      )
+                    )
+
+                    const {count: approveOptionCount} = votes.find(
+                      ({option}) => option === approveOptionId
+                    )
+
+                    if (
+                      votes
+                        .filter(({option}) => option !== approveOptionId)
+                        .some(({count}) => count > approveOptionCount)
+                    ) {
+                      status = AdStatus.Rejected
+                    } else {
+                      const burntCoins = (await callRpc('bcn_burntCoins')) ?? []
+                      status = burntCoins
+                        .slice(0, 5)
+                        .some(({address}) => address === coinbase)
+                        ? AdStatus.Showing
+                        : AdStatus.NotShowing
+                    }
+                  }
+                }
+
+                return {
+                  ...ad,
+                  status,
+                }
+              } catch {
+                return ad
+              }
+            }
+
+            return ad
+          })
+        )
+        return {
+          ads,
+          totalSpent: await fetchTotalSpent(coinbase),
+          filter: localStorage?.getItem('adListFilter'),
+        }
+      },
       sendToReview: async (
         {selectedAd: {id, title, url, cover, author}},
-        {from = coinbase, stake = 8000}
+        {from = coinbase}
       ) => {
         const root = await protobuf.load('/static/pb/profile.proto')
 
@@ -345,11 +409,13 @@ export function useAdList() {
 
         const voting = buildAdReviewVoting({title, adCid})
 
+        const minStake = votingMinStake(await callRpc('bcn_feePerGas'))
+
         const {contract: votingAddress, gasCost, txFee} = await callRpc(
           'contract_estimateDeploy',
           buildContractDeploymentArgs(
             voting,
-            {from, stake},
+            {from, stake: minStake},
             ContractRpcMode.Estimate
           )
         )
@@ -358,7 +424,7 @@ export function useAdList() {
           'contract_deploy',
           buildContractDeploymentArgs(voting, {
             from,
-            stake,
+            stake: minStake,
             gasCost,
             txFee,
           })
@@ -376,19 +442,29 @@ export function useAdList() {
       },
       mineDeployVoting: (_, {data: {deployVotingTxHash}}) => cb =>
         pollContractTx(deployVotingTxHash, cb),
-      // eslint-disable-next-line no-shadow
-      startVoting: async ({selectedAd}, {amount = 1000}) => {
-        const {votingAddress} = selectedAd
+      startVoting: async ({selectedAd, oracleAmount}) => {
+        const minOracleReward = minOracleRewardFromEstimates(
+          await fetchOracleRewardsEstimates(100)
+        )
 
-        console.log({
-          selectedAd,
-          votingAddress,
-        })
+        const committeeSize = await fetchNetworkSize()
+
+        const minContractBalance = Math.max(
+          Number.isFinite(oracleAmount) ? Number(oracleAmount) : 0,
+          votingBalance({oracleReward: minOracleReward, committeeSize})
+        )
+
+        const {balance} = await callRpc('dna_getBalance', coinbase)
+
+        if (balance < minContractBalance)
+          throw new Error('Not enough balance to start voting')
+
+        const {votingAddress} = selectedAd
 
         let callContract = createContractCaller({
           contractHash: votingAddress,
           from: coinbase,
-          amount,
+          amount: minContractBalance,
         })
 
         const {error, gasCost, txFee} = await callContract(
@@ -401,7 +477,7 @@ export function useAdList() {
         callContract = createContractCaller({
           contractHash: votingAddress,
           from: coinbase,
-          amount,
+          amount: minContractBalance,
           gasCost: Number(gasCost),
           txFee: Number(txFee),
         })
@@ -411,8 +487,7 @@ export function useAdList() {
         }
       },
       mineStartVoting: (_, {data: {startVotingTxHash}}) => cb =>
-        pollContractTx(startVotingTxHash, cb),
-      // eslint-disable-next-line no-shadow
+        pollTx(startVotingTxHash, cb),
       publishAd: async ({selectedAd}) => {
         const {id, language, age, stake, os, adCid, votingAddress} = selectedAd
 
@@ -447,7 +522,10 @@ export function useAdList() {
       },
       minePublishAd: (_, {data: {profileChangeHash}}) => cb =>
         pollTx(profileChangeHash, cb),
-      removeAd: (_, {id}) => db.table('ads').delete(id),
+      removeAd: async (_, {id}) => {
+        await db.table('ads').delete(id)
+        return id
+      },
     },
   })
 
@@ -476,6 +554,9 @@ export function useAdList() {
       sendAdToReview(id) {
         send('SEND_AD_TO_REVIEW', {id})
       },
+      submitAdToReview(amount) {
+        send('SUBMIT', {amount})
+      },
       publishAd(id) {
         send('PUBLISH_AD', {id})
       },
@@ -489,38 +570,11 @@ export function useAdList() {
   ]
 }
 
-export const adMachine = createMachine({
-  id: 'ads',
-  context: {
-    title: '',
-    cover: '',
-    url: '',
-    location: '',
-    lang: '',
-    age: 0,
-    os: '',
-  },
-  initial: 'editing',
-  states: {
-    editing: {
-      on: {
-        CHANGE: {
-          actions: [
-            assign((ctx, {ad}) => ({
-              ...ctx,
-              ...ad,
-            })),
-          ],
-        },
-      },
-    },
-    publishing: {},
-    idle: {},
-  },
-})
-
 export const editAdMachine = createMachine({
   id: 'editAd',
+  context: {
+    status: AdStatus.Draft,
+  },
   initial: 'init',
   states: {
     init: {
@@ -565,12 +619,7 @@ export const editAdMachine = createMachine({
       invoke: {
         src: 'close',
         onDone: {
-          actions: [
-            assign({
-              didSaveDraft: (_, {data}) => Boolean(data),
-            }),
-            'onBeforeClose',
-          ],
+          actions: ['onBeforeClose'],
         },
       },
     },
@@ -613,16 +662,29 @@ export const adFormMachine = createMachine({
   },
 })
 
-export function useAdStatusColor(status, fallbackColor = 'gray.500') {
+export function useAdStatusColor(status, fallbackColor = 'muted') {
   const statusColor = {
     [AdStatus.Showing]: 'green',
     [AdStatus.NotShowing]: 'red',
     [AdStatus.PartiallyShowing]: 'orange',
+    [AdStatus.Rejected]: 'red',
   }
 
   const color = useToken('colors', `${statusColor[status]}.500`, fallbackColor)
 
   return color
+}
+
+export function useAdStatusText(status) {
+  const {t} = useTranslation()
+
+  const statusText = {
+    [AdStatus.Showing]: t('Showing'),
+    [AdStatus.NotShowing]: t('Not showing'),
+    [AdStatus.PartiallyShowing]: t('Partially showing'),
+  }
+
+  return statusText[status] ?? capitalize(status)
 }
 
 export function useAdRotation(limit = 5) {

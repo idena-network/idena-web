@@ -26,7 +26,7 @@ import {
   AdStatusFilterButtonList,
   AdStatusText,
   BlockAdStat,
-  InlineAdGroup,
+  InlineAdStatGroup,
   InlineAdStat,
   PublishAdDrawer,
   ReviewAdDrawer,
@@ -43,8 +43,11 @@ import {
   EditIcon,
 } from '../../shared/components/icons'
 import db from '../../shared/utils/db'
-import {fetchVoting, mapVoting} from '../../screens/oracles/utils'
-import {VotingStatus} from '../../shared/types'
+import {
+  fetchVoting,
+  mapVoting,
+  viewVotingHref,
+} from '../../screens/oracles/utils'
 import {isApprovedAd, isReviewingAd} from '../../screens/ads/utils'
 import {fetchBalance} from '../../shared/api/wallet'
 import {useAuthState} from '../../shared/providers/auth-context'
@@ -106,9 +109,6 @@ export default function AdListPage() {
             <AdStatusFilterButton value={AdStatus.Reviewing}>
               {t('On review')}
             </AdStatusFilterButton>
-            <AdStatusFilterButton value={VotingStatus.Archived}>
-              {t('Approved')}
-            </AdStatusFilterButton>
             <AdStatusFilterButton value={AdStatus.Rejected}>
               {t('Rejected')}
             </AdStatusFilterButton>
@@ -137,10 +137,10 @@ export default function AdListPage() {
               votingAddress,
             }) => (
               <HStack key={id} spacing="5" align="flex-start">
-                <Stack spacing={3} w="16">
+                <Stack spacing={2} w="16">
                   <Box position="relative">
                     <AdCoverImage ad={{cover}} />
-                    {status === AdStatus.Idle && (
+                    {isApprovedAd({status}) && (
                       <AdOverlayStatus status={status} />
                     )}
                   </Box>
@@ -189,7 +189,7 @@ export default function AdListPage() {
                           {t('Publish')}
                         </SecondaryButton>
                       )}
-                      {status === AdStatus.Active && (
+                      {status === AdStatus.Draft && (
                         <SecondaryButton
                           onClick={() => {
                             sendAdToReview(id)
@@ -201,16 +201,20 @@ export default function AdListPage() {
                       {isReviewingAd({status}) && (
                         <SecondaryButton
                           onClick={async () => {
-                            toast(
-                              {
+                            toast({
+                              title: {
                                 ...(await db.table('ads').get(id)),
                                 ...mapVoting(
                                   await fetchVoting({
                                     contractHash: votingAddress,
                                   }).catch(() => ({}))
                                 ),
-                              }.status
-                            )
+                              }.status,
+                              onAction: () => {
+                                router.push(viewVotingHref(votingAddress))
+                              },
+                              actionContent: t('View details'),
+                            })
                           }}
                         >
                           {t('Check status')}
@@ -231,22 +235,22 @@ export default function AdListPage() {
                   </Stack>
                   <HStack spacing={4} bg="gray.50" p={2} mt="5" rounded="md">
                     <Stack flex={1} isInline px={2} pt={1}>
-                      <InlineAdGroup spacing="3/2" labelWidth={55} flex={1}>
+                      <InlineAdStatGroup spacing="1.5" labelWidth={14} flex={1}>
                         <SmallInlineAdStat label="Location" value={location} />
                         <SmallInlineAdStat label="Language" value={language} />
                         <SmallInlineAdStat label="Stake" value={stake} />
-                      </InlineAdGroup>
-                      <InlineAdGroup labelWidth={24} flex={1}>
+                      </InlineAdStatGroup>
+                      <InlineAdStatGroup spacing="1.5" labelWidth={6} flex={1}>
                         <SmallInlineAdStat label="Age" value={age} />
                         <SmallInlineAdStat label="OS" value={os} />
-                      </InlineAdGroup>
+                      </InlineAdStatGroup>
                     </Stack>
                     <VDivider minH={68} h="full" />
                     <Stack flex={1} justify="center">
-                      <InlineAdStat label="Competitors" value={10} />
+                      <InlineAdStat label="Competitors" value="0" />
                       <InlineAdStat
                         label="Max price"
-                        value={toLocaleDna(i18n.language)(0.000000000123)}
+                        value={toLocaleDna(i18n.language)(0)}
                       />
                     </Stack>
                   </HStack>
@@ -262,7 +266,7 @@ export default function AdListPage() {
           ad={selectedAd}
           isOpen={isSendingToReview}
           isMining={isMining}
-          onSubmit={submitAd}
+          onSubmit={amount => submitAd(amount)}
           onCancel={cancel}
         />
 

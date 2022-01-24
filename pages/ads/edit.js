@@ -35,23 +35,28 @@ export default function EditAdPage() {
 
   const toast = useSuccessToast()
 
+  const updatePersistedAd = ({id, ...ad}) => db.table('ads').update(id, {...ad})
+
   const [current, send] = useMachine(editAdMachine, {
     actions: {
       onSuccess: () => {
         router.push('/ads/list')
       },
-      onBeforeClose: ({didSaveDraft}) => {
-        if (didSaveDraft) toast(t('Ad has been saved to drafts'))
+      onBeforeClose: ({status}) => {
+        toast(
+          status === AdStatus.Draft
+            ? t('Ad has been saved to drafts')
+            : t('Ad has been saved')
+        )
         router.push('/ads/list')
       },
     },
     services: {
       init: () => db.table('ads').get(query.id),
-      submit: async ({id, ...context}) =>
-        db.table('ads').update(id, {...context, status: AdStatus.Active}),
+      submit: updatePersistedAd,
       close: ({status, ...context}) =>
         status === AdStatus.Draft
-          ? db.table('ads').update({...context, status})
+          ? updatePersistedAd(context)
           : Promise.resolve(),
     },
   })

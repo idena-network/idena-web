@@ -55,7 +55,12 @@ import {
   FormSectionTitle,
 } from './components'
 import {Fill} from '../../shared/components'
-import {adFormMachine, useAdRotation, useAdStatusColor} from './hooks'
+import {
+  adFormMachine,
+  useAdRotation,
+  useAdStatusColor,
+  useAdStatusText,
+} from './hooks'
 import {hasImageType} from '../../shared/utils/img'
 import {AVAILABLE_LANGS} from '../../i18n'
 import {
@@ -69,7 +74,7 @@ import {countryCodes, OS} from './utils'
 
 export function BlockAdStat({label, value, children, ...props}) {
   return (
-    <Stat flex="initial" {...props}>
+    <Stat {...props}>
       {label && <AdStatLabel>{label}</AdStatLabel>}
       {value && <AdStatNumber>{value}</AdStatNumber>}
       {children}
@@ -77,37 +82,43 @@ export function BlockAdStat({label, value, children, ...props}) {
   )
 }
 
-export function InlineAdGroup({labelWidth, children, ...props}) {
+const InlineAdGroupContext = React.createContext({})
+
+export function InlineAdStatGroup({labelWidth, children, ...props}) {
   return (
     <Stack {...props}>
-      {React.Children.map(children, c => React.cloneElement(c, {labelWidth}))}
+      <InlineAdGroupContext.Provider value={{labelWidth}}>
+        {children}
+      </InlineAdGroupContext.Provider>
     </Stack>
   )
 }
 
-export function InlineAdStat({
-  label,
-  value,
-  labelWidth,
-  fontSize = 'md',
-  children,
-  ...props
-}) {
+export function InlineAdStat({label, value, children, ...props}) {
+  const {labelWidth} = React.useContext(InlineAdGroupContext)
+
   return (
-    <Stack as={BlockAdStat} isInline {...props}>
-      {label && (
-        <AdStatLabel fontSize={fontSize} flexBasis={labelWidth}>
-          {label}
-        </AdStatLabel>
-      )}
-      {value && <AdStatNumber fontSize={fontSize}>{value}</AdStatNumber>}
-      {children}
-    </Stack>
+    <Stat flex={0} lineHeight="normal" {...props}>
+      <HStack>
+        {label && <AdStatLabel width={labelWidth}>{label}</AdStatLabel>}
+        {value && <AdStatNumber>{value}</AdStatNumber>}
+        {children}
+      </HStack>
+    </Stat>
   )
 }
 
-export function SmallInlineAdStat(props) {
-  return <InlineAdStat fontSize="sm" {...props} />
+export function SmallInlineAdStat({label, value, ...props}) {
+  const {labelWidth} = React.useContext(InlineAdGroupContext)
+
+  return (
+    <InlineAdStat lineHeight="normal" {...props}>
+      <AdStatLabel fontSize="sm" width={labelWidth}>
+        {label}
+      </AdStatLabel>
+      <AdStatNumber fontSize="sm">{value}</AdStatNumber>
+    </InlineAdStat>
+  )
 }
 
 export function AdOverlayStatus({status}) {
@@ -194,14 +205,11 @@ function AdBannerActiveAd({
 export function AdStatusText({children, status = children}) {
   const color = useAdStatusColor(status)
 
+  const statusText = useAdStatusText(status)
+
   return (
-    <Text
-      color={color}
-      fontWeight={500}
-      textTransform="capitalize"
-      wordBreak="break-all"
-    >
-      {status}
+    <Text color={color} fontWeight={500} wordBreak="break-word">
+      {statusText}
     </Text>
   )
 }
@@ -315,6 +323,7 @@ export function AdForm({onChange, ...ad}) {
         <Stack spacing={4} shouldWrapChildren>
           <AdFormField label="Location" id="location">
             <Select
+              isDisabled
               value={location}
               onChange={e => send('CHANGE', {ad: {location: e.target.value}})}
             >
@@ -403,7 +412,7 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
                 display="inline-flex"
                 alignItems="center"
                 alignSelf="flex-start"
-                variantColor="orange"
+                colorScheme="orange"
                 bg="orange.020"
                 color="orange.500"
                 fontWeight="normal"
@@ -425,28 +434,39 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
               <HDivider />
               <Stack>
                 <SmallInlineAdStat label="Location" value={ad.location} />
-                <SmallInlineAdStat label="Language" value={ad.lang} />
+                <SmallInlineAdStat label="Language" value={ad.language} />
                 <SmallInlineAdStat label="Stake" value={ad.stake} />
                 <SmallInlineAdStat label="Age" value={ad.age} />
                 <SmallInlineAdStat label="OS" value={ad.os} />
               </Stack>
             </Stack>
           </Stack>
-          <FormControl>
-            <Stack>
-              <FormLabel htmlFor="amount">Review fee, DNA</FormLabel>
-              <Input id="amount" />
-            </Stack>
-          </FormControl>
+          <form
+            id="amountForm"
+            onSubmit={e => {
+              e.preventDefault()
+              onSubmit(Number(e.target.elements.amount.value))
+            }}
+          >
+            <FormControl>
+              <Stack spacing={3}>
+                <FormLabel htmlFor="amount" mb={0}>
+                  {t('Review fee, iDNA')}
+                </FormLabel>
+                <Input id="amount" />
+              </Stack>
+            </FormControl>
+          </form>
         </Stack>
       </DrawerBody>
       <DrawerFooter bg="white">
         <HStack>
           <SecondaryButton onClick={onCancel}>{t('Not now')}</SecondaryButton>
           <PrimaryButton
+            type="submit"
+            form="amountForm"
             isLoading={isMining}
             loadingText={t('Mining...')}
-            onClick={onSubmit}
           >
             {t('Send')}
           </PrimaryButton>
@@ -488,7 +508,7 @@ export function PublishAdDrawer({ad, isMining, onSubmit, onCancel, ...props}) {
               display="inline-flex"
               alignItems="center"
               alignSelf="flex-start"
-              variantColor="orange"
+              colorScheme="orange"
               bg="orange.020"
               color="orange.500"
               fontWeight="normal"
@@ -508,10 +528,10 @@ export function PublishAdDrawer({ad, isMining, onSubmit, onCancel, ...props}) {
             <Stack spacing={3}>
               <HDivider />
               <Stack>
-                <InlineAdStat label="Competitors" value={10} />
+                <InlineAdStat label="Competitors" value={Number.NaN} />
                 <InlineAdStat
                   label="Max price"
-                  value={toLocaleDna(i18n.language)(0.22)}
+                  value={toLocaleDna(i18n.language)(0)}
                 />
               </Stack>
               <HDivider />

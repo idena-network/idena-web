@@ -52,6 +52,7 @@ import {onboardingShowingStep} from '../shared/utils/onboarding'
 import {useScroll} from '../shared/hooks/use-scroll'
 import {
   AddUserIcon,
+  AdsIcon,
   ChevronDownIcon,
   CopyIcon,
   DeleteIcon,
@@ -87,6 +88,7 @@ export default function ProfilePage() {
       canInvite,
       canTerminate,
       canActivateInvite,
+      isValidated,
     },
   ] = useIdentity()
 
@@ -576,6 +578,24 @@ export default function ProfilePage() {
                     boxSize={5}
                     mt={['6px', 0]}
                     ml={['6px', 0]}
+                  />
+                </Box>
+              </WideLink>
+              <WideLink
+                label={t('New ad')}
+                isDisabled={!isValidated}
+                onClick={() => router.push('/ads/new')}
+              >
+                <Box
+                  boxSize={[8, 5]}
+                  backgroundColor={['brandBlue.10', 'initial']}
+                  borderRadius="10px"
+                >
+                  <AdsIcon
+                    color="blue.500"
+                    boxSize={5}
+                    mt={['1.5', 0]}
+                    ml={['1.5', 0]}
                   />
                 </Box>
               </WideLink>

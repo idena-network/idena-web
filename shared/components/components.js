@@ -136,9 +136,16 @@ export function DrawerFooter(props) {
   return <ChakraDrawerFooter p={0} {...props} />
 }
 
-export function FormLabel(props) {
-  return <ChakraFormLabel fontWeight={500} color="brandGray.500" {...props} />
-}
+export const FormLabel = React.forwardRef(function FormLabel(props, ref) {
+  return (
+    <ChakraFormLabel
+      ref={ref}
+      fontWeight={500}
+      color="brandGray.500"
+      {...props}
+    />
+  )
+})
 
 export function FormControlWithLabel({label, children, ...props}) {
   return (
@@ -295,6 +302,7 @@ export function Toast({
           lineHeight="base"
           px={3}
           py="3/2"
+          ml="auto"
           _hover={{bg: 'unset'}}
           _active={{bg: 'unset'}}
           _focus={{boxShadow: 'none'}}

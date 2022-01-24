@@ -20,13 +20,12 @@ export const setVotingStatus = status =>
     status,
   })
 
-const testApiResolver = createApiUrlResolver('https://api.idena.io')
-// const prodApiResolver = createApiUrlResolver('https://api.idena.io')
+// const prodApiResolver = createApiUrlResolver('https://api.idena.io/api')
 
 export const resolveApiUrl = path => testApiResolver(path)
 
 function createApiUrlResolver(host) {
-  return (...paths) => new URL(['api', ...paths].join('/'), host)
+  return (...paths) => new URL(paths.join('/'), host)
 }
 
 export async function fetchVotings({

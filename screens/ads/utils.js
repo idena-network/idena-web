@@ -7,7 +7,7 @@ import {
   HASH_IN_MEMPOOL,
 } from '../../shared/utils/utils'
 import profilePb from '../../shared/models/proto/profile_pb'
-import {AdStatus} from './types'
+import {AdStatus, AdVotingOption} from './types'
 import {VotingStatus} from '../../shared/types'
 
 export async function buildAdKeyHex({language, age, stake, os = currentOs()}) {
@@ -114,8 +114,8 @@ export const buildAdReviewVoting = ({title, adCid}) => ({
   committeeSize: 100,
   votingMinPayment: 10,
   options: [
-    {id: 0, value: 'Approve'},
-    {id: 1, value: 'Reject'},
+    {id: 0, value: AdVotingOption.Approve},
+    {id: 1, value: AdVotingOption.Reject},
   ],
   ownerFee: 0,
 })
@@ -126,8 +126,6 @@ export const OS = {
   Linux: 'linux',
   iOS: 'ios',
   Android: 'android',
-  ChromeOS: 'chromeos',
-  FirefoxOS: 'firefoxos',
 }
 
 export function currentOs() {
@@ -201,12 +199,24 @@ export const isReviewingAd = ({status}) =>
     VotingStatus.Open,
     VotingStatus.Voted,
     VotingStatus.Counting,
-  ].some(s => status.localeCompare(s, [], {sensitivity: 'base'}) === 0)
+  ].some(s => areSameCaseInsensitive(s, status))
+
+export const isActiveAd = ({status}) =>
+  [
+    AdStatus.Reviewing,
+    VotingStatus.Pending,
+    VotingStatus.Open,
+    VotingStatus.Voted,
+    VotingStatus.Counting,
+  ].some(s => areSameCaseInsensitive(s, status))
 
 export const isApprovedAd = ({status}) =>
-  [AdStatus.Approved, VotingStatus.Archived].some(
-    s => status.localeCompare(s, [], {sensitivity: 'base'}) === 0
-  )
+  [
+    AdStatus.Approved,
+    AdStatus.Showing,
+    AdStatus.NotShowing,
+    AdStatus.PartiallyShowing,
+  ].some(s => areSameCaseInsensitive(s, status))
 
 export function pollTx(txHash, cb) {
   let timeoutId
@@ -258,6 +268,17 @@ export function pollContractTx(txHash, cb) {
   return () => {
     clearTimeout(timeoutId)
   }
+}
+
+export function filterAdsByStatus(ads, filter) {
+  return ads.filter(({status}) =>
+    // eslint-disable-next-line no-nested-ternary
+    filter === AdStatus.Reviewing
+      ? isReviewingAd({status})
+      : filter === AdStatus.Active
+      ? isApprovedAd({status})
+      : areSameCaseInsensitive(status, filter)
+  )
 }
 
 export const countryCodes = [

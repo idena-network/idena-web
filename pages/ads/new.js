@@ -22,9 +22,7 @@ import {
 } from '../../screens/ads/components'
 import {editAdMachine} from '../../screens/ads/hooks'
 import {AdForm} from '../../screens/ads/containers'
-import {AdStatus} from '../../screens/ads/types'
 import {PrimaryButton} from '../../shared/components/button'
-import {useIdentity} from '../../shared/providers/identity-context'
 import {useSuccessToast} from '../../shared/hooks/use-toast'
 import {SuccessAlert} from '../../shared/components/components'
 import db from '../../shared/utils/db'
@@ -36,7 +34,7 @@ export default function NewAdPage() {
 
   const toast = useSuccessToast()
 
-  const [{address}] = useIdentity()
+  const persistAd = context => db.table('ads').put({...context, id: nanoid()})
 
   const [current, send] = useMachine(editAdMachine, {
     actions: {
@@ -50,37 +48,8 @@ export default function NewAdPage() {
     },
     services: {
       init: () => Promise.resolve(),
-      submit: async context => {
-        const id = await db.table('ads').add({
-          ...context,
-          id: nanoid(),
-          author: address,
-          status: AdStatus.Active,
-        })
-
-        // await db.put({
-        //   ...context,
-        //   issuer: address,
-        //   status: AdStatus.Active,
-        //   key: buildTargetKey({
-        //     locale: context.lang,
-        //     age,
-        //     stake,
-        //   }),
-        // })
-        // await callRpc('dna_changeProfile', {
-        //   info: `0x${objectToHex(
-        //     // eslint-disable-next-line no-unused-vars
-        //     buildProfile({ads: (await db.all()).map(({cover, ...ad}) => ad)})
-        //   )}`,
-        // })
-        return id
-      },
-      close: ({id = nanoid(), status = AdStatus.Draft, ...context}) => {
-        if (status === AdStatus.Draft)
-          return db.table('ads').put({...context, id, status})
-        return Promise.resolve()
-      },
+      submit: persistAd,
+      close: persistAd,
     },
   })
 
