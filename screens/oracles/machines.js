@@ -1,17 +1,13 @@
-import {Machine, assign, spawn, createMachine} from 'xstate'
+import {assign, spawn, createMachine} from 'xstate'
 import {choose, log, send, sendParent} from 'xstate/lib/actions'
 import dayjs from 'dayjs'
 import {
   fetchVotings,
-  createContractCaller,
-  buildContractDeploymentArgs,
   isVotingStatus,
   isVotingMiningStatus,
   eitherStatus,
   createContractReadonlyCaller,
   createContractDataReader,
-  buildDynamicArgs,
-  contractMaxFee,
   setVotingStatus,
   votingFinishDate,
   fetchOracleRewardsEstimates,
@@ -25,7 +21,13 @@ import {
   minOracleRewardFromEstimates,
   fetchLastOpenVotings,
   hasLinklessOptions,
-  buildContractDeploymentTx,
+  estimateTermiateContract,
+  terminateContract,
+  callContract,
+  estimateCallContract,
+  estimateDeployContract,
+  deployContract,
+  addDeferredVote,
 } from './utils'
 import {VotingStatus} from '../../shared/types'
 import {
@@ -35,10 +37,10 @@ import {
 } from '../../shared/utils/utils'
 import db from '../../shared/utils/db'
 
-import {ContractRpcMode, VotingListFilter} from './types'
+import {VotingListFilter} from './types'
 import {loadPersistentStateValue, persistItem} from '../../shared/utils/persist'
-import {Transaction} from '../../shared/models/transaction'
-import {estimateRawTx, sendRawTx} from '../../shared/api'
+import {privateKeyToAddress} from '../../shared/utils/crypto'
+import {sendDna} from '../../shared/api/utils'
 
 export const votingListMachine = createMachine(
   {
@@ -480,994 +482,935 @@ export const votingMachine = createMachine(
   }
 )
 
-export const createNewVotingMachine = () =>
-  createMachine(
-    {
-      context: {
-        oracleRewardsEstimates: [],
-        options: [{id: 0}, {id: 1}],
-        votingDuration: 4320,
-        publicVotingDuration: 2160,
-        quorum: 1,
-        committeeSize: 100,
-        shouldStartImmediately: true,
-        dirtyBag: {},
+export const newVotingMachine = createMachine(
+  {
+    context: {
+      oracleRewardsEstimates: [],
+      options: [{id: 0}, {id: 1}],
+      votingDuration: 4320,
+      publicVotingDuration: 2160,
+      quorum: 1,
+      committeeSize: 100,
+      shouldStartImmediately: true,
+      dirtyBag: {},
+    },
+    initial: 'waiting',
+    states: {
+      waiting: {
+        on: {
+          START: {
+            target: 'preload',
+            actions: [
+              assign({
+                address: (_, {coinbase}) => coinbase,
+                epoch: (_, {epoch}) => epoch,
+              }),
+            ],
+          },
+        },
       },
-      initial: 'waiting',
-      states: {
-        waiting: {
-          on: {
-            START: {
-              target: 'preload',
-              actions: [
-                assign({
-                  privateKey: (_, {privateKey}) => privateKey,
-                  address: (_, {coinbase}) => coinbase,
-                  epoch: (_, {epoch}) => epoch,
-                }),
-              ],
-            },
-          },
-        },
-        preload: {
-          invoke: {
-            src: ({committeeSize}) =>
-              Promise.all([
-                callRpc('bcn_feePerGas'),
-                fetchOracleRewardsEstimates(committeeSize),
-              ]),
-            onDone: {
-              target: 'choosingPreset',
-              actions: [
-                assign((context, {data: [feePerGas, estimates]}) => {
-                  const minOracleReward = minOracleRewardFromEstimates(
-                    estimates
-                  )
-                  return {
-                    ...context,
-                    feePerGas,
-                    minOracleReward,
-                    oracleReward: minOracleReward,
-                    oracleRewardsEstimates: estimates.map(({amount, type}) => ({
-                      value: Number(amount),
-                      label: type,
-                    })),
-                  }
-                }),
-                log(),
-              ],
-            },
-          },
-          initial: 'normal',
-          states: {
-            normal: {
-              after: {
-                1000: 'late',
-              },
-            },
-            late: {},
-          },
-        },
-        choosingPreset: {
-          on: {
-            CHOOSE_PRESET: {
-              target: 'editing',
-              actions: [
-                choose([
-                  {
-                    actions: [
-                      assign({
-                        shouldStartImmediately: false,
-                        winnerThreshold: String(51),
-                        startDate: dayjs()
-                          .add(1, 'w')
-                          .toString(),
-                        quorum: 5,
-                      }),
-                    ],
-                    cond: (_, {preset}) => preset === 'fact',
-                  },
-                  {
-                    actions: [
-                      assign({
-                        shouldStartImmediately: true,
-                        winnerThreshold: String(100),
-                        quorum: 1,
-                        votingMinPayment: 0,
-                        isFreeVoting: true,
-                      }),
-                    ],
-                    cond: (_, {preset}) => preset === 'poll',
-                  },
-                  {
-                    actions: [
-                      assign({
-                        shouldStartImmediately: false,
-                        winnerThreshold: String(51),
-                        quorum: 5,
-                        votingMinPayment: 0,
-                        isFreeVoting: true,
-                      }),
-                    ],
-                    cond: (_, {preset}) => preset === 'decision',
-                  },
-                ]),
-                log(),
-              ],
-            },
-            CANCEL: 'editing',
-          },
-        },
-        editing: {
-          on: {
-            CHANGE: {
-              actions: ['setContractParams', 'setDirty', log()],
-            },
-            CHANGE_COMMITTEE: {
-              target: '.updateCommittee',
-              actions: ['setContractParams', 'setDirty', log()],
-            },
-            SET_DIRTY: {
-              actions: 'setDirty',
-            },
-            SET_OPTIONS: {
-              actions: [
-                'setOptions',
-                send({type: 'SET_DIRTY', id: 'options'}),
-                log(),
-              ],
-            },
-            ADD_OPTION: {
-              actions: ['addOption'],
-            },
-            REMOVE_OPTION: {
-              actions: ['removeOption'],
-            },
-            SET_WHOLE_NETWORK: [
-              {
-                target: '.fetchNetworkSize',
-                actions: [assign({isWholeNetwork: true})],
-                cond: (_, {checked}) => checked,
-              },
-              {
-                actions: [assign({isWholeNetwork: false})],
-              },
-            ],
-            PUBLISH: [
-              {
-                target: 'publishing',
-                actions: [log()],
-                cond: 'isValidForm',
-              },
-              {
-                actions: [
-                  'onInvalidForm',
-                  send(
-                    ({
-                      options,
-                      startDate,
-                      shouldStartImmediately,
-                      ...context
-                    }) => ({
-                      type: 'SET_DIRTY',
-                      ids: [
-                        hasValuableOptions(options) &&
-                        hasLinklessOptions(options)
-                          ? null
-                          : 'options',
-                        shouldStartImmediately || startDate
-                          ? null
-                          : 'startDate',
-                        ...['title', 'desc'].filter(f => !context[f]),
-                      ].filter(v => v),
-                    })
-                  ),
-                  log(),
-                ],
-              },
+      preload: {
+        invoke: {
+          src: ({committeeSize}) =>
+            Promise.all([
+              callRpc('bcn_feePerGas'),
+              fetchOracleRewardsEstimates(committeeSize),
+            ]),
+          onDone: {
+            target: 'choosingPreset',
+            actions: [
+              assign((context, {data: [feePerGas, estimates]}) => {
+                const minOracleReward = minOracleRewardFromEstimates(estimates)
+                return {
+                  ...context,
+                  feePerGas,
+                  minOracleReward,
+                  oracleReward: minOracleReward,
+                  oracleRewardsEstimates: estimates.map(({amount, type}) => ({
+                    value: Number(amount),
+                    label: type,
+                  })),
+                }
+              }),
+              log(),
             ],
           },
-          initial: 'idle',
-          states: {
-            idle: {},
-            fetchNetworkSize: {
-              invoke: {
-                src: () => fetchNetworkSize(),
-                onDone: {
-                  target: 'updateCommittee',
+        },
+        initial: 'normal',
+        states: {
+          normal: {
+            after: {
+              1000: 'late',
+            },
+          },
+          late: {},
+        },
+      },
+      choosingPreset: {
+        on: {
+          CHOOSE_PRESET: {
+            target: 'editing',
+            actions: [
+              choose([
+                {
                   actions: [
                     assign({
-                      committeeSize: (_, {data}) => data,
+                      shouldStartImmediately: false,
+                      winnerThreshold: String(51),
+                      startDate: dayjs()
+                        .add(1, 'w')
+                        .toString(),
+                      quorum: 5,
                     }),
                   ],
+                  cond: (_, {preset}) => preset === 'fact',
                 },
-              },
-            },
-            updateCommittee: {
-              invoke: {
-                src: ({committeeSize}) =>
-                  fetchOracleRewardsEstimates(committeeSize),
-                onDone: {
-                  target: 'idle',
+                {
                   actions: [
-                    assign((context, {data}) => {
-                      const minOracleReward = minOracleRewardFromEstimates(data)
-                      return {
-                        ...context,
-                        minOracleReward,
-                        oracleReward: minOracleReward,
-                        oracleRewardsEstimates: data.map(({amount, type}) => ({
-                          value: Number(amount),
-                          label: type,
-                        })),
-                      }
+                    assign({
+                      shouldStartImmediately: true,
+                      winnerThreshold: String(100),
+                      quorum: 1,
+                      votingMinPayment: 0,
+                      isFreeVoting: true,
                     }),
                   ],
+                  cond: (_, {preset}) => preset === 'poll',
                 },
-              },
-            },
+                {
+                  actions: [
+                    assign({
+                      shouldStartImmediately: false,
+                      winnerThreshold: String(51),
+                      quorum: 5,
+                      votingMinPayment: 0,
+                      isFreeVoting: true,
+                    }),
+                  ],
+                  cond: (_, {preset}) => preset === 'decision',
+                },
+              ]),
+              log(),
+            ],
           },
+          CANCEL: 'editing',
         },
-        publishing: {
-          initial: 'review',
-          states: {
-            review: {
-              on: {
-                CANCEL: {actions: send('EDIT')},
-                CONFIRM: 'deploy',
-              },
-            },
-            deploy: {
-              initial: 'estimating',
-              states: {
-                estimating: {
-                  invoke: {
-                    src: 'estimateDeployContract',
-                    onDone: {
-                      target: 'deploying',
-                      actions: [log()],
-                    },
-                    onError: {
-                      actions: ['onError', send('PUBLISH_FAILED'), log()],
-                    },
-                  },
-                },
-                deploying: {
-                  initial: 'submitting',
-                  states: {
-                    submitting: {
-                      invoke: {
-                        src: 'deployContract',
-                        onDone: {
-                          target: 'mining',
-                          actions: ['applyDeployResult', log()],
-                        },
-                        onError: {
-                          actions: ['onError', send('PUBLISH_FAILED'), log()],
-                        },
-                      },
-                    },
-                    mining: {
-                      invoke: {
-                        src: 'pollStatus',
-                      },
-                      on: {
-                        MINED: [
-                          {
-                            actions: [
-                              send((_, {from, balance}) => ({
-                                type: 'START_VOTING',
-                                from,
-                                balance,
-                              })),
-                            ],
-                            cond: 'shouldStartImmediately',
-                          },
-                          {
-                            target: 'persist',
-                            actions: ['setPending', log()],
-                          },
-                        ],
-                      },
-                    },
-                    persist: {
-                      invoke: {
-                        src: 'persist',
-                        onDone: {
-                          actions: [send('DONE')],
-                        },
-                        onError: {
-                          actions: ['onError', send('EDIT'), log()],
-                        },
-                      },
-                    },
-                  },
-                },
-              },
-              on: {
-                START_VOTING: VotingStatus.Starting,
-              },
-            },
-            [VotingStatus.Starting]: {
-              initial: 'submitting',
-              states: {
-                submitting: {
-                  invoke: {
-                    src: (context, {from, balance}) =>
-                      votingServices().startVoting(context, {from, balance}),
-                    onDone: {
-                      target: 'mining',
-                      actions: [
-                        assign({
-                          txHash: (_, {data}) => data,
-                        }),
-                        log(),
-                      ],
-                    },
-                    onError: {
-                      actions: ['onError', send('PUBLISH_FAILED'), log()],
-                    },
-                  },
-                },
-                mining: {
-                  invoke: {
-                    src: 'pollStatus',
-                  },
-                  on: {
-                    MINED: {
-                      target: 'persist',
-                      actions: ['setRunning', log()],
-                    },
-                  },
-                },
-                persist: {
-                  invoke: {
-                    src: 'persist',
-                    onDone: {
-                      actions: [send('DONE')],
-                    },
-                    onError: {
-                      actions: ['onError', send('EDIT'), log()],
-                    },
-                  },
-                },
-              },
-            },
+      },
+      editing: {
+        on: {
+          CHANGE: {
+            actions: ['setContractParams', 'setDirty', log()],
           },
-          on: {
-            DONE: 'done',
-            EDIT: 'editing',
-            PUBLISH_FAILED: 'editing',
+          CHANGE_COMMITTEE: {
+            target: '.updateCommittee',
+            actions: ['setContractParams', 'setDirty', log()],
           },
-        },
-        done: {
-          entry: ['onDone', 'persist'],
-        },
-      },
-    },
-    {
-      actions: {
-        applyDeployResult: assign((context, {data: {txHash, voting}}) => ({
-          ...context,
-          txHash,
-          ...voting,
-        })),
-        applyTx: assign({
-          txHash: (_, {data: {txHash}}) => txHash,
-        }),
-        setContractParams: assign((context, {id, value}) => ({
-          ...context,
-          [id]: value,
-        })),
-        setOptions: assign({
-          options: ({options}, {id, value}) => {
-            const idx = options.findIndex(o => o.id === id)
-            return [
-              ...options.slice(0, idx),
-              {...options[idx], value},
-              ...options.slice(idx + 1),
-            ]
+          SET_DIRTY: {
+            actions: 'setDirty',
           },
-        }),
-        addOption: assign({
-          options: ({options}) =>
-            options.concat({
-              id: Math.max(...options.map(({id}) => id)) + 1,
-            }),
-        }),
-        removeOption: assign({
-          options: ({options}, {id}) => options.filter(o => o.id !== id),
-        }),
-        setDirty: assign({
-          dirtyBag: ({dirtyBag}, {id, ids = []}) => ({
-            ...dirtyBag,
-            [id]: true,
-            ...ids.reduce(
-              (acc, curr) => ({
-                ...acc,
-                [curr]: true,
-              }),
-              {}
-            ),
-          }),
-        }),
-        setPending: setVotingStatus(VotingStatus.Pending),
-        setRunning: setVotingStatus(VotingStatus.Open),
-        // eslint-disable-next-line no-shadow
-        persist: context =>
-          db.table('votings').put({
-            id: context.id || context.contractAddress,
-            ...context,
-          }),
-      },
-      services: {
-        // eslint-disable-next-line no-shadow
-        estimateDeployContract: async (voting, {from, balance, stake}) => {
-          const builtTx = await buildContractDeploymentTx(
-            voting,
-            {from, stake},
-            ContractRpcMode.Estimate
-          )
-
-          const tx = new Transaction().fromHex(builtTx)
-
-          tx.sign(voting.privateKey)
-
-          const hex = tx.toHex()
-
-          const result = await estimateRawTx(`0x${hex}`)
-
-          return {...result.receipt, from, balance, stake}
-        },
-        deployContract: async (
-          // eslint-disable-next-line no-shadow
-          {epoch, address, ...voting},
-          {data: {contract, from, balance, stake, gasCost, txFee}}
-        ) => {
-          const builtTx = await buildContractDeploymentTx(
-            voting,
-            {from, stake, gasCost, txFee},
-            ContractRpcMode.Estimate
-          )
-
-          const tx = new Transaction().fromHex(builtTx)
-
-          tx.sign(voting.privateKey)
-
-          const hex = tx.toHex()
-
-          const txHash = await sendRawTx(`0x${hex}`)
-
-          const nextVoting = {
-            ...voting,
-            id: contract,
-            options: stripOptions(voting.options),
-            contractHash: contract,
-            issuer: address,
-            createDate: Date.now(),
-            startDate: voting.shouldStartImmediately
-              ? Date.now()
-              : voting.startDate,
-            finishDate: votingFinishDate(voting),
-          }
-
-          await db.table('votings').put({
-            id: nextVoting.id,
-            epoch,
-            ...nextVoting,
-            txHash,
-            status: VotingStatus.Deploying,
-          })
-
-          return {txHash, voting: nextVoting, from, balance}
-        },
-        pollStatus: ({txHash}, {data: {from, balance}}) => cb => {
-          let timeoutId
-
-          const fetchStatus = async () => {
-            try {
-              const result = await callRpc('bcn_transaction', txHash)
-              if (result.blockHash !== HASH_IN_MEMPOOL) {
-                cb({type: 'MINED', from, balance})
-              } else {
-                timeoutId = setTimeout(fetchStatus, 10 * 1000)
-              }
-            } catch (error) {
-              cb('TX_NULL', {error: error?.message})
-            }
-          }
-
-          timeoutId = setTimeout(fetchStatus, 10 * 1000)
-
-          return () => {
-            clearTimeout(timeoutId)
-          }
-        },
-        persist: context =>
-          db.table('votings').put({
-            id: context.id || context.contractAddress,
-            ...context,
-          }),
-      },
-      guards: {
-        shouldStartImmediately: ({shouldStartImmediately}) =>
-          shouldStartImmediately,
-        isValidForm: ({
-          title,
-          desc,
-          options,
-          startDate,
-          shouldStartImmediately,
-          committeeSize,
-        }) =>
-          title &&
-          desc &&
-          hasValuableOptions(options) &&
-          hasLinklessOptions(options) &&
-          (startDate || shouldStartImmediately) &&
-          Number(committeeSize) > 0,
-      },
-    }
-  )
-
-export const createViewVotingMachine = () =>
-  createMachine(
-    {
-      id: 'viewVoting',
-      context: {
-        balanceUpdates: [],
-      },
-      on: {
-        RELOAD: {
-          target: 'loading',
-          actions: [
-            assign((context, event) => ({
-              ...context,
-              ...event,
-            })),
+          SET_OPTIONS: {
+            actions: [
+              'setOptions',
+              send({type: 'SET_DIRTY', id: 'options'}),
+              log(),
+            ],
+          },
+          ADD_OPTION: {
+            actions: ['addOption'],
+          },
+          REMOVE_OPTION: {
+            actions: ['removeOption'],
+          },
+          SET_WHOLE_NETWORK: [
+            {
+              target: '.fetchNetworkSize',
+              actions: [assign({isWholeNetwork: true})],
+              cond: (_, {checked}) => checked,
+            },
+            {
+              actions: [assign({isWholeNetwork: false})],
+            },
           ],
-        },
-      },
-      initial: 'waiting',
-      states: {
-        waiting: {},
-        loading: {
-          invoke: {
-            src: 'loadVoting',
-            onDone: {
-              target: 'loadMinOracleReward',
-              actions: ['applyVoting', log()],
-            },
-            onError: {
-              target: 'invalid',
+          PUBLISH: [
+            {
+              target: 'publishing',
               actions: [log()],
+              cond: 'isValidForm',
             },
-          },
-        },
-        loadMinOracleReward: {
-          invoke: {
-            src: 'loadMinOracleReward',
-            onDone: {
-              target: 'idle',
-              actions: ['applyMinOracleReward', log()],
-            },
-            onError: {
-              target: 'invalid',
-              actions: [log()],
-            },
-          },
-        },
-        idle: {
-          initial: 'resolveStatus',
-          states: {
-            resolveStatus: {
-              always: [
-                {
-                  target: VotingStatus.Pending,
-                  cond: 'isPending',
-                },
-                {
-                  target: VotingStatus.Open,
-                  cond: 'isRunning',
-                },
-                {
-                  target: VotingStatus.Voted,
-                  cond: 'isVoted',
-                },
-                {
-                  target: VotingStatus.Counting,
-                  cond: 'isCounting',
-                },
-                {
-                  target: VotingStatus.Archived,
-                  cond: 'isArchived',
-                },
-                {
-                  target: VotingStatus.Terminated,
-                  cond: 'isTerminated',
-                },
-                {
-                  target: `#viewVoting.${VotingStatus.Invalid}`,
-                  actions: ['setInvalid', 'persist'],
-                },
-              ],
-            },
-            [VotingStatus.Pending]: {
-              initial: 'idle',
-              states: {
-                idle: {
-                  on: {
-                    REVIEW_START_VOTING: 'review',
-                  },
-                },
-                review: {
-                  on: {
-                    START_VOTING: {
-                      target: `#viewVoting.mining.${VotingStatus.Starting}`,
-                      actions: ['setStarting', 'persist'],
-                    },
-                  },
-                },
-              },
-              on: {
-                CANCEL: '.idle',
-              },
-            },
-            [VotingStatus.Open]: {},
-            [VotingStatus.Voted]: {},
-            [VotingStatus.Counting]: {
-              initial: 'idle',
-              states: {
-                idle: {
-                  on: {
-                    FINISH: 'finish',
-                  },
-                },
-                finish: {
-                  on: {
-                    FINISH: {
-                      target: `#viewVoting.mining.${VotingStatus.Finishing}`,
-                      actions: ['setFinishing', 'persist'],
-                    },
-                  },
-                },
-              },
-              on: {
-                CANCEL: '.idle',
-              },
-            },
-            [VotingStatus.Archived]: {},
-            [VotingStatus.Terminated]: {},
-            terminating: {
-              on: {
-                TERMINATE: {
-                  target: `#viewVoting.mining.${VotingStatus.Terminating}`,
-                  actions: ['setTerminating', 'persist'],
-                },
-                CANCEL: 'hist',
-              },
-            },
-            redirecting: {
-              entry: [
-                assign({
-                  redirectUrl: (_, {url}) => url,
-                }),
+            {
+              actions: [
+                'onInvalidForm',
+                send(
+                  ({
+                    options,
+                    startDate,
+                    shouldStartImmediately,
+                    ...context
+                  }) => ({
+                    type: 'SET_DIRTY',
+                    ids: [
+                      hasValuableOptions(options) && hasLinklessOptions(options)
+                        ? null
+                        : 'options',
+                      shouldStartImmediately || startDate ? null : 'startDate',
+                      ...['title', 'desc'].filter(f => !context[f]),
+                    ].filter(v => v),
+                  })
+                ),
                 log(),
               ],
-              on: {
-                CONTINUE: {
-                  target: 'hist',
-                  actions: [({redirectUrl}) => openExternalUrl(redirectUrl)],
-                },
-                CANCEL: 'hist',
-              },
             },
-            hist: {
-              type: 'hist',
-            },
-          },
-          on: {
-            ADD_FUND: 'funding',
-            SELECT_OPTION: {
-              actions: ['selectOption', log()],
-            },
-            REVIEW: [
-              {
+          ],
+        },
+        initial: 'idle',
+        states: {
+          idle: {},
+          fetchNetworkSize: {
+            invoke: {
+              src: () => fetchNetworkSize(),
+              onDone: {
+                target: 'updateCommittee',
                 actions: [
-                  send({
-                    type: 'ERROR',
-                    data: {message: 'Please choose an option'},
+                  assign({
+                    committeeSize: (_, {data}) => data,
                   }),
                 ],
-                cond: ({selectedOption = -1}) => selectedOption < 0,
               },
-              {
-                target: 'review',
+            },
+          },
+          updateCommittee: {
+            invoke: {
+              src: ({committeeSize}) =>
+                fetchOracleRewardsEstimates(committeeSize),
+              onDone: {
+                target: 'idle',
+                actions: [
+                  assign((context, {data}) => {
+                    const minOracleReward = minOracleRewardFromEstimates(data)
+                    return {
+                      ...context,
+                      minOracleReward,
+                      oracleReward: minOracleReward,
+                      oracleRewardsEstimates: data.map(({amount, type}) => ({
+                        value: Number(amount),
+                        label: type,
+                      })),
+                    }
+                  }),
+                ],
               },
-            ],
-            TERMINATE: '.terminating',
-            REFRESH: 'loading',
-            ERROR: {
-              actions: ['onError'],
             },
-            REVIEW_PROLONG_VOTING: 'prolong',
-            FOLLOW_LINK: '.redirecting',
           },
         },
-        review: {
-          on: {
-            VOTE: {
-              target: `mining.${VotingStatus.Voting}`,
-              actions: ['setVoting', 'persist'],
+      },
+      publishing: {
+        initial: 'review',
+        states: {
+          review: {
+            on: {
+              CANCEL: {actions: send('EDIT')},
+              CONFIRM: 'deploy',
             },
-            CANCEL: 'idle',
+          },
+          deploy: {
+            initial: 'deploying',
+            states: {
+              deploying: {
+                initial: 'submitting',
+                states: {
+                  submitting: {
+                    invoke: {
+                      src: 'deployContract',
+                      onDone: {
+                        target: 'mining',
+                        actions: ['applyDeployResult', log()],
+                      },
+                      onError: {
+                        actions: ['onError', send('PUBLISH_FAILED'), log()],
+                      },
+                    },
+                  },
+                  mining: {
+                    invoke: {
+                      src: 'pollStatus',
+                    },
+                    on: {
+                      MINED: [
+                        {
+                          actions: [
+                            send((_, {privateKey, balance}) => ({
+                              type: 'START_VOTING',
+                              privateKey,
+                              balance,
+                            })),
+                          ],
+                          cond: 'shouldStartImmediately',
+                        },
+                        {
+                          target: 'persist',
+                          actions: ['setPending', log()],
+                        },
+                      ],
+                    },
+                  },
+                  persist: {
+                    invoke: {
+                      src: 'persist',
+                      onDone: {
+                        actions: [send('DONE')],
+                      },
+                      onError: {
+                        actions: ['onError', send('EDIT'), log()],
+                      },
+                    },
+                  },
+                },
+              },
+            },
+            on: {
+              START_VOTING: VotingStatus.Starting,
+            },
+          },
+          [VotingStatus.Starting]: {
+            initial: 'submitting',
+            states: {
+              submitting: {
+                invoke: {
+                  src: (context, {privateKey, balance}) =>
+                    votingServices().startVoting(context, {
+                      privateKey,
+                      balance,
+                    }),
+                  onDone: {
+                    target: 'mining',
+                    actions: [
+                      assign({
+                        txHash: (_, {data}) => data,
+                      }),
+                      log(),
+                    ],
+                  },
+                  onError: {
+                    actions: ['onError', send('PUBLISH_FAILED'), log()],
+                  },
+                },
+              },
+              mining: {
+                invoke: {
+                  src: 'pollStatus',
+                },
+                on: {
+                  MINED: {
+                    target: 'persist',
+                    actions: ['setRunning', log()],
+                  },
+                },
+              },
+              persist: {
+                invoke: {
+                  src: 'persist',
+                  onDone: {
+                    actions: [send('DONE')],
+                  },
+                  onError: {
+                    actions: ['onError', send('EDIT'), log()],
+                  },
+                },
+              },
+            },
           },
         },
-        funding: {
-          on: {
-            ADD_FUND: {
-              target: `mining.${VotingStatus.Funding}`,
-              actions: ['applyFundingAmount', 'persist'],
-            },
-            CANCEL: 'idle',
-          },
+        on: {
+          DONE: 'done',
+          EDIT: 'editing',
+          PUBLISH_FAILED: 'editing',
         },
-        prolong: {
-          on: {
-            PROLONG_VOTING: {
-              target: `#viewVoting.mining.${VotingStatus.Prolonging}`,
-              actions: ['setProlonging', 'persist'],
-            },
-            CANCEL: 'idle',
-          },
-        },
-        mining: votingMiningStates('viewVoting'),
-        invalid: {},
+      },
+      done: {
+        entry: ['onDone', 'persist'],
       },
     },
-    {
-      actions: {
-        applyVoting: assign((context, {data}) => ({
+  },
+  {
+    actions: {
+      applyDeployResult: assign((context, {data: {txHash, voting}}) => ({
+        ...context,
+        txHash,
+        ...voting,
+      })),
+      applyTx: assign({
+        txHash: (_, {data: {txHash}}) => txHash,
+      }),
+      setContractParams: assign((context, {id, value}) => ({
+        ...context,
+        [id]: value,
+      })),
+      setOptions: assign({
+        options: ({options}, {id, value}) => {
+          const idx = options.findIndex(o => o.id === id)
+          return [
+            ...options.slice(0, idx),
+            {...options[idx], value},
+            ...options.slice(idx + 1),
+          ]
+        },
+      }),
+      addOption: assign({
+        options: ({options}) =>
+          options.concat({
+            id: Math.max(...options.map(({id}) => id)) + 1,
+          }),
+      }),
+      removeOption: assign({
+        options: ({options}, {id}) => options.filter(o => o.id !== id),
+      }),
+      setDirty: assign({
+        dirtyBag: ({dirtyBag}, {id, ids = []}) => ({
+          ...dirtyBag,
+          [id]: true,
+          ...ids.reduce(
+            (acc, curr) => ({
+              ...acc,
+              [curr]: true,
+            }),
+            {}
+          ),
+        }),
+      }),
+      setPending: setVotingStatus(VotingStatus.Pending),
+      setRunning: setVotingStatus(VotingStatus.Open),
+      // eslint-disable-next-line no-shadow
+      persist: context =>
+        db.table('votings').put({
+          id: context.id || context.contractAddress,
           ...context,
-          ...data,
-        })),
-        applyFundingAmount: assign({
-          balance: ({balance = 0}, {amount}) =>
-            Number(balance) + Number(amount),
         }),
-        setStarting: setVotingStatus(VotingStatus.Starting),
-        setRunning: setVotingStatus(VotingStatus.Open),
-        setVoting: setVotingStatus(VotingStatus.Voting),
-        setProlonging: setVotingStatus(VotingStatus.Prolonging),
-        setFinishing: setVotingStatus(VotingStatus.Finishing),
-        setTerminating: setVotingStatus(VotingStatus.Terminating),
-        setTerminated: setVotingStatus(VotingStatus.Terminated),
-        setVoted: setVotingStatus(VotingStatus.Voted),
-        setArchived: assign({
-          status: VotingStatus.Archived,
-        }),
-        setInvalid: assign({
-          status: VotingStatus.Invalid,
-          errorMessage: (_, {error}) => error?.message,
-        }),
-        restorePrevStatus: assign({
-          status: ({prevStatus}) => prevStatus,
-        }),
-        applyTx: assign({
-          txHash: (_, {data}) => data,
-        }),
-        handleError: assign({
-          errorMessage: (_, {error}) => error,
-        }),
-        clearMiningStatus: assign({
-          miningStatus: null,
-        }),
-        selectOption: assign({
-          selectedOption: (_, {option}) => option,
-        }),
+    },
+    services: {
+      deployContract: async (
         // eslint-disable-next-line no-shadow
-        persist: context =>
-          db.table('votings').put({
-            id: context.id || context.contractAddress,
-            ...context,
-          }),
-        applyMinOracleReward: assign({
-          minOracleReward: (_, {data}) => data,
-        }),
+        {epoch, address, ...voting},
+        {privateKey, balance, stake}
+      ) => {
+        const {
+          receipt: {contract, gasCost, txFee},
+        } = await estimateDeployContract(privateKey, {
+          stake,
+          ...voting,
+        })
+
+        const txHash = await deployContract(privateKey, {
+          gasCost,
+          txFee,
+          stake,
+          ...voting,
+        })
+
+        const nextVoting = {
+          ...voting,
+          id: contract,
+          options: stripOptions(voting.options),
+          contractHash: contract,
+          issuer: address,
+          createDate: Date.now(),
+          startDate: voting.shouldStartImmediately
+            ? Date.now()
+            : voting.startDate,
+          finishDate: votingFinishDate(voting),
+        }
+
+        await db.table('votings').put({
+          id: nextVoting.id,
+          epoch,
+          ...nextVoting,
+          txHash,
+          status: VotingStatus.Deploying,
+        })
+
+        return {txHash, privateKey, voting: nextVoting, balance}
       },
-      services: {
-        // eslint-disable-next-line no-shadow
-        loadVoting: async ({address, id}) => ({
-          ...(await db
-            .table('votings')
-            .get(id)
-            .catch(() => null)),
-          ...mapVoting(await fetchVoting({id, address})),
-          id,
-          balanceUpdates: await fetchContractBalanceUpdates({
-            address,
-            contractAddress: id,
-          }),
+      pollStatus: ({txHash}, {data: {privateKey, balance}}) => cb => {
+        let timeoutId
+
+        const fetchStatus = async () => {
+          try {
+            const result = await callRpc('bcn_transaction', txHash)
+            if (result.blockHash !== HASH_IN_MEMPOOL) {
+              cb({type: 'MINED', privateKey, balance})
+            } else {
+              timeoutId = setTimeout(fetchStatus, 10 * 1000)
+            }
+          } catch (error) {
+            cb('TX_NULL', {error: error?.message})
+          }
+        }
+
+        timeoutId = setTimeout(fetchStatus, 10 * 1000)
+
+        return () => {
+          clearTimeout(timeoutId)
+        }
+      },
+      persist: context =>
+        db.table('votings').put({
+          id: context.id || context.contractAddress,
+          ...context,
         }),
-        loadMinOracleReward,
-        ...votingServices(),
-        vote: async (
-          // eslint-disable-next-line no-shadow
-          {contractHash, selectedOption, gasCost, txFee, epoch},
-          {from}
-        ) => {
-          const readonlyCallContract = createContractReadonlyCaller({
-            contractHash,
-          })
-          const readContractData = createContractDataReader({contractHash})
+    },
+    guards: {
+      shouldStartImmediately: ({shouldStartImmediately}) =>
+        shouldStartImmediately,
+      isValidForm: ({
+        title,
+        desc,
+        options,
+        startDate,
+        shouldStartImmediately,
+        committeeSize,
+      }) =>
+        title &&
+        desc &&
+        hasValuableOptions(options) &&
+        hasLinklessOptions(options) &&
+        (startDate || shouldStartImmediately) &&
+        Number(committeeSize) > 0,
+    },
+  }
+)
 
-          const proof = await readonlyCallContract('proof', 'hex', {
-            value: from,
-          })
+export const viewVotingMachine = createMachine(
+  {
+    id: 'viewVoting',
+    context: {
+      balanceUpdates: [],
+    },
+    on: {
+      RELOAD: {
+        target: 'loading',
+        actions: [
+          assign((context, event) => ({
+            ...context,
+            ...event,
+          })),
+        ],
+      },
+    },
+    initial: 'waiting',
+    states: {
+      waiting: {},
+      loading: {
+        invoke: {
+          src: 'loadVoting',
+          onDone: {
+            target: 'loadMinOracleReward',
+            actions: ['applyVoting', log()],
+          },
+          onError: {
+            target: 'invalid',
+            actions: [log()],
+          },
+        },
+      },
+      loadMinOracleReward: {
+        invoke: {
+          src: 'loadMinOracleReward',
+          onDone: {
+            target: 'idle',
+            actions: ['applyMinOracleReward', log()],
+          },
+          onError: {
+            target: 'invalid',
+            actions: [log()],
+          },
+        },
+      },
+      idle: {
+        initial: 'resolveStatus',
+        states: {
+          resolveStatus: {
+            always: [
+              {
+                target: VotingStatus.Pending,
+                cond: 'isPending',
+              },
+              {
+                target: VotingStatus.Open,
+                cond: 'isRunning',
+              },
+              {
+                target: VotingStatus.Voted,
+                cond: 'isVoted',
+              },
+              {
+                target: VotingStatus.Counting,
+                cond: 'isCounting',
+              },
+              {
+                target: VotingStatus.Archived,
+                cond: 'isArchived',
+              },
+              {
+                target: VotingStatus.Terminated,
+                cond: 'isTerminated',
+              },
+              {
+                target: `#viewVoting.${VotingStatus.Invalid}`,
+                actions: ['setInvalid', 'persist'],
+              },
+            ],
+          },
+          [VotingStatus.Pending]: {
+            initial: 'idle',
+            states: {
+              idle: {
+                on: {
+                  REVIEW_START_VOTING: 'review',
+                },
+              },
+              review: {
+                on: {
+                  START_VOTING: {
+                    target: `#viewVoting.mining.${VotingStatus.Starting}`,
+                    actions: ['setStarting', 'persist'],
+                  },
+                },
+              },
+            },
+            on: {
+              CANCEL: '.idle',
+            },
+          },
+          [VotingStatus.Open]: {},
+          [VotingStatus.Voted]: {},
+          [VotingStatus.Counting]: {
+            initial: 'idle',
+            states: {
+              idle: {
+                on: {
+                  FINISH: 'finish',
+                },
+              },
+              finish: {
+                on: {
+                  FINISH: {
+                    target: `#viewVoting.mining.${VotingStatus.Finishing}`,
+                    actions: ['setFinishing', 'persist'],
+                  },
+                },
+              },
+            },
+            on: {
+              CANCEL: '.idle',
+            },
+          },
+          [VotingStatus.Archived]: {},
+          [VotingStatus.Terminated]: {},
+          terminating: {
+            on: {
+              TERMINATE: {
+                target: `#viewVoting.mining.${VotingStatus.Terminating}`,
+                actions: ['setTerminating', 'persist'],
+              },
+              CANCEL: 'hist',
+            },
+          },
+          redirecting: {
+            entry: [
+              assign({
+                redirectUrl: (_, {url}) => url,
+              }),
+              log(),
+            ],
+            on: {
+              CONTINUE: {
+                target: 'hist',
+                actions: [({redirectUrl}) => openExternalUrl(redirectUrl)],
+              },
+              CANCEL: 'hist',
+            },
+          },
+          hist: {
+            type: 'history',
+          },
+        },
+        on: {
+          ADD_FUND: 'funding',
+          SELECT_OPTION: {
+            actions: ['selectOption', log()],
+          },
+          REVIEW: [
+            {
+              actions: [
+                send({
+                  type: 'ERROR',
+                  data: {message: 'Please choose an option'},
+                }),
+              ],
+              cond: ({selectedOption = -1}) => selectedOption < 0,
+            },
+            {
+              target: 'review',
+            },
+          ],
+          TERMINATE: '.terminating',
+          REFRESH: 'loading',
+          ERROR: {
+            actions: ['onError'],
+          },
+          REVIEW_PROLONG_VOTING: 'prolong',
+          FOLLOW_LINK: '.redirecting',
+        },
+      },
+      review: {
+        on: {
+          VOTE: {
+            target: `mining.${VotingStatus.Voting}`,
+            actions: ['setVoting', 'persist'],
+          },
+          CANCEL: 'idle',
+        },
+      },
+      funding: {
+        on: {
+          ADD_FUND: {
+            target: `mining.${VotingStatus.Funding}`,
+            actions: ['setFunding', 'persist'],
+          },
+          CANCEL: 'idle',
+        },
+      },
+      prolong: {
+        on: {
+          PROLONG_VOTING: {
+            target: `#viewVoting.mining.${VotingStatus.Prolonging}`,
+            actions: ['setProlonging', 'persist'],
+          },
+          CANCEL: 'idle',
+        },
+      },
+      mining: votingMiningStates('viewVoting'),
+      invalid: {},
+    },
+  },
+  {
+    actions: {
+      applyVoting: assign((context, {data}) => ({
+        ...context,
+        ...data,
+      })),
+      setFunding: assign({
+        prevStatus: ({status}) => status,
+        status: VotingStatus.Funding,
+        balance: ({balance = 0}, {amount}) => Number(balance) + Number(amount),
+      }),
+      setStarting: setVotingStatus(VotingStatus.Starting),
+      setRunning: setVotingStatus(VotingStatus.Open),
+      setVoting: setVotingStatus(VotingStatus.Voting),
+      setProlonging: setVotingStatus(VotingStatus.Prolonging),
+      setFinishing: setVotingStatus(VotingStatus.Finishing),
+      setTerminating: setVotingStatus(VotingStatus.Terminating),
+      setTerminated: setVotingStatus(VotingStatus.Terminated),
+      setVoted: setVotingStatus(VotingStatus.Voted),
+      setArchived: assign({
+        status: VotingStatus.Archived,
+      }),
+      setInvalid: assign({
+        status: VotingStatus.Invalid,
+        errorMessage: (_, {error}) => error?.message,
+      }),
+      restorePrevStatus: assign({
+        status: ({prevStatus}) => prevStatus,
+      }),
+      applyTx: assign({
+        txHash: (_, {data}) => data,
+      }),
+      handleError: assign({
+        errorMessage: (_, {error}) => error,
+      }),
+      clearMiningStatus: assign({
+        miningStatus: null,
+      }),
+      selectOption: assign({
+        selectedOption: (_, {option}) => option,
+      }),
+      // eslint-disable-next-line no-shadow
+      persist: context =>
+        db.table('votings').put({
+          id: context.id || context.contractAddress,
+          ...context,
+        }),
+      applyMinOracleReward: assign({
+        minOracleReward: (_, {data}) => data,
+      }),
+    },
+    services: {
+      // eslint-disable-next-line no-shadow
+      loadVoting: async ({address, id}) => ({
+        ...(await db
+          .table('votings')
+          .get(id)
+          .catch(() => null)),
+        ...mapVoting(await fetchVoting({id, address})),
+        id,
+        balanceUpdates: await fetchContractBalanceUpdates({
+          address,
+          contractAddress: id,
+        }),
+      }),
+      loadMinOracleReward,
+      ...votingServices(),
+      vote: async (
+        // eslint-disable-next-line no-shadow
+        {contractHash, selectedOption, epoch},
+        {privateKey}
+      ) => {
+        const readonlyCallContract = createContractReadonlyCaller({
+          contractHash,
+        })
+        const readContractData = createContractDataReader({contractHash})
 
-          const {error} = proof
-          if (error) throw new Error(error)
+        const proof = await readonlyCallContract('proof', 'hex', [
+          {
+            value: privateKeyToAddress(privateKey),
+          },
+        ])
 
-          const salt = await callRpc(
-            'dna_sign',
-            `salt-${contractHash}-${epoch}`
-          )
+        const {error} = proof
+        if (error) throw new Error(error)
 
-          const voteHash = await readonlyCallContract(
-            'voteHash',
-            'hex',
-            {value: selectedOption, format: 'byte'},
-            {value: salt}
-          )
+        const salt = await callRpc('dna_sign', `salt-${contractHash}-${epoch}`)
 
-          const votingMinPayment = Number(
-            await readContractData('votingMinPayment', 'dna')
-          )
+        const voteHash = await readonlyCallContract('voteHash', 'hex', [
+          {value: selectedOption, format: 'byte'},
+          {value: salt},
+        ])
 
-          const voteBlock = Number(
-            await readonlyCallContract('voteBlock', 'uint64')
-          )
+        const votingMinPayment = Number(
+          await readContractData('votingMinPayment', 'dna')
+        )
 
-          let callContract = createContractCaller({
-            from,
-            contractHash,
-            amount: votingMinPayment,
-            broadcastBlock: voteBlock,
-            gasCost,
-            txFee,
-          })
-
-          const {
-            error: errorProof,
-            gasCost: callGasCost,
-            txFee: callTxFee,
-          } = await callContract('sendVoteProof', ContractRpcMode.Estimate, {
-            value: voteHash,
-          })
-
-          if (errorProof) throw new Error(errorProof)
-
-          callContract = createContractCaller({
-            from,
-            contractHash,
-            amount: votingMinPayment,
-            broadcastBlock: voteBlock,
-            gasCost: Number(callGasCost),
-            txFee: Number(callTxFee),
-          })
-
-          const voteProofResp = await callContract(
-            'sendVoteProof',
-            ContractRpcMode.Call,
+        const voteProofData = {
+          method: 'sendVoteProof',
+          contractHash,
+          amount: votingMinPayment,
+          args: [
             {
               value: voteHash,
-            }
-          )
+            },
+          ],
+          // gasCost,
+          // txFee,
+        }
 
-          await callContract(
-            'sendVote',
-            ContractRpcMode.Call,
+        const {
+          receipt: {gasCost: callGasCost, txFee: callTxFee},
+        } = await estimateCallContract(privateKey, voteProofData)
+
+        const voteProofResponse = await callContract(privateKey, {
+          ...voteProofData,
+          gasCost: Number(callGasCost),
+          txFee: Number(callTxFee),
+        })
+
+        const voteBlock = Number(
+          await readonlyCallContract('voteBlock', 'uint64')
+        )
+
+        await addDeferredVote({
+          block: voteBlock,
+          contractHash,
+          amount: votingMinPayment,
+          args: [
             {value: selectedOption.toString(), format: 'byte'},
-            {value: salt}
-          )
+            {value: salt},
+          ],
+        })
 
-          return voteProofResp
+        return voteProofResponse
+      },
+      prolongVoting: async ({contractHash}, {privateKey}) => {
+        const {
+          receipt: {gasCost, txFee},
+        } = await estimateCallContract(privateKey, {
+          method: 'prolongVoting',
+          contractHash,
+        })
+
+        return callContract(privateKey, {
+          method: 'prolongVoting',
+          contractHash,
+          gasCost: Number(gasCost),
+          txFee: Number(txFee),
+        })
+      },
+      finishVoting: async ({contractHash}, {privateKey}) => {
+        const {
+          receipt: {gasCost, txFee},
+        } = await estimateCallContract(privateKey, {
+          method: 'finishVoting',
+          contractHash,
+        })
+
+        return callContract(privateKey, {
+          method: 'finishVoting',
+          contractHash,
+          gasCost: Number(gasCost),
+          txFee: Number(txFee),
+        })
+      },
+      terminateContract: async (
+        {
+          // eslint-disable-next-line no-shadow
+          address,
+          issuer = address,
+          contractHash,
         },
-        prolongVoting: async ({contractHash}, {from}) => {
-          let callContract = createContractCaller({
-            from,
-            contractHash,
-          })
+        {privateKey}
+      ) => {
+        const terminateData = {
+          contractHash,
+          args: [{value: issuer}],
+        }
 
-          const {error, gasCost, txFee} = await callContract(
-            'prolongVoting',
-            ContractRpcMode.Estimate
-          )
+        const {
+          receipt: {gasCost, txFee},
+        } = await estimateTermiateContract(privateKey, terminateData)
 
-          if (error) throw new Error(error)
+        return terminateContract(privateKey, {
+          ...terminateData,
+          gasCost,
+          txFee,
+        })
+      },
+      pollStatus: ({txHash}) => cb => {
+        let timeoutId
 
-          callContract = createContractCaller({
-            from,
-            contractHash,
-            gasCost: Number(gasCost),
-            txFee: Number(txFee),
-          })
-
-          return callContract('prolongVoting')
-        },
-        finishVoting: async (contract, {from}) => {
-          let callContract = createContractCaller({...contract, from})
-
-          const {error, gasCost, txFee} = await callContract(
-            'finishVoting',
-            ContractRpcMode.Estimate
-          )
-          if (error) throw new Error(error)
-
-          callContract = createContractCaller({
-            ...contract,
-            from,
-            gasCost: Number(gasCost),
-            txFee: Number(txFee),
-          })
-
-          return callContract('finishVoting')
-        },
-        terminateContract: async (
-          {
-            // eslint-disable-next-line no-shadow
-            address,
-            issuer = address,
-            contractHash,
-          },
-          {from}
-        ) => {
-          const payload = {
-            from,
-            contract: contractHash,
-            args: buildDynamicArgs({value: issuer}),
-          }
-
-          const {error, gasCost, txFee} = await callRpc(
-            'contract_estimateTerminate',
-            payload
-          )
-          if (error) throw new Error(error)
-
-          return callRpc('contract_terminate', {
-            ...payload,
-            maxFee: contractMaxFee(gasCost, txFee),
-          })
-        },
-        pollStatus: ({txHash}) => cb => {
-          let timeoutId
-
-          const fetchStatus = async () => {
-            try {
-              const result = await callRpc('bcn_transaction', txHash)
-              if (result.blockHash !== HASH_IN_MEMPOOL) {
-                cb('MINED')
-              } else {
-                timeoutId = setTimeout(fetchStatus, 10 * 1000)
-              }
-            } catch (error) {
-              cb('TX_NULL', {error: error?.message})
+        const fetchStatus = async () => {
+          try {
+            const result = await callRpc('bcn_transaction', txHash)
+            if (result.blockHash !== HASH_IN_MEMPOOL) {
+              cb('MINED')
+            } else {
+              timeoutId = setTimeout(fetchStatus, 10 * 1000)
             }
+          } catch (error) {
+            cb('TX_NULL', {error: error?.message})
           }
+        }
 
-          timeoutId = setTimeout(fetchStatus, 10 * 1000)
+        timeoutId = setTimeout(fetchStatus, 10 * 1000)
 
-          return () => {
-            clearTimeout(timeoutId)
-          }
-        },
+        return () => {
+          clearTimeout(timeoutId)
+        }
       },
-      guards: {
-        // eslint-disable-next-line no-use-before-define
-        ...votingStatusGuards(),
-      },
-    }
-  )
+    },
+    guards: {
+      // eslint-disable-next-line no-use-before-define
+      ...votingStatusGuards(),
+    },
+  }
+)
 
 function votingMiningStates(machineId) {
   return {
@@ -1532,7 +1475,7 @@ function votingMiningStates(machineId) {
               src: 'addFund',
               onDone: {
                 target: 'mining',
-                actions: ['applyTx'],
+                actions: ['applyTx', log()],
               },
               onError: {
                 target: `#${machineId}.idle.hist`,
@@ -1542,6 +1485,7 @@ function votingMiningStates(machineId) {
           },
           mining: {
             entry: [
+              log(),
               assign({
                 miningStatus: 'mining',
               }),
@@ -1836,30 +1780,27 @@ function votingMiningStates(machineId) {
 
 function votingServices() {
   return {
-    addFund: ({contractHash}, {amount, from}) =>
-      callRpc('dna_sendTransaction', {
-        to: contractHash,
-        from,
+    addFund: async ({contractHash}, {privateKey, amount}) =>
+      sendDna(privateKey, contractHash, amount),
+    startVoting: async (
+      {contractHash},
+      {privateKey, balance, amount = balance}
+    ) => {
+      const startVotingData = {
+        method: 'startVoting',
+        contractHash,
         amount,
-      }),
-    startVoting: async (contract, {from, balance, amount = balance}) => {
-      let callContract = createContractCaller({...contract, from, amount})
+      }
 
-      const {error, gasCost, txFee} = await callContract(
-        'startVoting',
-        ContractRpcMode.Estimate
-      )
-      if (error) throw new Error(error)
+      const {
+        receipt: {gasCost, txFee},
+      } = await estimateCallContract(privateKey, startVotingData)
 
-      callContract = createContractCaller({
-        ...contract,
-        from,
-        amount,
+      return callContract(privateKey, {
+        ...startVotingData,
         gasCost: Number(gasCost),
         txFee: Number(txFee),
       })
-
-      return callContract('startVoting')
     },
   }
 }

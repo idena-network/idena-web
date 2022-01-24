@@ -6,7 +6,7 @@ export class TerminateContractAttachment {
   }
 
   fromBytes(bytes) {
-    const protoAttachment = messages.ProtoDeployContractAttachment.deserializeBinary(
+    const protoAttachment = messages.ProtoTerminateContractAttachment.deserializeBinary(
       bytes
     )
 
@@ -16,7 +16,7 @@ export class TerminateContractAttachment {
   }
 
   toBytes() {
-    const data = new messages.ProtoDeployContractAttachment()
+    const data = new messages.ProtoTerminateContractAttachment()
     for (let i = 0; i < this.args.length; i += 1) {
       data.addArgs(new Uint8Array(this.args[i]))
     }

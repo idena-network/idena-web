@@ -19,7 +19,7 @@ import dayjs from 'dayjs'
 import {useRouter} from 'next/router'
 import {Input, SuccessAlert, Toast} from '../../shared/components/components'
 import {PrimaryButton} from '../../shared/components/button'
-import {createNewVotingMachine} from '../../screens/oracles/machines'
+import {newVotingMachine} from '../../screens/oracles/machines'
 import {
   DnaInput,
   NewVotingFormSkeleton,
@@ -75,8 +75,6 @@ function NewVotingPage() {
   const {coinbase, privateKey} = useAuthState()
   const {balance} = useBalance()
 
-  const newVotingMachine = React.useMemo(() => createNewVotingMachine(), [])
-
   const [current, send, service] = useMachine(newVotingMachine, {
     actions: {
       onDone: () => {
@@ -102,8 +100,7 @@ function NewVotingPage() {
   })
 
   React.useEffect(() => {
-    if (epochData && coinbase && privateKey)
-      send('START', {epoch: epochData.epoch, coinbase, privateKey})
+    if (epochData && coinbase) send('START', {epoch: epochData.epoch, coinbase})
   }, [coinbase, epochData, privateKey, send])
 
   const {
@@ -553,8 +550,8 @@ function NewVotingPage() {
             `publishing.${VotingStatus.Starting}`
           )}
           // eslint-disable-next-line no-shadow
-          onConfirm={({from, balance, stake}) =>
-            send('CONFIRM', {from, balance, stake})
+          onConfirm={({balance, stake}) =>
+            send('CONFIRM', {privateKey, balance, stake})
           }
         />
 

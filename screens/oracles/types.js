@@ -43,3 +43,9 @@ export const ContractRpcMode = {
   Estimate: 'estimate',
   Call: 'call',
 }
+
+export const DeferredVoteType = {
+  None: 0,
+  Success: 1,
+  Failed: 2,
+}

@@ -5,10 +5,15 @@ import Decimal from 'decimal.js'
 import {TxType, VotingStatus} from '../../shared/types'
 import {callRpc, roundToPrecision, toLocaleDna} from '../../shared/utils/utils'
 import {strip} from '../../shared/utils/obj'
-import {ContractRpcMode, VotingListFilter} from './types'
+import {DeferredVoteType, VotingListFilter} from './types'
 import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
-import {getRawTx} from '../../shared/api'
+import {getRawTx, sendRawTx, estimateRawTx} from '../../shared/api'
 import {DeployContractAttachment} from '../../shared/models/deployContractAttachment'
+import {CallContractAttachment} from '../../shared/models/callContractAttachment'
+import {TerminateContractAttachment} from '../../shared/models/terminateContractAttachment'
+import {Transaction} from '../../shared/models/transaction'
+import {privateKeyToAddress} from '../../shared/utils/crypto'
+import db from '../../shared/utils/db'
 
 Decimal.set({toExpPos: 10000})
 
@@ -153,33 +158,166 @@ export async function fetchVoting({id, contractHash = id, address}) {
   return result
 }
 
-export const createContractCaller = ({
-  from,
-  contractHash,
-  gasCost,
-  txFee,
-  amount,
-  broadcastBlock,
-}) => (method, mode = ContractRpcMode.Call, ...args) => {
-  const isCalling = mode === ContractRpcMode.Call
+export const deployContract = async (
+  privateKey,
+  {gasCost, txFee, stake, ...voting}
+) => {
+  const args = buildContractDeploymentArgs(voting)
 
-  const payload = strip({
-    from,
-    contract: contractHash,
+  const payload = new DeployContractAttachment('0x02', argsToSlice(args))
+
+  const builtTx = await getRawTx(
+    TxType.DeployContractTx,
+    privateKeyToAddress(privateKey),
+    null,
+    stake,
+    contractMaxFee(gasCost, txFee),
+    toHexString(payload.toBytes(), true)
+  )
+
+  const tx = new Transaction().fromHex(builtTx)
+  tx.sign(privateKey)
+
+  return sendRawTx(tx.toHex(true))
+}
+
+export const estimateDeployContract = async (
+  privateKey,
+  {stake, ...voting}
+) => {
+  const args = buildContractDeploymentArgs(voting)
+
+  const payload = new DeployContractAttachment('0x02', argsToSlice(args))
+
+  const builtTx = await getRawTx(
+    TxType.DeployContractTx,
+    privateKeyToAddress(privateKey),
+    null,
+    stake,
+    null,
+    toHexString(payload.toBytes(), true)
+  )
+
+  const tx = new Transaction().fromHex(builtTx)
+  tx.sign(privateKey)
+
+  const result = await estimateRawTx(tx.toHex(true))
+
+  if (result.receipt?.error) throw new Error(result.receipt?.error)
+
+  return result
+}
+
+export const callContract = async (
+  privateKey,
+  {method, contractHash, gasCost, txFee, amount, args}
+) => {
+  const payload = new CallContractAttachment(
     method,
-    maxFee: isCalling ? contractMaxFee(gasCost, txFee) : null,
-    amount: isCalling && method === 'sendVote' ? null : amount,
-    broadcastBlock: isCalling && method === 'sendVote' ? broadcastBlock : null,
-    args: buildDynamicArgs(...args),
-  })
+    argsToSlice(buildDynamicArgs(args))
+  )
 
-  return callRpc(isCalling ? 'contract_call' : 'contract_estimateCall', payload)
+  const rawTx = await getRawTx(
+    TxType.CallContractTx,
+    privateKeyToAddress(privateKey),
+    contractHash,
+    method === 'sendVote' ? null : amount,
+    contractMaxFee(gasCost, txFee),
+    toHexString(payload.toBytes(), true)
+  )
+
+  const tx = new Transaction().fromHex(rawTx)
+  tx.sign(privateKey)
+  const hex = tx.toHex(true)
+
+  return sendRawTx(hex)
+}
+
+export const estimateCallContract = async (
+  privateKey,
+  {method, contractHash, amount, args}
+) => {
+  const payload = new CallContractAttachment(
+    method,
+    argsToSlice(buildDynamicArgs(args))
+  )
+
+  const rawTx = await getRawTx(
+    TxType.CallContractTx,
+    privateKeyToAddress(privateKey),
+    contractHash,
+    amount,
+    null,
+    toHexString(payload.toBytes(), true)
+  )
+
+  const tx = new Transaction().fromHex(rawTx)
+  tx.sign(privateKey)
+  const hex = tx.toHex(true)
+
+  const result = await estimateRawTx(hex)
+
+  if (result.receipt?.error) throw new Error(result.receipt?.error)
+
+  return result
+}
+
+export const terminateContract = async (
+  privateKey,
+  {contractHash, gasCost, txFee, args}
+) => {
+  const payload = new TerminateContractAttachment(
+    argsToSlice(buildDynamicArgs(args))
+  )
+
+  const rawTx = await getRawTx(
+    TxType.CallContractTx,
+    privateKeyToAddress(privateKey),
+    contractHash,
+    null,
+    contractMaxFee(gasCost, txFee),
+    toHexString(payload.toBytes(), true)
+  )
+
+  const tx = new Transaction().fromHex(rawTx)
+  tx.sign(privateKey)
+  const hex = tx.toHex(true)
+
+  return sendRawTx(hex)
+}
+
+export const estimateTermiateContract = async (
+  privateKey,
+  {contractHash, args}
+) => {
+  const payload = new TerminateContractAttachment(
+    argsToSlice(buildDynamicArgs(args))
+  )
+
+  const rawTx = await getRawTx(
+    TxType.CallContractTx,
+    privateKeyToAddress(privateKey),
+    contractHash,
+    null,
+    null,
+    toHexString(payload.toBytes(), true)
+  )
+
+  const tx = new Transaction().fromHex(rawTx)
+  tx.sign(privateKey)
+  const hex = tx.toHex(true)
+
+  const result = await estimateRawTx(hex)
+
+  if (result.receipt?.error) throw new Error(result.receipt?.error)
+
+  return result
 }
 
 export const createContractReadonlyCaller = ({contractHash}) => (
   method,
   format = 'hex',
-  ...args
+  args
 ) =>
   callRpc(
     'contract_readonlyCall',
@@ -187,7 +325,7 @@ export const createContractReadonlyCaller = ({contractHash}) => (
       contract: contractHash,
       method,
       format,
-      args: buildDynamicArgs(...args),
+      args: buildDynamicArgs(args),
     })
   )
 
@@ -212,26 +350,22 @@ export function hexToObject(hex) {
   }
 }
 
-export async function buildContractDeploymentTx(
-  {
-    title,
-    desc,
-    startDate,
-    votingDuration,
-    publicVotingDuration,
-    winnerThreshold = 66,
-    quorum,
-    committeeSize,
-    votingMinPayment = 0,
-    options = [],
-    ownerFee = 0,
-    shouldStartImmediately,
-    isFreeVoting,
-  },
-  {from, stake, gasCost, txFee},
-  mode = ContractRpcMode.Call
-) {
-  const args = buildDynamicArgs(
+export function buildContractDeploymentArgs({
+  title,
+  desc,
+  startDate,
+  votingDuration,
+  publicVotingDuration,
+  winnerThreshold = 66,
+  quorum,
+  committeeSize,
+  votingMinPayment = 0,
+  options = [],
+  ownerFee = 0,
+  shouldStartImmediately,
+  isFreeVoting,
+}) {
+  return buildDynamicArgs([
     {
       value: `0x${objectToHex({
         title,
@@ -252,73 +386,11 @@ export async function buildContractDeploymentTx(
       value: isFreeVoting ? 0 : votingMinPayment,
       format: 'dna',
     },
-    {value: ownerFee, format: 'byte'}
-  )
-
-  const payload = new DeployContractAttachment('0x02', argsToSlice(args))
-
-  return getRawTx(
-    TxType.DeployContractTx,
-    from,
-    null,
-    stake,
-    mode === ContractRpcMode.Call ? contractMaxFee(gasCost, txFee) : 0,
-    toHexString(payload.toBytes(), true)
-  )
+    {value: ownerFee, format: 'byte'},
+  ])
 }
 
-export function buildContractDeploymentArgs(
-  {
-    title,
-    desc,
-    startDate,
-    votingDuration,
-    publicVotingDuration,
-    winnerThreshold = 66,
-    quorum,
-    committeeSize,
-    votingMinPayment = 0,
-    options = [],
-    ownerFee = 0,
-    shouldStartImmediately,
-    isFreeVoting,
-  },
-  {from, stake, gasCost, txFee},
-  mode = ContractRpcMode.Call
-) {
-  return strip({
-    from,
-    codeHash: '0x02',
-    amount: stake,
-    maxFee:
-      mode === ContractRpcMode.Call ? contractMaxFee(gasCost, txFee) : null,
-    args: buildDynamicArgs(
-      {
-        value: `0x${objectToHex({
-          title,
-          desc,
-          options: stripOptions(options),
-        })}`,
-      },
-      {
-        value: dayjs(shouldStartImmediately ? Date.now() : startDate).unix(),
-        format: 'uint64',
-      },
-      {value: votingDuration, format: 'uint64'},
-      {value: publicVotingDuration, format: 'uint64'},
-      {value: winnerThreshold, format: 'byte'},
-      {value: quorum, format: 'byte'},
-      {value: committeeSize, format: 'uint64'},
-      {
-        value: isFreeVoting ? 0 : votingMinPayment,
-        format: 'dna',
-      },
-      {value: ownerFee, format: 'byte'}
-    ),
-  })
-}
-
-export function buildDynamicArgs(...args) {
+export function buildDynamicArgs(args = []) {
   return args
     .map(({format = 'hex', value}, index) => ({
       index,
@@ -667,6 +739,7 @@ function argToBytes(data) {
 }
 
 export function argsToSlice(args) {
+  if (args?.length === 0) return []
   const maxIndex = Math.max(...args.map(x => x.index))
 
   const result = new Array(maxIndex).fill(null)
@@ -676,4 +749,22 @@ export function argsToSlice(args) {
   })
 
   return result
+}
+
+export async function addDeferredVote(data) {
+  return db.table('deferredVotes').put({
+    type: DeferredVoteType.None,
+    ...data,
+  })
+}
+export async function getDeferredVotes() {
+  return db
+    .table('deferredVotes')
+    .where('type')
+    .equals(DeferredVoteType.None)
+    .toArray()
+}
+
+export async function updateDeferredVote(id, changes) {
+  return db.table('deferredVotes').update(id, changes)
 }

@@ -1,3 +1,4 @@
+import {toBuffer} from '../utils/buffers'
 import messages from './proto/models_pb'
 
 export class DeployContractAttachment {
@@ -19,7 +20,13 @@ export class DeployContractAttachment {
 
   toBytes() {
     const data = new messages.ProtoDeployContractAttachment()
-    data.setCodehash(new Uint8Array(this.codeHash))
+    data.setCodehash(
+      new Uint8Array(
+        typeof this.codeHash === 'string'
+          ? toBuffer(this.codeHash)
+          : this.codeHash
+      )
+    )
     for (let i = 0; i < this.args.length; i += 1) {
       data.addArgs(new Uint8Array(this.args[i]))
     }

@@ -64,7 +64,6 @@ import {
   OracleDrawerBody,
   OracleFormControl,
   OracleFormHelper,
-  OracleFormHelperText,
   PresetFormControl,
   DnaInput,
   PresetFormControlOptionList,
@@ -72,7 +71,7 @@ import {
   PresetFormControlHelperText,
   PresetFormControlInputBox,
   BlockInput,
-  OracleFormHelperSmall,
+  OracleVoteInfoTextSmall,
 } from './components'
 import {
   InfoButton,
@@ -95,6 +94,9 @@ import {
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useBalance} from '../../shared/hooks/use-balance'
 import {
+  AddFundIcon,
+  OkIcon,
+  SendOutIcon,
   StarIcon,
   TickIcon,
   UserIcon,
@@ -409,7 +411,9 @@ export function AddFundDrawer({
 
   return (
     <Drawer {...props}>
-      <OracleDrawerHeader icon="add-fund">{t('Add fund')}</OracleDrawerHeader>
+      <OracleDrawerHeader icon={<AddFundIcon />}>
+        {t('Add fund')}
+      </OracleDrawerHeader>
       <Box
         as="form"
         onSubmit={e => {
@@ -487,7 +491,7 @@ export function VoteDrawer({
 
   return (
     <Drawer isCloseable={!isLoading} {...props}>
-      <OracleDrawerHeader icon="send-out" variantColor="blue">
+      <OracleDrawerHeader icon={<SendOutIcon />} variantColor="blue">
         {t('Voting')}: {option}
       </OracleDrawerHeader>
       <Box flex={1} overflowY="auto" mx={-30} px={30}>
@@ -502,27 +506,28 @@ export function VoteDrawer({
           <OracleFormControl label={t('Voting Deposit, iDNA')}>
             <Input isDisabled value={deposit} />
           </OracleFormControl>
+
           <Stack spacing={2} bg="gray.50" borderRadius="md" py={5} px={6}>
-            <OracleFormHelperSmall
+            <OracleVoteInfoTextSmall
               label={t('Vote counting')}
               value={t('About {{duration}}', {
                 duration: humanizeDuration(publicVotingDuration),
               })}
             />
-            <OracleFormHelperSmall
+            <OracleVoteInfoTextSmall
               label={t('Start counting')}
               value={new Date(finishDate).toLocaleString()}
             />
-            <OracleFormHelperSmall
+            <OracleVoteInfoTextSmall
               label={t('End counting')}
               value={new Date(finishCountingDate).toLocaleString()}
             />
           </Stack>
-          <OracleFormHelperText mt={0}>
+          <Text color="muted" fontSize="md" mt={0}>
             {t(
               'To get a reward for the voting you must be online at least once during the period of vote counting'
             )}
-          </OracleFormHelperText>
+          </Text>
         </OracleDrawerBody>
       </Box>
       <DrawerFooter>
@@ -561,9 +566,7 @@ export function ReviewVotingDrawer({
 
   return (
     <Drawer isCloseable={!isLoading} {...props}>
-      <OracleDrawerHeader icon="oracle">
-        {t('Create Oracle Voting')}
-      </OracleDrawerHeader>
+      <OracleDrawerHeader>{t('Create Oracle Voting')}</OracleDrawerHeader>
       <OracleDrawerBody
         as="form"
         onSubmit={e => {
@@ -594,6 +597,7 @@ export function ReviewVotingDrawer({
                 borderBottom="dotted 1px"
                 borderBottomColor="muted"
                 cursor="help"
+                as="span"
               >
                 {t('Rewards')}
               </Text>
@@ -622,6 +626,7 @@ export function ReviewVotingDrawer({
                 borderBottom="dotted 1px"
                 borderBottomColor="muted"
                 cursor="help"
+                as="span"
               >
                 {t('Stake')}
               </Text>
@@ -739,7 +744,7 @@ export function VotingInspector({onTerminate, ...contract}) {
                         await createContractReadonlyCaller(contract)(
                           readonlyCallMethod.value,
                           readonlyCallMethodFormat.value,
-                          ...JSON.parse(readonlyCallArgs.value || '[]')
+                          JSON.parse(readonlyCallArgs.value || '[]')
                         )
                       )
                     }}
@@ -1046,7 +1051,7 @@ function VotingResultBar({
             w={4}
             h={4}
           >
-            {isMine && <Icon name="ok" size={3} />}
+            {isMine && <OkIcon boxSize={3} />}
           </Flex>
         )}
         <Text isTruncated maxW="sm" title={label.length > 50 ? label : ''}>
@@ -1084,17 +1089,14 @@ export function LaunchDrawer({
 
   return (
     <Drawer isCloseable={!isLoading} {...props}>
-      <OracleDrawerHeader icon="oracle">
-        {t('Launch Oracle Voting')}
-      </OracleDrawerHeader>
+      <OracleDrawerHeader>{t('Launch Oracle Voting')}</OracleDrawerHeader>
       <OracleDrawerBody
         as="form"
         onSubmit={e => {
           e.preventDefault()
-          const {balanceInput, fromInput} = e.target.elements
+          const {balanceInput} = e.target.elements
           onLaunch({
             amount: Number(balanceInput.value),
-            from: fromInput.value,
           })
         }}
       >
@@ -1151,22 +1153,17 @@ export function ProlongDrawer({
 
   return (
     <Drawer isCloseable={!isLoading} {...props}>
-      <OracleDrawerHeader icon="oracle">
-        {t('Prolong Oracle Voting')}
-      </OracleDrawerHeader>
+      <OracleDrawerHeader>{t('Prolong Oracle Voting')}</OracleDrawerHeader>
       <OracleDrawerBody
         as="form"
         onSubmit={e => {
           e.preventDefault()
-          const {fromInput} = e.target.elements
-          onProlong({
-            from: fromInput.value,
-          })
+          onProlong()
         }}
       >
-        <OracleFormHelperText>
+        <Text color="muted" fontSize="md">
           {t('Prolong the voting in order to select a new voting committee')}
-        </OracleFormHelperText>
+        </Text>
 
         <OracleFormControl label={t('Transfer from')}>
           <Input name="fromInput" defaultValue={from} isDisabled />
@@ -1439,24 +1436,21 @@ export function FinishDrawer({
 
   return (
     <Drawer isCloseable={!isLoading} {...props}>
-      <OracleDrawerHeader icon="oracle">
+      <OracleDrawerHeader>
         {hasWinner ? t('Distribute rewards') : t('Refund Oracle Voting')}
       </OracleDrawerHeader>
       <OracleDrawerBody
         as="form"
         onSubmit={e => {
           e.preventDefault()
-          const {fromInput} = e.target.elements
-          onFinish({
-            from: fromInput.value,
-          })
+          onFinish()
         }}
       >
-        <OracleFormHelperText>
+        <Text color="muted" fontSize="md">
           {hasWinner
             ? t('Declare the winner and pay rewards to oracles.')
             : t('Finish voting and refund oracles with their lock funds.')}
-        </OracleFormHelperText>
+        </Text>
 
         <OracleFormControl label={t('Transfer from')}>
           <Input name="fromInput" defaultValue={from} isDisabled />
@@ -1490,9 +1484,7 @@ export function TerminateDrawer({
 
   return (
     <Drawer isCloseable={!isLoading} {...props}>
-      <OracleDrawerHeader icon="oracle">
-        {t('Terminate Oracle Voting')}
-      </OracleDrawerHeader>
+      <OracleDrawerHeader>{t('Terminate Oracle Voting')}</OracleDrawerHeader>
       <OracleDrawerBody
         as="form"
         onSubmit={e => {
@@ -1500,11 +1492,11 @@ export function TerminateDrawer({
           onTerminate()
         }}
       >
-        <OracleFormHelperText>
+        <Text color="muted" fontSize="md">
           {t(
             'Terminate the contract to clean-up its state and refund 50% of the stake to the owner'
           )}
-        </OracleFormHelperText>
+        </Text>
 
         <OracleFormControl label={t('Smart contract address')}>
           <Input defaultValue={contractAddress} isDisabled />

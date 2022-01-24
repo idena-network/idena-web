@@ -7,7 +7,7 @@ export class CallContractAttachment {
   }
 
   fromBytes(bytes) {
-    const protoAttachment = messages.ProtoDeployContractAttachment.deserializeBinary(
+    const protoAttachment = messages.ProtoCallContractAttachment.deserializeBinary(
       bytes
     )
 
@@ -18,7 +18,7 @@ export class CallContractAttachment {
   }
 
   toBytes() {
-    const data = new messages.ProtoDeployContractAttachment()
+    const data = new messages.ProtoCallContractAttachment()
     data.setMethod(this.method)
     for (let i = 0; i < this.args.length; i += 1) {
       data.addArgs(new Uint8Array(this.args[i]))

@@ -42,9 +42,10 @@ export function toPercent(value) {
   })
 }
 
-export const toLocaleDna = (locale, maxDigits) => {
+export const toLocaleDna = (locale, options) => {
   const formatter = new Intl.NumberFormat(locale, {
-    maximumFractionDigits: maxDigits || 18,
+    maximumFractionDigits: 18,
+    ...options,
   })
   return value => `${formatter.format(value)} iDNA`
 }

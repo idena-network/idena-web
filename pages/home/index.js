@@ -153,7 +153,7 @@ export default function ProfilePage() {
     }
   }, [dnaUrl, router])
 
-  const toDna = toLocaleDna(language, 4)
+  const toDna = toLocaleDna(language, {maximumFractionDigits: 4})
 
   const [
     currentOnboarding,

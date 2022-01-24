@@ -29,10 +29,10 @@ import {
   Tooltip,
 } from '../../shared/components/components'
 import {clampValue} from '../../shared/utils/utils'
-import {CrossSmallIcon} from '../../shared/components/icons'
+import {CrossSmallIcon, OracleIcon} from '../../shared/components/icons'
 
 export function OracleDrawerHeader({
-  icon,
+  icon = <OracleIcon />,
   variantColor = 'blue',
   children,
   ...props
@@ -47,7 +47,10 @@ export function OracleDrawerHeader({
         w={12}
         rounded="xl"
       >
-        <Icon name={icon} w={6} h={6} color={`${variantColor}.500`} />
+        {React.cloneElement(icon, {
+          boxSize: 6,
+          color: `${variantColor}.500`,
+        })}
       </Flex>
       <Heading
         color="brandGray.500"
@@ -94,18 +97,18 @@ export function OracleFormHelperText(props) {
 }
 
 export function OracleFormHelperValue(props) {
-  return <FormHelperText color="brandGray.500" fontSize="md" {...props} />
+  return <FormHelperText color="gray.500" fontSize="md" {...props} />
 }
 
-export function OracleFormHelperSmall({label, value, ...props}) {
+export function OracleVoteInfoTextSmall({label, value, ...props}) {
   return (
     <Flex {...props}>
-      <OracleFormHelperText fontSize="sm" mt={0} w={24}>
+      <Text fontSize="sm" color="muted" mt={0} w={24}>
         {label}
-      </OracleFormHelperText>
-      <OracleFormHelperValue fontSize="sm" mt={0}>
+      </Text>
+      <Text fontSize="sm" color="gray.500" mt={0}>
         {value}
-      </OracleFormHelperValue>
+      </Text>
     </Flex>
   )
 }

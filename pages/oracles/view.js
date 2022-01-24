@@ -6,7 +6,6 @@ import {
   Heading,
   RadioGroup,
   Flex,
-  Icon,
   Stat,
   StatNumber,
   StatLabel,
@@ -20,6 +19,7 @@ import {useRouter} from 'next/router'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import duration from 'dayjs/plugin/duration'
+import {ArrowDownIcon, ArrowUpIcon} from '@chakra-ui/icons'
 import {
   Avatar,
   GoogleTranslateButton,
@@ -31,6 +31,7 @@ import {
   DialogFooter,
   DialogBody,
   SmallText,
+  FloatDebug,
 } from '../../shared/components/components'
 import {
   IconButton,
@@ -62,7 +63,6 @@ import {
   FinishDrawer,
   Linkify,
 } from '../../screens/oracles/containers'
-import {createViewVotingMachine} from '../../screens/oracles/machines'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {VotingStatus} from '../../shared/types'
 import {
@@ -90,6 +90,7 @@ import {Page} from '../../screens/app/components'
 import {
   AddFundIcon,
   CoinsLgIcon,
+  OkIcon,
   RefreshIcon,
   StarIcon,
   UserIcon,
@@ -97,6 +98,7 @@ import {
 } from '../../shared/components/icons'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useBalance} from '../../shared/hooks/use-balance'
+import {viewVotingMachine} from '../../screens/oracles/machines'
 
 dayjs.extend(relativeTime)
 dayjs.extend(duration)
@@ -113,12 +115,10 @@ export default function ViewVotingPage() {
 
   const {epoch} = useEpoch() ?? {epoch: -1}
 
-  const {coinbase} = useAuthState()
+  const {coinbase, privateKey} = useAuthState()
   const {balance: identityBalance} = useBalance()
 
-  const viewMachine = React.useMemo(() => createViewVotingMachine(), [])
-
-  const [current, send, service] = useMachine(viewMachine, {
+  const [current, send, service] = useMachine(viewVotingMachine, {
     actions: {
       onError: (context, {data: {message}}) => {
         toast({
@@ -353,7 +353,7 @@ export default function ViewVotingPage() {
                                     w={4}
                                     h={4}
                                   >
-                                    {isMine && <Icon name="ok" size={3} />}
+                                    {isMine && <OkIcon boxSize={3} />}
                                   </Flex>
 
                                   <Text
@@ -619,12 +619,11 @@ export default function ViewVotingPage() {
                                         minH={8}
                                         minW={8}
                                       >
-                                        <Icon
-                                          name={`arrow-${
-                                            isSender ? 'up' : 'down'
-                                          }`}
-                                          size={5}
-                                        />
+                                        {isSender ? (
+                                          <ArrowUpIcon boxSize={5} />
+                                        ) : (
+                                          <ArrowDownIcon boxSize={5} />
+                                        )}
                                       </Flex>
                                       <Box isTruncated>
                                         {contractCallMethod ? (
@@ -861,7 +860,7 @@ export default function ViewVotingPage() {
         finishCountingDate={finishCountingDate}
         isLoading={current.matches(`mining.${VotingStatus.Voting}`)}
         onVote={() => {
-          send('VOTE', {from: coinbase})
+          send('VOTE', {privateKey})
         }}
       />
 
@@ -879,8 +878,8 @@ export default function ViewVotingPage() {
         available={identityBalance}
         ownerFee={ownerFee}
         isLoading={current.matches(`mining.${VotingStatus.Funding}`)}
-        onAddFund={({amount, from}) => {
-          send('ADD_FUND', {amount, from})
+        onAddFund={({amount}) => {
+          send('ADD_FUND', {amount, privateKey})
         }}
       />
 
@@ -902,8 +901,8 @@ export default function ViewVotingPage() {
         from={coinbase}
         available={identityBalance}
         isLoading={current.matches(`mining.${VotingStatus.Starting}`)}
-        onLaunch={e => {
-          send('START_VOTING', e)
+        onLaunch={({amount}) => {
+          send('START_VOTING', {amount, privateKey})
         }}
       />
 
@@ -919,8 +918,8 @@ export default function ViewVotingPage() {
         from={coinbase}
         available={identityBalance}
         isLoading={current.matches(`mining.${VotingStatus.Finishing}`)}
-        onFinish={({from}) => {
-          send('FINISH', {from})
+        onFinish={() => {
+          send('FINISH', {privateKey})
         }}
         hasWinner={didDetermineWinner}
       />
@@ -937,8 +936,8 @@ export default function ViewVotingPage() {
         from={coinbase}
         available={identityBalance}
         isLoading={current.matches(`mining.${VotingStatus.Prolonging}`)}
-        onProlong={({from}) => {
-          send('PROLONG_VOTING', {from})
+        onProlong={() => {
+          send('PROLONG_VOTING', {privateKey})
         }}
       />
 
@@ -954,7 +953,7 @@ export default function ViewVotingPage() {
         contractAddress={contractHash}
         isLoading={current.matches(`mining.${VotingStatus.Terminating}`)}
         onTerminate={() => {
-          send('TERMINATE', {from: coinbase})
+          send('TERMINATE', {privateKey})
         }}
       />
 
@@ -976,6 +975,12 @@ export default function ViewVotingPage() {
           </PrimaryButton>
         </DialogFooter>
       </Dialog>
+
+      {true && (
+        <>
+          <FloatDebug>{current.value}</FloatDebug>
+        </>
+      )}
     </>
   )
 }
