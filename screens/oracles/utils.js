@@ -271,7 +271,7 @@ export const terminateContract = async (
   )
 
   const rawTx = await getRawTx(
-    TxType.CallContractTx,
+    TxType.TerminateContractTx,
     privateKeyToAddress(privateKey),
     contractHash,
     null,
@@ -295,7 +295,7 @@ export const estimateTermiateContract = async (
   )
 
   const rawTx = await getRawTx(
-    TxType.CallContractTx,
+    TxType.TerminateContractTx,
     privateKeyToAddress(privateKey),
     contractHash,
     null,

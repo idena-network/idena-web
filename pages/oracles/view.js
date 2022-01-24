@@ -519,7 +519,9 @@ export default function ViewVotingPage() {
                         ) &&
                           shouldTerminate && (
                             <PrimaryButton
-                              variantColor="red"
+                              colorScheme="red"
+                              variant="solid"
+                              _active={{}}
                               onClick={() => send('TERMINATE')}
                             >
                               {t('Terminate')}
