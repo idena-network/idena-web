@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
-import {FloatDebug, Toast} from '../../shared/components/components'
+import {Toast} from '../../shared/components/components'
 import {votingListMachine} from '../../screens/oracles/machines'
 import {
   VotingCardSkeleton,
@@ -247,8 +247,6 @@ export default function VotingListPage() {
         )}
 
         <ScrollToTop scrollableRef={pageRef}>{t('Back to top')}</ScrollToTop>
-
-        <FloatDebug>{current.value}</FloatDebug>
       </Page>
     </Layout>
   )

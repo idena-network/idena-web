@@ -31,7 +31,6 @@ import {
   DialogFooter,
   DialogBody,
   SmallText,
-  FloatDebug,
 } from '../../shared/components/components'
 import {
   IconButton,
@@ -977,12 +976,6 @@ export default function ViewVotingPage() {
           </PrimaryButton>
         </DialogFooter>
       </Dialog>
-
-      {true && (
-        <>
-          <FloatDebug>{current.value}</FloatDebug>
-        </>
-      )}
     </>
   )
 }
