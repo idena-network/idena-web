@@ -1195,6 +1195,7 @@ export function ProlongDrawer({
 export function LaunchVotingDrawer({votingService}) {
   const {coinbase} = useAuthState()
   const {balance: identityBalance} = useBalance()
+  const {privateKey} = useAuthState()
 
   const [current, send] = useService(votingService)
 
@@ -1216,8 +1217,8 @@ export function LaunchVotingDrawer({votingService}) {
       from={coinbase}
       available={identityBalance}
       isLoading={current.matches(`mining.${VotingStatus.Starting}`)}
-      onLaunch={e => {
-        send('START_VOTING', e)
+      onLaunch={({amount}) => {
+        send('START_VOTING', {amount, privateKey})
       }}
     />
   )

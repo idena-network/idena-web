@@ -50,7 +50,7 @@ export default function VotingListPage() {
 
   const pageRef = React.useRef()
   const {coinbase} = useAuthState()
-  const {state} = useIdentity()
+  const [{state}] = useIdentity()
   const epochData = useEpoch()
 
   const [, resetUnreadOraclesCount] = useUnreadOraclesCount()
