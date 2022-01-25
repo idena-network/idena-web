@@ -19,7 +19,7 @@ export function LayoutContainer(props) {
 export const Page = forwardRef(function Page(props, ref) {
   return (
     <Flex
-      fef={ref}
+      ref={ref}
       flexDirection="column"
       align="flex-start"
       flexGrow={999}

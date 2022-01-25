@@ -347,7 +347,7 @@ export function VotingSkeleton(props) {
   return (
     <FullSkeleton
       startColor={colors.gray[50]}
-      endColor={colors.gray[300]}
+      endColor={colors.gray[100]}
       {...props}
     />
   )
