@@ -33,7 +33,7 @@ import {CrossSmallIcon, OracleIcon} from '../../shared/components/icons'
 
 export function OracleDrawerHeader({
   icon = <OracleIcon />,
-  variantColor = 'blue',
+  colorScheme = 'blue',
   children,
   ...props
 }) {
@@ -42,14 +42,14 @@ export function OracleDrawerHeader({
       <Flex
         align="center"
         justify="center"
-        bg={`${variantColor}.012`}
+        bg={`${colorScheme}.012`}
         h={12}
         w={12}
         rounded="xl"
       >
         {React.cloneElement(icon, {
           boxSize: 6,
-          color: `${variantColor}.500`,
+          color: `${colorScheme}.500`,
         })}
       </Flex>
       <Heading

@@ -491,7 +491,7 @@ export function VoteDrawer({
 
   return (
     <Drawer isCloseable={!isLoading} {...props}>
-      <OracleDrawerHeader icon={<SendOutIcon />} variantColor="blue">
+      <OracleDrawerHeader icon={<SendOutIcon />} colorScheme="blue">
         {t('Voting')}: {option}
       </OracleDrawerHeader>
       <Box flex={1} overflowY="auto" mx={-30} px={30}>
@@ -693,7 +693,7 @@ export function VotingInspector({onTerminate, ...contract}) {
         bg="blue.50"
         rightIcon="info"
         variant="ghost"
-        variantColor="blue"
+        colorScheme="blue"
         onClick={onOpen}
       >
         Open inspector
@@ -865,7 +865,12 @@ export function VotingInspector({onTerminate, ...contract}) {
                   </Stack>
                 </Box>
                 <Box ml="auto" mt={6}>
-                  <PrimaryButton variantColor="red" onClick={onTerminate}>
+                  <PrimaryButton
+                    colorScheme="red"
+                    variant="solid"
+                    _active={{}}
+                    onClick={onTerminate}
+                  >
                     Terminate contact
                   </PrimaryButton>
                 </Box>
@@ -1546,7 +1551,7 @@ export function Linkify({onClick, children}) {
           <Button
             key={`btn-${idx}`}
             variant="link"
-            variantColor="brandBlue"
+            colorScheme="blue"
             fontWeight={500}
             _hover={{background: 'transparent'}}
             _focus={{

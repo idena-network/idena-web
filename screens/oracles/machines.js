@@ -1112,7 +1112,7 @@ export const viewVotingMachine = createMachine(
                 target: `#viewVoting.mining.${VotingStatus.Terminating}`,
                 actions: ['setTerminating', 'persist'],
               },
-              CANCEL: 'hist',
+              CANCEL: '#viewVoting.idle',
             },
           },
           redirecting: {
@@ -1124,10 +1124,10 @@ export const viewVotingMachine = createMachine(
             ],
             on: {
               CONTINUE: {
-                target: 'hist',
+                target: '#viewVoting.idle',
                 actions: [({redirectUrl}) => openExternalUrl(redirectUrl)],
               },
-              CANCEL: 'hist',
+              CANCEL: '#viewVoting.idle',
             },
           },
           hist: {
