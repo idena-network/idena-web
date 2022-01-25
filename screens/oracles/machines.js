@@ -1279,11 +1279,14 @@ export const viewVotingMachine = createMachine(
         const {error} = proof
         if (error) throw new Error(error)
 
-        const salt = dnaSign(`salt-${contractHash}-${epoch}`, privateKey)
+        const salt = toHexString(
+          dnaSign(`salt-${contractHash}-${epoch}`, privateKey),
+          true
+        )
 
         const voteHash = await readonlyCallContract('voteHash', 'hex', [
           {value: selectedOption, format: 'byte'},
-          {value: toHexString(salt, true)},
+          {value: salt},
         ])
 
         const votingMinPayment = Number(
