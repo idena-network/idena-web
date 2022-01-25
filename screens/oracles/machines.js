@@ -39,8 +39,9 @@ import db from '../../shared/utils/db'
 
 import {VotingListFilter} from './types'
 import {loadPersistentStateValue, persistItem} from '../../shared/utils/persist'
-import {privateKeyToAddress} from '../../shared/utils/crypto'
+import {dnaSign, privateKeyToAddress} from '../../shared/utils/crypto'
 import {sendDna} from '../../shared/api/utils'
+import {toHexString} from '../../shared/utils/buffers'
 
 export const votingListMachine = createMachine(
   {
@@ -1278,11 +1279,11 @@ export const viewVotingMachine = createMachine(
         const {error} = proof
         if (error) throw new Error(error)
 
-        const salt = await callRpc('dna_sign', `salt-${contractHash}-${epoch}`)
+        const salt = dnaSign(`salt-${contractHash}-${epoch}`, privateKey)
 
         const voteHash = await readonlyCallContract('voteHash', 'hex', [
           {value: selectedOption, format: 'byte'},
-          {value: salt},
+          {value: toHexString(salt, true)},
         ])
 
         const votingMinPayment = Number(

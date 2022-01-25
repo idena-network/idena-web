@@ -50,32 +50,6 @@ export async function startSession(
   throw new Error(`You must start prefix with ${DNA_NONCE_PREFIX}`)
 }
 
-export async function signNonce(nonce) {
-  const {
-    data: {result, error},
-  } = await apiClient().post('/', {
-    method: 'dna_sign',
-    params: [nonce],
-    id: 1,
-  })
-  if (error) throw new Error(error.message)
-  return result
-}
-
-export function signNonceOffline(nonce, privateKey) {
-  const firstIteration = sha3.keccak_256.array(nonce)
-  const secondIteration = sha3.keccak_256.array(firstIteration)
-
-  const {signature, recid} = secp256k1.ecdsaSign(
-    new Uint8Array(secondIteration),
-    typeof privateKey === 'string'
-      ? hexToUint8Array(privateKey)
-      : new Uint8Array(privateKey)
-  )
-
-  return [...signature, recid]
-}
-
 export async function authenticate(authenticationEndpoint, {token, signature}) {
   const {data, error} = await axios.post('/api/dna/authenticate', {
     authenticationEndpoint,

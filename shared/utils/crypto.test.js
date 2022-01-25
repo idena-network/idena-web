@@ -6,6 +6,7 @@ import {
   privateKeyToAddress,
   signMessage,
   checkSignature,
+  dnaSign,
 } from './crypto'
 import {toHexString} from './buffers'
 
@@ -151,5 +152,13 @@ describe('create answers attachment', () => {
     const addr = checkSignature(data, signature)
 
     expect(privateKeyToAddress(key)).toBe(addr)
+  })
+
+  it('check dna sign', () => {
+    const data = `salt-0x010203-50`
+    const shouldBe =
+      '4adf3bb775e94b56ce0acbbbcede83cd6382841e4152a1956bff2b73105adc0c0292f84193648f83e0f2b66b7095055ded4a062330199970e26613dc392336eb01'
+
+    expect(toHexString(dnaSign(data, key))).toBe(shouldBe)
   })
 })

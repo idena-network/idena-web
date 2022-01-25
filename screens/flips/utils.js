@@ -7,6 +7,7 @@ import {FlipType} from '../../shared/types'
 import {areSame, areEual} from '../../shared/utils/arr'
 import {getRawTx, submitRawFlip} from '../../shared/api'
 import {
+  dnaSign,
   encryptFlipData,
   privateKeyToAddress,
   privateKeyToPublicKey,
@@ -17,7 +18,6 @@ import {FlipSubmitAttachment} from '../../shared/models/flipSubmitAttachment'
 import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
 import {Transaction} from '../../shared/models/transaction'
 import db from '../../shared/utils/db'
-import {signNonceOffline} from '../dna/utils'
 
 export const FLIP_LENGTH = 4
 export const DEFAULT_FLIP_ORDER = [0, 1, 2, 3]
@@ -312,12 +312,12 @@ export async function fetchConfirmedKeywordTranslations(ids, locale) {
 
 export async function voteForKeywordTranslation({id, up, pk}) {
   const timestamp = new Date().toISOString()
-  const signature = signNonceOffline(id.concat(up).concat(timestamp), pk)
+  const signature = dnaSign(id.concat(up).concat(timestamp), pk)
 
   const {
     data: {resCode, upVotes, downVotes, error},
   } = await axios.post(`https://translation.idena.io/vote`, {
-    signature,
+    signature: toHexString(signature, true),
     timestamp,
     translationId: id,
     up,
@@ -334,7 +334,7 @@ export async function suggestKeywordTranslation(
 ) {
   const timestamp = new Date().toISOString()
 
-  const signature = await signNonceOffline(
+  const signature = dnaSign(
     wordId
       .toString()
       .concat(locale)
@@ -351,7 +351,7 @@ export async function suggestKeywordTranslation(
     name,
     description: desc,
     language: locale,
-    signature,
+    signature: toHexString(signature, true),
     timestamp,
   })
 
