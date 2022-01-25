@@ -143,7 +143,7 @@ export function AdBanner({limit = 5}) {
 
   const {ads, status} = useAdRotation(limit)
 
-  const ad = ads[getRandomInt(0, ads.length - 1)]
+  const ad = ads[getRandomInt(0, ads.length)]
 
   return (
     <Flex
@@ -571,7 +571,13 @@ export function PublishAdDrawer({ad, isMining, onSubmit, onCancel, ...props}) {
         right={0}
         bottom={0}
       >
-        <PrimaryButton onClick={onSubmit}>{t('Publish')}</PrimaryButton>
+        <PrimaryButton
+          isLoading={isMining}
+          loadingText={t('Mining...')}
+          onClick={onSubmit}
+        >
+          {t('Publish')}
+        </PrimaryButton>
       </DrawerFooter>
     </AdDrawer>
   )
@@ -664,21 +670,32 @@ export function BurnDrawer({ad, onSubmit, ...props}) {
 }
 
 export function AdDrawer({isMining = true, children, ...props}) {
-  const {ads} = useAdRotation()
+  const {ads, status} = useAdRotation()
+
   return (
     <Drawer {...props}>
       {children}
-      {isMining && (
+      {isMining && status === 'done' && (
         <DrawerPromotionPortal>
-          <AdPromotion {...ads[getRandomInt(0, ads.length - 1)]} />
+          <AdPromotion {...ads[getRandomInt(0, ads.length)]} />
         </DrawerPromotionPortal>
       )}
     </Drawer>
   )
 }
 
-function AdPromotion({title, url, author, cover, totalBurnt}) {
+function AdPromotion({
+  title = 'Your ad may be here',
+  url = 'https://idena.io',
+  cover,
+  author = `0x${'0'.repeat(40)}`,
+  totalBurnt = 0,
+}) {
   const {t, i18n} = useTranslation()
+
+  const adCover = React.useMemo(() => new Blob([cover], {type: 'image/jpeg'}), [
+    cover,
+  ])
 
   return (
     <Box bg="white" rounded="lg" px={10} pt={37} pb={44} w={400} h={620}>
@@ -690,10 +707,10 @@ function AdPromotion({title, url, author, cover, totalBurnt}) {
             </Heading>
             <ExternalLink href={url}>{url}</ExternalLink>
           </Stack>
-          <AdCoverImage ad={{cover}} w={320} objectFit="cover" />
+          <AdCoverImage ad={{cover: adCover}} w={320} objectFit="cover" />
         </Stack>
         <Stack spacing={6}>
-          <Flex justify="space-between">
+          <HStack justify="space-between" align="flex-start">
             <BlockAdStat
               label="Sponsored by"
               value={author}
@@ -704,7 +721,7 @@ function AdPromotion({title, url, author, cover, totalBurnt}) {
               label="Burned for 24hrs"
               value={toLocaleDna(i18n.language)(totalBurnt)}
             />
-          </Flex>
+          </HStack>
           <Box>
             <SuccessAlert fontSize="md">
               {t('Watching ads makes your coin valuable!')}

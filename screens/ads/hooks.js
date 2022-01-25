@@ -44,7 +44,7 @@ import {
 import {ContractRpcMode} from '../oracles/types'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import {useIdentity} from '../../shared/providers/identity-context'
-import {TxType} from '../../shared/types'
+import {TxType, VotingStatus} from '../../shared/types'
 import {capitalize} from '../../shared/utils/string'
 
 const adListMachine = createMachine({
@@ -282,7 +282,7 @@ const adListMachine = createMachine({
               },
             },
             mining: {
-              invoke: {src: 'pollPublishAd'},
+              invoke: {src: 'minePublishAd'},
               on: {
                 MINED: '#adList.ready.idle',
                 TX_NULL: {actions: ['onError']},
@@ -343,24 +343,30 @@ export function useAdList() {
                   })
                 )
 
-                if (isApprovedVoting(adVoting)) {
-                  const burntCoins = (await callRpc('bcn_burntCoins')) ?? []
-                  status = (
-                    await Promise.all(
-                      burntCoins.map(async ({address, key}) => ({
-                        address,
-                        key,
-                        decodedAdKey: await buildAdKeyHex(ad),
-                      }))
-                    )
-                  ).some(
-                    ({address, key, decodedAdKey}) =>
-                      address === coinbase && key === decodedAdKey
+                if (
+                  [VotingStatus.Archived, VotingStatus.Terminated].some(s =>
+                    areSameCaseInsensitive(s, adVoting.status)
                   )
-                    ? AdStatus.Showing
-                    : AdStatus.NotShowing
-                } else {
-                  status = AdStatus.Rejected
+                ) {
+                  if (isApprovedVoting(adVoting)) {
+                    const burntCoins = (await callRpc('bcn_burntCoins')) ?? []
+                    status = (
+                      await Promise.all(
+                        burntCoins.map(async ({address, key}) => ({
+                          address,
+                          key,
+                          decodedAdKey: await buildAdKeyHex(ad),
+                        }))
+                      )
+                    ).some(
+                      ({address, key, decodedAdKey}) =>
+                        address === coinbase && key === decodedAdKey
+                    )
+                      ? AdStatus.Showing
+                      : AdStatus.NotShowing
+                  } else {
+                    status = AdStatus.Rejected
+                  }
                 }
 
                 const isPublished = (
@@ -638,7 +644,7 @@ export const adFormMachine = createMachine({
     cover: '',
     url: '',
     location: '',
-    lang: '',
+    language: '',
     age: 0,
     os: '',
     stake: 0,
@@ -820,7 +826,7 @@ export function useAdRotation(limit = 5) {
 export function useBurnTxs({lastTxDate}) {
   const {coinbase} = useAuthState()
 
-  const [token, setToken] = React.useState()
+  const [token] = React.useState()
 
   const {data} = useQuery(
     ['useBurnTxs', token],
