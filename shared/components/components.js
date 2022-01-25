@@ -407,8 +407,8 @@ export function Skeleton(props) {
   const {colors} = useTheme()
   return (
     <ChakraSkeleton
-      startColor={colors.gray[100]}
-      endColor={colors.gray[300]}
+      startColor={colors.gray[50]}
+      endColor={colors.gray[100]}
       w="full"
       {...props}
     />

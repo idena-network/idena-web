@@ -43,6 +43,7 @@ import {
   SuccessAlert,
   DrawerPromotionPortal,
   Menu,
+  Skeleton,
 } from '../../shared/components/components'
 import {toLocaleDna} from '../../shared/utils/utils'
 import {
@@ -71,6 +72,7 @@ import {
   UploadIcon,
 } from '../../shared/components/icons'
 import {countryCodes, OS} from './utils'
+import {getRandomInt} from '../flips/utils'
 
 export function BlockAdStat({label, value, children, ...props}) {
   return (
@@ -101,7 +103,9 @@ export function InlineAdStat({label, value, children, ...props}) {
     <Stat flex={0} lineHeight="normal" {...props}>
       <HStack>
         {label && <AdStatLabel width={labelWidth}>{label}</AdStatLabel>}
-        {value && <AdStatNumber>{value}</AdStatNumber>}
+        {(value || Number.isFinite(value)) && (
+          <AdStatNumber>{value}</AdStatNumber>
+        )}
         {children}
       </HStack>
     </Stat>
@@ -137,7 +141,9 @@ export function AdBanner({limit = 5}) {
 
   const router = useRouter()
 
-  const [showingAd] = useAdRotation(limit)
+  const {ads, status} = useAdRotation(limit)
+
+  const ad = ads[getRandomInt(0, ads.length - 1)]
 
   return (
     <Flex
@@ -148,22 +154,20 @@ export function AdBanner({limit = 5}) {
       px={4}
       py={2}
     >
-      <AdBannerActiveAd {...showingAd} />
-      <Box>
-        <Menu>
-          <MenuItem
-            icon={<AdsIcon boxSize={5} color="blue.500" />}
-            onClick={() => {
-              router.push(`/ads/list`)
-            }}
-          >
-            {t('My Ads')}
-          </MenuItem>
-          <MenuItem icon={<PicIcon boxSize={5} color="blue.500" />}>
-            {t('View all offers')}
-          </MenuItem>
-        </Menu>
-      </Box>
+      <AdBannerActiveAd isLoaded={status === 'done'} {...ad} />
+      <Menu>
+        <MenuItem
+          icon={<AdsIcon boxSize={5} color="blue.500" />}
+          onClick={() => {
+            router.push(`/ads/list`)
+          }}
+        >
+          {t('My Ads')}
+        </MenuItem>
+        <MenuItem icon={<PicIcon boxSize={5} color="blue.500" />}>
+          {t('View all offers')}
+        </MenuItem>
+      </Menu>
     </Flex>
   )
 }
@@ -173,6 +177,7 @@ function AdBannerActiveAd({
   url = 'https://idena.io',
   cover,
   author = `0x${'0'.repeat(40)}`,
+  isLoaded,
 }) {
   const adCover = React.useMemo(() => new Blob([cover], {type: 'image/jpeg'}), [
     cover,
@@ -180,23 +185,29 @@ function AdBannerActiveAd({
 
   return (
     <LinkBox as={HStack} spacing={2}>
-      <AdCoverImage ad={{cover: adCover}} w={10} />
+      <Skeleton isLoaded={isLoaded}>
+        <AdCoverImage ad={{cover: adCover}} w={10} />
+      </Skeleton>
       <Stack spacing={1}>
         <LinkOverlay href={url} target="_blank">
-          <Text lineHeight="none">{title}</Text>
+          <Skeleton isLoaded={isLoaded}>
+            <Text lineHeight="none">{title}</Text>
+          </Skeleton>
         </LinkOverlay>
-        <HStack spacing={1}>
-          <Avatar
-            address={author}
-            size={4}
-            borderWidth={1}
-            borderColor="brandGray.016"
-            rounded="sm"
-          />
-          <Text color="muted" fontSize="sm" fontWeight={500}>
-            {author}
-          </Text>
-        </HStack>
+        <Skeleton isLoaded={isLoaded}>
+          <HStack spacing={1}>
+            <Avatar
+              address={author}
+              size={4}
+              borderWidth={1}
+              borderColor="brandGray.016"
+              rounded="sm"
+            />
+            <Text color="muted" fontSize="sm" fontWeight={500}>
+              {author}
+            </Text>
+          </HStack>
+        </Skeleton>
       </Stack>
     </LinkBox>
   )
@@ -383,7 +394,7 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
   const {t} = useTranslation()
 
   return (
-    <AdDrawer isMining={isMining} ad={ad} onClose={onCancel} {...props}>
+    <AdDrawer isMining={isMining} onClose={onCancel} {...props}>
       <DrawerHeader>
         <Stack spacing={4}>
           <Center
@@ -428,12 +439,14 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
           <Stack spacing={6} bg="gray.50" p={6} rounded="lg">
             <Stack isInline spacing={5}>
               <AdCoverImage ad={ad} w="10" />
-              <Text fontWeight={500}>{ad.title}</Text>
+              <Box>
+                <Text fontWeight={500}>{ad.title}</Text>
+                <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
+              </Box>
             </Stack>
             <Stack spacing={3}>
               <HDivider />
               <Stack>
-                <SmallInlineAdStat label="Location" value={ad.location} />
                 <SmallInlineAdStat label="Language" value={ad.language} />
                 <SmallInlineAdStat label="Stake" value={ad.stake} />
                 <SmallInlineAdStat label="Age" value={ad.age} />
@@ -480,7 +493,7 @@ export function PublishAdDrawer({ad, isMining, onSubmit, onCancel, ...props}) {
   const {t, i18n} = useTranslation()
 
   return (
-    <Drawer onClose={onCancel} {...props}>
+    <AdDrawer isMining={isMining} onClose={onCancel} {...props}>
       <DrawerHeader>
         <Stack spacing={4}>
           <FillCenter
@@ -493,15 +506,15 @@ export function PublishAdDrawer({ad, isMining, onSubmit, onCancel, ...props}) {
             <AdsIcon boxSize={6} color="blue.500" />
           </FillCenter>
           <Heading fontSize="lg" fontWeight={500}>
-            Pay
+            {t('Publish')}
           </Heading>
         </Stack>
       </DrawerHeader>
       <DrawerBody overflowY="auto" mx={-6} mb={10}>
         <Stack spacing={6} color="brandGray.500" fontSize="md" p={6} pt={0}>
           <Text>
-            In order to make your ads visible for Idena users you need to burn
-            more coins than competitors targeting the same audience.
+            {t(`In order to make your ads visible for Idena users you need to burn
+            more coins than competitors targeting the same audience.`)}
           </Text>
           {isMining && (
             <Badge
@@ -523,12 +536,15 @@ export function PublishAdDrawer({ad, isMining, onSubmit, onCancel, ...props}) {
           <Stack spacing={6} bg="gray.50" p={6} rounded="lg">
             <Stack isInline spacing={5}>
               <AdCoverImage ad={ad} w="10" />
-              <Text fontWeight={500}>{ad.title}</Text>
+              <Box>
+                <Text fontWeight={500}>{ad.title}</Text>
+                <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
+              </Box>
             </Stack>
             <Stack spacing={3}>
               <HDivider />
               <Stack>
-                <InlineAdStat label="Competitors" value={Number.NaN} />
+                <InlineAdStat label="Competitors" value={Number(0)} />
                 <InlineAdStat
                   label="Max price"
                   value={toLocaleDna(i18n.language)(0)}
@@ -536,18 +552,13 @@ export function PublishAdDrawer({ad, isMining, onSubmit, onCancel, ...props}) {
               </Stack>
               <HDivider />
               <Stack>
-                <SmallInlineAdStat label="Location" value={ad.location} />
-                <SmallInlineAdStat label="Language" value={ad.lang} />
+                <SmallInlineAdStat label="Language" value={ad.language} />
                 <SmallInlineAdStat label="Stake" value={ad.stake} />
                 <SmallInlineAdStat label="Age" value={ad.age} />
                 <SmallInlineAdStat label="OS" value={ad.os} />
               </Stack>
             </Stack>
           </Stack>
-          <FormControl>
-            <FormLabel htmlFor="amount">Amount, DNA</FormLabel>
-            <Input id="amount" />
-          </FormControl>
         </Stack>
       </DrawerBody>
       <DrawerFooter
@@ -559,21 +570,107 @@ export function PublishAdDrawer({ad, isMining, onSubmit, onCancel, ...props}) {
         left={0}
         right={0}
         bottom={0}
-        onClick={onSubmit}
       >
-        <PrimaryButton>Publish</PrimaryButton>
+        <PrimaryButton onClick={onSubmit}>{t('Publish')}</PrimaryButton>
+      </DrawerFooter>
+    </AdDrawer>
+  )
+}
+
+export function BurnDrawer({ad, onSubmit, ...props}) {
+  const {t, i18n} = useTranslation()
+
+  return (
+    <Drawer {...props}>
+      <DrawerHeader>
+        <Stack spacing={4}>
+          <FillCenter
+            alignSelf="flex-start"
+            bg="blue.012"
+            w={12}
+            minH={12}
+            rounded="xl"
+          >
+            <AdsIcon boxSize={6} color="blue.500" />
+          </FillCenter>
+          <Heading fontSize="lg" fontWeight={500}>
+            {t('Burn')}
+          </Heading>
+        </Stack>
+      </DrawerHeader>
+      <DrawerBody overflowY="auto" mx={-6} mb={10}>
+        <Stack spacing={6} color="brandGray.500" fontSize="md" p={6} pt={0}>
+          <Text>{t(`Burn iDNA to make your ad visible.`)}</Text>
+          <Stack spacing={6} bg="gray.50" p={6} rounded="lg">
+            <Stack isInline spacing={5}>
+              <AdCoverImage ad={ad} w="10" />
+              <Box>
+                <Text fontWeight={500}>{ad.title}</Text>
+                <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
+              </Box>
+            </Stack>
+            <Stack spacing={3}>
+              <HDivider />
+              <Stack>
+                <InlineAdStat label="Competitors" value={Number(0)} />
+                <InlineAdStat
+                  label="Max price"
+                  value={toLocaleDna(i18n.language)(0)}
+                />
+              </Stack>
+              {/* <HDivider />
+              <Stack>
+                <SmallInlineAdStat label="Language" value={ad.language} />
+                <SmallInlineAdStat label="Stake" value={ad.stake} />
+                <SmallInlineAdStat label="Age" value={ad.age} />
+                <SmallInlineAdStat label="OS" value={ad.os} />
+              </Stack> */}
+            </Stack>
+          </Stack>
+          <form
+            id="burnForm"
+            onSubmit={e => {
+              e.preventDefault()
+              onSubmit(Number(e.target.elements.amount.value))
+            }}
+          >
+            <FormControl>
+              <Stack spacing={3}>
+                <FormLabel htmlFor="amount" mb={0}>
+                  {t('Amount, iDNA')}
+                </FormLabel>
+                <Input id="amount" />
+              </Stack>
+            </FormControl>
+          </form>
+        </Stack>
+      </DrawerBody>
+      <DrawerFooter
+        borderWidth={1}
+        borderColor="gray.100"
+        py={3}
+        px={4}
+        position="absolute"
+        left={0}
+        right={0}
+        bottom={0}
+      >
+        <PrimaryButton type="submit" form="burnForm">
+          {t('Burn')}
+        </PrimaryButton>
       </DrawerFooter>
     </Drawer>
   )
 }
 
-export function AdDrawer({isMining = true, ad = {}, children, ...props}) {
+export function AdDrawer({isMining = true, children, ...props}) {
+  const {ads} = useAdRotation()
   return (
     <Drawer {...props}>
       {children}
       {isMining && (
         <DrawerPromotionPortal>
-          <AdPromotion {...ad} />
+          <AdPromotion {...ads[getRandomInt(0, ads.length - 1)]} />
         </DrawerPromotionPortal>
       )}
     </Drawer>

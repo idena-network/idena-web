@@ -5,6 +5,8 @@ import {log} from 'xstate/lib/actions'
 import protobuf from 'protobufjs'
 import React from 'react'
 import {useTranslation} from 'react-i18next'
+import {useQuery} from 'react-query'
+import dayjs from 'dayjs'
 import {useAuthState} from '../../shared/providers/auth-context'
 import db from '../../shared/utils/db'
 import {
@@ -13,7 +15,7 @@ import {
   callRpc,
   eitherState,
 } from '../../shared/utils/utils'
-import {AdStatus, AdVotingOption} from './types'
+import {AdStatus} from './types'
 import {
   buildAdReviewVoting,
   fetchTotalSpent,
@@ -22,10 +24,11 @@ import {
   buildProfileHex,
   pollTx,
   fetchProfileAds,
-  fetchProfileAd,
   currentOs,
-  isTargetedAd,
+  isTargetAd,
   filterAdsByStatus,
+  isApprovedVoting,
+  fetchProfileAd,
 } from './utils'
 import {
   buildContractDeploymentArgs,
@@ -41,7 +44,7 @@ import {
 import {ContractRpcMode} from '../oracles/types'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import {useIdentity} from '../../shared/providers/identity-context'
-import {VotingStatus} from '../../shared/types'
+import {TxType} from '../../shared/types'
 import {capitalize} from '../../shared/utils/string'
 
 const adListMachine = createMachine({
@@ -99,6 +102,13 @@ const adListMachine = createMachine({
             },
             PUBLISH_AD: {
               target: 'publish',
+              actions: [
+                assign({
+                  selectedAd: ({ads}, {id}) => ads.find(byId({id})),
+                }),
+              ],
+            },
+            SELECT_AD: {
               actions: [
                 assign({
                   selectedAd: ({ads}, {id}) => ads.find(byId({id})),
@@ -333,42 +343,33 @@ export function useAdList() {
                   })
                 )
 
-                if (
-                  areSameCaseInsensitive(adVoting.status, VotingStatus.Archived)
-                ) {
-                  const {votes, options} = adVoting
-
-                  if (votes?.length > 0) {
-                    const {id: approveOptionId} = options.find(option =>
-                      areSameCaseInsensitive(
-                        option.value,
-                        AdVotingOption.Approve
-                      )
+                if (isApprovedVoting(adVoting)) {
+                  const burntCoins = (await callRpc('bcn_burntCoins')) ?? []
+                  status = (
+                    await Promise.all(
+                      burntCoins.map(async ({address, key}) => ({
+                        address,
+                        key,
+                        decodedAdKey: await buildAdKeyHex(ad),
+                      }))
                     )
-
-                    const {count: approveOptionCount} = votes.find(
-                      ({option}) => option === approveOptionId
-                    )
-
-                    if (
-                      votes
-                        .filter(({option}) => option !== approveOptionId)
-                        .some(({count}) => count > approveOptionCount)
-                    ) {
-                      status = AdStatus.Rejected
-                    } else {
-                      const burntCoins = (await callRpc('bcn_burntCoins')) ?? []
-                      status = burntCoins
-                        .slice(0, 5)
-                        .some(({address}) => address === coinbase)
-                        ? AdStatus.Showing
-                        : AdStatus.NotShowing
-                    }
-                  }
+                  ).some(
+                    ({address, key, decodedAdKey}) =>
+                      address === coinbase && key === decodedAdKey
+                  )
+                    ? AdStatus.Showing
+                    : AdStatus.NotShowing
+                } else {
+                  status = AdStatus.Rejected
                 }
+
+                const isPublished = (
+                  (await fetchProfileAds(coinbase)) ?? []
+                ).some(({votingAddress}) => votingAddress === ad.votingAddress)
 
                 return {
                   ...ad,
+                  isPublished,
                   status,
                 }
               } catch {
@@ -386,7 +387,7 @@ export function useAdList() {
         }
       },
       sendToReview: async (
-        {selectedAd: {id, title, url, cover, author}},
+        {selectedAd: {id, title, url, cover}},
         {from = coinbase}
       ) => {
         const root = await protobuf.load('/static/pb/profile.proto')
@@ -398,7 +399,7 @@ export function useAdList() {
           title,
           url,
           cover: new Uint8Array(await cover.arrayBuffer()),
-          author,
+          author: coinbase,
         })
 
         const adContentHex = Buffer.from(
@@ -487,7 +488,7 @@ export function useAdList() {
         }
       },
       mineStartVoting: (_, {data: {startVotingTxHash}}) => cb =>
-        pollTx(startVotingTxHash, cb),
+        pollContractTx(startVotingTxHash, cb),
       publishAd: async ({selectedAd}) => {
         const {id, language, age, stake, os, adCid, votingAddress} = selectedAd
 
@@ -540,6 +541,7 @@ export function useAdList() {
       isSendingToReview: eitherCurrentState('ready.sendToReview'),
       isMining: eitherCurrentState(
         'ready.sendToReview.mineDeployVoting',
+        'ready.sendToReview.startVoting',
         'ready.sendToReview.mineStartVoting',
         'ready.publish.mining'
       ),
@@ -547,6 +549,9 @@ export function useAdList() {
     {
       filter(value) {
         send('FILTER', {value})
+      },
+      selectAd(id) {
+        send('SELECT_AD', {id})
       },
       removeAd(id) {
         send('REMOVE_AD', {id})
@@ -706,10 +711,10 @@ export function useAdRotation(limit = 5) {
         fetchBurntCoins: {
           invoke: {
             src: async () => {
-              const burntCoins = await callRpc('bcn_burntCoins')
+              const burntCoins = (await callRpc('bcn_burntCoins')) ?? []
 
               const decodedBurntCoins = await Promise.all(
-                (burntCoins ?? []).map(async item => {
+                burntCoins.map(async item => {
                   const AdKeyType = (
                     await protobuf.load('/static/pb/profile.proto')
                   ).lookupType('profile.AdKey')
@@ -732,7 +737,7 @@ export function useAdRotation(limit = 5) {
                   burntCoins: (_, {data}) =>
                     data
                       .filter(({decodedAdKey}) =>
-                        isTargetedAd(
+                        isTargetAd(
                           {...decodedAdKey},
                           {
                             language: new Intl.Locale(navigator?.language)
@@ -759,17 +764,31 @@ export function useAdRotation(limit = 5) {
                   const profileAds = await fetchProfileAds(address)
 
                   const ads = await Promise.all(
-                    profileAds
-                      .filter(ad => buildAdKeyHex(ad.key) !== key)
-                      .map(ad => fetchProfileAd(ad.cid))
+                    profileAds.map(async ad => ({
+                      ...ad,
+                      ...(await fetchProfileAd(ad.cid)),
+                      decodedAdKey: await buildAdKeyHex(ad.key),
+                      voting: mapVoting(
+                        await fetchVoting({id: ad.votingAddress})
+                      ),
+                    }))
                   )
-                  return ads[0]
+
+                  const relevantAds = ads.filter(
+                    ({voting, decodedAdKey, ...ad}) =>
+                      decodedAdKey === key &&
+                      areSameCaseInsensitive(ad.cid, voting.adCid) &&
+                      isApprovedVoting(voting)
+                  )
+
+                  return relevantAds
                 })
               ),
             onDone: {
+              target: 'done',
               actions: [
                 assign({
-                  ads: (_, {data}) => data,
+                  ads: (_, {data}) => data.flat(),
                 }),
                 log(),
               ],
@@ -779,15 +798,9 @@ export function useAdRotation(limit = 5) {
             },
           },
         },
-        // checkAds: {
-        //   invoke: {
-        //     src: ({ads}) =>
-        //       ads.filter(async ({votingAddress, ad}) => {
-        //         const {state, adHash} = await fetchVoting(votingAddress)
-        //         return state === 'approved' && adHash === ad
-        //       }),
-        //   },
-        // },
+        done: {
+          type: 'final',
+        },
       },
     })
   )
@@ -798,5 +811,34 @@ export function useAdRotation(limit = 5) {
     }
   }, [identity.address, send])
 
-  return current.context.ads
+  return {
+    ads: current.context.ads,
+    status: current.matches('done') ? 'done' : 'pending',
+  }
+}
+
+export function useBurnTxs({lastTxDate}) {
+  const {coinbase} = useAuthState()
+
+  const [token, setToken] = React.useState()
+
+  const {data} = useQuery(
+    ['useBurnTxs', token],
+    () => callRpc('bcn_transactions', {address: coinbase, count: 100}),
+    {
+      enabled: Boolean(coinbase),
+      keepPreviousData: true,
+    }
+  )
+
+  // React.useEffect(() => {
+  //   if (data?.token) {
+  //     setToken(data?.token)
+  //   }
+  // }, [data, token])
+
+  return (data?.transactions ?? []).filter(
+    ({timestamp, type}) =>
+      type === TxType.BurnTx && dayjs(timestamp).isAfter(dayjs.unix(lastTxDate))
+  )
 }

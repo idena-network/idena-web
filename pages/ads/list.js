@@ -7,6 +7,7 @@ import {
   HStack,
   MenuDivider,
   MenuItem,
+  useDisclosure,
 } from '@chakra-ui/react'
 import NextLink from 'next/link'
 import dayjs from 'dayjs'
@@ -17,7 +18,7 @@ import {AdList, EmptyAdList, AdStatNumber} from '../../screens/ads/components'
 import Layout from '../../shared/components/layout'
 import {Page, PageTitle} from '../../screens/app/components'
 import {SecondaryButton} from '../../shared/components/button'
-import {toLocaleDna} from '../../shared/utils/utils'
+import {callRpc, toLocaleDna} from '../../shared/utils/utils'
 import {
   AdBanner,
   AdCoverImage,
@@ -31,8 +32,9 @@ import {
   PublishAdDrawer,
   ReviewAdDrawer,
   SmallInlineAdStat,
+  BurnDrawer,
 } from '../../screens/ads/containers'
-import {useAdList} from '../../screens/ads/hooks'
+import {useAdList, useBurnTxs} from '../../screens/ads/hooks'
 import {AdStatus} from '../../screens/ads/types'
 import {useSuccessToast} from '../../shared/hooks/use-toast'
 import {Menu, VDivider} from '../../shared/components/components'
@@ -48,7 +50,11 @@ import {
   mapVoting,
   viewVotingHref,
 } from '../../screens/oracles/utils'
-import {isApprovedAd, isReviewingAd} from '../../screens/ads/utils'
+import {
+  buildAdKeyHex,
+  isApprovedAd,
+  isReviewingAd,
+} from '../../screens/ads/utils'
 import {fetchBalance} from '../../shared/api/wallet'
 import {useAuthState} from '../../shared/providers/auth-context'
 
@@ -73,14 +79,30 @@ export default function AdListPage() {
       ads,
       selectedAd,
       filter,
-      totalSpent,
       isReady,
       isPublishing,
       isSendingToReview,
       isMining,
     },
-    {filter: filterList, publishAd, removeAd, sendAdToReview, submitAd, cancel},
+    {
+      filter: filterList,
+      selectAd,
+      removeAd,
+      publishAd,
+      sendAdToReview,
+      submitAd,
+      cancel,
+    },
   ] = useAdList()
+
+  const burnDrawerDisclosure = useDisclosure()
+
+  const txs = useBurnTxs({lastTxDate: dayjs().subtract(4, 'h')})
+
+  const lastBurnAmount = txs.reduce(
+    (agg, {amount, usedFee}) => agg + Number(amount) + Number(usedFee),
+    0
+  )
 
   const toDna = toLocaleDna(i18n.language)
 
@@ -95,7 +117,7 @@ export default function AdListPage() {
             </AdStatNumber>
           </BlockAdStat>
           <BlockAdStat label="Total spent, 4hrs">
-            <AdStatNumber fontSize="lg">{toDna(totalSpent)}</AdStatNumber>
+            <AdStatNumber fontSize="lg">{toDna(lastBurnAmount)}</AdStatNumber>
           </BlockAdStat>
         </Stack>
         <Flex align="center" justify="space-between" w="full">
@@ -135,6 +157,7 @@ export default function AdListPage() {
               lastTx = dayjs(),
               status,
               votingAddress,
+              isPublished,
             }) => (
               <HStack key={id} spacing="5" align="flex-start">
                 <Stack spacing={2} w="16">
@@ -180,7 +203,17 @@ export default function AdListPage() {
                           </MenuItem>
                         </Menu>
                       </Box>
-                      {isApprovedAd({status}) && (
+                      {isPublished && isApprovedAd({status}) && (
+                        <SecondaryButton
+                          onClick={() => {
+                            selectAd(id)
+                            burnDrawerDisclosure.onOpen()
+                          }}
+                        >
+                          {t('Burn')}
+                        </SecondaryButton>
+                      )}
+                      {!isPublished && isApprovedAd({status}) && (
                         <SecondaryButton
                           onClick={() => {
                             publishAd(id)
@@ -223,7 +256,14 @@ export default function AdListPage() {
                     </Stack>
                   </Flex>
                   <Stack isInline spacing={60}>
-                    <BlockAdStat label="Spent, 4hrs" value={toDna(spent)} />
+                    {/* <BlockAdStat label="Spent, 4hrs" value={toDna(spent)} /> */}
+                    <BlockAdStat
+                      label="Ad key"
+                      value="Click to view ad key"
+                      onClick={async () => {
+                        toast(await buildAdKeyHex({language, age, stake, os}))
+                      }}
+                    />
                     <BlockAdStat
                       label="Total spent, DNA"
                       value={toDna(spent)}
@@ -276,6 +316,27 @@ export default function AdListPage() {
           isMining={isMining}
           onSubmit={submitAd}
           onCancel={cancel}
+        />
+
+        <BurnDrawer
+          {...burnDrawerDisclosure}
+          ad={selectedAd}
+          onSubmit={async amount => {
+            const {language, age, stake, os} = selectedAd
+
+            const hash = await callRpc('dna_burn', {
+              from: coinbase,
+              amount,
+              key: await buildAdKeyHex({
+                language,
+                age,
+                stake,
+                os,
+              }),
+            })
+
+            toast(hash)
+          }}
         />
       </Page>
       <Box position="absolute" left={200} top={0} right={0} zIndex="banner">

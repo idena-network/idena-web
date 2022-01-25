@@ -39,23 +39,27 @@ export async function buildProfileHex(ads) {
   return Buffer.from(encodedProfile).toString('hex')
 }
 
-export const isTargetedAd = (
+export const weakTargetField = (field, targetField, condition) =>
+  field ? condition(field, targetField) : true
+
+export const isTargetAd = (
   {language: adLanguage, os: adOS, age: adAge, stake: adStake},
   {language: targetLanguage, os: targetOS, age: targetAge, stake: targetStake}
-) => {
-  console.log([
-    {targetLanguage, adLanguage},
-    {targetOS, adOS},
-    {targetAge: Number(targetAge), adAge: Number(adAge)},
-    {targetStake: Number(targetStake), adStake: Number(adStake)},
-  ])
-  return (
-    areSameCaseInsensitive(targetLanguage, adLanguage) &&
-    areSameCaseInsensitive(targetOS, adOS) &&
-    Number(targetAge) >= Number(adAge) &&
-    Number(targetStake) >= Number(adStake)
+) =>
+  weakTargetField(adLanguage, targetLanguage, areSameCaseInsensitive) &&
+  weakTargetField(adOS, targetOS, areSameCaseInsensitive) &&
+  weakTargetField(
+    adAge,
+    targetAge,
+    // eslint-disable-next-line no-shadow
+    (adAge, targetAge) => Number(targetAge) >= Number(adAge)
+  ) &&
+  weakTargetField(
+    adStake,
+    targetStake,
+    // eslint-disable-next-line no-shadow
+    (adStake, targetStake) => Number(targetStake) >= Number(adStake)
   )
-}
 
 export async function fetchProfileAds(address) {
   try {
@@ -279,6 +283,37 @@ export function filterAdsByStatus(ads, filter) {
       ? isApprovedAd({status})
       : areSameCaseInsensitive(status, filter)
   )
+}
+
+export const isApprovedVoting = voting => {
+  const {status, votes, options} = voting
+
+  if (
+    [VotingStatus.Archived, VotingStatus.Terminated].some(s =>
+      areSameCaseInsensitive(s, status)
+    )
+  ) {
+    if (votes?.length > 0) {
+      const {id: approveOptionId} = options.find(option =>
+        areSameCaseInsensitive(option.value, AdVotingOption.Approve)
+      )
+
+      const {count: approveOptionCount} = votes.find(
+        ({option}) => option === approveOptionId
+      )
+
+      if (
+        votes
+          .filter(({option}) => option !== approveOptionId)
+          .some(({count}) => count > approveOptionCount)
+      ) {
+        return false
+      }
+      return true
+    }
+  }
+
+  return false
 }
 
 export const countryCodes = [
