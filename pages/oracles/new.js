@@ -536,10 +536,7 @@ function NewVotingPage() {
           onClose={() => send('CANCEL')}
           from={coinbase}
           available={balance}
-          minBalance={votingMinBalance({
-            minOracleReward,
-            committeeSize,
-          })}
+          balance={votingMinBalance(oracleReward, committeeSize)}
           minStake={votingMinStake(feePerGas)}
           votingDuration={votingDuration}
           publicVotingDuration={publicVotingDuration}

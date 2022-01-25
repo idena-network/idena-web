@@ -894,10 +894,7 @@ export default function ViewVotingPage() {
           send('CANCEL')
         }}
         balance={contractBalance}
-        requiredBalance={votingMinBalance({
-          minOracleReward,
-          committeeSize,
-        })}
+        requiredBalance={votingMinBalance(minOracleReward, committeeSize)}
         ownerFee={ownerFee}
         from={coinbase}
         available={identityBalance}

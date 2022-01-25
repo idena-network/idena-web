@@ -28,6 +28,7 @@ import {
   estimateDeployContract,
   deployContract,
   addDeferredVote,
+  normalizeId,
 } from './utils'
 import {VotingStatus} from '../../shared/types'
 import {
@@ -269,11 +270,24 @@ export const votingListMachine = createMachine(
           continuationToken,
         })
 
-        const knownVotings = (result ?? []).map(mapVoting)
+        const apiVotings = (result ?? []).map(mapVoting)
 
-        await db
-          .table('votings')
-          .bulkPut(knownVotings.map(voting => ({id: voting.id, epoch, voting})))
+        const persistedVotings = (
+          await db
+            .table('votings')
+            .bulkGet(apiVotings.map(x => normalizeId(x.id)))
+        ).filter(x => x)
+
+        const mergedVotings = apiVotings.map(apiVoting => ({
+          epoch,
+          ...persistedVotings.find(
+            x => normalizeId(x.id) === normalizeId(apiVoting.id)
+          ),
+          ...apiVoting,
+          id: normalizeId(apiVoting.id),
+        }))
+
+        await db.table('votings').bulkPut(mergedVotings)
 
         const prevLastVotingTimestamp =
           loadPersistentStateValue('votings', 'lastVotingTimestamp') ||
@@ -288,16 +302,12 @@ export const votingListMachine = createMachine(
         }
 
         return {
-          votings: await Promise.all(
-            knownVotings.map(async ({id, ...voting}) => ({
-              ...(await db.table('votings').get(id)),
-              id,
-              ...voting,
-              isNew:
-                filter === VotingListFilter.Todo &&
-                new Date(voting.createDate) > new Date(prevLastVotingTimestamp),
-            }))
-          ),
+          votings: mergedVotings.map(voting => ({
+            ...voting,
+            isNew:
+              filter === VotingListFilter.Todo &&
+              new Date(voting.createDate) > new Date(prevLastVotingTimestamp),
+          })),
           continuationToken: nextContinuationToken,
         }
       },
@@ -444,7 +454,7 @@ export const votingMachine = createMachine(
       // eslint-disable-next-line no-shadow
       persist: context =>
         db.table('votings').put({
-          id: context.id || context.contractAddress,
+          id: normalizeId(context.id || context.contractAddress),
           ...context,
         }),
       applyMinOracleReward: assign({
@@ -883,7 +893,7 @@ export const newVotingMachine = createMachine(
       // eslint-disable-next-line no-shadow
       persist: context =>
         db.table('votings').put({
-          id: context.id || context.contractAddress,
+          id: normalizeId(context.id || context.contractAddress),
           ...context,
         }),
     },
@@ -909,7 +919,7 @@ export const newVotingMachine = createMachine(
 
         const nextVoting = {
           ...voting,
-          id: contract,
+          id: normalizeId(contract),
           options: stripOptions(voting.options),
           contractHash: contract,
           issuer: address,
@@ -921,7 +931,6 @@ export const newVotingMachine = createMachine(
         }
 
         await db.table('votings').put({
-          id: nextVoting.id,
           epoch,
           ...nextVoting,
           txHash,
@@ -954,7 +963,7 @@ export const newVotingMachine = createMachine(
       },
       persist: context =>
         db.table('votings').put({
-          id: context.id || context.contractAddress,
+          id: normalizeId(context.id || context.contractAddress),
           ...context,
         }),
     },
@@ -1237,7 +1246,7 @@ export const viewVotingMachine = createMachine(
       // eslint-disable-next-line no-shadow
       persist: context =>
         db.table('votings').put({
-          id: context.id || context.contractAddress,
+          id: normalizeId(context.id || context.contractAddress),
           ...context,
         }),
       applyMinOracleReward: assign({

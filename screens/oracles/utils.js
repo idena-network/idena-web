@@ -497,13 +497,8 @@ export function votingMinStake(feePerGas) {
   return 3000000 * dnaFeePerGas(feePerGas)
 }
 
-export function votingMinBalance({
-  // eslint-disable-next-line no-shadow
-  minOracleReward,
-  // eslint-disable-next-line no-shadow
-  committeeSize,
-}) {
-  return roundToPrecision(4, Number(minOracleReward) * committeeSize)
+export function votingMinBalance(minReward, committeeSize) {
+  return roundToPrecision(4, Number(minReward) * committeeSize)
 }
 
 function dnaFeePerGas(value) {
@@ -587,10 +582,7 @@ export const humanError = (
         startDate
       ).toLocaleString()}`
     case 'contract balance is less than minimal oracles reward': {
-      const requiredBalance = votingMinBalance({
-        minOracleReward,
-        committeeSize,
-      })
+      const requiredBalance = votingMinBalance(minOracleReward, committeeSize)
       return `Insufficient funds to start the voting. Minimum deposit is required: ${dna(
         requiredBalance
       )}. Current balance: ${dna(balance)}.`
@@ -766,4 +758,8 @@ export async function getDeferredVotes() {
 
 export async function updateDeferredVote(id, changes) {
   return db.table('deferredVotes').update(id, changes)
+}
+
+export function normalizeId(id) {
+  return id?.toLowerCase()
 }
