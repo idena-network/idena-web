@@ -43,6 +43,8 @@ import {
   DialogBody,
   DialogFooter,
   DrawerFooter,
+  Drawer,
+  DrawerBody,
 } from '../../shared/components/components'
 import {
   availableReportsNumber,
@@ -85,6 +87,7 @@ const Scroll = require('react-scroll')
 const {ScrollElement} = Scroll
 const {scroller} = Scroll
 const ElementThumbnail = ScrollElement(Thumbnail)
+const ElementBadFlipItem = ScrollElement(BadFlipListItem)
 
 export function ValidationScene(props) {
   return (
@@ -1336,6 +1339,10 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
 
   const [flipCase, setFlipCase] = React.useState(0)
 
+  const isDesktop = useBreakpointValue([true, false])
+  const BadFlipNotice = isDesktop ? Drawer : Modal
+  const BadFlipNoticeBody = isDesktop ? DrawerBody : ModalContent
+
   const dirs = [
     '1-keywords-vase-coffee',
     '2-numbers',
@@ -1353,30 +1360,58 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
   }, [isOpen])
 
   const nextButtonRef = React.useRef()
+  const h100 = use100vh()
+  const containerH = `${h100 - 60 - 72}px`
 
   return (
-    <Modal
+    <BadFlipNotice
       isOpen={isOpen}
       isCentered
+      isCloseable={false}
       initialFocusRef={nextButtonRef}
-      size={664}
+      size={['full', 664]}
       onClose={onClose}
       {...props}
     >
-      <ModalOverlay bg="xblack.080" />
-      <ModalContent
+      <ModalOverlay display={['none', 'block']} bg="xblack.080" />
+      <BadFlipNoticeBody
         bg="transparent"
         color="brandGray.500"
         fontSize="md"
-        rounded="lg"
+        rounded={['none', 'lg']}
+        h={[h100, 'auto']}
         w="auto"
       >
-        <Stack isInline spacing={7} justify="center">
+        <ChakraFlex display={['initial', 'none']} textAlign="center" w="100%">
+          <Text fontSize="base" fontWeight="bold" mb={9}>
+            What is a bad flip?
+          </Text>
+          <Button
+            position="absolute"
+            top="54px"
+            right={4}
+            p={0}
+            fontSize="base"
+            fontWeight="normal"
+            variant="primaryFlat"
+            onClick={onClose}
+          >
+            {t('Done')}
+          </Button>
+        </ChakraFlex>
+        <ChakraFlex
+          direction={['column', 'row']}
+          justify="center"
+          align="center"
+          h={[containerH, 'auto']}
+        >
           <Stack
             spacing={0}
             borderColor="brandGray.016"
-            borderWidth={1}
-            minW={120}
+            borderWidth={[0, 1]}
+            flex={['1 1 auto', 'auto']}
+            h={['160px', 'auto']}
+            minW={['42%', 120]}
             position="relative"
           >
             <BadFlipPartFrame flipCase={flipCase} />
@@ -1391,17 +1426,24 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
             spacing={7}
             bg="white"
             borderRadius="lg"
-            p={8}
-            w={440}
+            ml={[0, 7]}
+            p={[0, 8]}
+            w={['100%', 440]}
           >
-            <Stack spacing={4}>
-              <ChakraBox>
+            <Stack mt={[4, 0]} spacing={[5, 4]}>
+              <ChakraBox display={['none', 'block']}>
                 <Heading fontSize="lg" fontWeight={500} lineHeight="32px">
                   {title}
                 </Heading>
                 <Text color="muted">{subtitle}</Text>
               </ChakraBox>
-              <List as="ul">
+              <List
+                as="ul"
+                id="bad-flips"
+                p={['28px', 0]}
+                borderRadius={['8px', 0]}
+                backgroundColor={['gray.50', 'transparent']}
+              >
                 <BadFlipListItem
                   flipCase={0}
                   description={
@@ -1462,8 +1504,50 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
                   {t('There is inappropriate content')}
                 </BadFlipListItem>
               </List>
+              <ChakraFlex
+                display={['flex', 'none']}
+                justify="center"
+                h={12}
+                w="100%"
+              >
+                <BadFlipListItemMobile
+                  isActive={flipCase === 0}
+                  number={1}
+                  onClick={() => {
+                    setFlipCase(0)
+                  }}
+                />
+                <BadFlipListItemMobile
+                  isActive={flipCase === 1}
+                  number={2}
+                  onClick={() => {
+                    setFlipCase(1)
+                  }}
+                />
+                <BadFlipListItemMobile
+                  isActive={flipCase === 2}
+                  number={3}
+                  onClick={() => {
+                    setFlipCase(2)
+                  }}
+                />
+                <BadFlipListItemMobile
+                  isActive={flipCase === 3}
+                  number={4}
+                  onClick={() => {
+                    setFlipCase(3)
+                  }}
+                />
+                <BadFlipListItemMobile
+                  isActive={flipCase === 4}
+                  number={5}
+                  onClick={() => {
+                    setFlipCase(4)
+                  }}
+                />
+              </ChakraFlex>
             </Stack>
-            <Stack isInline justify="flex-end">
+            <Stack display={['none', 'flex']} isInline justify="flex-end">
               <SecondaryButton onClick={onClose}>{t('Skip')}</SecondaryButton>
               <PrimaryButton
                 ref={nextButtonRef}
@@ -1478,15 +1562,15 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
               </PrimaryButton>
             </Stack>
           </ChakraFlex>
-        </Stack>
-      </ModalContent>
-    </Modal>
+        </ChakraFlex>
+      </BadFlipNoticeBody>
+    </BadFlipNotice>
   )
 }
 
 function BadFlipImage(props) {
   return (
-    <AspectRatio ratio={4 / 3} h={100}>
+    <AspectRatio ratio={4 / 3} h={['25%', 100]}>
       <Image {...props} />
     </AspectRatio>
   )
@@ -1500,18 +1584,27 @@ function BadFlipListItem({
   ...props
 }) {
   return (
-    <ListItem py={2} cursor="pointer" {...props}>
-      <Stack isInline>
+    <ListItem
+      display={[isActive ? 'list-item' : 'none', 'list-item']}
+      name={`badFlip${flipCase}`}
+      py={2}
+      cursor="pointer"
+      {...props}
+    >
+      <Stack isInline spacing={[0, 2]}>
         <BadFlipListItemCircle
+          display={['none', 'flex']}
           bg={isActive ? 'red.500' : 'red.012'}
           color={isActive ? 'white' : 'red.500'}
         >
           {flipCase + 1}
         </BadFlipListItemCircle>
         <Stack spacing={1}>
-          <Text>{children}</Text>
+          <Text fontSize={['lg', 'md']} fontWeight={['500', 'normal']}>
+            {children}
+          </Text>
           {isActive && description && (
-            <Text color="muted" fontSize={12}>
+            <Text color="muted" fontSize={['mdx', '12px']}>
               {description}
             </Text>
           )}
@@ -1537,13 +1630,44 @@ function BadFlipListItemCircle(props) {
   )
 }
 
+function BadFlipListItemMobile({isActive, number, ...props}) {
+  return (
+    <ChakraBox
+      borderRadius="18px"
+      border="1px solid"
+      borderColor={isActive ? 'red.012' : 'transparent'}
+      p="2px"
+      w={12}
+      {...props}
+    >
+      <ChakraFlex
+        justify="center"
+        align="center"
+        borderRadius="16px"
+        bg={isActive ? 'red.012' : 'gray.212'}
+        h="100%"
+        w="100%"
+      >
+        <BadFlipListItemCircle
+          bg={isActive ? 'red.500' : 'gray.200'}
+          color="white"
+        >
+          {number}
+        </BadFlipListItemCircle>
+      </ChakraFlex>
+    </ChakraBox>
+  )
+}
+
 function BadFlipPartFrame({flipCase, ...props}) {
+  const topH = useBreakpointValue(['calc(25% - 4px)', `${100 * 1 - 4}px`])
+  const botH = useBreakpointValue(['calc(50% - 4px)', `${100 * 2 - 4}px`])
   const framePosition = [
     {},
     {},
     {},
-    {top: `${100 * 1 - 4}px`, bottom: `${100 * 2 - 4}px`},
-    {top: `${100 * 1 - 4}px`, bottom: `${100 * 2 - 4}px`},
+    {top: topH, bottom: botH},
+    {top: topH, bottom: botH},
   ]
   return (
     <ChakraBox
