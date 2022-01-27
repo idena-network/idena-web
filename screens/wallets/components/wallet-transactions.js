@@ -38,7 +38,6 @@ import {
   OpenExplorerIcon,
 } from '../../../shared/components/icons'
 import {WideLink} from '../../home/components'
-import {use100vh} from '../../../shared/hooks/use-100vh'
 
 function RowStatus({direction, type, isMining, walletName, tx, ...props}) {
   const txColor =
@@ -348,12 +347,11 @@ function WalletTransactions({address}) {
 // eslint-disable-next-line react/prop-types
 function TransactionDetailDrawer({tx, onClose, ...props}) {
   const {t} = useTranslation(['translation', 'error'])
-  const h100 = use100vh()
 
   return (
-    <Drawer placement="bottom" size="full" {...props}>
+    <Drawer placement="right" size="full" {...props}>
       <DrawerOverlay />
-      <DrawerContent h={h100}>
+      <DrawerContent>
         <DrawerHeader>
           <AngleArrowBackIcon
             position="absolute"
