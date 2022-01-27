@@ -84,7 +84,7 @@ function RowStatus({direction, type, isMining, walletName, tx, ...props}) {
             className="type"
             textOverflow={['ellipsis', 'initial']}
             overflow={['hidden', 'auto']}
-            maxW={['50%', 'auto']}
+            maxW={['50%', 'initial']}
             whiteSpace={['nowrap', 'initial']}
           >
             {type}

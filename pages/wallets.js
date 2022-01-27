@@ -63,7 +63,7 @@ export default function Index() {
           }}
         />
         <PageTitleNew>{t('Wallets')}</PageTitleNew>
-        <ChakraBox w="100%">
+        <ChakraBox w={['100%', 'auto']}>
           <ChakraFlex
             direction={['column', 'row']}
             justify="space-between"
