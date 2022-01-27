@@ -426,6 +426,7 @@ export const uiTheme = {
             _disabled: {
               bg: 'gray.50',
               color: 'muted',
+              opacity: 1,
             },
           },
         },
