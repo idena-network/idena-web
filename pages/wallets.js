@@ -51,11 +51,11 @@ export default function Index() {
 
   return (
     <Layout>
-      <Page>
+      <Page pt={4}>
         <AngleArrowBackIcon
           position="absolute"
           left={4}
-          top="28px"
+          top={4}
           h="28px"
           w="28px"
           onClick={() => {

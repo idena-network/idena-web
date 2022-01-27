@@ -38,6 +38,7 @@ import {
   OpenExplorerIcon,
 } from '../../../shared/components/icons'
 import {WideLink} from '../../home/components'
+import {use100vh} from '../../../shared/hooks/use-100vh'
 
 function RowStatus({direction, type, isMining, walletName, tx, ...props}) {
   const txColor =
@@ -347,19 +348,20 @@ function WalletTransactions({address}) {
 // eslint-disable-next-line react/prop-types
 function TransactionDetailDrawer({tx, onClose, ...props}) {
   const {t} = useTranslation(['translation', 'error'])
+  const h100 = use100vh()
 
   return (
     <Drawer placement="bottom" size="full" {...props}>
       <DrawerOverlay />
-      <DrawerContent>
+      <DrawerContent h={h100}>
         <DrawerHeader>
           <AngleArrowBackIcon
             position="absolute"
             left={4}
-            top="55px"
+            top={4}
             onClick={onClose}
           />
-          <Flex direction="column" textAlign="center" mt={10}>
+          <Flex direction="column" textAlign="center" mt="2px">
             <Text fontSize="16px" fontWeight="bold" color="brandGray.500">
               {/* eslint-disable-next-line react/prop-types */}
               {tx.typeName}
@@ -375,7 +377,9 @@ function TransactionDetailDrawer({tx, onClose, ...props}) {
             valueWidth="80%"
             title={
               // eslint-disable-next-line react/prop-types
-              `${tx.direction === 'Sent' ? t('To') : t('From')} smart contract`
+              `${tx.direction === 'Sent' ? t('To') : t('From')} ${
+                tx.counterPartyWallet ? `${t('wallet')} Main` : t('address')
+              }`
             }
             value={(!tx.to && '\u2013') || tx.counterParty}
           >

@@ -74,14 +74,13 @@ export function Drawer({isCloseable = true, children, ...props}) {
       <DrawerOverlay bg="xblack.080" />
       <DrawerContent
         px={8}
-        pt={['56px', 12]}
+        pt={[4, 12]}
         pb={4}
         size={drawerSize}
         maxW={maxWidth}
       >
         {isCloseable && (
           <DrawerCloseButton
-            mt={[10, 0]}
             size={closeButtonSize}
             color={['brandBlue.100', 'initial']}
           />
