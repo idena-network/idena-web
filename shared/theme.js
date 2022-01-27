@@ -426,7 +426,7 @@ export const uiTheme = {
             _disabled: {
               bg: 'gray.50',
               color: 'muted',
-              '-webkit-text-fill-color': 'currentcolor',
+              '-webkit-text-fill-color': '#96999E',
               opacity: 1,
             },
           },
@@ -444,7 +444,7 @@ export const uiTheme = {
             _disabled: {
               bg: 'gray.50',
               color: 'muted',
-              '-webkit-text-fill-color': 'currentcolor',
+              '-webkit-text-fill-color': '#96999E',
               opacity: 1,
             },
           },
