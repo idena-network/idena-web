@@ -1361,7 +1361,6 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
 
   const nextButtonRef = React.useRef()
   const h100 = use100vh()
-  const containerH = `${h100 - 60 - 72}px`
 
   return (
     <BadFlipNotice
@@ -1375,11 +1374,12 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
     >
       <ModalOverlay display={['none', 'block']} bg="xblack.080" />
       <BadFlipNoticeBody
+        display={['flex', 'block']}
+        flexDirection="column"
         bg="transparent"
         color="brandGray.500"
         fontSize="md"
         rounded={['none', 'lg']}
-        h={[h100, 'auto']}
         w="auto"
       >
         <ChakraFlex display={['initial', 'none']} textAlign="center" w="100%">
@@ -1388,7 +1388,7 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
           </Text>
           <Button
             position="absolute"
-            top="54px"
+            top="14px"
             right={4}
             p={0}
             fontSize="base"
@@ -1403,14 +1403,12 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
           direction={['column', 'row']}
           justify="center"
           align="center"
-          h={[containerH, 'auto']}
         >
           <Stack
             spacing={0}
             borderColor="brandGray.016"
             borderWidth={[0, 1]}
-            flex={['1 1 auto', 'auto']}
-            h={['160px', 'auto']}
+            flexGrow={1}
             minW={['42%', 120]}
             position="relative"
           >
@@ -1570,7 +1568,7 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
 
 function BadFlipImage(props) {
   return (
-    <AspectRatio ratio={4 / 3} h={['25%', 100]}>
+    <AspectRatio ratio={4 / 3} h={100} display="flex" flexGrow="0.25">
       <Image {...props} />
     </AspectRatio>
   )
