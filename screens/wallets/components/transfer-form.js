@@ -17,6 +17,7 @@ import {getRawTx, sendRawTx} from '../../../shared/api'
 import {privateKeyToAddress} from '../../../shared/utils/crypto'
 import {Transaction} from '../../../shared/models/transaction'
 import {SendOutIcon} from '../../../shared/components/icons'
+import {useFailToast, useSuccessToast} from '../../../shared/hooks/use-toast'
 
 function isAddress(address) {
   return address.length === 42 && address.substr(0, 2) === '0x'
@@ -36,6 +37,9 @@ function TransferForm({isOpen, onClose}) {
   const {addNotification, addError} = useNotificationDispatch()
 
   const {t} = useTranslation()
+
+  const successToast = useSuccessToast()
+  const failToast = useFailToast()
 
   const send = async () => {
     try {
@@ -60,15 +64,16 @@ function TransferForm({isOpen, onClose}) {
 
       const result = await sendRawTx(`0x${tx.toHex()}`)
 
-      addNotification({
+      successToast({
         title: t('Transaction sent'),
-        body: result,
+        description: result,
       })
       if (onClose) onClose()
     } catch (error) {
-      addError({
+      failToast({
         title: t('error:Error while sending transaction'),
-        body: error.message,
+        description: error.message,
+        status: 'error',
       })
     } finally {
       setSubmitting(false)
