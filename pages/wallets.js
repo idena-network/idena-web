@@ -53,6 +53,7 @@ export default function Index() {
     <Layout>
       <Page pt={4}>
         <AngleArrowBackIcon
+          display={['block', 'none']}
           position="absolute"
           left={4}
           top={4}
