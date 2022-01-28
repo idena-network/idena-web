@@ -1403,6 +1403,7 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
           direction={['column', 'row']}
           justify="center"
           align="center"
+          flexGrow={1}
         >
           <Stack
             spacing={0}
@@ -1568,7 +1569,12 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
 
 function BadFlipImage(props) {
   return (
-    <AspectRatio ratio={4 / 3} h={100} display="flex" flexGrow="0.25">
+    <AspectRatio
+      ratio={4 / 3}
+      h={['50px', '100px']}
+      display="flex"
+      flexGrow="0.25"
+    >
       <Image {...props} />
     </AspectRatio>
   )
