@@ -474,6 +474,13 @@ export const uiTheme = {
         mobile: {
           dialogContainer: {alignItems: 'flex-end'},
         },
+        primaryMobile: {
+          overlay: {zIndex: 1401},
+          dialogContainer: {
+            zIndex: 1401,
+            alignItems: 'flex-end',
+          },
+        },
       },
       sizes: {
         md: {

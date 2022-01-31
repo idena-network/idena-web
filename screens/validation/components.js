@@ -1824,6 +1824,12 @@ export function ValidationScreen({
   } = useDisclosure()
 
   const {
+    isOpen: isReportTipOpen,
+    onOpen: onOpenReportTip,
+    onClose: onCloseReportTip,
+  } = useDisclosure()
+
+  const {
     currentIndex,
     translations,
     reportedFlipsCount,
@@ -2134,7 +2140,10 @@ export function ValidationScreen({
               <PrimaryButton
                 display={['none', 'inline-flex']}
                 isDisabled={!canSubmit(state)}
-                onClick={() => send('FINISH_FLIPS')}
+                onClick={() => {
+                  onOpenReportTip()
+                  send('FINISH_FLIPS')
+                }}
               >
                 {t('Start checking keywords')}
               </PrimaryButton>
@@ -2143,7 +2152,10 @@ export function ValidationScreen({
                 label={t('Check')}
                 isDisabled={!canSubmit(state)}
                 isDark={isShortSession(state)}
-                onClick={() => send('FINISH_FLIPS')}
+                onClick={() => {
+                  onOpenReportTip()
+                  send('FINISH_FLIPS')
+                }}
               >
                 <ArrowBackIcon
                   fill={canSubmit(state) ? 'brandBlue.500' : 'gray.200'}
@@ -2232,6 +2244,33 @@ export function ValidationScreen({
           }
         />
       )}
+
+      <Dialog
+        isOpen={!isDesktop && isReportTipOpen}
+        title="Earn rewards for reporting"
+        variant="primaryMobile"
+        onClose={onCloseReportTip}
+      >
+        <DrawerBody>
+          <ChakraFlex direction="column">
+            <Text fontSize="base" color="muted">
+              {t(
+                'Report bad flips and get rewarded if these flips are reported by more that 50% of other participants.'
+              )}
+            </Text>
+            <Button
+              onClick={onCloseReportTip}
+              fontSize="mobile"
+              fontWeight={500}
+              mt={4}
+              h={10}
+              variant="primaryFlat"
+            >
+              {t('Let’s start')}
+            </Button>
+          </ChakraFlex>
+        </DrawerBody>
+      </Dialog>
 
       <BadFlipDialog
         isOpen={
