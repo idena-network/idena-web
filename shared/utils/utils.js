@@ -1,4 +1,5 @@
 import dayjs from 'dayjs'
+import {useBreakpointValue} from '@chakra-ui/react'
 import {getRpcParams} from '../api/api-client'
 import {IdentityStatus} from '../types'
 import {stripHexPrefix} from './buffers'
@@ -143,4 +144,9 @@ export function validateInvitationCode(code) {
   } catch {
     return false
   }
+}
+
+export function useIsDesktop() {
+  const isDesktop = useBreakpointValue([false, true])
+  return isDesktop
 }

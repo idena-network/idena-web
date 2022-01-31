@@ -1,5 +1,4 @@
 /* eslint-disable no-empty */
-import dayjs from 'dayjs'
 import TagManager from 'react-gtm-module'
 
 const LS_EVENT_NAME = 'sign-up-event'

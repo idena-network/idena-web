@@ -1,71 +1,123 @@
+/* eslint-disable react/prop-types */
 import React from 'react'
 import PropTypes from 'prop-types'
 import {ellipsis, rgba} from 'polished'
 import {useTranslation} from 'react-i18next'
 import {useInfiniteQuery} from 'react-query'
-import {Flex, Stack} from '@chakra-ui/react'
+import {
+  Box,
+  Flex,
+  Text,
+  Divider,
+  Drawer,
+  DrawerOverlay,
+  DrawerContent,
+  DrawerBody,
+  DrawerHeader,
+  Stack,
+  Table,
+  Thead,
+  Tbody,
+  useDisclosure,
+  useBreakpointValue,
+} from '@chakra-ui/react'
 import theme, {rem} from '../../../shared/theme'
 import Avatar from '../../../shared/components/avatar'
 import {
-  Table,
   TableCol,
   TableRow,
   TableHeaderCol,
   TableHint,
-} from '../../../shared/components/table'
+} from '../../../shared/components'
 import {fetchApiTransactions} from '../../../shared/api/wallet'
 import {FlatButton} from '../../../shared/components/button'
 import {Skeleton} from '../../../shared/components/components'
 import {lowerCase} from '../../../shared/utils/utils'
 
-function RowStatus({direction, type, isMining, walletName, ...props}) {
+import {
+  AngleArrowBackIcon,
+  OpenExplorerIcon,
+} from '../../../shared/components/icons'
+import {WideLink} from '../../home/components'
+
+function RowStatus({direction, type, isMining, walletName, tx, ...props}) {
   const txColor =
     direction === 'Sent' ? theme.colors.danger : theme.colors.primary
 
   const iconColor = isMining ? theme.colors.muted : txColor
 
+  const {
+    isOpen: isOpenTxDetailDrawer,
+    onOpen: onOpenTxDetailDrawer,
+    onClose: onCloseTxDetailDrawer,
+  } = useDisclosure()
+
+  const onDrawerOpen = useBreakpointValue([onOpenTxDetailDrawer, () => {}])
+
   return (
-    <div {...props} className="status">
-      <div className="icn">
+    <Box {...props} onClick={onDrawerOpen} className="status">
+      <Box
+        h={[10, 8]}
+        w={[10, 8]}
+        backgroundColor={rgba(iconColor, 0.12)}
+        color={iconColor}
+        borderRadius={['12px', '8px']}
+        mt={['6px', 0]}
+        mr={[4, 3]}
+        p={2}
+        float="left"
+        fontSize={['130%', '100%']}
+        textAlign="center"
+      >
         {direction === 'Sent' ? (
           <i className="icon icon--up_arrow" />
         ) : (
           <i className="icon icon--down_arrow" />
         )}
-      </div>
-      <div className="content">
-        <div className="type">{type}</div>
-        <div
-          className="name"
-          style={{
-            color: theme.colors.muted,
-          }}
+      </Box>
+      <Box className="content" overflow="hidden" pt={['2px', '3px']}>
+        <Flex
+          fontSize={['base', 'md']}
+          fontWeight={[500, 400]}
+          justify={['space-between', 'flex-start']}
         >
-          {walletName}
-        </div>
-      </div>
-      <style jsx>{`
-        .icn {
-          width: 32px;
-          height: 32px;
-          border-radius: 8px;
-          padding: ${rem(8)};
-          text-align: center;
-          float: left;
-          margin-right: ${rem(12)};
-          background-color: ${rgba(iconColor, 0.12)};
-          color: ${iconColor};
-        }
-        .content {
-          overflow: hidden;
-          padding-top: ${rem(3)};
-        }
-        .name {
-          font-size: ${rem(13)};
-          font-weight: 500;
-        }
-      `}</style>
-    </div>
+          <Box
+            className="type"
+            textOverflow={['ellipsis', 'initial']}
+            overflow={['hidden', 'auto']}
+            maxW={['50%', 'initial']}
+            whiteSpace={['nowrap', 'initial']}
+          >
+            {type}
+          </Box>
+          <Box display={['block', 'none']}>
+            {(tx.type === 'kill' && 'See in Explorer...') ||
+              (tx.amount === '0' ? '\u2013' : `${tx.signAmount} iDNA`)}
+          </Box>
+        </Flex>
+        <Flex justify={['space-between', 'flex-start']}>
+          <Box display={['block', 'none']}>
+            {!tx.timestamp
+              ? '\u2013'
+              : new Date(tx.timestamp).toLocaleDateString()}
+          </Box>
+          <Box
+            className="name"
+            color={theme.colors.muted}
+            fontSize="md"
+            fontWeight={500}
+          >
+            {walletName}
+          </Box>
+        </Flex>
+      </Box>
+
+      <TransactionDetailDrawer
+        tx={tx}
+        isOpen={isOpenTxDetailDrawer}
+        onClose={onCloseTxDetailDrawer}
+      />
+    </Box>
   )
 }
 
@@ -94,7 +146,6 @@ function transactionType(tx) {
   return type
 }
 
-// eslint-disable-next-line react/prop-types
 function WalletTransactions({address}) {
   const {t} = useTranslation(['translation', 'error'])
 
@@ -149,7 +200,7 @@ function WalletTransactions({address}) {
   return (
     <div>
       <Table style={{tableLayout: 'fixed'}}>
-        <thead>
+        <Thead display={['none', 'table-header-group']}>
           <TableRow>
             <TableHeaderCol>{t('Transaction')}</TableHeaderCol>
             <TableHeaderCol>{t('Address')}</TableHeaderCol>
@@ -162,8 +213,8 @@ function WalletTransactions({address}) {
             <TableHeaderCol>{t('Date')}</TableHeaderCol>
             <TableHeaderCol>{t('Blockchain transaction ID')}</TableHeaderCol>
           </TableRow>
-        </thead>
-        <tbody>
+        </Thead>
+        <Tbody>
           {!isLoading &&
             data &&
             data.pages.map((group, i) => (
@@ -176,10 +227,11 @@ function WalletTransactions({address}) {
                         direction={tx.direction}
                         type={tx.typeName}
                         walletName="Main"
+                        tx={tx}
                       />
                     </TableCol>
 
-                    <TableCol>
+                    <TableCol display={['none', 'table-cell']}>
                       {(!tx.to && '\u2013') || (
                         <Flex align="center">
                           <Avatar
@@ -201,7 +253,10 @@ function WalletTransactions({address}) {
                       )}
                     </TableCol>
 
-                    <TableCol className="text-right">
+                    <TableCol
+                      display={['none', 'table-cell']}
+                      textAlign="right"
+                    >
                       <div
                         style={{
                           color:
@@ -215,7 +270,10 @@ function WalletTransactions({address}) {
                       </div>
                     </TableCol>
 
-                    <TableCol className="text-right">
+                    <TableCol
+                      display={['none', 'table-cell']}
+                      textAlign="right"
+                    >
                       {(!tx.isMining &&
                         (tx.fee === '0' ? '\u2013' : tx.fee)) || (
                         <div>
@@ -226,13 +284,13 @@ function WalletTransactions({address}) {
 
                       {}
                     </TableCol>
-                    <TableCol>
+                    <TableCol display={['none', 'table-cell']}>
                       {!tx.timestamp
                         ? '\u2013'
                         : new Date(tx.timestamp).toLocaleString()}
                     </TableCol>
 
-                    <TableCol>
+                    <TableCol display={['none', 'table-cell']}>
                       <div>
                         <div>
                           {tx.isMining ? t('Mining...') : t('Confirmed')}
@@ -246,7 +304,7 @@ function WalletTransactions({address}) {
                 ))}
               </React.Fragment>
             ))}
-        </tbody>
+        </Tbody>
       </Table>
       {isLoading && (
         <Stack spacing={2} mt={2}>
@@ -279,6 +337,106 @@ function WalletTransactions({address}) {
         </div>
       )}
     </div>
+  )
+}
+
+function TransactionDetailDrawer({tx, onClose, ...props}) {
+  const {t} = useTranslation(['translation', 'error'])
+
+  return (
+    <Drawer placement="right" size="full" {...props}>
+      <DrawerOverlay />
+      <DrawerContent>
+        <DrawerHeader>
+          <AngleArrowBackIcon
+            position="absolute"
+            left={4}
+            top={4}
+            onClick={onClose}
+          />
+          <Flex direction="column" textAlign="center" mt="2px">
+            <Text fontSize="16px" fontWeight="bold" color="brandGray.500">
+              {tx.typeName}
+            </Text>
+            <Text fontSize="mdx" fontWeight="normal" color="gray.300">
+              Transaction
+            </Text>
+          </Flex>
+        </DrawerHeader>
+        <DrawerBody pt={0} px={8}>
+          <TransactionRow
+            position="relative"
+            valueWidth="80%"
+            title={`${tx.direction === 'Sent' ? t('To') : t('From')} ${
+              tx.counterPartyWallet ? `${t('wallet')} Main` : t('address')
+            }`}
+            value={(!tx.to && '\u2013') || tx.counterParty}
+          >
+            {!!tx.to && (
+              <Box position="absolute" top={2} right={-6}>
+                <Avatar
+                  username={lowerCase(tx.counterParty)}
+                  size={40}
+                  css={{margin: '0px !important'}}
+                />
+              </Box>
+            )}
+          </TransactionRow>
+          <TransactionRow
+            title="Amount"
+            value={
+              (tx.type === 'kill' && 'See in Explorer...') ||
+              (tx.amount === '0' ? '\u2013' : tx.signAmount)
+            }
+          />
+          <TransactionRow
+            title="Fee"
+            value={
+              (!tx.isMining && (tx.fee === '0' ? '\u2013' : tx.fee)) ||
+              tx.maxFee
+            }
+          />
+          <TransactionRow
+            title="Date"
+            value={
+              !tx.timestamp ? '\u2013' : new Date(tx.timestamp).toLocaleString()
+            }
+          />
+          <TransactionRow mb={6} title="Transaction ID" value={tx.hash} />
+          <WideLink
+            display={['initial', 'none']}
+            label={t('More details in Explorer')}
+            href={`https://scan.idena.io/transaction/${tx.hash}`}
+            isNewTab
+          >
+            <Box boxSize={8} backgroundColor="brandBlue.10" borderRadius="10px">
+              <OpenExplorerIcon boxSize={5} mt="6px" ml="6px" />
+            </Box>
+          </WideLink>
+        </DrawerBody>
+      </DrawerContent>
+    </Drawer>
+  )
+}
+
+function TransactionRow({
+  title,
+  value,
+  valueWidth = 'auto',
+  children,
+  ...props
+}) {
+  return (
+    <Flex direction="column" mt={2} {...props}>
+      <Text fontSize="base" fontWeight={500} color="brandGray.500">
+        {title}
+      </Text>
+      <Text fontSize="base" w={valueWidth} fontWeight={400} color="gray.300">
+        {value}
+      </Text>
+      {children}
+      <Divider mt="11px" />
+    </Flex>
   )
 }
 

@@ -520,14 +520,16 @@ export function Thumbnail({
   )
 }
 
-function ThumbnailHolder({isCurrent, isLong, css, children, ...props}) {
+function ThumbnailHolder({isCurrent, isLong, children, ...props}) {
+  const currentColor = isLong ? 'gray.500' : 'xwhite.500'
+
   return (
     <ChakraFlex
       justify="center"
       align="center"
       border={['solid 1px', 'solid 2px']}
       borderColor={[
-        isCurrent ? (isLong ? 'gray.500' : 'xwhite.500') : 'transparent',
+        isCurrent ? currentColor : 'transparent',
         isCurrent ? theme.colors.primary : 'transparent',
       ]}
       borderRadius={['18px', '12px']}

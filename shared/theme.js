@@ -193,6 +193,7 @@ export const uiTheme = {
       500: 'rgb(87, 143, 255)',
       600: '#447ceb',
       700: '#447ceb',
+      800: '#0388ef',
     },
     xblack: {
       '008': 'rgb(0 0 0 /0.08)',
@@ -313,6 +314,13 @@ export const uiTheme = {
           fontSize: '15px',
           fontWeight: '400',
         },
+        lgx: {
+          h: 14,
+          px: 3,
+          borderRadius: '14px',
+          fontSize: '20px',
+          fontWeight: '500',
+        },
       },
       variants: {
         primary: {
@@ -418,6 +426,26 @@ export const uiTheme = {
             _disabled: {
               bg: 'gray.50',
               color: 'muted',
+              '-webkit-text-fill-color': '#96999E',
+              opacity: 1,
+            },
+          },
+        },
+        outlineMobile: {
+          field: {
+            border: '2px solid',
+            borderColor: 'gray.100',
+            _hover: {
+              borderColor: 'gray.100',
+            },
+            _placeholder: {
+              color: 'muted',
+            },
+            _disabled: {
+              bg: 'gray.50',
+              color: 'muted',
+              '-webkit-text-fill-color': '#96999E',
+              opacity: 1,
             },
           },
         },
@@ -450,6 +478,23 @@ export const uiTheme = {
         md: {
           dialog: {
             maxW: '480px',
+          },
+        },
+      },
+    },
+    Table: {
+      baseStyle: {
+        table: {
+          fontVariantNumeric: 'normal',
+          width: '100%',
+        },
+      },
+      sizes: {
+        md: {
+          td: {
+            px: 3,
+            py: 2,
+            lineHeight: 'inherit',
           },
         },
       },

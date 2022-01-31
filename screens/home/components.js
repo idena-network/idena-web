@@ -76,6 +76,7 @@ import {
   eitherState,
   mapIdentityToFriendlyStatus,
   openExternalUrl,
+  useIsDesktop,
 } from '../../shared/utils/utils'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
@@ -83,7 +84,6 @@ import {activateMiningMachine} from './machines'
 import {fetchBalance} from '../../shared/api/wallet'
 import {
   LaptopIcon,
-  TelegramIcon,
   TestValidationIcon,
   UserIcon,
 } from '../../shared/components/icons'
@@ -769,6 +769,8 @@ export function ActivateMiningForm({
   })
   const {mode} = current.context
 
+  const isDesktop = useIsDesktop()
+
   useEffect(() => {
     send('CANCEL')
   }, [isOnline, delegatee, send])
@@ -790,7 +792,7 @@ export function ActivateMiningForm({
           delegatee={delegatee}
           canUndelegate={epoch?.epoch > delegationEpoch}
           isOpen={eitherState(current, 'showing')}
-          isCloseable={false}
+          isCloseable={!isDesktop}
           isLoading={eitherState(current, 'showing.mining')}
           onDeactivate={() => {
             send('DEACTIVATE', {
@@ -805,7 +807,7 @@ export function ActivateMiningForm({
         <ActivateMiningDrawer
           mode={mode}
           isOpen={eitherState(current, 'showing')}
-          isCloseable={false}
+          isCloseable={!isDesktop}
           isLoading={eitherState(current, 'showing.mining')}
           onChangeMode={value => {
             send({type: 'CHANGE_MODE', mode: value})
@@ -903,11 +905,13 @@ export function ActivateMiningDrawer({
     <Drawer onClose={onClose} {...props}>
       <DrawerHeader>
         <Flex
-          direction={['row', 'column']}
+          direction="column"
+          textAlign={['center', 'start']}
           justify={['space-between', 'flex-start']}
         >
           <Flex
             order={[2, 1]}
+            mt={[6, 0]}
             align="center"
             justify="center"
             bg="blue.012"
@@ -920,10 +924,10 @@ export function ActivateMiningDrawer({
           <Heading
             order={[1, 2]}
             color="brandGray.500"
-            fontSize="lg"
-            fontWeight={500}
+            fontSize={['base', 'lg']}
+            fontWeight={[['bold', 500]]}
             lineHeight="base"
-            mt={['11px', 4]}
+            mt={[0, 4]}
           >
             {t('Miner status')}
           </Heading>
@@ -1110,8 +1114,24 @@ export function ActivateMiningDrawer({
             </Stack>
           )}
         </Stack>
+
+        <PrimaryButton
+          display={['flex', 'none']}
+          mt={4}
+          w="100%"
+          fontSize="mobile"
+          size="lg"
+          isDisabled={mode === NodeType.Miner}
+          isLoading={isLoading}
+          onClick={() => {
+            onActivate({delegatee})
+          }}
+          loadingText={t('Waiting...')}
+        >
+          {t('Submit')}
+        </PrimaryButton>
       </DrawerBody>
-      <DrawerFooter mt={[6, 0]} px={0}>
+      <DrawerFooter display={['none', 'flex']} mt={[6, 0]} px={0}>
         <Flex width="100%" justify={['space-evenly', 'flex-end']}>
           <Button
             variant={variantSecondary}
@@ -1170,11 +1190,13 @@ export function DeactivateMiningDrawer({
     <Drawer onClose={onClose} {...props}>
       <DrawerHeader>
         <Flex
-          direction={['row', 'column']}
+          direction="column"
+          textAlign={['center', 'start']}
           justify={['space-between', 'flex-start']}
         >
           <Flex
             order={[2, 1]}
+            mt={[6, 0]}
             align="center"
             justify="center"
             bg="blue.012"
@@ -1187,10 +1209,10 @@ export function DeactivateMiningDrawer({
           <Heading
             order={[1, 2]}
             color="brandGray.500"
-            fontSize="lg"
-            fontWeight={500}
+            fontSize={['base', 'lg']}
+            fontWeight={[['bold', 500]]}
             lineHeight="base"
-            mt={['11px', 4]}
+            mt={[0, 4]}
           >
             {isDelegator
               ? t('Deactivate delegation status')
@@ -1234,8 +1256,22 @@ export function DeactivateMiningDrawer({
             </Alert>
           )}
         </Stack>
+
+        <PrimaryButton
+          display={['flex', 'none']}
+          mt={4}
+          w="100%"
+          fontSize="mobile"
+          size="lg"
+          isDisabled={isDelegator && !canUndelegate}
+          isLoading={isLoading}
+          onClick={onDeactivate}
+          loadingText={t('Waiting...')}
+        >
+          {t('Submit')}
+        </PrimaryButton>
       </DrawerBody>
-      <DrawerFooter mt={[6, 0]} px={0}>
+      <DrawerFooter display={['none', 'flex']} mt={[6, 0]} px={0}>
         <Flex width="100%" justify={['space-evenly', 'flex-end']}>
           <Button
             variant={variantSecondary}

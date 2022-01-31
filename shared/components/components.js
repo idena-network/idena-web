@@ -65,22 +65,26 @@ export function Debug({children}) {
 }
 
 export function Drawer({isCloseable = true, children, ...props}) {
-  const placement = useBreakpointValue(['bottom', 'right'])
-  const maxWidth = useBreakpointValue(['fit-content!important', 360])
+  const maxWidth = useBreakpointValue(['auto', 360])
+  const drawerSize = useBreakpointValue(['full', 'xs'])
+  const closeButtonSize = useBreakpointValue(['lg', 'md'])
 
   return (
-    <ChakraDrawer placement={placement} {...props}>
+    <ChakraDrawer placement="right" {...props}>
       <DrawerOverlay bg="xblack.080" />
       <DrawerContent
-        mx={[3, 0]}
-        mb={[9, 0]}
-        px={[6, 8]}
-        pt={[6, 12]}
+        px={8}
+        pt={[4, 12]}
         pb={4}
+        size={drawerSize}
         maxW={maxWidth}
-        borderRadius={['8px', 0]}
       >
-        {isCloseable && <DrawerCloseButton />}
+        {isCloseable && (
+          <DrawerCloseButton
+            size={closeButtonSize}
+            color={['brandBlue.100', 'initial']}
+          />
+        )}
         {children}
       </DrawerContent>
     </ChakraDrawer>
@@ -102,10 +106,15 @@ export function FormLabel(props) {
   return <ChakraFormLabel fontWeight={500} color="brandGray.500" {...props} />
 }
 
-export function FormControlWithLabel({label, children, ...props}) {
+export function FormControlWithLabel({
+  label,
+  labelFontSize = 'md',
+  children,
+  ...props
+}) {
   return (
     <FormControl {...props}>
-      <FormLabel color="brandGray.500" mb={2}>
+      <FormLabel fontSize={labelFontSize} color="brandGray.500" mb={2}>
         {label}
       </FormLabel>
       {children}
@@ -227,15 +236,15 @@ export function Toast({
       fontSize="md"
       pl={4}
       pr={actionContent ? 2 : 5}
-      pt={rem(10)}
+      pt="10px"
       pb={3}
       mb={5}
-      minH={rem(44)}
+      minH="44px"
       rounded="lg"
       {...props}
     >
       <AlertIcon name={icon} size={5} color={color || 'blue.500'} />
-      <Flex direction="column" align="flex-start" maxW="sm">
+      <Flex direction="column" align="flex-start" maxW={['90vw', 'sm']}>
         <AlertTitle fontWeight={500} lineHeight="base">
           {title}
         </AlertTitle>
@@ -243,6 +252,7 @@ export function Toast({
           color={color || 'muted'}
           lineHeight="base"
           textAlign="left"
+          maxW={['77vw', 'none']}
           w="full"
           isTruncated
         >
@@ -283,12 +293,11 @@ export function Dialog({
   title,
   children,
   shouldShowCloseButton = false,
+  // eslint-disable-next-line no-unused-vars
   isDesktop = true,
   ...props
 }) {
   const variant = useBreakpointValue(['mobile', 'initial'])
-  const Notice = isDesktop ? Modal : Drawer
-  const NoticeBody = isDesktop ? ModalContent : DrawerBody
   return (
     <Modal isCentered variant={variant} size="sm" {...props}>
       <ModalOverlay bg="xblack.080" />
