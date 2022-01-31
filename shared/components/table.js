@@ -1,7 +1,7 @@
 /* eslint-disable react/jsx-curly-brace-presence */
 import React from 'react'
 import PropTypes from 'prop-types'
-import {Thead, Tbody, Th, Tr, Td, Box, Divider} from '@chakra-ui/react'
+import {Tr, Td, Divider} from '@chakra-ui/react'
 import theme, {rem} from '../theme'
 
 export function Table({children, ...props}) {
@@ -62,25 +62,6 @@ export function TableCol({children, color, ...props}) {
         ml={14}
         w="auto"
       />
-    </Td>
-  )
-}
-
-// eslint-disable-next-line react/prop-types
-export function TableColMobile({children, color, ...props}) {
-  const {isLast} = React.useContext(RowContext)
-
-  return (
-    <Td
-      color={color || 'inherit'}
-      {...props}
-    >
-      {children}
-      <style jsx>{`
-        td.text-right {
-          text-align: right;
-        }
-      `}</style>
     </Td>
   )
 }

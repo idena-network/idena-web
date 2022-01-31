@@ -2,7 +2,6 @@ import React, {useState} from 'react'
 import PropTypes from 'prop-types'
 import {useTranslation} from 'react-i18next'
 import {Box, Flex, Heading, Stack, useBreakpointValue} from '@chakra-ui/react'
-import {useNotificationDispatch} from '../../../shared/providers/notification-context'
 import {
   Drawer,
   DrawerBody,
@@ -33,8 +32,6 @@ function TransferForm({isOpen, onClose}) {
   const size = useBreakpointValue(['lg', 'md'])
   const variant = useBreakpointValue(['outlineMobile', 'outline'])
   const labelFontSize = useBreakpointValue(['base', 'md'])
-
-  const {addNotification, addError} = useNotificationDispatch()
 
   const {t} = useTranslation()
 

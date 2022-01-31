@@ -1,8 +1,8 @@
 import dayjs from 'dayjs'
+import {useBreakpointValue} from '@chakra-ui/react'
 import {getRpcParams} from '../api/api-client'
 import {IdentityStatus} from '../types'
 import {stripHexPrefix} from './buffers'
-import {useBreakpointValue, useMediaQuery} from "@chakra-ui/react";
 
 export const HASH_IN_MEMPOOL =
   '0x0000000000000000000000000000000000000000000000000000000000000000'

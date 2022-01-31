@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import React from 'react'
 import PropTypes from 'prop-types'
 import {ellipsis, rgba} from 'polished'
@@ -27,12 +28,12 @@ import {
   TableRow,
   TableHeaderCol,
   TableHint,
-} from '../../../shared/components/table'
+} from '../../../shared/components'
 import {fetchApiTransactions} from '../../../shared/api/wallet'
 import {FlatButton} from '../../../shared/components/button'
 import {Skeleton} from '../../../shared/components/components'
-import {dummyAddress, lowerCase} from '../../../shared/utils/utils'
-import {Heading} from '../../../shared/components'
+import {lowerCase} from '../../../shared/utils/utils'
+
 import {
   AngleArrowBackIcon,
   OpenExplorerIcon,
@@ -90,19 +91,15 @@ function RowStatus({direction, type, isMining, walletName, tx, ...props}) {
             {type}
           </Box>
           <Box display={['block', 'none']}>
-            {/* eslint-disable-next-line react/prop-types */}
             {(tx.type === 'kill' && 'See in Explorer...') ||
-              // eslint-disable-next-line react/prop-types
               (tx.amount === '0' ? '\u2013' : `${tx.signAmount} iDNA`)}
           </Box>
         </Flex>
         <Flex justify={['space-between', 'flex-start']}>
           <Box display={['block', 'none']}>
-            {/* eslint-disable-next-line react/prop-types */}
             {!tx.timestamp
               ? '\u2013'
-              : // eslint-disable-next-line react/prop-types
-                new Date(tx.timestamp).toLocaleDateString()}
+              : new Date(tx.timestamp).toLocaleDateString()}
           </Box>
           <Box
             className="name"
@@ -149,7 +146,6 @@ function transactionType(tx) {
   return type
 }
 
-// eslint-disable-next-line react/prop-types
 function WalletTransactions({address}) {
   const {t} = useTranslation(['translation', 'error'])
 
@@ -344,7 +340,6 @@ function WalletTransactions({address}) {
   )
 }
 
-// eslint-disable-next-line react/prop-types
 function TransactionDetailDrawer({tx, onClose, ...props}) {
   const {t} = useTranslation(['translation', 'error'])
 
@@ -361,7 +356,6 @@ function TransactionDetailDrawer({tx, onClose, ...props}) {
           />
           <Flex direction="column" textAlign="center" mt="2px">
             <Text fontSize="16px" fontWeight="bold" color="brandGray.500">
-              {/* eslint-disable-next-line react/prop-types */}
               {tx.typeName}
             </Text>
             <Text fontSize="mdx" fontWeight="normal" color="gray.300">
@@ -373,12 +367,9 @@ function TransactionDetailDrawer({tx, onClose, ...props}) {
           <TransactionRow
             position="relative"
             valueWidth="80%"
-            title={
-              // eslint-disable-next-line react/prop-types
-              `${tx.direction === 'Sent' ? t('To') : t('From')} ${
-                tx.counterPartyWallet ? `${t('wallet')} Main` : t('address')
-              }`
-            }
+            title={`${tx.direction === 'Sent' ? t('To') : t('From')} ${
+              tx.counterPartyWallet ? `${t('wallet')} Main` : t('address')
+            }`}
             value={(!tx.to && '\u2013') || tx.counterParty}
           >
             {!!tx.to && (

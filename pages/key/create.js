@@ -7,7 +7,7 @@ import {
   Button,
   Text,
   useBreakpointValue,
-  useClipboard, Heading,
+  useClipboard,
 } from '@chakra-ui/react'
 import React, {useState, useEffect} from 'react'
 import {useRouter} from 'next/router'

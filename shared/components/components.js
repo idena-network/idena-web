@@ -38,7 +38,7 @@ import {
   keyframes,
   useBreakpointValue,
 } from '@chakra-ui/react'
-import {borderRadius, size} from 'polished'
+import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
 import NextLink from 'next/link'
 import dynamic from 'next/dynamic'
@@ -106,7 +106,12 @@ export function FormLabel(props) {
   return <ChakraFormLabel fontWeight={500} color="brandGray.500" {...props} />
 }
 
-export function FormControlWithLabel({label, labelFontSize = 'md', children, ...props}) {
+export function FormControlWithLabel({
+  label,
+  labelFontSize = 'md',
+  children,
+  ...props
+}) {
   return (
     <FormControl {...props}>
       <FormLabel fontSize={labelFontSize} color="brandGray.500" mb={2}>
@@ -288,12 +293,11 @@ export function Dialog({
   title,
   children,
   shouldShowCloseButton = false,
+  // eslint-disable-next-line no-unused-vars
   isDesktop = true,
   ...props
 }) {
   const variant = useBreakpointValue(['mobile', 'initial'])
-  const Notice = isDesktop ? Modal : Drawer
-  const NoticeBody = isDesktop ? ModalContent : DrawerBody
   return (
     <Modal isCentered variant={variant} size="sm" {...props}>
       <ModalOverlay bg="xblack.080" />

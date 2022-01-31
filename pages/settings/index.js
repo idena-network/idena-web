@@ -28,7 +28,6 @@ import {
 import {Section} from '../../screens/settings/components'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {useNotificationDispatch} from '../../shared/providers/notification-context'
-import db from '../../shared/utils/db'
 import {readValidationLogs} from '../../shared/utils/logs'
 
 function Settings() {

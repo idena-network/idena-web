@@ -84,7 +84,6 @@ import {activateMiningMachine} from './machines'
 import {fetchBalance} from '../../shared/api/wallet'
 import {
   LaptopIcon,
-  TelegramIcon,
   TestValidationIcon,
   UserIcon,
 } from '../../shared/components/icons'
@@ -1191,8 +1190,8 @@ export function DeactivateMiningDrawer({
     <Drawer onClose={onClose} {...props}>
       <DrawerHeader>
         <Flex
-            direction="column"
-            textAlign={['center', 'start']}
+          direction="column"
+          textAlign={['center', 'start']}
           justify={['space-between', 'flex-start']}
         >
           <Flex

@@ -1,8 +1,9 @@
+/* eslint-disable react/prop-types */
 import React, {forwardRef, useState, useRef} from 'react'
 import PropTypes from 'prop-types'
 import {MdMoreVert} from 'react-icons/md'
 
-import {margin, position, borderRadius} from 'polished'
+import {position, borderRadius} from 'polished'
 import {useTranslation} from 'react-i18next'
 import {useTheme} from '@emotion/react'
 import {
@@ -10,17 +11,11 @@ import {
   Box,
   Button,
   Divider,
-  DrawerOverlay,
-  DrawerContent,
-  DrawerHeader,
-  DrawerBody,
   Modal,
   ModalOverlay,
   ModalContent,
-  ModalHeader,
   ModalBody,
   Text,
-  useMediaQuery,
   useBreakpointValue,
   useDisclosure,
 } from '@chakra-ui/react'
@@ -31,7 +26,6 @@ import theme, {rem} from '../../../shared/theme'
 import {IconButton} from '../../../shared/components/button'
 
 import {Skeleton} from '../../../shared/components/components'
-import {useIsDesktop} from '../../../shared/utils/utils'
 
 // eslint-disable-next-line react/display-name
 const WalletMenu = forwardRef((props, ref) => (
@@ -88,7 +82,6 @@ function WalletCard({
 
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const menuRef = useRef()
-  const isDesktop = useBreakpointValue([false, true])
 
   const {
     isOpen: isOpenWalletCardModal,

@@ -11,7 +11,6 @@ import {
   useBreakpointValue,
   useClipboard,
 } from '@chakra-ui/react'
-import {rem} from '../../../shared/theme'
 import {
   Drawer,
   DrawerBody,
