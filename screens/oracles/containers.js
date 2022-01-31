@@ -8,7 +8,6 @@ import {
   Box,
   Stack,
   Text,
-  Icon,
   Flex,
   Divider,
   useDisclosure,
@@ -34,7 +33,6 @@ import {
   Radio,
 } from '@chakra-ui/react'
 import dayjs from 'dayjs'
-import getUrls from 'get-urls'
 import {
   toLocaleDna,
   eitherState,
@@ -90,6 +88,7 @@ import {
   hasQuorum,
   mapVotingStatus,
   effectiveBalance,
+  getUrls,
 } from './utils'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useBalance} from '../../shared/hooks/use-balance'
@@ -485,13 +484,18 @@ export function VoteDrawer({
 }) {
   const {t, i18n} = useTranslation()
 
-  const {balance} = useBalance()
+  const {
+    data: {balance},
+  } = useBalance()
 
   const toDna = toLocaleDna(i18n.language)
 
   return (
     <Drawer isCloseable={!isLoading} {...props}>
-      <OracleDrawerHeader icon={<SendOutIcon />} colorScheme="blue">
+      <OracleDrawerHeader
+        icon={<SendOutIcon color="blue.500" />}
+        colorScheme="blue"
+      >
         {t('Voting')}: {option}
       </OracleDrawerHeader>
       <Box flex={1} overflowY="auto" mx={-30} px={30}>
@@ -1194,7 +1198,9 @@ export function ProlongDrawer({
 
 export function LaunchVotingDrawer({votingService}) {
   const {coinbase} = useAuthState()
-  const {balance: identityBalance} = useBalance()
+  const {
+    data: {balance: identityBalance},
+  } = useBalance()
   const {privateKey} = useAuthState()
 
   const [current, send] = useService(votingService)
@@ -1539,8 +1545,8 @@ export function Linkify({onClick, children}) {
 
   if (typeof children !== 'string') throw new Error('Only text nodes supported')
 
-  const urls = getUrls(children, {stripWWW: false})
-  const parts = urls.size > 0 ? splitMany(children, ...urls) : [children]
+  const urls = getUrls(children)
+  const parts = urls.length > 0 ? splitMany(children, ...urls) : [children]
 
   return (
     <>

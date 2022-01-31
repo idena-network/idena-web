@@ -1,46 +1,46 @@
 /* eslint-disable no-continue */
 
-import {useQuery} from 'react-query'
+import {useQuery, useQueryClient} from 'react-query'
+import useSyncing from '../../shared/hooks/use-syncing'
 import {useAuthState} from '../../shared/providers/auth-context'
-import {wait} from '../../shared/utils/fn'
-import {callRpc, isVercelProduction} from '../../shared/utils/utils'
+import {isVercelProduction} from '../../shared/utils/utils'
 import {DeferredVoteType} from './types'
 import {
   addDeferredVote,
   callContract,
+  deleteDeferredVote,
   estimateCallContract,
+  getDeferredVotes,
   updateDeferredVote,
 } from './utils'
 
 const REFETCH_INTERVAL = isVercelProduction ? 5 * 60 * 1000 : 30 * 1000
 
 export function useDeferredVotes() {
-  const {privateKey} = useAuthState()
+  const queryClient = useQueryClient()
+  const {coinbase, privateKey} = useAuthState()
 
-  const {data: pendingVotes, refetch, isFetched} = useQuery(
+  const {data: deferredVotes, isFetched} = useQuery(
     'useDeferredVotes',
-    () =>
-      wait(5000).then(() => [
-        {contractHash: '0x1', block: 0, amount: 10},
-        {contractHash: '0x99', block: 5, amount: 999},
-      ]),
+    () => getDeferredVotes(coinbase),
     {
+      enabled: !!coinbase,
       initialData: [],
     }
   )
 
   const {
     data: {currentBlock},
-  } = useQuery('bcn_syncing', () => callRpc('bcn_syncing'), {
-    initialData: {currentBlock: 0},
+    isFetched: isBlockFetched,
+  } = useSyncing({
     refetchIntervalInBackground: true,
     refetchInterval: REFETCH_INTERVAL,
-    enabled: pendingVotes.length > 0,
+    enabled: deferredVotes.length > 0,
   })
 
   const addVote = async vote => {
-    await addDeferredVote(vote)
-    refetch()
+    await addDeferredVote({coinbase, ...vote})
+    queryClient.invalidateQueries('useDeferredVotes')
   }
 
   const estimateSendVote = async vote => {
@@ -78,16 +78,21 @@ export function useDeferredVotes() {
       type: DeferredVoteType.Success,
       txHash: voteResponse,
     })
+    queryClient.invalidateQueries('useDeferredVotes')
   }
+
+  const deleteVote = async id => {
+    await deleteDeferredVote(id)
+    queryClient.invalidateQueries('useDeferredVotes')
+  }
+
+  const available = deferredVotes.filter(x => x.block < currentBlock)
 
   return [
     {
-      votes: [
-        {contractHash: '0x1', block: 0, amount: 10},
-        {contractHash: '0x99', block: 5, amount: 999},
-      ],
-      isReady: isFetched,
+      votes: available,
+      isReady: isFetched && isBlockFetched,
     },
-    {addVote, sendVote, estimateSendVote},
+    {addVote, sendVote, estimateSendVote, deleteVote},
   ]
 }

@@ -138,6 +138,7 @@ export function WideLink({
   isDisabled,
   isNewTab,
   children,
+  color = 'brandBlue.100',
   ...props
 }) {
   return (
@@ -159,7 +160,7 @@ export function WideLink({
         {children}
         <Box
           ml={[4, 2]}
-          color="brandBlue.100"
+          color={color}
           fontWeight={['400', '500']}
           fontSize={['base', 'md']}
         >

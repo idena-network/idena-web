@@ -2,32 +2,43 @@ import React, {useState} from 'react'
 import {FiChevronRight} from 'react-icons/fi'
 import {useTranslation} from 'react-i18next'
 
-import {useQuery} from 'react-query'
 import {
   Heading,
-  Flex as ChakraFlex,
-  Box as ChakraBox,
+  Flex,
   Box,
+  Link,
+  Icon,
+  Divider,
+  Stack,
+  TabList,
+  TabPanels,
+  Tabs,
+  TabPanel,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
-import theme, {rem} from '../shared/theme'
-import {Link} from '../shared/components'
-import Flex from '../shared/components/flex'
-import Actions from '../shared/components/actions'
 
-import TotalAmount from '../screens/wallets/components/total-amount'
-import WalletTransactions from '../screens/wallets/components/wallet-transactions'
-import TransferForm from '../screens/wallets/components/transfer-form'
-import ReceiveForm from '../screens/wallets/components/receive-form'
 import {Page, PageTitleNew} from '../screens/app/components'
 import Layout from '../shared/components/layout'
 import {useAuthState} from '../shared/providers/auth-context'
-import {fetchBalance} from '../shared/api/wallet'
-import WalletCard from '../screens/wallets/components/wallet-card'
 import {IconButton} from '../shared/components/button'
-import {Avatar} from '../shared/components/components'
-import {AngleArrowBackIcon, OpenExplorerIcon} from '../shared/components/icons'
-import {WideLink} from '../screens/home/components'
+import {Avatar, Badge} from '../shared/components/components'
+import {
+  AngleArrowBackIcon,
+  OpenExplorerIcon,
+  ReceiveIcon,
+  SendOutIcon,
+} from '../shared/components/icons'
+import {
+  ReceiveForm,
+  TotalAmount,
+  TransactionsTab,
+  TransferForm,
+  WalletCard,
+  WalletPendingTransactions,
+  WalletTransactions,
+} from '../screens/wallets/components'
+import {useDeferredVotes} from '../screens/oracles/hooks'
+import {useBalance} from '../shared/hooks/use-balance'
 
 export default function Index() {
   const {t} = useTranslation()
@@ -35,16 +46,12 @@ export default function Index() {
 
   const {coinbase} = useAuthState()
 
+  const [{votes}] = useDeferredVotes()
+
   const {
     data: {balance, stake},
-    status,
-  } = useQuery(['get-balance', coinbase], () => fetchBalance(coinbase), {
-    initialData: {balance: 0, stake: 0},
-    enabled: !!coinbase,
-    refetchInterval: 10 * 1000,
-  })
-
-  const isLoading = status === 'loading'
+    isLoading,
+  } = useBalance()
 
   const [isReceiveFormOpen, setIsReceiveFormOpen] = useState(false)
   const [isTransferFormOpen, setIsTransferFormOpen] = useState(false)
@@ -64,124 +71,154 @@ export default function Index() {
           }}
         />
         <PageTitleNew>{t('Wallets')}</PageTitleNew>
-        <ChakraBox w={['100%', 'auto']}>
-          <ChakraFlex
-            direction={['column', 'row']}
-            justify="space-between"
-            mb="20px"
-          >
-            <ChakraFlex direction="row" align="center" mb={[4, 0]}>
-              <Avatar
-                display={['block', 'none']}
-                size="80px"
-                mr={6}
-                address={coinbase}
-              />
-              <TotalAmount
-                amount={parseFloat(balance) + parseFloat(stake)}
-                isLoading={isLoading}
-              />
-            </ChakraFlex>
-            <ChakraFlex justify={['center', 'flex-start']}>
-              <div>
-                <Actions>
-                  <IconButton
-                    h={[12, 'auto']}
-                    mx={[3, 0]}
-                    fontSize={['mobile', 'md']}
-                    color={['red.500', 'blue.500']}
-                    icon={<i className="icon icon--withdraw" />}
-                    onClick={() => {
-                      setIsTransferFormOpen(!isTransferFormOpen)
-                    }}
-                  >
-                    {t('Send')}
-                  </IconButton>
-                  <IconButton
-                    h={[12, 'auto']}
-                    mx={[3, 0]}
-                    fontSize={['mobile', 'md']}
-                    icon={<i className="icon icon--deposit" />}
-                    onClick={() => {
-                      setIsReceiveFormOpen(!isReceiveFormOpen)
-                    }}
-                  >
-                    {t('Receive')}
-                  </IconButton>
-                </Actions>
-              </div>
-            </ChakraFlex>
-          </ChakraFlex>
-          <div>
-            <ChakraFlex
-              mb={[6, 0]}
-              overflowX={['auto', 'initial']}
-              sx={{
-                '&::-webkit-scrollbar': {
-                  display: 'none',
-                },
-              }}
+        <Flex w="100%" flexFlow="row wrap">
+          <Flex flexBasis={['100%', '50%']} order={1}>
+            <Avatar
+              display={['block', 'none']}
+              size="80px"
+              mr={6}
+              address={coinbase}
+            />
+            <TotalAmount
+              amount={parseFloat(balance) + parseFloat(stake)}
+              isLoading={isLoading}
+              mt={[2, 0]}
+            />
+          </Flex>
+          <Flex flexBasis={['100%', '50%']} order={[4, 2]} mt={1}>
+            <Stack
+              justifyContent={['space-around', 'flex-end']}
+              isInline
+              h={6}
+              alignItems="center"
+              flexBasis="100%"
             >
-              <WalletCard
-                address={coinbase}
-                wallet={{name: 'Main', balance, isStake: false}}
-                isSelected
-                onSend={() => setIsTransferFormOpen(true)}
-                onReceive={() => setIsReceiveFormOpen(true)}
-                isLoading={isLoading}
-              />
-              <WalletCard
-                wallet={{name: 'Stake', balance: stake, isStake: true}}
-                isLoading={isLoading}
-              />
-            </ChakraFlex>
-          </div>
-
-          <WideLink
-            display={['initial', 'none']}
-            label={t('More details in Explorer')}
-            href={`https://scan.idena.io/address/${coinbase}#rewards`}
-            isNewTab
-          >
-            <Box boxSize={8} backgroundColor="brandBlue.10" borderRadius="10px">
-              <OpenExplorerIcon boxSize={5} mt="6px" ml="6px" />
-            </Box>
-          </WideLink>
-
-          <Heading
-            fontSize={['md', 'lg']}
-            color={['muted', 'brandGray.500']}
-            fontWeight={[400, 500]}
-            mb={2}
-            mt={[4, 8]}
-          >
-            {t('Recent transactions')}
-          </Heading>
-
-          <ChakraBox display={['none', 'block']}>
+              <Divider orientation="vertical" display={['none', 'initial']} />
+              <IconButton
+                mx={[3, 0]}
+                fontSize={['mobile', 'md']}
+                color={['red.500', 'blue.500']}
+                icon={
+                  <SendOutIcon boxSize={5} color={['red.500', 'blue.500']} />
+                }
+                onClick={() => {
+                  setIsTransferFormOpen(!isTransferFormOpen)
+                }}
+              >
+                {t('Send')}
+              </IconButton>
+              <Divider orientation="vertical" />
+              <IconButton
+                mx={[3, 0]}
+                fontSize={['mobile', 'md']}
+                icon={<ReceiveIcon boxSize={5} color="blue.500" />}
+                onClick={() => {
+                  setIsReceiveFormOpen(!isReceiveFormOpen)
+                }}
+              >
+                {t('Receive')}
+              </IconButton>
+            </Stack>
+          </Flex>
+          <Flex flexBasis="100%" order={[2, 3]} mt={[8, 2]}>
             <Link
               target="_blank"
-              href={`https://scan.idena.io/address/${coinbase}#rewards`}
-              color={theme.colors.primary}
-              style={{
-                marginBottom: rem(19),
-              }}
+              href={`https://scan.idena.io/address/${coinbase}`}
+              color="blue.500"
+              fontWeight={500}
+              w={['100%', 'auto']}
             >
-              <Flex>
-                <span>{t('See Explorer for rewards and penalties')} </span>
-
-                <FiChevronRight
-                  style={{
-                    position: 'relative',
-                    top: '3px',
-                  }}
-                  fontSize={rem(14)}
-                />
+              <Flex
+                fontSize={['base', 'md']}
+                alignItems="center"
+                w={['100%', 'auto']}
+              >
+                <Box
+                  boxSize={8}
+                  backgroundColor="brandBlue.10"
+                  borderRadius="10px"
+                  display={['inline-block', 'none']}
+                >
+                  <OpenExplorerIcon boxSize={5} mt={1} ml={3 / 2} />
+                </Box>
+                <Box
+                  as="span"
+                  ml={[3, 0]}
+                  borderBottomWidth={['1px', 0]}
+                  flex={[1, 'auto']}
+                  pb={[1, 0]}
+                >
+                  {t('More details in explorer')}{' '}
+                  <Icon display={['none', 'inline']} as={FiChevronRight} />
+                </Box>
               </Flex>
             </Link>
-          </ChakraBox>
-          <WalletTransactions address={coinbase} />
-        </ChakraBox>
+          </Flex>
+          <Flex
+            flexBasis="100%"
+            order={[3, 4]}
+            overflowX={['auto', 'initial']}
+            sx={{
+              '&::-webkit-scrollbar': {
+                display: 'none',
+              },
+            }}
+            mt={8}
+            mb={[6, 0]}
+          >
+            <WalletCard
+              address={coinbase}
+              wallet={{name: 'Main', balance, isStake: false}}
+              isSelected
+              onSend={() => setIsTransferFormOpen(true)}
+              onReceive={() => setIsReceiveFormOpen(true)}
+              isLoading={isLoading}
+            />
+            <WalletCard
+              wallet={{name: 'Stake', balance: stake, isStake: true}}
+              isLoading={isLoading}
+            />
+          </Flex>
+        </Flex>
+
+        <Heading
+          fontSize="lg"
+          color="brandGray.500"
+          fontWeight={500}
+          mb={0}
+          mt={8}
+          display={['none', 'block']}
+        >
+          {t('Transactions')}
+        </Heading>
+
+        <Tabs variant="unstyled" w={['100%', 'auto']} mt={[8, 6]}>
+          <TabList bg={['gray.50', 'white']} borderRadius="md" p={[1, 0]}>
+            <TransactionsTab>
+              {t('Scheduled')}
+              {votes.length > 0 && (
+                <>
+                  <Badge ml={2} display={['none', 'inline-block']}>
+                    {votes.length}
+                  </Badge>
+                  <Box as="span" ml={1} display={['inline', 'none']}>
+                    {votes.length}
+                  </Box>
+                </>
+              )}
+            </TransactionsTab>
+            <TransactionsTab> {t('Recent')}</TransactionsTab>
+          </TabList>
+          <TabPanels mt={4}>
+            <TabPanel p={0}>
+              <WalletPendingTransactions />
+            </TabPanel>
+            <TabPanel p={0}>
+              <WalletTransactions address={coinbase} />
+            </TabPanel>
+          </TabPanels>
+        </Tabs>
+
         <TransferForm
           isOpen={isTransferFormOpen}
           onClose={() => setIsTransferFormOpen(false)}

@@ -162,3 +162,14 @@ export function roundToPrecision(precision, value) {
     10 ** precision
   )
 }
+
+export function getDateFromBlocks(needBlock = 0, currentBlock = 0) {
+  return dayjs().add((needBlock - currentBlock) * 20, 'second')
+}
+
+export function formatDateTimeShort(dt) {
+  return new Date(dt).toLocaleString(undefined, {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  })
+}

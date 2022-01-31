@@ -19,8 +19,11 @@ import {
   IconButton,
   RadioGroup,
   useDisclosure,
+  Td,
+  useBreakpointValue,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
+import {useQuery} from 'react-query'
 import {
   DrawerHeader,
   DrawerBody,
@@ -33,10 +36,18 @@ import {
   DialogBody,
   DialogFooter,
 } from '../../shared/components/components'
-import {clampValue} from '../../shared/utils/utils'
+import {
+  clampValue,
+  formatDateTimeShort,
+  getDateFromBlocks,
+  isVercelProduction,
+  toLocaleDna,
+} from '../../shared/utils/utils'
 import {CrossSmallIcon, OracleIcon} from '../../shared/components/icons'
 import {useDeferredVotes} from './hooks'
-import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
+import {useFailToast} from '../../shared/hooks/use-toast'
+import useSyncing from '../../shared/hooks/use-syncing'
+import {getBlockAt} from '../../shared/api'
 import {useInterval} from '../../shared/hooks/use-interval'
 
 export function OracleDrawerHeader({
@@ -550,26 +561,143 @@ export function TodoVotingCountBadge(props) {
   )
 }
 
-function DeferredVotesModalDesc({label, value, ...props}) {
+export function OraclesTxsValueTd(props) {
+  return <Td color="gray.500" fontWeight="500" px={3} py={3 / 2} {...props} />
+}
+
+function DeferredVotesModalDesc({label, value, maxValueW, ...props}) {
   return (
-    <Flex {...props} justifyContent="space-between">
-      <Text fontSize="md" color="muted">
+    <Flex
+      {...props}
+      justifyContent="space-between"
+      direction={['column-reverse', 'row']}
+    >
+      <Text fontSize={['base', 'md']} color="muted" mt={[1 / 2, 0]}>
         {label}
       </Text>
-      <Text fontSize="md" color="gray.500">
+      <Text
+        fontSize={['base', 'md']}
+        color="gray.500"
+        maxW={maxValueW}
+        isTruncated
+        fontWeight={[500, 'initial']}
+      >
         {value}
       </Text>
     </Flex>
   )
 }
 
-export function DeferredVotes() {
-  const [{votes: pendingVotes, isReady}] = useDeferredVotes()
+export function ReviewNewPendingVoteDialog({
+  vote,
+  startCounting,
+  finishCounting,
+  onClose,
+  ...props
+}) {
   const {t} = useTranslation()
+  const [, {estimateSendVote}] = useDeferredVotes()
+  const dna = toLocaleDna(undefined, {maximumFractionDigits: 4})
+
+  const {
+    data: {currentBlock},
+  } = useSyncing()
+
+  const {
+    data: {txFee},
+    isLoading: isLoadingFee,
+  } = useQuery(
+    ['bcn_estimateRawTx', vote?.contractHash],
+    () => estimateSendVote(vote),
+    {
+      enabled: !!vote,
+      refetchOnWindowFocus: false,
+      initialData: {txFee: ''},
+    }
+  )
+
+  const dt = getDateFromBlocks(vote?.block, currentBlock)
+
+  const size = useBreakpointValue(['mdx', 'md'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
+
+  return (
+    <Dialog onClose={onClose} {...props}>
+      <DialogHeader>{t('Scheduled transaction added')}</DialogHeader>
+      <DialogBody>
+        <Stack
+          bg="gray.50"
+          borderRadius="md"
+          px={4}
+          py={3}
+          spacing={[3, 3 / 2]}
+        >
+          <DeferredVotesModalDesc
+            label={t('Date')}
+            value={formatDateTimeShort(dt.toDate())}
+          />
+          <DeferredVotesModalDesc
+            label={t('Type')}
+            value={t('Send public vote')}
+          />
+          <DeferredVotesModalDesc
+            label={t('To address')}
+            value={vote?.contractHash}
+            maxValueW="50%"
+          />
+          <DeferredVotesModalDesc
+            label={t('Amount')}
+            value={dna(vote?.amount)}
+          />
+          <DeferredVotesModalDesc
+            label={t('Fee')}
+            value={isLoadingFee ? '' : dna(txFee)}
+          />
+        </Stack>
+        <Text color="muted" mt={4}>
+          {t(
+            'Your vote is secret. To reveal your vote please appear online and send the scheduled transaction during the counting period: {{startCounting}} — {{finishCounting}}',
+            {
+              startCounting: formatDateTimeShort(startCounting),
+              finishCounting: formatDateTimeShort(finishCounting),
+              nsSeparator: '|',
+            }
+          )}
+        </Text>
+      </DialogBody>
+      <DialogFooter justify={['center', 'auto']}>
+        <Button
+          onClick={onClose}
+          variant={variantPrimary}
+          size={size}
+          w={['100%', 'auto']}
+          order={[1, 2]}
+        >
+          {t('Got it')}
+        </Button>
+      </DialogFooter>
+    </Dialog>
+  )
+}
+
+export function DeferredVotes() {
+  const interval = isVercelProduction ? 5 * 60 * 1000 : 60 * 1000
+
+  const [
+    {votes: pendingVotes, isReady},
+    {estimateSendVote, sendVote},
+  ] = useDeferredVotes()
+  const {t} = useTranslation()
+
+  const failToast = useFailToast()
 
   const [state, setState] = useState({votes: [], index: 0})
 
   const {isOpen, onOpen, onClose} = useDisclosure()
+
+  const dna = toLocaleDna(undefined, {maximumFractionDigits: 4})
+
+  const currentVote = state.votes[state.index]
 
   const openModal = () => {
     if (isOpen) return
@@ -584,36 +712,86 @@ export function DeferredVotes() {
     }
   }
 
-  const send = () => {
-    console.log('sending!', state.index)
-    // send
-    next()
+  const send = async () => {
+    try {
+      await sendVote(currentVote)
+    } catch (e) {
+      failToast(e.message)
+    } finally {
+      next()
+    }
   }
+
+  const {
+    data: {txFee},
+    isLoading: isLoadingFee,
+  } = useQuery(
+    ['bcn_estimateRawTx', currentVote?.contractHash],
+    () => estimateSendVote(currentVote),
+    {
+      enabled: !!currentVote,
+      refetchOnWindowFocus: false,
+      initialData: {txFee: ''},
+    }
+  )
+
+  const {
+    data: {timestamp},
+    isLoading: isLoadingBlock,
+  } = useQuery(
+    ['bcn_blockAt', currentVote?.block],
+    () => getBlockAt(currentVote?.block),
+    {
+      enabled: !!currentVote,
+      refetchOnWindowFocus: false,
+      initialData: {timestamp: 0},
+    }
+  )
 
   useInterval(
     () => {
-      console.log('start interval')
       if (pendingVotes.length) {
         openModal()
       }
     },
-    isReady ? 30 * 1000 : null,
+    isReady ? interval : null,
     true
   )
 
-  const currentVote = state.votes[state.index]
+  const size = useBreakpointValue(['mdx', 'md'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
+  const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
 
   return (
     <Dialog isOpen={isOpen} onClose={onClose}>
       <DialogHeader>
-        {t('Scheduled transaction is about to be sent ({index} of {total})', {
-          index: state.index + 1,
-          total: state.votes.length,
-        })}
+        {t(
+          'Scheduled transaction is about to be sent ({{index}} of {{total}})',
+          {
+            index: state.index + 1,
+            total: state.votes.length,
+          }
+        )}
       </DialogHeader>
       <DialogBody>
-        <Stack bg="gray.100" borderRadius="md" px={4} py={3}>
-          <DeferredVotesModalDesc label={t('Date')} value="" />
+        <Stack
+          bg="gray.50"
+          borderRadius="md"
+          px={4}
+          py={3}
+          spacing={[3, 3 / 2]}
+        >
+          <DeferredVotesModalDesc
+            label={t('Date')}
+            value={
+              isLoadingBlock || !timestamp
+                ? ''
+                : `${new Date(timestamp * 1000).toLocaleString(undefined, {
+                    dateStyle: 'short',
+                    timeStyle: 'short',
+                  })}`
+            }
+          />
           <DeferredVotesModalDesc
             label={t('Type')}
             value={t('Send public vote')}
@@ -621,17 +799,44 @@ export function DeferredVotes() {
           <DeferredVotesModalDesc
             label={t('To address')}
             value={currentVote?.contractHash}
+            maxValueW="50%"
           />
           <DeferredVotesModalDesc
             label={t('Amount')}
-            value={currentVote?.amount}
+            value={dna(currentVote?.amount)}
           />
-          <DeferredVotesModalDesc label={t('Fee')} value={currentVote?.fee} />
+          <DeferredVotesModalDesc
+            label={t('Fee')}
+            value={isLoadingFee ? '' : dna(txFee)}
+          />
         </Stack>
       </DialogBody>
-      <DialogFooter align="center">
-        <SecondaryButton onClick={next}>{t('Not now')}</SecondaryButton>
-        <PrimaryButton onClick={() => send('SEND')}>{t('Send')}</PrimaryButton>
+      <DialogFooter justify={['center', 'auto']}>
+        <Button
+          onClick={next}
+          variant={variantSecondary}
+          size={size}
+          w={['100%', 'auto']}
+          order={[3, 1]}
+        >
+          {t('Not now')}
+        </Button>
+        <Divider
+          display={['block', 'none']}
+          h={10}
+          orientation="vertical"
+          color="gray.100"
+          order={2}
+        />
+        <Button
+          onClick={send}
+          variant={variantPrimary}
+          size={size}
+          w={['100%', 'auto']}
+          order={[1, 2]}
+        >
+          {t('Send')}
+        </Button>
       </DialogFooter>
     </Dialog>
   )

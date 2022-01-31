@@ -12,6 +12,10 @@ import {
   useToast,
   CloseButton,
   Divider,
+  Table,
+  Thead,
+  Tr,
+  Tbody,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
@@ -31,6 +35,7 @@ import {
   DialogFooter,
   DialogBody,
   SmallText,
+  RoundedTh,
 } from '../../shared/components/components'
 import {
   IconButton,
@@ -45,6 +50,8 @@ import {
 } from '../../shared/utils/utils'
 import {
   FillCenter,
+  OraclesTxsValueTd,
+  ReviewNewPendingVoteDialog,
   VotingBadge,
   VotingOption,
   VotingSkeleton,
@@ -74,12 +81,6 @@ import {
   quorumVotesCount,
   votingMinBalance,
 } from '../../screens/oracles/utils'
-import {
-  Table,
-  TableCol,
-  TableHeaderCol,
-  TableRow,
-} from '../../shared/components/table'
 import {
   ContractTransactionType,
   ContractCallMethod,
@@ -118,7 +119,9 @@ export default function ViewVotingPage() {
   const {epoch} = useEpoch() ?? {epoch: -1}
 
   const {coinbase, privateKey} = useAuthState()
-  const {balance: identityBalance} = useBalance()
+  const {
+    data: {balance: identityBalance},
+  } = useBalance()
 
   const [current, send, service] = useMachine(viewVotingMachine, {
     actions: {
@@ -131,10 +134,7 @@ export default function ViewVotingPage() {
           ),
         })
       },
-      onVote: (_, vote) => {
-        addVote(vote)
-        console.log(vote)
-      },
+      addVote: (_, {data: {vote}}) => addVote(vote),
     },
   })
 
@@ -174,6 +174,7 @@ export default function ViewVotingPage() {
     minOracleReward,
     estimatedTotalReward,
     epochWithoutGrowth,
+    pendingVote,
   } = current.context
 
   const isLoaded = !current.matches('loading')
@@ -570,18 +571,16 @@ export default function ViewVotingPage() {
                         <Text fontWeight={500}>{t('Recent transactions')}</Text>
                       </Box>
                       <Table style={{tableLayout: 'fixed', fontWeight: 500}}>
-                        <thead>
-                          <TableRow>
-                            <TableHeaderCol>{t('Transaction')}</TableHeaderCol>
-                            <TableHeaderCol>
-                              {t('Date and time')}
-                            </TableHeaderCol>
-                            <TableHeaderCol className="text-right">
+                        <Thead>
+                          <Tr>
+                            <RoundedTh isLeft>{t('Transaction')}</RoundedTh>
+                            <RoundedTh>{t('Date and time')}</RoundedTh>
+                            <RoundedTh isRight textAlign="right">
                               {t('Amount')}
-                            </TableHeaderCol>
-                          </TableRow>
-                        </thead>
-                        <tbody>
+                            </RoundedTh>
+                          </Tr>
+                        </Thead>
+                        <Tbody>
                           {balanceUpdates.map(
                             ({
                               hash,
@@ -615,8 +614,8 @@ export default function ViewVotingPage() {
                                   : 'red.500'
 
                               return (
-                                <TableRow key={hash}>
-                                  <TableCol>
+                                <Tr key={hash}>
+                                  <OraclesTxsValueTd>
                                     <Stack isInline>
                                       <Flex
                                         align="center"
@@ -652,13 +651,13 @@ export default function ViewVotingPage() {
                                         </SmallText>
                                       </Box>
                                     </Stack>
-                                  </TableCol>
-                                  <TableCol>
+                                  </OraclesTxsValueTd>
+                                  <OraclesTxsValueTd>
                                     <Text>
                                       {new Date(timestamp).toLocaleString()}
                                     </Text>
-                                  </TableCol>
-                                  <TableCol className="text-right">
+                                  </OraclesTxsValueTd>
+                                  <OraclesTxsValueTd textAlign="right">
                                     <Text
                                       color={color}
                                       overflowWrap="break-word"
@@ -672,14 +671,14 @@ export default function ViewVotingPage() {
                                         {t('Fee')} {toDna(fee + tips)}
                                       </SmallText>
                                     )}
-                                  </TableCol>
-                                </TableRow>
+                                  </OraclesTxsValueTd>
+                                </Tr>
                               )
                             }
                           )}
                           {balanceUpdates.length === 0 && (
-                            <tr>
-                              <td colSpan={3}>
+                            <Tr>
+                              <OraclesTxsValueTd colSpan={3}>
                                 <FillCenter py={12}>
                                   <Stack spacing={4} align="center">
                                     <CoinsLgIcon
@@ -692,10 +691,10 @@ export default function ViewVotingPage() {
                                     </Text>
                                   </Stack>
                                 </FillCenter>
-                              </td>
-                            </tr>
+                              </OraclesTxsValueTd>
+                            </Tr>
                           )}
-                        </tbody>
+                        </Tbody>
                       </Table>
                     </Stack>
                   </VotingSkeleton>
@@ -854,7 +853,13 @@ export default function ViewVotingPage() {
       </Layout>
 
       <VoteDrawer
-        isOpen={eitherState(current, 'review', `mining.${VotingStatus.Voting}`)}
+        isOpen={
+          eitherState(current, 'review', `mining.${VotingStatus.Voting}`) &&
+          !eitherState(
+            current,
+            `mining.${VotingStatus.Voting}.reviewPendingVote`
+          )
+        }
         onClose={() => {
           send('CANCEL')
         }}
@@ -960,6 +965,19 @@ export default function ViewVotingPage() {
         onTerminate={() => {
           send('TERMINATE', {privateKey})
         }}
+      />
+
+      <ReviewNewPendingVoteDialog
+        isOpen={eitherState(
+          current,
+          `mining.${VotingStatus.Voting}.reviewPendingVote`
+        )}
+        onClose={() => {
+          send('GOT_IT')
+        }}
+        vote={pendingVote}
+        startCounting={finishDate}
+        finishCounting={finishCountingDate}
       />
 
       <Dialog

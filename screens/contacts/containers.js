@@ -59,7 +59,7 @@ import {
   ChevronDownIcon,
   DeleteIcon,
   EditIcon,
-  FlipEditorDeleteIcon,
+  BasketIcon,
   InfoIcon,
   PlusSolidIcon,
 } from '../../shared/components/icons'
@@ -374,7 +374,7 @@ export function ContactCard({
             <VDivider />
             <Tooltip label={t('Remove from device')}>
               <IconButton
-                icon={<FlipEditorDeleteIcon boxSize={5} />}
+                icon={<BasketIcon boxSize={5} />}
                 onClick={() => {
                   deleteInvite(id)
                   successToast({

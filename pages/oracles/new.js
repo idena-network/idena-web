@@ -73,7 +73,9 @@ function NewVotingPage() {
 
   const epochData = useEpoch()
   const {coinbase, privateKey} = useAuthState()
-  const {balance} = useBalance()
+  const {
+    data: {balance},
+  } = useBalance()
 
   const [current, send, service] = useMachine(newVotingMachine, {
     actions: {

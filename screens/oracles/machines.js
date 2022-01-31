@@ -27,7 +27,6 @@ import {
   estimateCallContract,
   estimateDeployContract,
   deployContract,
-  addDeferredVote,
   normalizeId,
 } from './utils'
 import {VotingStatus} from '../../shared/types'
@@ -38,7 +37,7 @@ import {
 } from '../../shared/utils/utils'
 import db from '../../shared/utils/db'
 
-import {DeferredVoteType, VotingListFilter} from './types'
+import {VotingListFilter} from './types'
 import {loadPersistentStateValue, persistItem} from '../../shared/utils/persist'
 import {dnaSign, privateKeyToAddress} from '../../shared/utils/crypto'
 import {sendDna} from '../../shared/api/utils'
@@ -1231,8 +1230,9 @@ export const viewVotingMachine = createMachine(
       restorePrevStatus: assign({
         status: ({prevStatus}) => prevStatus,
       }),
-      applyVoteTx: assign({
-        txHash: (_, {data: voteHash}) => voteHash,
+      applyVote: assign({
+        txHash: (_, {data: {voteHash}}) => voteHash,
+        pendingVote: (_, {data: {vote}}) => vote,
       }),
       applyTx: assign({
         txHash: (_, {data}) => data,
@@ -1600,7 +1600,7 @@ function votingMiningStates(machineId) {
               src: 'vote',
               onDone: {
                 target: 'mining',
-                actions: ['applyVoteHash', 'addVote', log()],
+                actions: ['applyVote', 'addVote', log()],
               },
               onError: {
                 target: `#${machineId}.idle.hist`,
@@ -1620,8 +1620,15 @@ function votingMiningStates(machineId) {
             },
             on: {
               MINED: {
-                target: `#${machineId}.idle.${VotingStatus.Voted}`,
+                target: 'reviewPendingVote',
                 actions: ['setVoted', 'clearMiningStatus', 'persist', log()],
+              },
+            },
+          },
+          reviewPendingVote: {
+            on: {
+              GOT_IT: {
+                target: `#${machineId}.idle.${VotingStatus.Voted}`,
               },
             },
           },

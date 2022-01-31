@@ -40,6 +40,7 @@ import {
   Th,
   InputGroup,
   InputRightAddon,
+  Badge as ChakraBadge,
 } from '@chakra-ui/react'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
@@ -347,7 +348,7 @@ export function DialogBody(props) {
 export function DialogFooter({children, ...props}) {
   return (
     <ModalFooter p={0} {...props}>
-      <Stack isInline spacing={2} justify="flex-end">
+      <Stack isInline spacing={2} justify="flex-end" w={['100%', 'auto']}>
         {children}
       </Stack>
     </ModalFooter>
@@ -610,6 +611,26 @@ export function ChainedInputAddon({isDisabled, bg = 'white', ...props}) {
       color="muted"
       h={8}
       px={3}
+      {...props}
+    />
+  )
+}
+
+export function Badge(props) {
+  return (
+    <Flex
+      as={ChakraBadge}
+      align="center"
+      justify="center"
+      bg="blue.500"
+      color="white"
+      fontSize={8}
+      fontWeight={700}
+      rounded={4}
+      px={1}
+      py={1 / 2}
+      h={4}
+      minW={4}
       {...props}
     />
   )

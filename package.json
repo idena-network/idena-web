@@ -100,6 +100,7 @@
     "styled-jsx": "^3.2.2",
     "tree-kill": "^1.2.2",
     "twitter": "^1.7.1",
+    "url-regex-safe": "^3.0.0",
     "use-deep-compare-effect": "^1.2.0",
     "uuid": "^8.3.2",
     "xstate": "^4.26.1"

@@ -14,10 +14,7 @@ import {Box, Absolute} from '../../../shared/components'
 import Divider from '../../../shared/components/divider'
 import theme from '../../../shared/theme'
 import Flex from '../../../shared/components/flex'
-import {
-  ClipboardIcon,
-  FlipEditorDeleteIcon,
-} from '../../../shared/components/icons'
+import {ClipboardIcon, BasketIcon} from '../../../shared/components/icons'
 
 export function Brushes({brush, onChange}) {
   const brushes = [4, 12, 20, 28, 36]
@@ -286,7 +283,7 @@ export function EditorContextMenu({
                       onClear()
                       onClose()
                     }}
-                    icon={<FlipEditorDeleteIcon boxSize={5} color="red.500" />}
+                    icon={<BasketIcon boxSize={5} color="red.500" />}
                   >
                     {`${t('Clear')} `}
                   </MenuItem>

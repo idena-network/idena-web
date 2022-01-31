@@ -2,7 +2,7 @@ import dayjs from 'dayjs'
 import {assign} from 'xstate'
 import {BN} from 'bn.js'
 import Decimal from 'decimal.js'
-import getUrls from 'get-urls'
+import urlRegex from 'url-regex-safe'
 import {TxType, VotingStatus} from '../../shared/types'
 import {callRpc, roundToPrecision, toLocaleDna} from '../../shared/utils/utils'
 import {strip} from '../../shared/utils/obj'
@@ -634,9 +634,7 @@ export function hasValuableOptions(options) {
 }
 
 export function hasLinklessOptions(options) {
-  return stripOptions(options).every(
-    ({value}) => getUrls(value, {stripWWW: false}).size === 0
-  )
+  return stripOptions(options).every(({value}) => getUrls(value).length === 0)
 }
 
 export const mapVoting = ({
@@ -748,11 +746,12 @@ export async function addDeferredVote(data) {
     ...data,
   })
 }
-export async function getDeferredVotes() {
+export async function getDeferredVotes(coinbase) {
   return db
     .table('deferredVotes')
     .where('type')
     .equals(DeferredVoteType.None)
+    .filter(x => x.coinbase === coinbase)
     .toArray()
 }
 
@@ -764,6 +763,14 @@ export async function updateDeferredVote(id, changes) {
   return db.table('deferredVotes').update(id, changes)
 }
 
+export async function deleteDeferredVote(id) {
+  return db.table('deferredVotes').delete(id)
+}
+
 export function normalizeId(id) {
   return id?.toLowerCase()
+}
+
+export function getUrls(text) {
+  return text.match(urlRegex()) || []
 }
