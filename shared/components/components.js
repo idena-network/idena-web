@@ -37,6 +37,7 @@ import {
   Link,
   keyframes,
   useBreakpointValue,
+  Th,
 } from '@chakra-ui/react'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
@@ -503,5 +504,34 @@ export function Spinner({size = 8}) {
         animation={`${spin} 1.2s linear infinite`}
       ></Box>
     </>
+  )
+}
+
+export function RoundedTh({isLeft, isRight, children, ...props}) {
+  return (
+    <Th
+      textTransform="none"
+      fontSize="md"
+      fontWeight={400}
+      bg="none"
+      color="muted"
+      py={2}
+      px={3}
+      borderBottom="none"
+      letterSpacing={0}
+      position="relative"
+      {...props}
+    >
+      {children}
+      <Box
+        position="absolute"
+        inset={0}
+        bg="gray.50"
+        w="full"
+        zIndex="hide"
+        borderLeftRadius={isLeft ? 'md' : 'none'}
+        borderRightRadius={isRight ? 'md' : 'none'}
+      />
+    </Th>
   )
 }

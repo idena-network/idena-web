@@ -5,12 +5,17 @@ import {
   Link,
   Radio,
   Stack,
+  Table,
+  Tbody,
+  Td,
   Text,
+  Thead,
+  Tr,
   useDisclosure,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {rem} from 'polished'
-import React, {useState} from 'react'
+import {useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
 import {BuySharedNodeForm} from '../../screens/node/components'
@@ -22,17 +27,12 @@ import {
 } from '../../shared/api/marketplace'
 import {GetProviderPrice} from '../../screens/node/utils'
 import {Page, PageTitle} from '../../screens/app/components'
-import {
-  Table,
-  TableCol,
-  TableHeaderCol,
-  TableRow,
-} from '../../shared/components'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import Layout from '../../shared/components/layout'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {SYNCING_DIFF} from '../../shared/providers/settings-context'
 import {fetchIdentity} from '../../shared/api'
+import {RoundedTh} from '../../shared/components/components'
 
 // eslint-disable-next-line react/prop-types
 function ProviderStatus({url}) {
@@ -140,38 +140,36 @@ export default function Rent() {
           </Flex>
           <Box>
             <Table>
-              <thead>
-                <TableRow>
-                  <TableHeaderCol width={rem(40)}></TableHeaderCol>
-                  <TableHeaderCol>Node URL</TableHeaderCol>
-                  <TableHeaderCol>Owner</TableHeaderCol>
-                  <TableHeaderCol>Location</TableHeaderCol>
-                  <TableHeaderCol className="text-right">
-                    Slots available
-                  </TableHeaderCol>
-                  <TableHeaderCol className="text-right">
+              <Thead>
+                <Tr>
+                  <RoundedTh isLeft width={rem(40)}></RoundedTh>
+                  <RoundedTh>Node URL</RoundedTh>
+                  <RoundedTh>Owner</RoundedTh>
+                  <RoundedTh>Location</RoundedTh>
+                  <RoundedTh textAlign="right">Slots available</RoundedTh>
+                  <RoundedTh isRight textAlign="right">
                     Price per validation
-                  </TableHeaderCol>
-                </TableRow>
-              </thead>
-              <tbody>
+                  </RoundedTh>
+                </Tr>
+              </Thead>
+              <Tbody>
                 {identity &&
                   sortedProviders.map((p, idx) => (
-                    <TableRow isLast={idx === sortedProviders.length - 1}>
-                      <TableCol>
+                    <Tr>
+                      <Td>
                         <Radio
                           isChecked={state === idx}
                           onClick={() => setState(idx)}
                           borderColor="#d2d4d9"
                         />
-                      </TableCol>
-                      <TableCol>
+                      </Td>
+                      <Td>
                         <Flex direction="column">
                           <Flex>{p.data.url}</Flex>
                           <ProviderStatus url={p.data.url}></ProviderStatus>
                         </Flex>
-                      </TableCol>
-                      <TableCol>
+                      </Td>
+                      <Td>
                         <Link
                           target="_blank"
                           rel="noreferrer"
@@ -180,15 +178,15 @@ export default function Rent() {
                         >
                           {p.data.ownerName}
                         </Link>
-                      </TableCol>
-                      <TableCol>{p.data.location}</TableCol>
-                      <TableCol textAlign="right">{p.slots}</TableCol>
-                      <TableCol textAlign="right">
+                      </Td>
+                      <Td>{p.data.location}</Td>
+                      <Td textAlign="right">{p.slots}</Td>
+                      <Td textAlign="right">
                         {GetProviderPrice(p.data, identity?.state)} iDNA
-                      </TableCol>
-                    </TableRow>
+                      </Td>
+                    </Tr>
                   ))}
-              </tbody>
+              </Tbody>
             </Table>
           </Box>
         </Box>

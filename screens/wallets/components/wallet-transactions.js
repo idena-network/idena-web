@@ -20,18 +20,14 @@ import {
   Tbody,
   useDisclosure,
   useBreakpointValue,
+  Tr,
+  Td,
 } from '@chakra-ui/react'
 import theme, {rem} from '../../../shared/theme'
 import Avatar from '../../../shared/components/avatar'
-import {
-  TableCol,
-  TableRow,
-  TableHeaderCol,
-  TableHint,
-} from '../../../shared/components'
 import {fetchApiTransactions} from '../../../shared/api/wallet'
 import {FlatButton} from '../../../shared/components/button'
-import {Skeleton} from '../../../shared/components/components'
+import {RoundedTh, Skeleton} from '../../../shared/components/components'
 import {lowerCase} from '../../../shared/utils/utils'
 
 import {
@@ -39,6 +35,31 @@ import {
   OpenExplorerIcon,
 } from '../../../shared/components/icons'
 import {WideLink} from '../../home/components'
+
+function TableHint(props) {
+  return <Box color="muted" fontWeight={500} fontSize="md" {...props} />
+}
+
+function TransactionsTd({children, ...props}) {
+  return (
+    <Td
+      px={[0, 3]}
+      pb={[0, 2]}
+      borderBottomColor="gray.100"
+      borderBottomWidth={[0, '1px']}
+      {...props}
+    >
+      {children}
+      <Divider
+        display={['block', 'none']}
+        color="gray.100"
+        mt="6px"
+        ml={14}
+        w="auto"
+      />
+    </Td>
+  )
+}
 
 function RowStatus({direction, type, isMining, walletName, tx, ...props}) {
   const txColor =
@@ -201,18 +222,14 @@ function WalletTransactions({address}) {
     <div>
       <Table style={{tableLayout: 'fixed'}}>
         <Thead display={['none', 'table-header-group']}>
-          <TableRow>
-            <TableHeaderCol>{t('Transaction')}</TableHeaderCol>
-            <TableHeaderCol>{t('Address')}</TableHeaderCol>
-            <TableHeaderCol className="text-right">
-              {t('Amount, iDNA')}
-            </TableHeaderCol>
-            <TableHeaderCol className="text-right">
-              {t('Fee, iDNA')}
-            </TableHeaderCol>
-            <TableHeaderCol>{t('Date')}</TableHeaderCol>
-            <TableHeaderCol>{t('Blockchain transaction ID')}</TableHeaderCol>
-          </TableRow>
+          <Tr>
+            <RoundedTh isLeft>{t('Transaction')}</RoundedTh>
+            <RoundedTh>{t('Address')}</RoundedTh>
+            <RoundedTh textAlign="right">{t('Amount, iDNA')}</RoundedTh>
+            <RoundedTh textAlign="right">{t('Fee, iDNA')}</RoundedTh>
+            <RoundedTh>{t('Date')}</RoundedTh>
+            <RoundedTh isRight>{t('Blockchain transaction ID')}</RoundedTh>
+          </Tr>
         </Thead>
         <Tbody>
           {!isLoading &&
@@ -220,8 +237,8 @@ function WalletTransactions({address}) {
             data.pages.map((group, i) => (
               <React.Fragment key={i}>
                 {group.result.map((tx, k) => (
-                  <TableRow key={k}>
-                    <TableCol>
+                  <Tr key={k}>
+                    <TransactionsTd>
                       <RowStatus
                         isMining={tx.isMining}
                         direction={tx.direction}
@@ -229,9 +246,9 @@ function WalletTransactions({address}) {
                         walletName="Main"
                         tx={tx}
                       />
-                    </TableCol>
+                    </TransactionsTd>
 
-                    <TableCol display={['none', 'table-cell']}>
+                    <TransactionsTd display={['none', 'table-cell']}>
                       {(!tx.to && '\u2013') || (
                         <Flex align="center">
                           <Avatar
@@ -251,9 +268,9 @@ function WalletTransactions({address}) {
                           </div>
                         </Flex>
                       )}
-                    </TableCol>
+                    </TransactionsTd>
 
-                    <TableCol
+                    <TransactionsTd
                       display={['none', 'table-cell']}
                       textAlign="right"
                     >
@@ -268,9 +285,9 @@ function WalletTransactions({address}) {
                         {(tx.type === 'kill' && t('See in Explorer...')) ||
                           (tx.amount === '0' ? '\u2013' : tx.signAmount)}
                       </div>
-                    </TableCol>
+                    </TransactionsTd>
 
-                    <TableCol
+                    <TransactionsTd
                       display={['none', 'table-cell']}
                       textAlign="right"
                     >
@@ -281,16 +298,14 @@ function WalletTransactions({address}) {
                           <TableHint>{t('Fee limit')}</TableHint>
                         </div>
                       )}
-
-                      {}
-                    </TableCol>
-                    <TableCol display={['none', 'table-cell']}>
+                    </TransactionsTd>
+                    <TransactionsTd display={['none', 'table-cell']}>
                       {!tx.timestamp
                         ? '\u2013'
                         : new Date(tx.timestamp).toLocaleString()}
-                    </TableCol>
+                    </TransactionsTd>
 
-                    <TableCol display={['none', 'table-cell']}>
+                    <TransactionsTd display={['none', 'table-cell']}>
                       <div>
                         <div>
                           {tx.isMining ? t('Mining...') : t('Confirmed')}
@@ -299,8 +314,8 @@ function WalletTransactions({address}) {
                           {tx.hash}
                         </TableHint>
                       </div>
-                    </TableCol>
-                  </TableRow>
+                    </TransactionsTd>
+                  </Tr>
                 ))}
               </React.Fragment>
             ))}
