@@ -1350,7 +1350,6 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
   }, [isOpen])
 
   const nextButtonRef = React.useRef()
-  const h100 = use100vh()
 
   return (
     <BadFlipNotice
