@@ -13,7 +13,6 @@ import NextLink from 'next/link'
 import dayjs from 'dayjs'
 import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
-import {useQuery} from 'react-query'
 import {AdList, EmptyAdList, AdStatNumber} from '../../screens/ads/components'
 import Layout from '../../shared/components/layout'
 import {Page, PageTitle} from '../../screens/app/components'
@@ -33,7 +32,11 @@ import {
   SmallInlineAdStat,
   BurnDrawer,
 } from '../../screens/ads/containers'
-import {useAdList, useBurnTxs} from '../../screens/ads/hooks'
+import {
+  useAdList,
+  useBalance,
+  useRecentBurnAmount,
+} from '../../screens/ads/hooks'
 import {AdStatus} from '../../screens/ads/types'
 import {useSuccessToast} from '../../shared/hooks/use-toast'
 import {Menu, VDivider} from '../../shared/components/components'
@@ -54,7 +57,6 @@ import {
   isApprovedAd,
   isReviewingAd,
 } from '../../screens/ads/utils'
-import {fetchBalance} from '../../shared/api/wallet'
 import {useAuthState} from '../../shared/providers/auth-context'
 
 export default function AdListPage() {
@@ -64,12 +66,7 @@ export default function AdListPage() {
 
   const {coinbase} = useAuthState()
 
-  const {
-    data: {balance},
-  } = useQuery(['get-balance', coinbase], () => fetchBalance(coinbase), {
-    initialData: {balance: 0, stake: 0},
-    enabled: !!coinbase,
-  })
+  const balance = useBalance(coinbase)
 
   const toast = useSuccessToast()
 
@@ -96,12 +93,7 @@ export default function AdListPage() {
 
   const burnDrawerDisclosure = useDisclosure()
 
-  const txs = useBurnTxs({lastTxDate: dayjs().subtract(4, 'h')})
-
-  const lastBurnAmount = txs.reduce(
-    (agg, {amount, usedFee}) => agg + Number(amount) + Number(usedFee),
-    0
-  )
+  const lastBurnAmount = useRecentBurnAmount(dayjs().subtract(4, 'h'))
 
   const toDna = toLocaleDna(i18n.language)
 

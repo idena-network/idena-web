@@ -5,7 +5,7 @@ import {log} from 'xstate/lib/actions'
 import protobuf from 'protobufjs'
 import React from 'react'
 import {useTranslation} from 'react-i18next'
-import {useQuery} from 'react-query'
+import {useInfiniteQuery, useQuery} from 'react-query'
 import dayjs from 'dayjs'
 import {useAuthState} from '../../shared/providers/auth-context'
 import db from '../../shared/utils/db'
@@ -44,7 +44,7 @@ import {
 import {ContractRpcMode} from '../oracles/types'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import {useIdentity} from '../../shared/providers/identity-context'
-import {TxType, VotingStatus} from '../../shared/types'
+import {VotingStatus} from '../../shared/types'
 import {capitalize} from '../../shared/utils/string'
 
 const adListMachine = createMachine({
@@ -721,15 +721,19 @@ export function useAdRotation(limit = 5) {
 
               const decodedBurntCoins = await Promise.all(
                 burntCoins.map(async item => {
-                  const AdKeyType = (
-                    await protobuf.load('/static/pb/profile.proto')
-                  ).lookupType('profile.AdKey')
+                  try {
+                    const AdKeyType = (
+                      await protobuf.load('/static/pb/profile.proto')
+                    ).lookupType('profile.AdKey')
 
-                  return {
-                    ...item,
-                    decodedAdKey: AdKeyType.decode(
-                      Buffer.from(item.key, 'hex')
-                    ),
+                    return {
+                      ...item,
+                      decodedAdKey: AdKeyType.decode(
+                        Buffer.from(item.key, 'hex')
+                      ),
+                    }
+                  } catch {
+                    return item
                   }
                 })
               )
@@ -823,28 +827,70 @@ export function useAdRotation(limit = 5) {
   }
 }
 
-export function useBurnTxs({lastTxDate}) {
-  const {coinbase} = useAuthState()
+const rpcQueryFetcher = ({queryKey: [method, ...params]}) =>
+  callRpc(method, ...params)
 
-  const [token] = React.useState()
+const infiniteRpcQueryFetcher = ({queryKey: [method, ...params], pageParam}) =>
+  callRpc(method, ...params.map(p => ({...p, token: pageParam})))
 
-  const {data} = useQuery(
-    ['useBurnTxs', token],
-    () => callRpc('bcn_transactions', {address: coinbase, count: 100}),
+export function useAddressTxs(address) {
+  const {
+    data,
+    hasNextPage,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery(
+    ['bcn_transactions', {address, count: 100}],
+    infiniteRpcQueryFetcher,
+
     {
-      enabled: Boolean(coinbase),
+      enabled: Boolean(address),
       keepPreviousData: true,
+      getNextPageParam: lastPage => lastPage.token,
     }
   )
 
-  // React.useEffect(() => {
-  //   if (data?.token) {
-  //     setToken(data?.token)
-  //   }
-  // }, [data, token])
+  React.useEffect(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage()
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage])
 
-  return (data?.transactions ?? []).filter(
-    ({timestamp, type}) =>
-      type === TxType.BurnTx && dayjs(timestamp).isAfter(dayjs.unix(lastTxDate))
+  return data?.pages?.flatMap(({transactions}) => transactions) ?? []
+}
+
+export function useTxs() {
+  const {coinbase} = useAuthState()
+
+  return useAddressTxs(coinbase)
+}
+
+export function useRecentTxs({limit, predicate}) {
+  const txs = useTxs()
+
+  return limit ? txs.slice(0, limit) : txs.filter(predicate)
+}
+
+export const recentBurnTx = lastTxDate => ({timestamp, type}) =>
+  type === 'burn' && dayjs(dayjs.unix(timestamp)).isAfter(lastTxDate)
+
+export function useRecentBurnTxs(lastTxDate) {
+  return useRecentTxs({predicate: recentBurnTx(lastTxDate)})
+}
+
+export function useRecentBurnAmount(lastTxDate) {
+  const txs = useRecentBurnTxs(lastTxDate)
+
+  return txs.reduce(
+    (agg, {amount, usedFee}) => agg + Number(amount) + Number(usedFee),
+    0
   )
+}
+
+export function useBalance(coinbase) {
+  const {data} = useQuery(['dna_getBalance', coinbase], rpcQueryFetcher, {
+    enabled: Boolean(coinbase),
+  })
+
+  return data?.balance
 }
