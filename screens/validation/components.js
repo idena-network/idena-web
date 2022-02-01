@@ -2266,7 +2266,7 @@ export function ValidationScreen({
               h={10}
               variant="primaryFlat"
             >
-              {t('Let’s start')}
+              {t('Read more')}
             </Button>
           </ChakraFlex>
         </DrawerBody>
