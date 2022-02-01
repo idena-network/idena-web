@@ -1,8 +1,4 @@
 import axios from 'axios'
-import sha3 from 'js-sha3'
-import secp256k1 from 'secp256k1'
-import apiClient from '../../shared/api/api-client'
-import {hexToUint8Array} from '../../shared/utils/buffers'
 
 export const DNA_NONCE_PREFIX = 'signin-'
 
