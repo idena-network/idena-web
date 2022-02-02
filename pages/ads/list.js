@@ -13,6 +13,7 @@ import NextLink from 'next/link'
 import dayjs from 'dayjs'
 import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import {AdList, EmptyAdList, AdStatNumber} from '../../screens/ads/components'
 import Layout from '../../shared/components/layout'
 import {Page, PageTitle} from '../../screens/app/components'
@@ -46,18 +47,16 @@ import {
   DeleteIcon,
   EditIcon,
 } from '../../shared/components/icons'
-import db from '../../shared/utils/db'
-import {
-  fetchVoting,
-  mapVoting,
-  viewVotingHref,
-} from '../../screens/oracles/utils'
+import {viewVotingHref} from '../../screens/oracles/utils'
 import {
   buildAdKeyHex,
   isApprovedAd,
   isReviewingAd,
+  fetchVoting,
 } from '../../screens/ads/utils'
 import {useAuthState} from '../../shared/providers/auth-context'
+
+dayjs.extend(relativeTime)
 
 export default function AdListPage() {
   const {t, i18n} = useTranslation()
@@ -145,13 +144,15 @@ export default function AdListPage() {
               os,
               stake,
               burnt: spent = 0,
-              lastTx = dayjs(),
+              lastTxDate,
               status,
               votingAddress,
               isPublished,
+              competitorCount,
+              maxCompetitorPrice,
             }) => (
               <HStack key={id} spacing="5" align="flex-start">
-                <Stack spacing={2} w="16">
+                <Stack spacing={2} w="16" flexShrink={0}>
                   <Box position="relative">
                     <AdCoverImage ad={{cover}} />
                     {isApprovedAd({status}) && (
@@ -226,14 +227,7 @@ export default function AdListPage() {
                         <SecondaryButton
                           onClick={async () => {
                             toast({
-                              title: {
-                                ...(await db.table('ads').get(id)),
-                                ...mapVoting(
-                                  await fetchVoting({
-                                    contractHash: votingAddress,
-                                  }).catch(() => ({}))
-                                ),
-                              }.status,
+                              title: (await fetchVoting(votingAddress)).status,
                               onAction: () => {
                                 router.push(viewVotingHref(votingAddress))
                               },
@@ -246,7 +240,7 @@ export default function AdListPage() {
                       )}
                     </Stack>
                   </Flex>
-                  <Stack isInline spacing={60}>
+                  <Stack isInline spacing={15}>
                     {/* <BlockAdStat label="Spent, 4hrs" value={toDna(spent)} /> */}
                     <BlockAdStat
                       label="Ad key"
@@ -261,7 +255,11 @@ export default function AdListPage() {
                     />
                     <BlockAdStat
                       label="Last tx"
-                      value={`${dayjs().diff(lastTx, 'ms')} ms ago`}
+                      value={
+                        lastTxDate
+                          ? dayjs.unix(lastTxDate).fromNow()
+                          : 'No burn yet'
+                      }
                     />
                   </Stack>
                   <HStack spacing={4} bg="gray.50" p={2} mt="5" rounded="md">
@@ -278,10 +276,17 @@ export default function AdListPage() {
                     </Stack>
                     <VDivider minH={68} h="full" />
                     <Stack flex={1} justify="center">
-                      <InlineAdStat label="Competitors" value="0" />
+                      <InlineAdStat
+                        label="Competitors"
+                        value={competitorCount ?? '--'}
+                      />
                       <InlineAdStat
                         label="Max price"
-                        value={toLocaleDna(i18n.language)(0)}
+                        value={
+                          maxCompetitorPrice
+                            ? toLocaleDna(i18n.language)(maxCompetitorPrice)
+                            : '--'
+                        }
                       />
                     </Stack>
                   </HStack>
@@ -315,7 +320,7 @@ export default function AdListPage() {
           onSubmit={async amount => {
             const {language, age, stake, os} = selectedAd
 
-            const hash = await callRpc('dna_burn', {
+            await callRpc('dna_burn', {
               from: coinbase,
               amount,
               key: await buildAdKeyHex({
@@ -326,7 +331,9 @@ export default function AdListPage() {
               }),
             })
 
-            toast(hash)
+            burnDrawerDisclosure.onClose()
+
+            toast('🔥🔥🔥')
           }}
         />
       </Page>

@@ -1,13 +1,12 @@
-import nanoid from 'nanoid'
+/* eslint-disable no-use-before-define */
 import protobuf from 'protobufjs'
-import {stripHexPrefix} from '../../shared/utils/buffers'
 import {
   areSameCaseInsensitive,
   callRpc,
   HASH_IN_MEMPOOL,
 } from '../../shared/utils/utils'
-import profilePb from '../../shared/models/proto/profile_pb'
-import {AdStatus, AdVotingOption} from './types'
+import {hexToObject} from '../oracles/utils'
+import {AdStatus, AdVotingOption, AdVotingOptionId} from './types'
 import {VotingStatus} from '../../shared/types'
 
 export async function buildAdKeyHex({language, age, stake, os = currentOs()}) {
@@ -38,28 +37,6 @@ export async function buildProfileHex(ads) {
 
   return Buffer.from(encodedProfile).toString('hex')
 }
-
-export const weakTargetField = (field, targetField, condition) =>
-  field ? condition(field, targetField) : true
-
-export const isTargetAd = (
-  {language: adLanguage, os: adOS, age: adAge, stake: adStake},
-  {language: targetLanguage, os: targetOS, age: targetAge, stake: targetStake}
-) =>
-  weakTargetField(adLanguage, targetLanguage, areSameCaseInsensitive) &&
-  weakTargetField(adOS, targetOS, areSameCaseInsensitive) &&
-  weakTargetField(
-    adAge,
-    targetAge,
-    // eslint-disable-next-line no-shadow
-    (adAge, targetAge) => Number(targetAge) >= Number(adAge)
-  ) &&
-  weakTargetField(
-    adStake,
-    targetStake,
-    // eslint-disable-next-line no-shadow
-    (adStake, targetStake) => Number(targetStake) >= Number(adStake)
-  )
 
 export async function fetchProfileAds(address) {
   try {
@@ -96,16 +73,6 @@ export async function fetchProfileAd(cid) {
   return null
 }
 
-export async function fetchTotalSpent(address) {
-  return ((await callRpc('bcn_burntCoins')) ?? []).reduce(
-    (total, {address: issuerAddress, amount}) =>
-      total + areSameCaseInsensitive(issuerAddress, address)
-        ? Number(amount)
-        : 0,
-    0
-  )
-}
-
 export const buildAdReviewVoting = ({title, adCid}) => ({
   title: 'Is this ads propriate?',
   desc: `title: ${title}, cid: ${adCid}`,
@@ -118,11 +85,38 @@ export const buildAdReviewVoting = ({title, adCid}) => ({
   committeeSize: 100,
   votingMinPayment: 10,
   options: [
-    {id: 0, value: AdVotingOption.Approve},
-    {id: 1, value: AdVotingOption.Reject},
+    buildAdReviewVotingOption(AdVotingOption.Approve),
+    buildAdReviewVotingOption(AdVotingOption.Reject),
   ],
   ownerFee: 0,
 })
+
+const buildAdReviewVotingOption = option => ({
+  id: AdVotingOptionId[option],
+  value: option,
+})
+
+export const weakTargetField = (field, targetField, condition) =>
+  field ? condition(field, targetField) : true
+
+export const isRelevantAd = (
+  {language: adLanguage, os: adOS, age: adAge, stake: adStake},
+  {language: targetLanguage, os: targetOS, age: targetAge, stake: targetStake}
+) =>
+  weakTargetField(adLanguage, targetLanguage, areSameCaseInsensitive) &&
+  weakTargetField(adOS, targetOS, areSameCaseInsensitive) &&
+  weakTargetField(
+    adAge,
+    targetAge,
+    // eslint-disable-next-line no-shadow
+    (adAge, targetAge) => Number(targetAge) >= Number(adAge)
+  ) &&
+  weakTargetField(
+    adStake,
+    targetStake,
+    // eslint-disable-next-line no-shadow
+    (adStake, targetStake) => Number(targetStake) >= Number(adStake)
+  )
 
 export const OS = {
   Windows: 'windows',
@@ -149,78 +143,33 @@ export function currentOs() {
   }
 }
 
-export function hexToAd(hex) {
-  try {
-    return JSON.parse(
-      new TextDecoder().decode(Buffer.from(stripHexPrefix(hex), 'hex'))
-    )
-  } catch {
-    console.error('cannot parse hex string', hex)
-    return {}
-  }
-}
-
-export async function profileToHex({
-  id = nanoid(),
-  title,
-  url,
-  cover,
-  author,
-  location,
-  language,
-  age,
-  os,
-  stake,
-}) {
-  const ad = new profilePb.Ad()
-  ad.setId(id)
-  ad.setTitle(title)
-  ad.setUrl(url)
-  ad.setCover(new Uint8Array(await cover.arrayBuffer()))
-  ad.setAuthor(author)
-
-  const key = new profilePb.AdKey()
-  key.setLocation(location)
-  key.setLanguage(language)
-  key.setAge(age)
-  key.setOs(os)
-  key.setStake(stake)
-
-  const adItem = new profilePb.Profile.AdItem()
-  adItem.setAd(ad)
-  adItem.setKey(key)
-
-  const profile = new profilePb.Profile()
-  profile.setAdsList([adItem])
-
-  return Buffer.from(profile.serializeBinary()).toString('hex')
-}
+const eitherStatus = (...statuses) => status =>
+  statuses.some(s => s.toUpperCase() === status.toUpperCase())
 
 export const isReviewingAd = ({status}) =>
-  [
+  eitherStatus(
     AdStatus.Reviewing,
     VotingStatus.Pending,
     VotingStatus.Open,
     VotingStatus.Voted,
-    VotingStatus.Counting,
-  ].some(s => areSameCaseInsensitive(s, status))
+    VotingStatus.Counting
+  )(status)
 
 export const isActiveAd = ({status}) =>
-  [
+  eitherStatus(
     AdStatus.Reviewing,
     VotingStatus.Pending,
     VotingStatus.Open,
     VotingStatus.Voted,
-    VotingStatus.Counting,
-  ].some(s => areSameCaseInsensitive(s, status))
+    VotingStatus.Counting
+  )(status)
 
 export const isApprovedAd = ({status}) =>
-  [
-    AdStatus.Approved,
+  eitherStatus(
     AdStatus.Showing,
     AdStatus.NotShowing,
-    AdStatus.PartiallyShowing,
-  ].some(s => areSameCaseInsensitive(s, status))
+    AdStatus.PartiallyShowing
+  )(status)
 
 export function pollTx(txHash, cb) {
   let timeoutId
@@ -285,36 +234,16 @@ export function filterAdsByStatus(ads, filter) {
   )
 }
 
-export const isApprovedVoting = voting => {
-  const {status, votes, options} = voting
+export const isClosedVoting = maybeVoting =>
+  eitherStatus(
+    VotingStatus.Archived,
+    VotingStatus.Terminated
+  )(maybeVoting.status ?? maybeVoting)
 
-  if (
-    [VotingStatus.Archived, VotingStatus.Terminated].some(s =>
-      areSameCaseInsensitive(s, status)
-    )
-  ) {
-    if (votes?.length > 0) {
-      const {id: approveOptionId} = options.find(option =>
-        areSameCaseInsensitive(option.value, AdVotingOption.Approve)
-      )
-
-      const {count: approveOptionCount} = votes.find(
-        ({option}) => option === approveOptionId
-      )
-
-      if (
-        votes
-          .filter(({option}) => option !== approveOptionId)
-          .some(({count}) => count > approveOptionCount)
-      ) {
-        return false
-      }
-      return true
-    }
-  }
-
-  return false
-}
+export const isApprovedVoting = ({result, ...voting}) =>
+  isClosedVoting(voting)
+    ? result === AdVotingOptionId[AdVotingOption.Approve]
+    : false
 
 export const countryCodes = [
   {name: `Afghanistan`, code: 'AF', code3: 'AFG', numeric: '004'},
@@ -737,3 +666,34 @@ export const countryCodes = [
   {name: `Zimbabwe`, code: 'ZW', code3: 'ZWE', numeric: '716'},
   {name: `Åland Islands`, code: 'AX', code3: 'ALA', numeric: '248'},
 ]
+
+export const createContractDataReader = address => (key, format) =>
+  callRpc('contract_readData', address, key, format)
+
+export async function fetchVoting(address) {
+  const readContractKey = createContractDataReader(address)
+
+  return {
+    status: mapToVotingStatus(
+      await readContractKey('state', 'byte').catch(e => {
+        if (e.message === 'data is nil') return VotingStatus.Terminated
+        return VotingStatus.Invalid
+      })
+    ),
+    ...hexToObject(await readContractKey('fact', 'hex').catch(() => null)),
+    result: await readContractKey('result', 'byte').catch(() => null),
+  }
+}
+
+const mapToVotingStatus = status => {
+  switch (status) {
+    case 0:
+      return VotingStatus.Pending
+    case 1:
+      return VotingStatus.Open
+    case 2:
+      return VotingStatus.Archived
+    default:
+      return status
+  }
+}

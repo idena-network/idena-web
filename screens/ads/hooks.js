@@ -18,25 +18,24 @@ import {
 import {AdStatus} from './types'
 import {
   buildAdReviewVoting,
-  fetchTotalSpent,
   pollContractTx,
   buildAdKeyHex,
   buildProfileHex,
   pollTx,
   fetchProfileAds,
   currentOs,
-  isTargetAd,
+  isRelevantAd,
   filterAdsByStatus,
   isApprovedVoting,
   fetchProfileAd,
+  isClosedVoting,
+  fetchVoting,
 } from './utils'
 import {
   buildContractDeploymentArgs,
   createContractCaller,
   fetchNetworkSize,
   fetchOracleRewardsEstimates,
-  fetchVoting,
-  mapVoting,
   minOracleRewardFromEstimates,
   votingBalance,
   votingMinStake,
@@ -44,7 +43,6 @@ import {
 import {ContractRpcMode} from '../oracles/types'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import {useIdentity} from '../../shared/providers/identity-context'
-import {VotingStatus} from '../../shared/types'
 import {capitalize} from '../../shared/utils/string'
 
 const adListMachine = createMachine({
@@ -53,7 +51,6 @@ const adListMachine = createMachine({
     selectedAd: {},
     ads: [],
     filteredAds: [],
-    totalSpent: 0,
   },
   initial: 'load',
   states: {
@@ -67,7 +64,6 @@ const adListMachine = createMachine({
               ads: (_, {data: {ads}}) => ads,
               filteredAds: (_, {data: {ads, filter}}) =>
                 filterAdsByStatus(ads, filter),
-              totalSpent: (_, {data: {totalSpent}}) => totalSpent,
               filter: (_, {data: {filter}}) => filter ?? AdStatus.Active,
             }),
             log(),
@@ -323,6 +319,8 @@ export function useAdList() {
 
   const {coinbase} = useAuthState()
 
+  const burnTxs = [] // useRecentBurnTxs(dayjs.unix(0))
+
   const [current, send] = useMachine(adListMachine, {
     actions: {
       onError: (_, {data: {message}}) => {
@@ -331,52 +329,63 @@ export function useAdList() {
     },
     services: {
       load: async () => {
-        const ads = await Promise.all(
-          (await db.ads.toArray()).map(async ad => {
-            let {status} = ad
+        const profileAds = await Promise.all(
+          (await fetchProfileAds(coinbase)).map(async ad => ({
+            ...ad,
+            ...ad.key,
+            ...(await fetchProfileAd(ad.cid)),
+          }))
+        )
 
+        const persistedAds = (await db.ads.toArray()).filter(
+          persistedAd => !profileAds.some(byId(persistedAd))
+        )
+
+        const ads = await Promise.all(
+          [...profileAds, ...persistedAds].map(async ad => {
             if (ad.votingAddress) {
               try {
-                const adVoting = mapVoting(
-                  await fetchVoting({
-                    contractHash: ad.votingAddress,
-                  })
+                const adVoting = await fetchVoting(ad.votingAddress)
+
+                const encodedAdKey = await buildAdKeyHex(ad)
+
+                const burntCoins = await callRpc('bcn_burntCoins')
+
+                const sameKeyBurntCoins = (burntCoins ?? []).filter(
+                  ({key}) => key === encodedAdKey
                 )
 
-                if (
-                  [VotingStatus.Archived, VotingStatus.Terminated].some(s =>
-                    areSameCaseInsensitive(s, adVoting.status)
-                  )
-                ) {
-                  if (isApprovedVoting(adVoting)) {
-                    const burntCoins = (await callRpc('bcn_burntCoins')) ?? []
-                    status = (
-                      await Promise.all(
-                        burntCoins.map(async ({address, key}) => ({
-                          address,
-                          key,
-                          decodedAdKey: await buildAdKeyHex(ad),
-                        }))
-                      )
-                    ).some(
-                      ({address, key, decodedAdKey}) =>
-                        address === coinbase && key === decodedAdKey
-                    )
+                const competitorBurntCoins = sameKeyBurntCoins.filter(
+                  ({address}) => address !== coinbase
+                )
+
+                const maxCompetitorPrice = Number(
+                  competitorBurntCoins.sort(
+                    (a, b) => Number(b.amount) - Number(a.amount)
+                  )[0]?.amount ?? 0
+                )
+
+                const isBurningAd = sameKeyBurntCoins.some(
+                  ({address}) => address === ad.author
+                )
+
+                // eslint-disable-next-line no-nested-ternary
+                const status = isClosedVoting(adVoting)
+                  ? // eslint-disable-next-line no-nested-ternary
+                    isApprovedVoting(adVoting)
+                    ? isBurningAd
                       ? AdStatus.Showing
                       : AdStatus.NotShowing
-                  } else {
-                    status = AdStatus.Rejected
-                  }
-                }
-
-                const isPublished = (
-                  (await fetchProfileAds(coinbase)) ?? []
-                ).some(({votingAddress}) => votingAddress === ad.votingAddress)
+                    : AdStatus.Rejected
+                  : adVoting.status
 
                 return {
                   ...ad,
-                  isPublished,
+                  isPublished: Boolean(profileAds.find(({id}) => id === ad.id)),
+                  competitorCount: competitorBurntCoins.length,
+                  maxCompetitorPrice,
                   status,
+                  lastTxDate: burnTxs[0]?.timestamp,
                 }
               } catch {
                 return ad
@@ -388,7 +397,6 @@ export function useAdList() {
         )
         return {
           ads,
-          totalSpent: await fetchTotalSpent(coinbase),
           filter: localStorage?.getItem('adListFilter'),
         }
       },
@@ -405,7 +413,7 @@ export function useAdList() {
           title,
           url,
           cover: new Uint8Array(await cover.arrayBuffer()),
-          author: coinbase,
+          author: from,
         })
 
         const adContentHex = Buffer.from(
@@ -516,7 +524,9 @@ export function useAdList() {
           cid: profileCid,
         })
 
-        await callRpc('dna_storeToIpfs', {cid: profileCid})
+        await callRpc('dna_storeToIpfs', {
+          cid: profileCid,
+        })
 
         await db
           .table('ads')
@@ -717,10 +727,10 @@ export function useAdRotation(limit = 5) {
         fetchBurntCoins: {
           invoke: {
             src: async () => {
-              const burntCoins = (await callRpc('bcn_burntCoins')) ?? []
+              const burntCoins = await callRpc('bcn_burntCoins')
 
               const decodedBurntCoins = await Promise.all(
-                burntCoins.map(async item => {
+                (burntCoins ?? []).map(async item => {
                   try {
                     const AdKeyType = (
                       await protobuf.load('/static/pb/profile.proto')
@@ -747,7 +757,7 @@ export function useAdRotation(limit = 5) {
                   burntCoins: (_, {data}) =>
                     data
                       .filter(({decodedAdKey}) =>
-                        isTargetAd(
+                        isRelevantAd(
                           {...decodedAdKey},
                           {
                             language: new Intl.Locale(navigator?.language)
@@ -778,9 +788,7 @@ export function useAdRotation(limit = 5) {
                       ...ad,
                       ...(await fetchProfileAd(ad.cid)),
                       decodedAdKey: await buildAdKeyHex(ad.key),
-                      voting: mapVoting(
-                        await fetchVoting({id: ad.votingAddress})
-                      ),
+                      voting: await fetchVoting(ad.votingAddress),
                     }))
                   )
 

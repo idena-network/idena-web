@@ -179,14 +179,10 @@ function AdBannerActiveAd({
   author = `0x${'0'.repeat(40)}`,
   isLoaded,
 }) {
-  const adCover = React.useMemo(() => new Blob([cover], {type: 'image/jpeg'}), [
-    cover,
-  ])
-
   return (
     <LinkBox as={HStack} spacing={2}>
       <Skeleton isLoaded={isLoaded}>
-        <AdCoverImage ad={{cover: adCover}} w={10} />
+        <AdCoverImage ad={{cover}} w={10} />
       </Skeleton>
       <Stack spacing={1}>
         <LinkOverlay href={url} target="_blank">
@@ -226,7 +222,10 @@ export function AdStatusText({children, status = children}) {
 }
 
 export function AdCoverImage({ad: {cover}, w, width = w, ...props}) {
-  const src = React.useMemo(() => cover && URL.createObjectURL(cover), [cover])
+  const src = React.useMemo(
+    () => cover && URL.createObjectURL(new Blob([cover], {type: 'image/jpeg'})),
+    [cover]
+  )
 
   return (
     <AspectRatio ratio={1} w={width}>
@@ -693,10 +692,6 @@ function AdPromotion({
 }) {
   const {t, i18n} = useTranslation()
 
-  const adCover = React.useMemo(() => new Blob([cover], {type: 'image/jpeg'}), [
-    cover,
-  ])
-
   return (
     <Box bg="white" rounded="lg" px={10} pt={37} pb={44} w={400} h={620}>
       <Stack spacing="10">
@@ -707,7 +702,7 @@ function AdPromotion({
             </Heading>
             <ExternalLink href={url}>{url}</ExternalLink>
           </Stack>
-          <AdCoverImage ad={{cover: adCover}} w={320} objectFit="cover" />
+          <AdCoverImage ad={{cover}} w={320} objectFit="cover" />
         </Stack>
         <Stack spacing={6}>
           <HStack justify="space-between" align="flex-start">

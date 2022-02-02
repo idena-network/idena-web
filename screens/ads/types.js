@@ -21,3 +21,8 @@ export const AdVotingOption = {
   Approve: 'approve',
   Reject: 'reject',
 }
+
+export const AdVotingOptionId = {
+  [AdVotingOption.Approve]: 0,
+  [AdVotingOption.Reject]: 1,
+}
