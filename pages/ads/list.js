@@ -92,7 +92,7 @@ export default function AdListPage() {
 
   const burnDrawerDisclosure = useDisclosure()
 
-  const lastBurnAmount = useRecentBurnAmount(dayjs().subtract(4, 'h'))
+  const lastBurnAmount = 0 // useRecentBurnAmount(dayjs().subtract(4, 'h'))
 
   const toDna = toLocaleDna(i18n.language)
 
