@@ -798,6 +798,18 @@ export const CertificateStarIcon = createIcon({
   ),
 })
 
+export const SoftStarIcon = createIcon({
+  displayName: 'SoftStarIcon',
+  viewBox: '0 0 16 16',
+  path: (
+    <path
+      d="M7.491 11.762 4.586 13.48a.5.5 0 0 1-.742-.54l.736-3.293a1 1 0 0 0-.315-.969L1.734 6.446a.5.5 0 0 1 .283-.872l3.36-.318a1 1 0 0 0 .824-.599L7.54 1.56a.5.5 0 0 1 .918 0l1.34 3.097a1 1 0 0 0 .824.599l3.36.318a.5.5 0 0 1 .283.872l-2.531 2.232a1 1 0 0 0-.315.969l.736 3.293a.5.5 0 0 1-.742.54l-2.905-1.718a1 1 0 0 0-1.018 0z"
+      fill="#FFA366"
+      fillRule="evenodd"
+    />
+  ),
+})
+
 export const RightIcon = createIcon({
   displayName: 'RightIcon',
   viewBox: '0 0 20 20',

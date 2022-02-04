@@ -9,6 +9,7 @@ import {
   Stack,
   Link,
   Alert,
+  useBreakpointValue,
 } from '@chakra-ui/react'
 import {useState} from 'react'
 import {useTranslation} from 'react-i18next'
@@ -19,10 +20,11 @@ import {
   DrawerBody,
   DrawerFooter,
   DrawerHeader,
+  FormControlWithLabel,
   FormLabel,
   Input,
 } from '../../shared/components/components'
-import {ReceiveIcon} from '../../shared/components/icons'
+import {SendOutIcon} from '../../shared/components/icons'
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
 import useRpc from '../../shared/hooks/use-rpc'
 import {useFailToast} from '../../shared/hooks/use-toast'
@@ -49,6 +51,10 @@ export function BuySharedNodeForm({
   const [{result: epochResult}] = useRpc('dna_epoch', true)
 
   const {isPurchasing, savePurchase} = useApikeyPurchasing()
+
+  const size = useBreakpointValue(['lg', 'md'])
+  const variant = useBreakpointValue(['outlineMobile', 'outline'])
+  const labelFontSize = useBreakpointValue(['base', 'md'])
 
   const transfer = async () => {
     setSubmitting(true)
@@ -86,30 +92,41 @@ export function BuySharedNodeForm({
       closeOnOverlayClick={!waiting}
     >
       <DrawerHeader mb={8}>
-        <Flex
-          align="center"
-          justify="center"
-          h={12}
-          w={12}
-          rounded="xl"
-          bg="blue.012"
-        >
-          <ReceiveIcon boxSize={6} color="blue.500" />
+        <Flex direction="column" textAlign={['center', 'start']}>
+          <Flex
+            order={[2, 1]}
+            align="center"
+            justify="center"
+            mt={[8, 0]}
+            h={12}
+            w={12}
+            rounded="xl"
+            bg="red.012"
+          >
+            <SendOutIcon boxSize={6} />
+          </Flex>
+          <Heading
+            order={[1, 2]}
+            color="brandGray.500"
+            fontSize={['base', 'lg']}
+            fontWeight={[['bold', 500]]}
+            lineHeight="base"
+            mt={[0, 4]}
+          >
+            Send iDNA
+          </Heading>
         </Flex>
-        <Heading
-          color="brandGray.500"
-          fontSize="lg"
-          fontWeight={500}
-          lineHeight="base"
-          mt={4}
-        >
-          Send iDNA
-        </Heading>
       </DrawerHeader>
       <DrawerBody>
-        <Stack spacing={5}>
-          <CustomFormControl label="From">
-            <Input isDisabled value={from} />
+        <Stack spacing={[4, 5]}>
+          <CustomFormControl label="From" labelFontSize={labelFontSize}>
+            <Input
+              isDisabled
+              value={from}
+              backgroundColor={['gray.50', 'gray.100']}
+              size={size}
+              variant={variant}
+            />
             <Flex justify="space-between">
               <FormHelperText color="muted" fontSize="md">
                 Available
@@ -119,11 +136,23 @@ export function BuySharedNodeForm({
               </FormHelperText>
             </Flex>
           </CustomFormControl>
-          <CustomFormControl label="To">
-            <Input isDisabled value={to} />
+          <CustomFormControl label="To" labelFontSize={labelFontSize}>
+            <Input
+              isDisabled
+              value={to}
+              backgroundColor={['gray.50', 'gray.100']}
+              size={size}
+              variant={variant}
+            />
           </CustomFormControl>
-          <CustomFormControl label="Amount, iDNA">
-            <Input isDisabled value={amount} />
+          <CustomFormControl label="Amount, iDNA" labelFontSize={labelFontSize}>
+            <Input
+              isDisabled
+              value={amount}
+              backgroundColor={['gray.50', 'gray.100']}
+              size={size}
+              variant={variant}
+            />
             <FormHelperText color="muted" fontSize="md">
               Node operator provides you the shared node for the upcoming
               validation ceremony{' '}
@@ -133,8 +162,20 @@ export function BuySharedNodeForm({
             </FormHelperText>
           </CustomFormControl>
         </Stack>
+        <PrimaryButton
+          mt={8}
+          w="100%"
+          display={['flex', 'none']}
+          fontSize="mobile"
+          size="lg"
+          onClick={transfer}
+          isLoading={waiting}
+          loadingText="Mining..."
+        >
+          Transfer
+        </PrimaryButton>
       </DrawerBody>
-      <DrawerFooter>
+      <DrawerFooter display={['none', 'flex']}>
         <Box
           alignSelf="stretch"
           borderTop="1px"
@@ -165,10 +206,10 @@ export function BuySharedNodeForm({
   )
 }
 
-function CustomFormControl({label, children, ...props}) {
+function CustomFormControl({label, labelFontSize = 'md', children, ...props}) {
   return (
     <FormControl {...props}>
-      <FormLabel color="brandGray.500" mb={2}>
+      <FormLabel fontSize={labelFontSize} color="brandGray.500" mb={2}>
         {label}
       </FormLabel>
       {children}

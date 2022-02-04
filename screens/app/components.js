@@ -61,7 +61,7 @@ export function PageTitleNew(props) {
       fontSize={['base', 'xl']}
       fontWeight={['bold', 500]}
       textAlign={['center', 'initial']}
-      py={1}
+      py={[1, 2]}
       mb={5}
       w={['100%', 'auto']}
       {...props}
