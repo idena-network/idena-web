@@ -77,18 +77,20 @@ export const buildAdReviewVoting = ({title, adCid}) => ({
   title: 'Is this ads propriate?',
   desc: `title: ${title}, cid: ${adCid}`,
   adCid,
-  startDate: Date.now(),
-  votingDuration: 4320 * 3,
-  publicVotingDuration: 2160,
+  // votingDuration: 4320 * 3,
+  // publicVotingDuration: 2160,
+  votingDuration: 3 * 3,
+  publicVotingDuration: 3 * 3,
   winnerThreshold: 66,
   quorum: 1,
   committeeSize: 100,
-  votingMinPayment: 10,
   options: [
     buildAdReviewVotingOption(AdVotingOption.Approve),
     buildAdReviewVotingOption(AdVotingOption.Reject),
   ],
-  ownerFee: 0,
+  ownerFee: 100,
+  shouldStartImmediately: true,
+  isFreeVoting: true,
 })
 
 const buildAdReviewVotingOption = option => ({
