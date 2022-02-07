@@ -1,16 +1,19 @@
-import {Box} from '@chakra-ui/react'
-import {margin, rem} from 'polished'
-import {SubHeading} from '../../shared/components'
-import theme from '../../shared/theme'
+import {Box, Heading} from '@chakra-ui/react'
 
 // eslint-disable-next-line react/prop-types
 export function Section({title, children}) {
   return (
-    <Box my={rem(theme.spacings.medium32)}>
-      <SubHeading css={margin(0, 0, theme.spacings.small, 0)}>
+    <Box my={8}>
+      <Heading
+        as="h1"
+        fontSize="lg"
+        fontWeight={500}
+        textAlign={['center', 'start']}
+        mb={[0, '0.5em']}
+      >
         {title}
-      </SubHeading>
-      <Box my={rem(theme.spacings.small8)}>{children}</Box>
+      </Heading>
+      <Box my="8px">{children}</Box>
     </Box>
   )
 }

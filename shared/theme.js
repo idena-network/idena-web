@@ -129,6 +129,7 @@ export const uiTheme = {
     gray: {
       50: 'rgb(245 246 247)',
       '030': 'rgb(83 86 92 /0.30)',
+      '064': 'rgb(83 86 92 /0.64)',
       '080': 'rgb(83 86 92 /0.80)',
       100: 'rgb(232 234 237)',
       200: 'rgb(210 212 217)',
@@ -275,6 +276,18 @@ export const uiTheme = {
             borderRadius: 'md',
           },
         },
+        dark: {
+          container: {
+            borderColor: 'white',
+            _checked: {
+              bg: 'gray.500',
+            },
+            _disabled: {
+              bg: 'none',
+              borderColor: 'gray.300',
+            },
+          },
+        },
         mobile: {
           container: {
             bg: 'gray.50',
@@ -284,6 +297,23 @@ export const uiTheme = {
             borderRadius: 'md',
             _checked: {
               bg: 'blue.010',
+            },
+          },
+          control: {w: 5, h: 5},
+          label: {
+            fontSize: 'base',
+            fontWeight: '500',
+            ml: 4,
+          },
+        },
+        mobileDark: {
+          container: {
+            bg: 'xwhite.010',
+            width: '100%',
+            height: 14,
+            borderRadius: 'md',
+            _checked: {
+              bg: 'xblack.016',
             },
           },
           control: {w: 5, h: 5},
@@ -388,6 +418,25 @@ export const uiTheme = {
           _active: {
             bg: 'gray.50',
             color: 'blue.500',
+          },
+        },
+        tabMobile: {
+          color: 'gray.500',
+          fontSize: 'mobile',
+          borderRadius: '8px',
+          h: '34px',
+          w: '100%',
+          _hover: {
+            bg: 'gray.500',
+            color: 'white',
+          },
+          _selected: {
+            bg: 'gray.500',
+            color: 'white',
+          },
+          _active: {
+            bg: 'gray.500',
+            color: 'white',
           },
         },
       },

@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
-import {Alert, AlertIcon, FormControl, Stack} from '@chakra-ui/react'
+import {Alert, AlertIcon, FormControl, Stack, useBreakpointValue, useMediaQuery} from '@chakra-ui/react'
 import {Link} from '../../shared/components'
 import theme, {rem} from '../../shared/theme'
 import Flex from '../../shared/components/flex'
@@ -26,6 +26,10 @@ function Settings() {
   const {addNotification} = useNotificationDispatch()
   const settingsState = useSettingsState()
   const {saveConnection} = useSettingsDispatch()
+
+  const [isDesktop] = useMediaQuery('(min-width: 481px)')
+  const size = useBreakpointValue(['lg', 'md'])
+  const fontSize = useBreakpointValue(['16px', '13px'])
 
   const [state, setState] = useState({
     url: settingsState.url || '',
@@ -63,7 +67,7 @@ function Settings() {
 
   return (
     <SettingsLayout>
-      <Stack spacing={5} mt={rem(20)} width={rem(480)}>
+      <Stack spacing={5} mt={rem(20)} width={['100%', '480px']}>
         {settingsState.apiKeyState === apiKeyStates.RESTRICTED && (
           <Alert
             status="error"
@@ -105,32 +109,34 @@ function Settings() {
           )}
         <FormControl>
           <Flex justify="space-between">
-            <FormLabel color="brandGray.500" mb={2}>
+            <FormLabel fontSize={['base', 'md']} color="brandGray.500" mb={2}>
               {t('Shared node URL')}
             </FormLabel>
             <Flex>
               <Link
                 href="/node/rent"
                 color={theme.colors.primary}
-                fontSize={rem(13)}
+                fontSize={fontSize}
                 style={{fontWeight: 500}}
               >
-                {t('Rent a new node')} {'>'}
+                {t('Rent a new node')} {isDesktop && '>'}
               </Link>
             </Flex>
           </Flex>
           <Input
             id="url"
+            size={size}
             value={state.url}
             onChange={e => setState({...state, url: e.target.value})}
           />
         </FormControl>
         <FormControl>
-          <FormLabel color="brandGray.500" mb={2}>
+          <FormLabel fontSize={['base', 'md']} color="brandGray.500" mb={2}>
             {t('Node API key')}
           </FormLabel>
           <PasswordInput
             id="key"
+            size={size}
             value={state.apiKey}
             onChange={e => setState({...state, apiKey: e.target.value})}
           ></PasswordInput>
@@ -156,6 +162,8 @@ function Settings() {
 
         <Flex justify="space-between">
           <PrimaryButton
+            size={size}
+            w={['100%', 'auto']}
             onClick={() => {
               saveConnection(state.url, state.apiKey)
               notify()
