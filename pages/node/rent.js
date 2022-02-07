@@ -415,13 +415,15 @@ export default function Rent() {
         </Stack>
       </Page>
 
-      <ProviderInfoDrawer
-        p={selectedProvider}
-        identity={identity}
-        isOpen={isOpenRentDetailDrawer}
-        onClose={onCloseRentDetailDrawer}
-        onSubmit={buySharedNodeDisclosure.onOpen}
-      />
+      {selectedProvider && identity && (
+        <ProviderInfoDrawer
+          p={selectedProvider}
+          identity={identity}
+          isOpen={isOpenRentDetailDrawer}
+          onClose={onCloseRentDetailDrawer}
+          onSubmit={buySharedNodeDisclosure.onOpen}
+        />
+      )}
 
       <BuySharedNodeForm
         {...buySharedNodeDisclosure}
