@@ -157,8 +157,8 @@ function ProviderInfoDrawer({p, identity, onClose, onSubmit, ...props}) {
           <ProviderInfoRow title="Node URL">
             <Text color="brandBlue.500">{p.data.url}</Text>
           </ProviderInfoRow>
-          <ProviderInfoRow title="Website">
-            <Text color="brandBlue.500">{p.data.url}</Text>
+          <ProviderInfoRow display="none" title="Website">
+            <Text color="brandBlue.500">FILL_WEBSITE</Text>
           </ProviderInfoRow>
           <ProviderInfoRow title="Owner">
             <Text color="brandBlue.500">{p.data.ownerName}</Text>
@@ -172,7 +172,9 @@ function ProviderInfoDrawer({p, identity, onClose, onSubmit, ...props}) {
                 <Text color="gray.500" mr={1}>
                   {p.slots}
                 </Text>
-                <Text color="muted">/ FILL</Text>
+                <Text display="none" color="muted">
+                  / FILL
+                </Text>
               </Flex>
             </ProviderInfoRow>
             <ProviderInfoRow title="Price per validator" w="47%">
@@ -181,10 +183,10 @@ function ProviderInfoDrawer({p, identity, onClose, onSubmit, ...props}) {
               </Text>
             </ProviderInfoRow>
           </Flex>
-          <ProviderInfoRow title="Users for the last validation">
+          <ProviderInfoRow display="none" title="Users for the last validation">
             <Text color="muted">FILL_USERS</Text>
           </ProviderInfoRow>
-          <Flex justify="space-between">
+          <Flex display="none" justify="space-between">
             <ProviderInfoRow title="Success ratio" w="47%">
               <Text color="muted">FILL_RATIO</Text>
             </ProviderInfoRow>
@@ -233,9 +235,6 @@ export default function Rent() {
     onOpen: onOpenRentDetailDrawer,
     onClose: onCloseRentDetailDrawer,
   } = useDisclosure()
-
-  const sharedNodeRating = '5.0'
-  const sharedNodeCapacity = '1000'
 
   const sortedProviders = providers
     .filter(x => Boolean(x.slots))
@@ -306,10 +305,8 @@ export default function Rent() {
                             onOpenRentDetailDrawer()
                           }}
                         >
-                          <Flex
-                            justifyContent={['space-between', 'flex-start']}
-                          >
-                            <Flex direction="column" maxW={['80%', 'initial']}>
+                          <Flex justifyContent="flex-start">
+                            <Flex direction="column" maxW={['100%', 'initial']}>
                               <Text
                                 fontSize={['mdx', 'md']}
                                 fontWeight={[500, 400]}
@@ -319,13 +316,13 @@ export default function Rent() {
                               </Text>
                               <ProviderStatus url={p.data.url}></ProviderStatus>
                             </Flex>
-                            <Flex display={['flex', 'none']}>
+                            <Flex display="none">
                               <Text
                                 fontSize="mdx"
                                 fontWeight={500}
                                 color="gray.064"
                               >
-                                {sharedNodeRating}
+                                FILL_RATING
                               </Text>
                               <SoftStarIcon mt="3px" ml="3px" h={4} w={4} />
                             </Flex>
@@ -346,7 +343,7 @@ export default function Rent() {
                                 <Text color="gray.500" mr={1}>
                                   {p.slots}
                                 </Text>
-                                <Text>{`/ ${sharedNodeCapacity}`}</Text>
+                                <Text display="none">/ FILL_SLOTS</Text>
                               </Flex>
                             </Flex>
                             <Flex
