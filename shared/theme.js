@@ -132,6 +132,7 @@ export const uiTheme = {
       '080': 'rgb(83 86 92 /0.80)',
       100: 'rgb(232 234 237)',
       200: 'rgb(210 212 217)',
+      212: 'rgb(210 212 217 /0.12)',
       300: 'rgb(150 153 158)',
       500: 'rgb(83 86 92)',
       600: 'rgb(83 86 92)',
@@ -472,6 +473,13 @@ export const uiTheme = {
       variants: {
         mobile: {
           dialogContainer: {alignItems: 'flex-end'},
+        },
+        primaryMobile: {
+          overlay: {zIndex: 1401},
+          dialogContainer: {
+            zIndex: 1401,
+            alignItems: 'flex-end',
+          },
         },
       },
       sizes: {

@@ -43,6 +43,8 @@ import {
   DialogBody,
   DialogFooter,
   DrawerFooter,
+  Drawer,
+  DrawerBody,
 } from '../../shared/components/components'
 import {
   availableReportsNumber,
@@ -798,26 +800,6 @@ export function NavButton({type, bg, color, ...props}) {
   )
 }
 
-export function WelcomeKeywordsQualificationDialog(props) {
-  const {t} = useTranslation()
-  return (
-    <ValidationDialog
-      title={t('Your answers are not yet submitted')}
-      submitText={t('Ok, I understand')}
-      {...props}
-    >
-      <ValidationDialogBody>
-        <Text>
-          {t('Please qualify the keywords relevance and submit the answers.')}
-        </Text>
-        <Text>
-          {t('The flips with irrelevant keywords will be penalized.')}
-        </Text>
-      </ValidationDialogBody>
-    </ValidationDialog>
-  )
-}
-
 export function ValidationTimer({validationStart, duration}) {
   const adjustedDuration = useMemo(
     () => adjustDuration(validationStart, duration),
@@ -1336,6 +1318,21 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
 
   const [flipCase, setFlipCase] = React.useState(0)
 
+  const isDesktop = useBreakpointValue([true, false])
+  const BadFlipNotice = isDesktop ? Drawer : Modal
+  const BadFlipNoticeBody = isDesktop ? DrawerBody : ModalContent
+
+  const badFlipDialogHandlers = useSwipeable({
+    onSwipedLeft: () => {
+      setFlipCase(flipCase === 4 ? flipCase : flipCase + 1)
+    },
+    onSwipedRight: () => {
+      setFlipCase(flipCase === 0 ? flipCase : flipCase - 1)
+    },
+    preventDefaultTouchmoveEvent: true,
+    trackMouse: true,
+  })
+
   const dirs = [
     '1-keywords-vase-coffee',
     '2-numbers',
@@ -1355,138 +1352,226 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
   const nextButtonRef = React.useRef()
 
   return (
-    <Modal
+    <BadFlipNotice
       isOpen={isOpen}
       isCentered
+      isCloseable={false}
       initialFocusRef={nextButtonRef}
-      size={664}
+      size={['full', 664]}
       onClose={onClose}
       {...props}
     >
-      <ModalOverlay bg="xblack.080" />
-      <ModalContent
+      <ModalOverlay display={['none', 'block']} bg="xblack.080" />
+      <BadFlipNoticeBody
+        className="block-swipe-nav"
+        display={['flex', 'block']}
+        flexDirection="column"
         bg="transparent"
         color="brandGray.500"
         fontSize="md"
-        rounded="lg"
+        rounded={['none', 'lg']}
         w="auto"
       >
-        <Stack isInline spacing={7} justify="center">
-          <Stack
-            spacing={0}
-            borderColor="brandGray.016"
-            borderWidth={1}
-            minW={120}
-            position="relative"
+        <ChakraFlex display={['initial', 'none']} textAlign="center" w="100%">
+          <Text fontSize="base" fontWeight="bold" mb={9}>
+            What is a bad flip?
+          </Text>
+          <Button
+            position="absolute"
+            top="14px"
+            right={4}
+            p={0}
+            fontSize="base"
+            fontWeight="normal"
+            variant="primaryFlat"
+            onClick={onClose}
           >
-            <BadFlipPartFrame flipCase={flipCase} />
-            <BadFlipImage src={flipUrl(flipCase, 1)} roundedTop="md" />
-            <BadFlipImage src={flipUrl(flipCase, 2)} />
-            <BadFlipImage src={flipUrl(flipCase, 3)} />
-            <BadFlipImage src={flipUrl(flipCase, 4)} roundedBottom="md" />
-          </Stack>
+            {t('Done')}
+          </Button>
+        </ChakraFlex>
+        <div
+          style={{display: 'flex', flexGrow: '1'}}
+          {...badFlipDialogHandlers}
+        >
           <ChakraFlex
-            direction="column"
-            justify="space-between"
-            spacing={7}
-            bg="white"
-            borderRadius="lg"
-            p={8}
-            w={440}
+            direction={['column', 'row']}
+            justify="center"
+            align="center"
+            flexGrow={1}
           >
-            <Stack spacing={4}>
-              <ChakraBox>
-                <Heading fontSize="lg" fontWeight={500} lineHeight="32px">
-                  {title}
-                </Heading>
-                <Text color="muted">{subtitle}</Text>
-              </ChakraBox>
-              <List as="ul">
-                <BadFlipListItem
-                  flipCase={0}
-                  description={
-                    <Trans t={t} i18nKey="badFlipKeywordsVaseCoffee">
-                      Vase /{' '}
-                      <Text as="span" color="red.500">
-                        Coffee
-                      </Text>
-                      . 'Coffee' keyword can not be found on the images
-                    </Trans>
-                  }
-                  isActive={flipCase === 0}
-                  onClick={() => {
-                    setFlipCase(0)
-                  }}
-                >
-                  {t('One of the keywords is not clearly visible in the story')}
-                </BadFlipListItem>
-                <BadFlipListItem
-                  flipCase={1}
-                  isActive={flipCase === 1}
-                  onClick={() => {
-                    setFlipCase(1)
-                  }}
-                >
-                  {t('There are numbers or letters indicating the order')}
-                </BadFlipListItem>
-                <BadFlipListItem
-                  flipCase={2}
-                  isActive={flipCase === 2}
-                  onClick={() => {
-                    setFlipCase(2)
-                  }}
-                >
-                  {t('There is a sequence of enumerated objects')}
-                </BadFlipListItem>
-                <BadFlipListItem
-                  flipCase={3}
-                  description={t(
-                    'Some of the Idena users can not not read your the text in your local language'
-                  )}
-                  isActive={flipCase === 3}
-                  onClick={() => {
-                    setFlipCase(3)
-                  }}
-                >
-                  {t(
-                    'There is text that is necessary to read to solve the flip'
-                  )}
-                </BadFlipListItem>
-                <BadFlipListItem
-                  flipCase={4}
-                  isActive={flipCase === 4}
-                  onClick={() => {
-                    setFlipCase(4)
-                  }}
-                >
-                  {t('There is inappropriate content')}
-                </BadFlipListItem>
-              </List>
+            <Stack
+              spacing={0}
+              borderColor="brandGray.016"
+              borderWidth={[0, 1]}
+              flexGrow={1}
+              minW={['42%', 120]}
+              position="relative"
+            >
+              <BadFlipPartFrame flipCase={flipCase} />
+              <BadFlipImage src={flipUrl(flipCase, 1)} roundedTop="md" />
+              <BadFlipImage src={flipUrl(flipCase, 2)} />
+              <BadFlipImage src={flipUrl(flipCase, 3)} />
+              <BadFlipImage src={flipUrl(flipCase, 4)} roundedBottom="md" />
             </Stack>
-            <Stack isInline justify="flex-end">
-              <SecondaryButton onClick={onClose}>{t('Skip')}</SecondaryButton>
-              <PrimaryButton
-                ref={nextButtonRef}
-                onClick={() => {
-                  if (flipCase === dirs.length - 1) onClose()
-                  else setFlipCase(flipCase + 1)
-                }}
-              >
-                {flipCase === dirs.length - 1
-                  ? t('Ok, I understand')
-                  : t('Next')}
-              </PrimaryButton>
-            </Stack>
+            <ChakraFlex
+              direction="column"
+              justify="space-between"
+              spacing={7}
+              bg="white"
+              borderRadius="lg"
+              ml={[0, 7]}
+              p={[0, 8]}
+              w={['100%', 440]}
+            >
+              <Stack mt={[4, 0]} spacing={[5, 4]}>
+                <ChakraBox display={['none', 'block']}>
+                  <Heading fontSize="lg" fontWeight={500} lineHeight="32px">
+                    {title}
+                  </Heading>
+                  <Text color="muted">{subtitle}</Text>
+                </ChakraBox>
+                <List
+                  as="ul"
+                  id="bad-flips"
+                  p={['28px', 0]}
+                  borderRadius={['8px', 0]}
+                  backgroundColor={['gray.50', 'transparent']}
+                >
+                  <BadFlipListItem
+                    flipCase={0}
+                    description={
+                      <Trans t={t} i18nKey="badFlipKeywordsVaseCoffee">
+                        Vase /{' '}
+                        <Text as="span" color="red.500">
+                          Coffee
+                        </Text>
+                        . 'Coffee' keyword can not be found on the images
+                      </Trans>
+                    }
+                    isActive={flipCase === 0}
+                    onClick={() => {
+                      setFlipCase(0)
+                    }}
+                  >
+                    {t(
+                      'One of the keywords is not clearly visible in the story'
+                    )}
+                  </BadFlipListItem>
+                  <BadFlipListItem
+                    flipCase={1}
+                    isActive={flipCase === 1}
+                    onClick={() => {
+                      setFlipCase(1)
+                    }}
+                  >
+                    {t('There are numbers or letters indicating the order')}
+                  </BadFlipListItem>
+                  <BadFlipListItem
+                    flipCase={2}
+                    isActive={flipCase === 2}
+                    onClick={() => {
+                      setFlipCase(2)
+                    }}
+                  >
+                    {t('There is a sequence of enumerated objects')}
+                  </BadFlipListItem>
+                  <BadFlipListItem
+                    flipCase={3}
+                    description={t(
+                      'Some of the Idena users can not not read your the text in your local language'
+                    )}
+                    isActive={flipCase === 3}
+                    onClick={() => {
+                      setFlipCase(3)
+                    }}
+                  >
+                    {t(
+                      'There is text that is necessary to read to solve the flip'
+                    )}
+                  </BadFlipListItem>
+                  <BadFlipListItem
+                    flipCase={4}
+                    isActive={flipCase === 4}
+                    onClick={() => {
+                      setFlipCase(4)
+                    }}
+                  >
+                    {t('There is inappropriate content')}
+                  </BadFlipListItem>
+                </List>
+                <ChakraFlex
+                  display={['flex', 'none']}
+                  justify="center"
+                  h={12}
+                  w="100%"
+                >
+                  <BadFlipListItemMobile
+                    isActive={flipCase === 0}
+                    number={1}
+                    onClick={() => {
+                      setFlipCase(0)
+                    }}
+                  />
+                  <BadFlipListItemMobile
+                    isActive={flipCase === 1}
+                    number={2}
+                    onClick={() => {
+                      setFlipCase(1)
+                    }}
+                  />
+                  <BadFlipListItemMobile
+                    isActive={flipCase === 2}
+                    number={3}
+                    onClick={() => {
+                      setFlipCase(2)
+                    }}
+                  />
+                  <BadFlipListItemMobile
+                    isActive={flipCase === 3}
+                    number={4}
+                    onClick={() => {
+                      setFlipCase(3)
+                    }}
+                  />
+                  <BadFlipListItemMobile
+                    isActive={flipCase === 4}
+                    number={5}
+                    onClick={() => {
+                      setFlipCase(4)
+                    }}
+                  />
+                </ChakraFlex>
+              </Stack>
+              <Stack display={['none', 'flex']} isInline justify="flex-end">
+                <SecondaryButton onClick={onClose}>{t('Skip')}</SecondaryButton>
+                <PrimaryButton
+                  ref={nextButtonRef}
+                  onClick={() => {
+                    if (flipCase === dirs.length - 1) onClose()
+                    else setFlipCase(flipCase + 1)
+                  }}
+                >
+                  {flipCase === dirs.length - 1
+                    ? t('Ok, I understand')
+                    : t('Next')}
+                </PrimaryButton>
+              </Stack>
+            </ChakraFlex>
           </ChakraFlex>
-        </Stack>
-      </ModalContent>
-    </Modal>
+        </div>
+      </BadFlipNoticeBody>
+    </BadFlipNotice>
   )
 }
 
 function BadFlipImage(props) {
   return (
-    <AspectRatio ratio={4 / 3} h={100}>
+    <AspectRatio
+      ratio={4 / 3}
+      h={['50px', '100px']}
+      display="flex"
+      flexGrow="0.25"
+    >
       <Image {...props} />
     </AspectRatio>
   )
@@ -1500,18 +1585,27 @@ function BadFlipListItem({
   ...props
 }) {
   return (
-    <ListItem py={2} cursor="pointer" {...props}>
-      <Stack isInline>
+    <ListItem
+      display={[isActive ? 'list-item' : 'none', 'list-item']}
+      name={`badFlip${flipCase}`}
+      py={2}
+      cursor="pointer"
+      {...props}
+    >
+      <Stack isInline spacing={[0, 2]}>
         <BadFlipListItemCircle
+          display={['none', 'flex']}
           bg={isActive ? 'red.500' : 'red.012'}
           color={isActive ? 'white' : 'red.500'}
         >
           {flipCase + 1}
         </BadFlipListItemCircle>
         <Stack spacing={1}>
-          <Text>{children}</Text>
+          <Text fontSize={['lg', 'md']} fontWeight={['500', 'normal']}>
+            {children}
+          </Text>
           {isActive && description && (
-            <Text color="muted" fontSize={12}>
+            <Text color="muted" fontSize={['mdx', '12px']}>
               {description}
             </Text>
           )}
@@ -1537,13 +1631,44 @@ function BadFlipListItemCircle(props) {
   )
 }
 
+function BadFlipListItemMobile({isActive, number, ...props}) {
+  return (
+    <ChakraBox
+      borderRadius="18px"
+      border="1px solid"
+      borderColor={isActive ? 'red.012' : 'transparent'}
+      p="2px"
+      w={12}
+      {...props}
+    >
+      <ChakraFlex
+        justify="center"
+        align="center"
+        borderRadius="16px"
+        bg={isActive ? 'red.012' : 'gray.212'}
+        h="100%"
+        w="100%"
+      >
+        <BadFlipListItemCircle
+          bg={isActive ? 'red.500' : 'gray.200'}
+          color="white"
+        >
+          {number}
+        </BadFlipListItemCircle>
+      </ChakraFlex>
+    </ChakraBox>
+  )
+}
+
 function BadFlipPartFrame({flipCase, ...props}) {
+  const topH = useBreakpointValue(['calc(25% - 4px)', `${100 * 1 - 4}px`])
+  const botH = useBreakpointValue(['calc(50% - 4px)', `${100 * 2 - 4}px`])
   const framePosition = [
     {},
     {},
     {},
-    {top: `${100 * 1 - 4}px`, bottom: `${100 * 2 - 4}px`},
-    {top: `${100 * 1 - 4}px`, bottom: `${100 * 2 - 4}px`},
+    {top: topH, bottom: botH},
+    {top: topH, bottom: botH},
   ]
   return (
     <ChakraBox
@@ -1696,6 +1821,12 @@ export function ValidationScreen({
     isOpen: isReportDialogOpen,
     onOpen: onOpenReportDialog,
     onClose: onCloseReportDialog,
+  } = useDisclosure()
+
+  const {
+    isOpen: isReportTipOpen,
+    onOpen: onOpenReportTip,
+    onClose: onCloseReportTip,
   } = useDisclosure()
 
   const {
@@ -2009,7 +2140,10 @@ export function ValidationScreen({
               <PrimaryButton
                 display={['none', 'inline-flex']}
                 isDisabled={!canSubmit(state)}
-                onClick={() => send('FINISH_FLIPS')}
+                onClick={() => {
+                  onOpenReportTip()
+                  send('FINISH_FLIPS')
+                }}
               >
                 {t('Start checking keywords')}
               </PrimaryButton>
@@ -2018,7 +2152,10 @@ export function ValidationScreen({
                 label={t('Check')}
                 isDisabled={!canSubmit(state)}
                 isDark={isShortSession(state)}
-                onClick={() => send('FINISH_FLIPS')}
+                onClick={() => {
+                  onOpenReportTip()
+                  send('FINISH_FLIPS')
+                }}
               >
                 <ArrowBackIcon
                   fill={canSubmit(state) ? 'brandBlue.500' : 'gray.200'}
@@ -2095,16 +2232,6 @@ export function ValidationScreen({
           onSubmit={() => send('START_LONG_SESSION')}
         />
       )}
-      {state.matches('longSession.solve.answer.finishFlips') && (
-        <WelcomeKeywordsQualificationDialog
-          isOpen
-          isDesktop={isDesktop}
-          onSubmit={() => {
-            flipsToLeft()
-            send('START_KEYWORDS_QUALIFICATION')
-          }}
-        />
-      )}
 
       {state.matches('validationFailed') && (
         <ValidationFailedDialog
@@ -2117,6 +2244,33 @@ export function ValidationScreen({
           }
         />
       )}
+
+      <Dialog
+        isOpen={!isDesktop && isReportTipOpen}
+        title="Earn rewards for reporting"
+        variant="primaryMobile"
+        onClose={onCloseReportTip}
+      >
+        <DrawerBody>
+          <ChakraFlex direction="column">
+            <Text fontSize="base" color="muted">
+              {t(
+                'Report bad flips and get rewarded if these flips are reported by more that 50% of other participants.'
+              )}
+            </Text>
+            <Button
+              onClick={onCloseReportTip}
+              fontSize="mobile"
+              fontWeight={500}
+              mt={4}
+              h={10}
+              variant="primaryFlat"
+            >
+              {t('Read more')}
+            </Button>
+          </ChakraFlex>
+        </DrawerBody>
+      </Dialog>
 
       <BadFlipDialog
         isOpen={
