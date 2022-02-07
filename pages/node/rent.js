@@ -161,13 +161,20 @@ function ProviderInfoDrawer({p, identity, onClose, onSubmit, ...props}) {
             <Text color="brandBlue.500">FILL_WEBSITE</Text>
           </ProviderInfoRow>
           <ProviderInfoRow title="Owner">
-            <Text color="brandBlue.500">{p.data.ownerName}</Text>
+            <Link
+              target="_blank"
+              rel="noreferrer"
+              color="brandBlue.500"
+              href={`https://t.me/${p.data.ownerName}`}
+            >
+              {p.data.ownerName}
+            </Link>
           </ProviderInfoRow>
           <ProviderInfoRow title="Location">
             <Text color="muted">{p.data.location}</Text>
           </ProviderInfoRow>
           <Flex justify="space-between">
-            <ProviderInfoRow title="Slots available" w="47%">
+            <ProviderInfoRow title="Slots available" w="46%">
               <Flex>
                 <Text color="gray.500" mr={1}>
                   {p.slots}
@@ -177,7 +184,7 @@ function ProviderInfoDrawer({p, identity, onClose, onSubmit, ...props}) {
                 </Text>
               </Flex>
             </ProviderInfoRow>
-            <ProviderInfoRow title="Price per validator" w="47%">
+            <ProviderInfoRow title="Price per validation" w="50%">
               <Text color="muted">
                 {GetProviderPrice(p.data, identity?.state)} iDNA
               </Text>

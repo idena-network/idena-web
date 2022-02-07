@@ -38,7 +38,7 @@ export function Hamburger({onClick, ...props}) {
       position="absolute"
       top={4}
       right={4}
-      zIndex={2}
+      zIndex={7}
       onClick={onClick}
       display={['flex', 'none']}
       {...props}

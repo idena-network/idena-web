@@ -16,6 +16,7 @@ function SettingsLayout({children}) {
       <Page>
         <Flex
           position={['fixed', 'initial']}
+          backgroundColor={['white', 'initial']}
           top={[0, 'initial']}
           left={[0, 'initial']}
           direction="column"
@@ -25,6 +26,7 @@ function SettingsLayout({children}) {
           px={[8, 0]}
           h={['128px', 'auto']}
           w={['100%', 'auto']}
+          zIndex={[6, 'auto']}
         >
           <PageTitle fontSize={['base', 'xl']} fontWeight={[600, 500]}>
             {t('Settings')}
