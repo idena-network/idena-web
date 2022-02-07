@@ -156,7 +156,12 @@ export function PasswordInput({width, ...props}) {
         width,
       }}
     >
-      <Input type={show ? 'text' : 'password'} opacity={[0.8, 1]} {...props} />
+      <Input
+        type={show ? 'text' : 'password'}
+        pr={[8, 3]}
+        opacity={[0.8, 1]}
+        {...props}
+      />
       <Box
         mt={['5px', '-3px']}
         opacity={[0.16, 1]}
