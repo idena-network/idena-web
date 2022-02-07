@@ -312,19 +312,14 @@ export default function Rent() {
                           <Flex
                             justifyContent={['space-between', 'flex-start']}
                           >
-                            <Flex
-                              direction="column"
-                              textOverflow={['ellipsis', 'initial']}
-                              overflow={['hidden', 'auto']}
-                              maxW={['80%', 'initial']}
-                              whiteSpace={['nowrap', 'initial']}
-                            >
-                              <Flex
+                            <Flex direction="column" maxW={['80%', 'initial']}>
+                              <Text
                                 fontSize={['mdx', 'md']}
                                 fontWeight={[500, 400]}
+                                isTruncated
                               >
                                 {p.data.url}
-                              </Flex>
+                              </Text>
                               <ProviderStatus url={p.data.url}></ProviderStatus>
                             </Flex>
                             <Flex display={['flex', 'none']}>
