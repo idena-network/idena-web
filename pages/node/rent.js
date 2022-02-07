@@ -157,9 +157,6 @@ function ProviderInfoDrawer({p, identity, onClose, onSubmit, ...props}) {
           <ProviderInfoRow title="Node URL">
             <Text color="brandBlue.500">{p.data.url}</Text>
           </ProviderInfoRow>
-          <ProviderInfoRow title="Status">
-            <ProviderStatus url={p.data.url} color="muted" fontSize="base" />
-          </ProviderInfoRow>
           <ProviderInfoRow title="Website">
             <Text color="brandBlue.500">{p.data.url}</Text>
           </ProviderInfoRow>
