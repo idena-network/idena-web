@@ -42,12 +42,7 @@ export function Notification({
 
   return (
     !hidden && (
-      <div
-        style={{
-          ...margin(0, 0, rem(20)),
-          zIndex: 100,
-        }}
-      >
+      <Flex justify="center" mb={5} zIndex={100}>
         <Flex
           align="center"
           background={bg}
@@ -134,7 +129,7 @@ export function Notification({
             }
           }
         `}</style>
-      </div>
+      </Flex>
     )
   )
 }
