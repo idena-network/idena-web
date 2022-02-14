@@ -33,14 +33,10 @@ import {
   SmallInlineAdStat,
   BurnDrawer,
 } from '../../screens/ads/containers'
-import {
-  useAdList,
-  useBalance,
-  useRecentBurnAmount,
-} from '../../screens/ads/hooks'
+import {useAdList, useBalance} from '../../screens/ads/hooks'
 import {AdStatus} from '../../screens/ads/types'
 import {useSuccessToast} from '../../shared/hooks/use-toast'
-import {Menu, VDivider} from '../../shared/components/components'
+import {FloatDebug, Menu, VDivider} from '../../shared/components/components'
 import IconLink from '../../shared/components/icon-link'
 import {
   PlusSolidIcon,
@@ -78,6 +74,7 @@ export default function AdListPage() {
       isPublishing,
       isSendingToReview,
       isMining,
+      state,
     },
     {
       filter: filterList,
@@ -336,6 +333,8 @@ export default function AdListPage() {
             toast('🔥🔥🔥')
           }}
         />
+
+        <FloatDebug>{state}</FloatDebug>
       </Page>
     </Layout>
   )

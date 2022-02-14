@@ -35,8 +35,7 @@ import {
   buildContractDeploymentArgs,
   createContractCaller,
   fetchNetworkSize,
-  fetchOracleRewardsEstimates,
-  minOracleRewardFromEstimates,
+  minOracleReward,
   votingBalance,
   votingMinStake,
 } from '../oracles/utils'
@@ -175,11 +174,12 @@ const adListMachine = createMachine({
             mineDeployVoting: {
               invoke: {src: 'mineDeployVoting'},
               on: {
-                MINED: 'startVoting',
-                MINING_FAILED: 'miningFailed',
+                MINED: {target: 'startVoting', actions: [log()]},
+                MINING_FAILED: {target: 'miningFailed', actions: [log()]},
               },
             },
             startVoting: {
+              entry: [log()],
               invoke: {
                 src: 'startVoting',
                 onDone: {
@@ -458,15 +458,11 @@ export function useAdList() {
       mineDeployVoting: (_, {data: {deployVotingTxHash}}) => cb =>
         pollContractTx(deployVotingTxHash, cb),
       startVoting: async ({selectedAd, oracleAmount}) => {
-        const minOracleReward = minOracleRewardFromEstimates(
-          await fetchOracleRewardsEstimates(100)
-        )
-
         const committeeSize = await fetchNetworkSize()
 
         const minContractBalance = Math.max(
           Number.isFinite(oracleAmount) ? Number(oracleAmount) : 0,
-          votingBalance({oracleReward: minOracleReward, committeeSize})
+          votingBalance({oracleReward: await minOracleReward(), committeeSize})
         )
 
         const {balance} = await callRpc('dna_getBalance', coinbase)
@@ -550,6 +546,7 @@ export function useAdList() {
 
   return [
     {
+      state: current.value,
       ...current.context,
       ads: current.context.filteredAds,
       isReady: eitherCurrentState('ready'),

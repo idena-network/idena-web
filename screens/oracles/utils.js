@@ -20,9 +20,7 @@ export const setVotingStatus = status =>
     status,
   })
 
-// const prodApiResolver = createApiUrlResolver('https://api.idena.io/api')
-
-export const resolveApiUrl = path => testApiResolver(path)
+export const resolveApiUrl = createApiUrlResolver('https://api.idena.io/api')
 
 function createApiUrlResolver(host) {
   return (...paths) => new URL(paths.join('/'), host)
@@ -131,13 +129,14 @@ export async function fetchContractBalanceUpdates({
 }
 
 export async function fetchNetworkSize() {
-  const {result, error} = await (
-    await fetch(resolveApiUrl('onlineidentities/count'))
-  ).json()
+  return 4
+  // const {result, error} = await (
+  //   await fetch(resolveApiUrl('onlineidentities/count'))
+  // ).json()
 
-  if (error) throw new Error(error.message)
+  // if (error) throw new Error(error.message)
 
-  return result
+  // return result
 }
 
 export async function fetchVoting({id, contractHash = id, address}) {
@@ -362,10 +361,6 @@ export function hasWinner({
       )
 }
 
-export function minOracleReward(feePerGas) {
-  return dnaFeePerGas(feePerGas) * 100 * 100
-}
-
 export function votingMinStake(feePerGas) {
   return 3000000 * dnaFeePerGas(feePerGas)
 }
@@ -564,6 +559,10 @@ export function mapVotingStatus(status) {
 
 export function minOracleRewardFromEstimates(data) {
   return Number(data.find(({type}) => type === 'min')?.amount)
+}
+
+export async function minOracleReward() {
+  return 5000 / (await fetchNetworkSize())
 }
 
 export const effectiveBalance = ({balance, ownerFee}) =>
