@@ -8,8 +8,6 @@ import {fetchEpoch} from '../api'
 
 const EpochContext = React.createContext()
 
-const REFETCH_EPOCH_MIN_INTERVAL = 15
-
 const shouldRefetchEpoch = (epochData, timing) => {
   if (!epochData || !timing) return false
 
@@ -52,6 +50,19 @@ const shouldRefetchEpoch = (epochData, timing) => {
   return false
 }
 
+function getRefetchIntervalSec(epochData) {
+  const {currentPeriod} = epochData
+
+  switch (currentPeriod) {
+    case EpochPeriod.FlipLottery:
+      return 2
+    case EpochPeriod.ShortSession:
+      return 5
+    default:
+      return 15
+  }
+}
+
 export function EpochProvider(props) {
   const queryClient = useQueryClient()
   const {apiKey, url} = useSettingsState()
@@ -75,14 +86,14 @@ export function EpochProvider(props) {
       if (
         Math.abs(
           currentTime - lastModifiedEpochTime >
-            REFETCH_EPOCH_MIN_INTERVAL * 1000
+            getRefetchIntervalSec(epochData) * 1000
         )
       ) {
         queryClient.invalidateQueries('get-epoch')
         setLastModifiedEpochTime(new Date().getTime())
       }
     }
-  }, 3 * 1000)
+  }, 1000)
 
   return <EpochContext.Provider {...props} value={epochData ?? null} />
 }
