@@ -26,7 +26,6 @@ import {
   shouldTranslate,
   availableReportsNumber,
   decodedWithoutKeywords,
-  webClientType,
 } from './utils'
 import {forEachAsync, wait} from '../../shared/utils/fn'
 import {fetchConfirmedKeywordTranslations} from '../flips/utils'
@@ -46,6 +45,7 @@ import {toHexString, hexToUint8Array} from '../../shared/utils/buffers'
 import {ShortAnswerAttachment} from '../../shared/models/shortAnswerAttachment'
 import {LongAnswerAttachment} from '../../shared/models/longAnswerAttachment'
 import db from '../../shared/utils/db'
+import {webClientType} from '../../shared/utils/utils'
 
 export const createValidationFlipsMachine = () =>
   Machine(

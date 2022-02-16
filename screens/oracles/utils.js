@@ -4,7 +4,12 @@ import {BN} from 'bn.js'
 import Decimal from 'decimal.js'
 import urlRegex from 'url-regex-safe'
 import {TxType, VotingStatus} from '../../shared/types'
-import {callRpc, roundToPrecision, toLocaleDna} from '../../shared/utils/utils'
+import {
+  callRpc,
+  roundToPrecision,
+  toLocaleDna,
+  webClientType,
+} from '../../shared/utils/utils'
 import {strip} from '../../shared/utils/obj'
 import {DeferredVoteType, VotingListFilter} from './types'
 import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
@@ -165,7 +170,11 @@ export const deployContract = async (
 ) => {
   const args = buildContractDeploymentArgs(voting)
 
-  const payload = new DeployContractAttachment('0x02', argsToSlice(args))
+  const payload = new DeployContractAttachment(
+    '0x02',
+    argsToSlice(args),
+    webClientType
+  )
 
   const builtTx = await getRawTx(
     TxType.DeployContractTx,
@@ -188,7 +197,11 @@ export const estimateDeployContract = async (
 ) => {
   const args = buildContractDeploymentArgs(voting)
 
-  const payload = new DeployContractAttachment('0x02', argsToSlice(args))
+  const payload = new DeployContractAttachment(
+    '0x02',
+    argsToSlice(args),
+    webClientType
+  )
 
   const builtTx = await getRawTx(
     TxType.DeployContractTx,
@@ -215,7 +228,8 @@ export const callContract = async (
 ) => {
   const payload = new CallContractAttachment(
     method,
-    argsToSlice(buildDynamicArgs(args))
+    argsToSlice(buildDynamicArgs(args)),
+    webClientType
   )
 
   const rawTx = await getRawTx(
@@ -240,7 +254,8 @@ export const estimateCallContract = async (
 ) => {
   const payload = new CallContractAttachment(
     method,
-    argsToSlice(buildDynamicArgs(args))
+    argsToSlice(buildDynamicArgs(args)),
+    webClientType
   )
 
   const rawTx = await getRawTx(
@@ -268,7 +283,8 @@ export const terminateContract = async (
   {contractHash, gasCost, txFee, args}
 ) => {
   const payload = new TerminateContractAttachment(
-    argsToSlice(buildDynamicArgs(args))
+    argsToSlice(buildDynamicArgs(args)),
+    webClientType
   )
 
   const rawTx = await getRawTx(
@@ -292,7 +308,8 @@ export const estimateTermiateContract = async (
   {contractHash, args}
 ) => {
   const payload = new TerminateContractAttachment(
-    argsToSlice(buildDynamicArgs(args))
+    argsToSlice(buildDynamicArgs(args)),
+    webClientType
   )
 
   const rawTx = await getRawTx(

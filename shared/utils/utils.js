@@ -1,5 +1,6 @@
 import dayjs from 'dayjs'
 import {useBreakpointValue} from '@chakra-ui/react'
+import {isMobile} from 'react-device-detect'
 import {getRpcParams} from '../api/api-client'
 import {IdentityStatus} from '../types'
 import {stripHexPrefix} from './buffers'
@@ -173,3 +174,11 @@ export function formatDateTimeShort(dt) {
     timeStyle: 'short',
   })
 }
+
+const browserClientType = parseInt(process.env.NEXT_PUBLIC_WEB_CLIENT_TYPE || 3)
+
+const mobileClientType = parseInt(
+  process.env.NEXT_PUBLIC_WEB_CLIENT_TYPE_MOBILE || 4
+)
+
+export const webClientType = isMobile ? mobileClientType : browserClientType

@@ -3317,7 +3317,8 @@ proto.models.ProtoDeployContractAttachment.prototype.toObject = function(opt_inc
 proto.models.ProtoDeployContractAttachment.toObject = function(includeInstance, msg) {
   var f, obj = {
     codehash: msg.getCodehash_asB64(),
-    argsList: msg.getArgsList_asB64()
+    argsList: msg.getArgsList_asB64(),
+    clienttype: jspb.Message.getFieldWithDefault(msg, 3, 0)
   };
 
   if (includeInstance) {
@@ -3362,6 +3363,10 @@ proto.models.ProtoDeployContractAttachment.deserializeBinaryFromReader = functio
       var value = /** @type {!Uint8Array} */ (reader.readBytes());
       msg.addArgs(value);
       break;
+    case 3:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setClienttype(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -3402,6 +3407,13 @@ proto.models.ProtoDeployContractAttachment.serializeBinaryToWriter = function(me
   if (f.length > 0) {
     writer.writeRepeatedBytes(
       2,
+      f
+    );
+  }
+  f = message.getClienttype();
+  if (f !== 0) {
+    writer.writeUint32(
+      3,
       f
     );
   }
@@ -3511,6 +3523,24 @@ proto.models.ProtoDeployContractAttachment.prototype.clearArgsList = function() 
 };
 
 
+/**
+ * optional uint32 clientType = 3;
+ * @return {number}
+ */
+proto.models.ProtoDeployContractAttachment.prototype.getClienttype = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.models.ProtoDeployContractAttachment} returns this
+ */
+proto.models.ProtoDeployContractAttachment.prototype.setClienttype = function(value) {
+  return jspb.Message.setProto3IntField(this, 3, value);
+};
+
+
 
 /**
  * List of repeated fields within this message type.
@@ -3551,7 +3581,8 @@ proto.models.ProtoCallContractAttachment.prototype.toObject = function(opt_inclu
 proto.models.ProtoCallContractAttachment.toObject = function(includeInstance, msg) {
   var f, obj = {
     method: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    argsList: msg.getArgsList_asB64()
+    argsList: msg.getArgsList_asB64(),
+    clienttype: jspb.Message.getFieldWithDefault(msg, 3, 0)
   };
 
   if (includeInstance) {
@@ -3596,6 +3627,10 @@ proto.models.ProtoCallContractAttachment.deserializeBinaryFromReader = function(
       var value = /** @type {!Uint8Array} */ (reader.readBytes());
       msg.addArgs(value);
       break;
+    case 3:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setClienttype(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -3636,6 +3671,13 @@ proto.models.ProtoCallContractAttachment.serializeBinaryToWriter = function(mess
   if (f.length > 0) {
     writer.writeRepeatedBytes(
       2,
+      f
+    );
+  }
+  f = message.getClienttype();
+  if (f !== 0) {
+    writer.writeUint32(
+      3,
       f
     );
   }
@@ -3721,6 +3763,24 @@ proto.models.ProtoCallContractAttachment.prototype.clearArgsList = function() {
 };
 
 
+/**
+ * optional uint32 clientType = 3;
+ * @return {number}
+ */
+proto.models.ProtoCallContractAttachment.prototype.getClienttype = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.models.ProtoCallContractAttachment} returns this
+ */
+proto.models.ProtoCallContractAttachment.prototype.setClienttype = function(value) {
+  return jspb.Message.setProto3IntField(this, 3, value);
+};
+
+
 
 /**
  * List of repeated fields within this message type.
@@ -3760,7 +3820,8 @@ proto.models.ProtoTerminateContractAttachment.prototype.toObject = function(opt_
  */
 proto.models.ProtoTerminateContractAttachment.toObject = function(includeInstance, msg) {
   var f, obj = {
-    argsList: msg.getArgsList_asB64()
+    argsList: msg.getArgsList_asB64(),
+    clienttype: jspb.Message.getFieldWithDefault(msg, 2, 0)
   };
 
   if (includeInstance) {
@@ -3801,6 +3862,10 @@ proto.models.ProtoTerminateContractAttachment.deserializeBinaryFromReader = func
       var value = /** @type {!Uint8Array} */ (reader.readBytes());
       msg.addArgs(value);
       break;
+    case 2:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setClienttype(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -3834,6 +3899,13 @@ proto.models.ProtoTerminateContractAttachment.serializeBinaryToWriter = function
   if (f.length > 0) {
     writer.writeRepeatedBytes(
       1,
+      f
+    );
+  }
+  f = message.getClienttype();
+  if (f !== 0) {
+    writer.writeUint32(
+      2,
       f
     );
   }
@@ -3898,6 +3970,24 @@ proto.models.ProtoTerminateContractAttachment.prototype.addArgs = function(value
  */
 proto.models.ProtoTerminateContractAttachment.prototype.clearArgsList = function() {
   return this.setArgsList([]);
+};
+
+
+/**
+ * optional uint32 clientType = 2;
+ * @return {number}
+ */
+proto.models.ProtoTerminateContractAttachment.prototype.getClienttype = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+};
+
+
+/**
+ * @param {number} value
+ * @return {!proto.models.ProtoTerminateContractAttachment} returns this
+ */
+proto.models.ProtoTerminateContractAttachment.prototype.setClienttype = function(value) {
+  return jspb.Message.setProto3IntField(this, 2, value);
 };
 
 

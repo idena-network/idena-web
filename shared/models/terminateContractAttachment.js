@@ -1,8 +1,9 @@
 import messages from './proto/models_pb'
 
 export class TerminateContractAttachment {
-  constructor(args) {
+  constructor(args, clientType) {
     this.args = args
+    this.clientType = clientType
   }
 
   fromBytes(bytes) {
@@ -11,6 +12,7 @@ export class TerminateContractAttachment {
     )
 
     this.args = protoAttachment.getArgsList()
+    this.clientType = protoAttachment.getClienttype()
 
     return this
   }
@@ -20,6 +22,7 @@ export class TerminateContractAttachment {
     for (let i = 0; i < this.args.length; i += 1) {
       data.addArgs(new Uint8Array(this.args[i]))
     }
+    data.setClienttype(this.clientType)
     return data.serializeBinary()
   }
 }

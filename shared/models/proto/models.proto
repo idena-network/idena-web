@@ -78,13 +78,16 @@ message ProtoOnlineStatusAttachment {
 message ProtoDeployContractAttachment {
     bytes CodeHash = 1;
     repeated bytes args = 2;
+    uint32 clientType = 3;
 }
 
 message ProtoCallContractAttachment {
     string method = 1;
     repeated bytes args = 2;
+    uint32 clientType = 3;
 }
 
 message ProtoTerminateContractAttachment {
     repeated bytes args = 1;
+    uint32 clientType = 2;
 }
