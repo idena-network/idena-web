@@ -216,6 +216,7 @@ export default function ProfilePage() {
             ref={activateInviteRef}
           >
             <UserInlineCard address={coinbase} state={state} h={['auto', 24]} />
+
             {canActivateInvite && (
               <Box w={['100%', 'initial']} pb={[8, 0]}>
                 <OnboardingPopover

@@ -21,10 +21,12 @@ import {
   MenuItem,
   LinkBox,
   LinkOverlay,
+  MenuDivider,
+  useDisclosure,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
-import {useMachine} from '@xstate/react'
 import {useRouter} from 'next/router'
+import NextLink from 'next/link'
 import {
   IconButton,
   PrimaryButton,
@@ -44,6 +46,8 @@ import {
   DrawerPromotionPortal,
   Menu,
   Skeleton,
+  TextLink,
+  VDivider,
 } from '../../shared/components/components'
 import {toLocaleDna} from '../../shared/utils/utils'
 import {
@@ -57,8 +61,8 @@ import {
 } from './components'
 import {Fill} from '../../shared/components'
 import {
-  adFormMachine,
-  useAdRotation,
+  useAdAction,
+  useAdRotation2,
   useAdStatusColor,
   useAdStatusText,
 } from './hooks'
@@ -66,13 +70,19 @@ import {hasImageType} from '../../shared/utils/img'
 import {AVAILABLE_LANGS} from '../../i18n'
 import {
   AdsIcon,
+  DeleteIcon,
+  EditIcon,
   OracleIcon,
   PhotoIcon,
   PicIcon,
   UploadIcon,
 } from '../../shared/components/icons'
-import {countryCodes, OS} from './utils'
+import {isApprovedAd, isReviewingAd, OS} from './utils'
 import {getRandomInt} from '../flips/utils'
+import {AdStatus, AdVotingOptionId} from './types'
+import {useAuthState} from '../../shared/providers/auth-context'
+import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
+import {viewVotingHref} from '../oracles/utils'
 
 export function BlockAdStat({label, value, children, ...props}) {
   return (
@@ -136,12 +146,12 @@ export function AdOverlayStatus({status}) {
   )
 }
 
-export function AdBanner({limit = 5}) {
+export function AdBanner() {
   const {t} = useTranslation()
 
   const router = useRouter()
 
-  const {ads, status} = useAdRotation(limit)
+  const {ads, status} = useAdRotation2()
 
   const ad = ads[getRandomInt(0, ads.length)]
 
@@ -172,13 +182,7 @@ export function AdBanner({limit = 5}) {
   )
 }
 
-function AdBannerActiveAd({
-  title = 'Your ad may be here',
-  url = 'https://idena.io',
-  cover,
-  author = `0x${'0'.repeat(40)}`,
-  isLoaded,
-}) {
+function AdBannerActiveAd({title, url, cover, author, isLoaded}) {
   return (
     <LinkBox as={HStack} spacing={2}>
       <Skeleton isLoaded={isLoaded}>
@@ -221,10 +225,12 @@ export function AdStatusText({children, status = children}) {
   )
 }
 
-export function AdCoverImage({ad: {cover}, w, width = w, ...props}) {
+export function AdCoverImage({ad: {cover, coverUrl}, w, width = w, ...props}) {
   const src = React.useMemo(
-    () => cover && URL.createObjectURL(new Blob([cover], {type: 'image/jpeg'})),
-    [cover]
+    () =>
+      coverUrl ||
+      (cover && URL.createObjectURL(new Blob([cover], {type: 'image/jpeg'}))),
+    [cover, coverUrl]
   )
 
   return (
@@ -240,152 +246,124 @@ export function AdCoverImage({ad: {cover}, w, width = w, ...props}) {
   )
 }
 
-export function AdForm({onChange, ...ad}) {
+// FIXME: https://github.com/chakra-ui/chakra-ui/issues/5285
+export function PlainAdCoverImage({w, width = w, boxSize, ...props}) {
+  return (
+    <AspectRatio ratio={1} width={width} boxSize={boxSize}>
+      <Image ignoreFallback bg="gray.50" rounded="lg" {...props} />
+    </AspectRatio>
+  )
+}
+
+export function AdForm({ad, onSubmit, ...props}) {
   const {t} = useTranslation()
 
-  const [current, send] = useMachine(adFormMachine, {
-    context: {
-      ...ad,
-    },
-    actions: {
-      change: context => onChange(context),
-    },
-  })
+  const [cover, setCover] = React.useState(ad?.cover)
 
-  const {
-    title,
-    cover,
-    url,
-    location,
-    language,
-    age,
-    os,
-    stake,
-  } = current.context
+  const coverRef = React.useRef()
 
   return (
-    <Stack spacing={6} w="lg">
-      <FormSection>
-        <FormSectionTitle>{t('Parameters')}</FormSectionTitle>
-        <Stack isInline spacing={10}>
-          <Stack spacing={4} shouldWrapChildren>
-            <AdFormField label="Text" id="text" align="flex-start">
-              <Textarea
-                defaultValue={title}
-                onBlur={e => send('CHANGE', {ad: {title: e.target.value}})}
-              />
-            </AdFormField>
-            <AdFormField label="Link" id="link">
-              <AdInput
-                defaultValue={url}
-                onBlur={e => send('CHANGE', {ad: {url: e.target.value}})}
-              />
-            </AdFormField>
-          </Stack>
-          <Stack spacing={4} alignItems="flex-start">
-            {cover ? (
-              <AdCoverImage ad={{cover}} w="20" />
-            ) : (
-              <FillCenter
-                bg="gray.50"
-                borderWidth="1px"
-                borderColor="gray.100"
-                h={20}
-                w={20}
-                rounded="lg"
-                onClick={() => document.querySelector('#cover').click()}
-              >
-                <PhotoIcon boxSize={10} color="muted" />
-              </FillCenter>
-            )}
-            <VisuallyHidden>
-              <Input
-                id="cover"
-                type="file"
-                accept="image/*"
-                opacity={0}
-                onChange={async e => {
-                  const {files} = e.target
-                  if (files.length) {
-                    const [file] = files
-                    if (hasImageType(file)) {
-                      send('CHANGE', {
-                        ad: {cover: file},
-                      })
+    <form
+      onSubmit={e => {
+        e.preventDefault()
+
+        if (onSubmit) {
+          const formData = new FormData(e.target)
+          onSubmit(Object.fromEntries(formData.entries()))
+        }
+      }}
+      {...props}
+    >
+      <Stack spacing={6} w="lg">
+        <FormSection>
+          <FormSectionTitle>{t('Parameters')}</FormSectionTitle>
+          <Stack isInline spacing={10}>
+            <Stack spacing={4} shouldWrapChildren>
+              <AdFormField label="Title" align="flex-start">
+                <Textarea name="title" defaultValue={ad?.title} />
+              </AdFormField>
+              <AdFormField label="Link">
+                <AdInput name="url" defaultValue={ad?.url} />
+              </AdFormField>
+            </Stack>
+            <Stack spacing={4} alignItems="flex-start">
+              {cover ? (
+                <AdCoverImage ad={{cover}} w="20" />
+              ) : (
+                <FillCenter
+                  bg="gray.50"
+                  borderWidth="1px"
+                  borderColor="gray.100"
+                  h={20}
+                  w={20}
+                  rounded="lg"
+                  onClick={() => {
+                    coverRef.current.click()
+                  }}
+                >
+                  <PhotoIcon boxSize={10} color="muted" />
+                </FillCenter>
+              )}
+              <VisuallyHidden>
+                <Input
+                  ref={coverRef}
+                  name="cover"
+                  type="file"
+                  accept="image/*"
+                  opacity={0}
+                  onChange={async e => {
+                    const {files} = e.target
+                    if (files.length) {
+                      const [file] = files
+                      if (hasImageType(file)) {
+                        setCover(file)
+                      }
                     }
-                  }
+                  }}
+                />
+              </VisuallyHidden>
+              <IconButton
+                icon={<UploadIcon boxSize={4} />}
+                onClick={() => {
+                  coverRef.current.click()
                 }}
-              />
-            </VisuallyHidden>
-            <IconButton
-              as={FormLabel}
-              htmlFor="cover"
-              type="file"
-              icon={<UploadIcon boxSize={4} />}
-            >
-              {t('Upload cover')}
-            </IconButton>
+              >
+                {t('Upload cover')}
+              </IconButton>
+            </Stack>
           </Stack>
-        </Stack>
-      </FormSection>
-      <FormSection>
-        <FormSectionTitle>{t('Targeting conditions')}</FormSectionTitle>
-        <Stack spacing={4} shouldWrapChildren>
-          <AdFormField label="Location" id="location">
-            <Select
-              isDisabled
-              value={location}
-              onChange={e => send('CHANGE', {ad: {location: e.target.value}})}
-            >
-              <option></option>
-              {countryCodes.map(c => (
-                <option key={c.code} value={c.code}>
-                  {c.name}
-                </option>
-              ))}
-            </Select>
-          </AdFormField>
-          <AdFormField label="Language" id="language">
-            <Select
-              value={language}
-              onChange={e => send('CHANGE', {ad: {language: e.target.value}})}
-            >
-              <option></option>
-              {AVAILABLE_LANGS.map(l => (
-                <option key={l}>{l}</option>
-              ))}
-            </Select>
-          </AdFormField>
-          <AdFormField label="Age" id="age">
-            <AdNumberInput
-              value={age}
-              onChange={value => send('CHANGE', {ad: {age: value}})}
-            />
-          </AdFormField>
-          <AdFormField label="Stake" id="stake">
-            <Input
-              defaultValue={stake}
-              onChange={({target: {value}}) =>
-                send('CHANGE', {ad: {stake: value}})
-              }
-            />
-          </AdFormField>
-          <AdFormField label="OS" id="os">
-            <Select
-              value={os}
-              onChange={e => send('CHANGE', {ad: {os: e.target.value}})}
-            >
-              <option></option>
-              {Object.entries(OS).map(([k, v]) => (
-                <option key={v} value={v}>
-                  {k}
-                </option>
-              ))}
-            </Select>
-          </AdFormField>
-        </Stack>
-      </FormSection>
-    </Stack>
+        </FormSection>
+        <FormSection>
+          <FormSectionTitle>{t('Targeting conditions')}</FormSectionTitle>
+          <Stack spacing={4} shouldWrapChildren>
+            <AdFormField label="Language">
+              <Select name="language" defaultValue={ad?.language}>
+                <option></option>
+                {AVAILABLE_LANGS.map(lang => (
+                  <option key={lang}>{lang}</option>
+                ))}
+              </Select>
+            </AdFormField>
+            <AdFormField label="Age">
+              <AdNumberInput name="age" defaultValue={ad?.age} />
+            </AdFormField>
+            <AdFormField label="Stake">
+              <Input name="stake" defaultValue={ad?.stake} />
+            </AdFormField>
+            <AdFormField label="OS">
+              <Select name="os" defaultValue={ad?.os}>
+                <option></option>
+                {Object.entries(OS).map(([k, v]) => (
+                  <option key={v} value={v}>
+                    {k}
+                  </option>
+                ))}
+              </Select>
+            </AdFormField>
+          </Stack>
+        </FormSection>
+      </Stack>
+    </form>
   )
 }
 
@@ -669,7 +647,7 @@ export function BurnDrawer({ad, onSubmit, ...props}) {
 }
 
 export function AdDrawer({isMining = true, children, ...props}) {
-  const {ads, status} = useAdRotation()
+  const {ads, status} = {ads: [], status: 'done'} // useAdRotation2()
 
   return (
     <Drawer {...props}>
@@ -761,5 +739,221 @@ export function AdStatusFilterButton({value, onClick, ...props}) {
       }}
       {...props}
     />
+  )
+}
+
+export function AdListItem({ad}) {
+  const {t, i18n} = useTranslation()
+
+  const router = useRouter()
+
+  const toast = useSuccessToast()
+  const failToast = useFailToast()
+
+  const reviewDisclosure = useDisclosure()
+  const publishDisclosure = useDisclosure()
+  const burnDisclosure = useDisclosure()
+
+  const {coinbase} = useAuthState()
+
+  const {
+    id,
+    title,
+    language,
+    age,
+    os,
+    stake,
+    status,
+    votingAddress,
+    isPublished,
+    competitorCount,
+    maxCompetitorPrice,
+    coverUrl,
+    result: votingResult,
+  } = ad
+
+  const {
+    status: actionStatus,
+    sendToReview,
+    publish,
+    burn,
+    remove,
+  } = useAdAction({
+    ad,
+  })
+
+  const isMining = actionStatus === 'pending'
+
+  return (
+    <>
+      <HStack key={id} spacing="5" align="flex-start">
+        <Stack spacing={2} w="16" flexShrink={0}>
+          <Box position="relative">
+            <PlainAdCoverImage
+              src={coverUrl}
+              fallbackSrc={
+                status === AdStatus.Draft
+                  ? '/static/body-medium-pic-icn.svg'
+                  : null
+              }
+              ignoreFallback={status !== AdStatus.Draft}
+            />
+            {isApprovedAd({status}) && <AdOverlayStatus status={status} />}
+          </Box>
+          <AdStatusText status={status} />
+        </Stack>
+        <Box flex={1}>
+          <Flex justify="space-between">
+            <TextLink
+              href={`/ads/${isPublished ? `view` : `edit`}?id=${id}`}
+              color="gray.500"
+              fontSize="mdx"
+              fontWeight={500}
+              _hover={{color: 'muted'}}
+            >
+              {title}
+            </TextLink>
+
+            <Stack isInline align="center">
+              <Box>
+                <Menu>
+                  <NextLink href={`/ads/edit?id=${id}`} passHref>
+                    <MenuItem
+                      isDisabled={isPublished}
+                      icon={<EditIcon boxSize={5} color="blue.500" />}
+                    >
+                      {t('Edit')}
+                    </MenuItem>
+                  </NextLink>
+                  <MenuDivider />
+                  <MenuItem
+                    icon={<DeleteIcon boxSize={5} />}
+                    color="red.500"
+                    onClick={() => {
+                      remove(id)
+                    }}
+                  >
+                    {t('Delete')}
+                  </MenuItem>
+                </Menu>
+              </Box>
+
+              {isPublished && isApprovedAd({status}) && (
+                <SecondaryButton onClick={burnDisclosure.onOpen}>
+                  {t('Burn')}
+                </SecondaryButton>
+              )}
+
+              {!isPublished && isApprovedAd({status}) && (
+                <SecondaryButton onClick={publishDisclosure.onOpen}>
+                  {t('Publish')}
+                </SecondaryButton>
+              )}
+
+              {status === AdStatus.Draft && (
+                <SecondaryButton onClick={reviewDisclosure.onOpen}>
+                  {t('Review')}
+                </SecondaryButton>
+              )}
+
+              {isReviewingAd({status}) && (
+                <SecondaryButton
+                  onClick={async () => {
+                    toast({
+                      title: ad.status,
+                      onAction: () => {
+                        router.push(viewVotingHref(votingAddress))
+                      },
+                      actionContent: t('View details'),
+                    })
+                  }}
+                >
+                  {t('Check status')}
+                </SecondaryButton>
+              )}
+            </Stack>
+          </Flex>
+          <Stack isInline spacing={16}>
+            <BlockAdStat label="Competitors" value={competitorCount} flex={0} />
+            <BlockAdStat
+              label="Max competitor price"
+              value={toLocaleDna(i18n.language)(maxCompetitorPrice)}
+            />
+          </Stack>
+
+          <HStack spacing={4} bg="gray.50" p={2} mt="5" rounded="md">
+            <Stack flex={1} isInline px={2} pt={1}>
+              <InlineAdStatGroup spacing="1.5" labelWidth={14} flex={1}>
+                <SmallInlineAdStat label="Language" value={language} />
+                <SmallInlineAdStat label="Stake" value={stake} />
+              </InlineAdStatGroup>
+              <InlineAdStatGroup spacing="1.5" labelWidth={6} flex={1}>
+                <SmallInlineAdStat label="Age" value={age} />
+                <SmallInlineAdStat label="OS" value={os || 'Any'} />
+              </InlineAdStatGroup>
+            </Stack>
+
+            <VDivider minH={68} h="full" />
+
+            <Stack flex={1} justify="center">
+              <InlineAdStatGroup spacing="1.5" labelWidth={24} flex={1}>
+                <SmallInlineAdStat
+                  label="Voting address"
+                  value={votingAddress ?? '--'}
+                />
+                <SmallInlineAdStat
+                  label="Voting status"
+                  value={
+                    Object.keys(AdVotingOptionId).find(
+                      key => AdVotingOptionId[key] === votingResult
+                    ) ?? '--'
+                  }
+                  sx={{
+                    '& dd': {
+                      textTransform: 'capitalize',
+                    },
+                  }}
+                />
+              </InlineAdStatGroup>
+            </Stack>
+          </HStack>
+        </Box>
+      </HStack>
+
+      {reviewDisclosure.isOpen && (
+        <ReviewAdDrawer
+          {...reviewDisclosure}
+          isMining={isMining}
+          onSubmit={amount => {
+            sendToReview({ad: {...ad, amount}, from: coinbase})
+          }}
+        />
+      )}
+
+      {publishDisclosure.isOpen && (
+        <PublishAdDrawer
+          {...publishDisclosure}
+          isMining={isMining}
+          onSubmit={() => {
+            publish({ad, from: coinbase})
+          }}
+        />
+      )}
+
+      {burnDisclosure.isOpen && (
+        <BurnDrawer
+          {...burnDisclosure}
+          onSubmit={async amount => {
+            burn(amount, {
+              onSuccess: () => {
+                toast('🔥🔥🔥')
+                burnDisclosure.onClose()
+              },
+              onError: failToast,
+            })
+          }}
+        />
+      )}
+    </>
   )
 }

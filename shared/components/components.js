@@ -158,9 +158,9 @@ export function FormControlWithLabel({label, children, ...props}) {
   )
 }
 
-export function Input(props) {
-  return <ChakraInput {...props} />
-}
+export const Input = React.forwardRef(function Input(props, ref) {
+  return <ChakraInput ref={ref} {...props} />
+})
 
 export function Select(props) {
   return (

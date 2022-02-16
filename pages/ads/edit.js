@@ -9,24 +9,20 @@ import {
   Tabs,
   HStack,
 } from '@chakra-ui/react'
-import {useMachine} from '@xstate/react'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
 import {Page, PageTitle} from '../../screens/app/components'
 import Layout from '../../shared/components/layout'
 import {PrimaryButton} from '../../shared/components/button'
-import {useSuccessToast} from '../../shared/hooks/use-toast'
-import {eitherState} from '../../shared/utils/utils'
+import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
 import {
   AdNumberInput,
   AdFormField,
   NewAdFormTab,
 } from '../../screens/ads/components'
 import {AdForm} from '../../screens/ads/containers'
-import {editAdMachine} from '../../screens/ads/hooks'
-import {AdStatus} from '../../screens/ads/types'
+import {usePersistedAd, useUpdateAd} from '../../screens/ads/hooks'
 import {SuccessAlert} from '../../shared/components/components'
-import db from '../../shared/utils/db'
 
 export default function EditAdPage() {
   const {t} = useTranslation()
@@ -34,32 +30,11 @@ export default function EditAdPage() {
   const {query, ...router} = useRouter()
 
   const toast = useSuccessToast()
+  const failToast = useFailToast()
 
-  const updatePersistedAd = ({id, ...ad}) => db.table('ads').update(id, {...ad})
+  const {data: ad} = usePersistedAd(query?.id)
 
-  const [current, send] = useMachine(editAdMachine, {
-    actions: {
-      onSuccess: () => {
-        router.push('/ads/list')
-      },
-      onBeforeClose: ({status}) => {
-        toast(
-          status === AdStatus.Draft
-            ? t('Ad has been saved to drafts')
-            : t('Ad has been saved')
-        )
-        router.push('/ads/list')
-      },
-    },
-    services: {
-      init: () => db.table('ads').get(query.id),
-      submit: updatePersistedAd,
-      close: ({status, ...context}) =>
-        status === AdStatus.Draft
-          ? updatePersistedAd(context)
-          : Promise.resolve(),
-    },
-  })
+  const updateMutation = useUpdateAd()
 
   return (
     <Layout>
@@ -74,7 +49,7 @@ export default function EditAdPage() {
             <PageTitle mb={0}>{t('Edit ad')}</PageTitle>
             <CloseButton
               onClick={() => {
-                send('CLOSE')
+                router.push('/ads/list')
               }}
             />
           </Flex>
@@ -92,14 +67,30 @@ export default function EditAdPage() {
 
               <TabPanels>
                 <TabPanel>
-                  {eitherState(current, 'editing') && (
-                    <AdForm
-                      {...current.context}
-                      onChange={ad => {
-                        send('UPDATE', {ad})
-                      }}
-                    />
-                  )}
+                  <AdForm
+                    id="adForm"
+                    ad={ad}
+                    onSubmit={nextAd => {
+                      const hasValues = Object.values(nextAd).some(value =>
+                        value instanceof File ? value.size > 0 : Boolean(value)
+                      )
+
+                      if (hasValues) {
+                        updateMutation.mutate(
+                          {...nextAd, id: ad?.id, modifiedAt: Date.now()},
+                          {
+                            onSuccess: () => {
+                              toast(t('Ad has been saved'))
+                              router.push('/ads/list')
+                            },
+                            onError: failToast,
+                          }
+                        )
+                      } else {
+                        router.push('/ads/list')
+                      }
+                    }}
+                  />
                 </TabPanel>
                 <TabPanel>
                   <Stack spacing={6}>
@@ -134,10 +125,7 @@ export default function EditAdPage() {
           h={14}
           w="full"
         >
-          <PrimaryButton
-            onClick={() => send('SUBMIT')}
-            isLoading={current.matches('submitting')}
-          >
+          <PrimaryButton form="adForm" type="submit">
             {t('Save')}
           </PrimaryButton>
         </HStack>

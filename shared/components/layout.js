@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 import React from 'react'
 import {useRouter} from 'next/router'
-import {Box, Flex, useDisclosure} from '@chakra-ui/react'
+import {Flex, useDisclosure} from '@chakra-ui/react'
 import Sidebar from './sidebar'
 import Notifications from './notifications'
 import {shouldStartValidation} from '../../screens/validation/utils'
@@ -15,6 +15,7 @@ import {useEpoch} from '../providers/epoch-context'
 import {useTestValidationState} from '../providers/test-validation-context'
 import {EpochPeriod} from '../types'
 import {AdBanner} from '../../screens/ads/containers'
+import {useAdRotation2} from '../../screens/ads/hooks'
 
 export default function Layout(props) {
   const {auth} = useAuthState()
@@ -64,6 +65,10 @@ function NormalApp({children, canRedirect = true}) {
     settings.apiKeyState,
   ])
 
+  const {ads, status} = useAdRotation2()
+
+  const hasRotatingAds = ads.length !== 0 && status === 'done'
+
   return (
     <Flex
       as="section"
@@ -72,14 +77,14 @@ function NormalApp({children, canRedirect = true}) {
       h={['auto', '100vh']}
       overflowY="auto"
     >
-      <Box position="absolute" left={200} top={0} right={0} zIndex="banner">
-        <AdBanner />
-      </Box>
+      {hasRotatingAds && <AdBanner />}
+
       {children}
 
       {currentTrainingValidation && (
         <ValidationToast epoch={testValidationEpoch} isTestValidation />
       )}
+
       {epoch && <ValidationToast epoch={epoch} identity={identity} />}
 
       <Notifications />

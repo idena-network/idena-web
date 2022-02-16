@@ -10,9 +10,7 @@ import {
   Box,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
-import {useMachine} from '@xstate/react'
 import {useTranslation} from 'react-i18next'
-import nanoid from 'nanoid'
 import {Page, PageTitle} from '../../screens/app/components'
 import Layout from '../../shared/components/layout'
 import {
@@ -20,38 +18,21 @@ import {
   AdFormField,
   NewAdFormTab,
 } from '../../screens/ads/components'
-import {editAdMachine} from '../../screens/ads/hooks'
+import {useCreateAd} from '../../screens/ads/hooks'
 import {AdForm} from '../../screens/ads/containers'
 import {PrimaryButton} from '../../shared/components/button'
-import {useSuccessToast} from '../../shared/hooks/use-toast'
+import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
 import {SuccessAlert} from '../../shared/components/components'
-import db from '../../shared/utils/db'
 
 export default function NewAdPage() {
-  const router = useRouter()
-
   const {t} = useTranslation()
 
+  const router = useRouter()
+
   const toast = useSuccessToast()
+  const failToast = useFailToast()
 
-  const persistAd = context => db.table('ads').put({...context, id: nanoid()})
-
-  const [current, send] = useMachine(editAdMachine, {
-    actions: {
-      onSuccess: () => {
-        router.push('/ads/list')
-      },
-      onBeforeClose: () => {
-        toast(t('Ad has been saved to drafts'))
-        router.push('/ads/list')
-      },
-    },
-    services: {
-      init: () => Promise.resolve(),
-      submit: persistAd,
-      close: persistAd,
-    },
-  })
+  const createMutation = useCreateAd()
 
   return (
     <Layout>
@@ -66,7 +47,7 @@ export default function NewAdPage() {
             <PageTitle mb={0}>{t('New ad')}</PageTitle>
             <CloseButton
               onClick={() => {
-                send('CLOSE')
+                router.push('/ads/list')
               }}
             />
           </Flex>
@@ -85,8 +66,23 @@ export default function NewAdPage() {
               <TabPanels>
                 <TabPanel>
                   <AdForm
-                    onChange={ad => {
-                      send('UPDATE', {ad})
+                    id="adForm"
+                    onSubmit={ad => {
+                      const hasValues = Object.values(ad).some(value =>
+                        value instanceof File ? value.size > 0 : Boolean(value)
+                      )
+
+                      if (hasValues) {
+                        createMutation.mutate(ad, {
+                          onSuccess: () => {
+                            toast(t('Ad has been saved'))
+                            router.push('/ads/list')
+                          },
+                          onError: failToast,
+                        })
+                      } else {
+                        router.push('/ads/list')
+                      }
                     }}
                   />
                 </TabPanel>
@@ -123,12 +119,7 @@ export default function NewAdPage() {
           h={14}
           w="full"
         >
-          <PrimaryButton
-            onClick={() => {
-              send('SUBMIT')
-            }}
-            isLoading={current.matches('submitting')}
-          >
+          <PrimaryButton form="adForm" type="submit">
             {t('Save')}
           </PrimaryButton>
         </HStack>
