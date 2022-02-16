@@ -249,7 +249,7 @@ function ErrorAlert(props) {
       rounded="md"
       px={6}
       py={4}
-      w="480px"
+      w={['auto', '480px']}
       mt={2}
       {...props}
     />

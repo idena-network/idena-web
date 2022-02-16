@@ -261,7 +261,7 @@ export default function Offline() {
         >
           <Flex
             direction="column"
-            align={['center', 'flex-start']}
+            align={['center', 'initial']}
             maxWidth={['100%', '480px']}
           >
             <Flex
@@ -382,9 +382,14 @@ export default function Offline() {
                             isChecked={state === options.RESTRICTED}
                             onChange={() => setState(options.RESTRICTED)}
                           >
-                            <Text lineHeight={['16px', 'initial']} color="white">
+                            <Text
+                              lineHeight={['16px', 'initial']}
+                              color="white"
+                            >
                               {`Get restricted access${
-                                isDesktop ? ' (can not be used for validation)' : ''
+                                isDesktop
+                                  ? ' (can not be used for validation)'
+                                  : ''
                               }`}
                             </Text>
                             <Text
