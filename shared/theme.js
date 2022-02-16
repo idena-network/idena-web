@@ -84,13 +84,6 @@ export default {
     lineHeight: rem(32),
     ...margin(0),
   },
-  SubHeading: {
-    color: colors.text,
-    fontSize: fontSizes.subHeading,
-    fontWeight: 500,
-    lineHeight: rem(24),
-    ...margin(0),
-  },
   Text: {
     color: colors.text,
     fontSize: fontSizes.normal,

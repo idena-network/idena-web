@@ -1,5 +1,6 @@
 import React from 'react'
 import PropTypes from 'prop-types'
+import {Heading as ChakraHeading} from '@chakra-ui/react'
 import theme, {rem} from '../theme'
 import {Dim} from './box'
 
@@ -41,42 +42,23 @@ Heading.propTypes = {
   children: PropTypes.node,
 }
 
-export function SubHeading({
-  color,
-  fontSize,
-  fontWeight,
-  margin,
-  css,
-  children,
-}) {
+// eslint-disable-next-line react/prop-types
+export function SubHeading({children, ...props}) {
   return (
-    <Heading
+    <ChakraHeading
       as="h2"
-      style={css}
-      fontSize={fontSize}
-      color={color}
-      fontWeight={fontWeight}
-      m={margin}
-      margin="0.25em 0"
+      display="inlineBlock"
+      color="gray.500"
+      fontSize="lg"
+      fontWeight={500}
+      lineHeight={6}
+      m="0.25em 0"
       w="100%"
+      {...props}
     >
       {children}
-    </Heading>
+    </ChakraHeading>
   )
-}
-
-SubHeading.defaultProps = {
-  ...theme.SubHeading,
-}
-
-SubHeading.propTypes = {
-  color: PropTypes.string,
-  fontSize: PropTypes.string,
-  fontWeight: PropTypes.number,
-  margin: Dim,
-  // eslint-disable-next-line react/forbid-prop-types
-  css: PropTypes.object,
-  children: PropTypes.node,
 }
 
 export function Text({color, fontSize, fontWeight, lineHeight, css, ...props}) {
