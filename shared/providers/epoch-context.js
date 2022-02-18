@@ -9,8 +9,6 @@ import {fetchEpoch} from '../api'
 const EpochContext = React.createContext()
 
 const shouldRefetchEpoch = (epochData, timing) => {
-  if (!epochData || !timing) return false
-
   const {flipLottery, shortSession, longSession} = timing
 
   const {currentPeriod, nextValidation} = epochData
@@ -81,6 +79,8 @@ export function EpochProvider(props) {
   )
 
   useInterval(() => {
+    if (!epochData || !timing) return
+
     if (shouldRefetchEpoch(epochData, timing)) {
       const currentTime = new Date().getTime()
       if (
@@ -90,7 +90,7 @@ export function EpochProvider(props) {
         )
       ) {
         queryClient.invalidateQueries('get-epoch')
-        setLastModifiedEpochTime(new Date().getTime())
+        setLastModifiedEpochTime(currentTime)
       }
     }
   }, 1000)
