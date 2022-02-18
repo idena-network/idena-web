@@ -405,7 +405,7 @@ export function ContactCard({
                   }}
                   onClick={onKillContact}
                 >
-                  {t('Kill')}
+                  {t('Terminate invitation')}
                 </IconButton>
               </>
             )}
@@ -414,11 +414,11 @@ export function ContactCard({
 
         <Stack spacing={5} bg="gray.50" px={10} py={8} borderRadius="md">
           <Stack spacing={0}>
-            <ContactStat label={t('Status')} value={status} pt={2} pb={3} />
-
             {state !== IdentityStatus.Invite && !isInviteExpired && !mining && (
               <ContactStat label={t('Address')} value={receiver} />
             )}
+
+            <ContactStat label={t('Status')} value={status} pt={2} pb={3} />
 
             {stake > 0 && <ContactStat label="Stake" value={toDna(stake)} />}
           </Stack>
