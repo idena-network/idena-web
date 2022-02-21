@@ -124,8 +124,13 @@ export function canValidate(identity) {
 //
 // TODO: add tests you cowards 👊
 export function shouldStartValidation(epoch, identity) {
+  if (!epoch || !identity) return false
+
+  const currentTime = new Date().getTime()
+  const nextValidationTime = new Date(epoch.nextValidation).getTime()
+
   const isValidationRunning =
-    epoch &&
+    (currentTime > nextValidationTime && EpochPeriod.FlipLottery) ||
     [EpochPeriod.ShortSession, EpochPeriod.LongSession].includes(
       epoch.currentPeriod
     )

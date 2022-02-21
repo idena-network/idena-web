@@ -48,19 +48,6 @@ const shouldRefetchEpoch = (epochData, timing) => {
   return false
 }
 
-function getRefetchIntervalSec(epochData) {
-  const {currentPeriod} = epochData
-
-  switch (currentPeriod) {
-    case EpochPeriod.FlipLottery:
-      return 2
-    case EpochPeriod.ShortSession:
-      return 5
-    default:
-      return 15
-  }
-}
-
 export function EpochProvider(props) {
   const queryClient = useQueryClient()
   const {apiKey, url} = useSettingsState()
@@ -83,12 +70,7 @@ export function EpochProvider(props) {
 
     if (shouldRefetchEpoch(epochData, timing)) {
       const currentTime = new Date().getTime()
-      if (
-        Math.abs(
-          currentTime - lastModifiedEpochTime >
-            getRefetchIntervalSec(epochData) * 1000
-        )
-      ) {
+      if (Math.abs(currentTime - lastModifiedEpochTime > 15 * 1000)) {
         queryClient.invalidateQueries('get-epoch')
         setLastModifiedEpochTime(currentTime)
       }
