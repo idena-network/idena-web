@@ -67,11 +67,11 @@ export function useDeferredVotes() {
   }
 
   const sendVote = async vote => {
-    function showError(err) {
+    function showError(message) {
       failToast(
-        `${t('Can not send scheduled transaction:', {nsSeparator: '|'})} ${
-          err.message
-        }`
+        `${t('Can not send scheduled transaction:', {
+          nsSeparator: '|',
+        })} ${message}`
       )
     }
 

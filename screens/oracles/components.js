@@ -603,10 +603,7 @@ export function ReviewNewPendingVoteDialog({
     data: {currentBlock},
   } = useSyncing()
 
-  const {
-    data: {txFee},
-    isLoading: isLoadingFee,
-  } = useQuery(
+  const {data: txFeeData} = useQuery(
     ['bcn_estimateRawTx', vote?.contractHash],
     () => estimateSendVote(vote),
     {
@@ -651,7 +648,7 @@ export function ReviewNewPendingVoteDialog({
           />
           <DeferredVotesModalDesc
             label={t('Fee')}
-            value={isLoadingFee ? '' : dna(txFee)}
+            value={txFeeData?.txFee ? dna(txFeeData?.txFee) : ''}
           />
         </Stack>
         <Text color="muted" mt={4}>

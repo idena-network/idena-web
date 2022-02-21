@@ -967,18 +967,20 @@ export default function ViewVotingPage() {
         }}
       />
 
-      <ReviewNewPendingVoteDialog
-        isOpen={eitherState(
-          current,
-          `mining.${VotingStatus.Voting}.reviewPendingVote`
-        )}
-        onClose={() => {
-          send('GOT_IT')
-        }}
-        vote={pendingVote}
-        startCounting={finishDate}
-        finishCounting={finishCountingDate}
-      />
+      {pendingVote && (
+        <ReviewNewPendingVoteDialog
+          isOpen={eitherState(
+            current,
+            `mining.${VotingStatus.Voting}.reviewPendingVote`
+          )}
+          onClose={() => {
+            send('GOT_IT')
+          }}
+          vote={pendingVote}
+          startCounting={finishDate}
+          finishCounting={finishCountingDate}
+        />
+      )}
 
       <Dialog
         isOpen={eitherIdleState('redirecting')}
