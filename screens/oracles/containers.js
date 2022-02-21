@@ -786,7 +786,7 @@ export function VotingInspector({onTerminate, ...contract}) {
                       const {readKey, readKeyFormat} = e.target.elements
 
                       setResult(
-                        await createContractDataReader(contract)(
+                        await createContractDataReader(contract.contractHash)(
                           readKey.value,
                           readKeyFormat.value
                         )

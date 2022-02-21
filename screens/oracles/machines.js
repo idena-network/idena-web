@@ -1280,7 +1280,7 @@ export const viewVotingMachine = createMachine(
         const readonlyCallContract = createContractReadonlyCaller({
           contractHash,
         })
-        const readContractData = createContractDataReader({contractHash})
+        const readContractData = createContractDataReader(contractHash)
 
         const proof = await readonlyCallContract('proof', 'hex', [
           {

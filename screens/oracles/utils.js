@@ -347,7 +347,7 @@ export const createContractReadonlyCaller = ({contractHash}) => (
     })
   )
 
-export const createContractDataReader = ({contractHash}) => (key, format) =>
+export const createContractDataReader = contractHash => (key, format) =>
   callRpc('contract_readData', contractHash, key, format)
 
 export function objectToHex(obj) {

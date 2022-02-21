@@ -905,7 +905,7 @@ export function WalletPendingTransactions() {
     data: {currentBlock},
   } = useSyncing()
 
-  const [{votes, isReady}, {deleteVote, sendVote}] = useDeferredVotes()
+  const [{all: votes, isReady}, {deleteVote, sendVote}] = useDeferredVotes()
 
   const data = votes.map(item => ({
     timestamp: getDateFromBlocks(item.block, currentBlock)

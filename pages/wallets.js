@@ -46,7 +46,7 @@ export default function Index() {
 
   const {coinbase} = useAuthState()
 
-  const [{votes}] = useDeferredVotes()
+  const [{all}] = useDeferredVotes()
 
   const {
     data: {balance, stake},
@@ -196,13 +196,13 @@ export default function Index() {
           <TabList bg={['gray.50', 'white']} borderRadius="md" p={[1, 0]}>
             <TransactionsTab>
               {t('Scheduled')}
-              {votes.length > 0 && (
+              {all.length > 0 && (
                 <>
                   <Badge ml={2} display={['none', 'inline-block']}>
-                    {votes.length}
+                    {all.length}
                   </Badge>
                   <Box as="span" ml={1} display={['inline', 'none']}>
-                    {votes.length}
+                    {all.length}
                   </Box>
                 </>
               )}

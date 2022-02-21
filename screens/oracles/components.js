@@ -722,29 +722,23 @@ export function DeferredVotes() {
     }
   }
 
-  const {
-    data: {txFee},
-    isLoading: isLoadingFee,
-  } = useQuery(
+  const {data: txFeeData, isLoading: isLoadingFee} = useQuery(
     ['bcn_estimateRawTx', currentVote?.contractHash],
     () => estimateSendVote(currentVote),
     {
       enabled: !!currentVote,
       refetchOnWindowFocus: false,
-      initialData: {txFee: ''},
+      placeholderData: {txFee: ''},
     }
   )
 
-  const {
-    data: {timestamp},
-    isLoading: isLoadingBlock,
-  } = useQuery(
+  const {data: blockAtData, isLoading: isLoadingBlock} = useQuery(
     ['bcn_blockAt', currentVote?.block],
     () => getBlockAt(currentVote?.block),
     {
       enabled: !!currentVote,
       refetchOnWindowFocus: false,
-      initialData: {timestamp: 0},
+      placeholderData: {timestamp: 0},
     }
   )
 
@@ -784,12 +778,15 @@ export function DeferredVotes() {
           <DeferredVotesModalDesc
             label={t('Date')}
             value={
-              isLoadingBlock || !timestamp
+              isLoadingBlock || !blockAtData?.timestamp
                 ? ''
-                : `${new Date(timestamp * 1000).toLocaleString(undefined, {
-                    dateStyle: 'short',
-                    timeStyle: 'short',
-                  })}`
+                : `${new Date(blockAtData?.timestamp * 1000).toLocaleString(
+                    undefined,
+                    {
+                      dateStyle: 'short',
+                      timeStyle: 'short',
+                    }
+                  )}`
             }
           />
           <DeferredVotesModalDesc
@@ -807,7 +804,7 @@ export function DeferredVotes() {
           />
           <DeferredVotesModalDesc
             label={t('Fee')}
-            value={isLoadingFee ? '' : dna(txFee)}
+            value={isLoadingFee ? '' : dna(txFeeData?.txFee || 0)}
           />
         </Stack>
       </DialogBody>
