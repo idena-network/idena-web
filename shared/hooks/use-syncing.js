@@ -3,7 +3,7 @@ import {callRpc} from '../utils/utils'
 
 export default function useSyncing(options) {
   return useQuery('bcn_syncing', () => callRpc('bcn_syncing'), {
-    placeholderData: {currentBlock: 0},
+    initialData: {currentBlock: 0},
     ...options,
   })
 }
