@@ -67,6 +67,14 @@ export function useDeferredVotes() {
   }
 
   const sendVote = async vote => {
+    function showError(err) {
+      failToast(
+        `${t('Can not send scheduled transaction:', {nsSeparator: '|'})} ${
+          err.message
+        }`
+      )
+    }
+
     async function canProlong(contractHash) {
       try {
         await estimateCallContract(privateKey, {
@@ -127,7 +135,7 @@ export function useDeferredVotes() {
           } catch (err) {
             console.error(err)
           } finally {
-            failToast(e.message)
+            showError(e.message)
           }
           break
         }
@@ -142,17 +150,17 @@ export function useDeferredVotes() {
               actionContent: t('Open voting'),
             })
           } else {
-            failToast(e.message)
+            showError(e.message)
             deleteVote(vote.id)
           }
           break
         }
         case 'insufficient funds': {
-          failToast(e.message)
+          showError(e.message)
           break
         }
         default: {
-          failToast(e.message)
+          showError(e.message)
           deleteVote(vote.id)
         }
       }
