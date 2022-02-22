@@ -15,7 +15,7 @@ import {useEpoch} from '../providers/epoch-context'
 import {useTestValidationState} from '../providers/test-validation-context'
 import {EpochPeriod} from '../types'
 import {AdBanner} from '../../screens/ads/containers'
-import {useAdRotation2} from '../../screens/ads/hooks'
+import {useAdRotation} from '../../screens/ads/hooks'
 
 export default function Layout(props) {
   const {auth} = useAuthState()
@@ -65,7 +65,7 @@ function NormalApp({children, canRedirect = true}) {
     settings.apiKeyState,
   ])
 
-  const {ads, status} = useAdRotation2()
+  const {ads, status} = useAdRotation()
 
   const hasRotatingAds = ads.length !== 0 && status === 'done'
 

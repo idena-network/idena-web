@@ -42,6 +42,7 @@ import {
   MenuButton,
   MenuList,
   Center,
+  HStack,
 } from '@chakra-ui/react'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
@@ -552,5 +553,36 @@ export function Menu({children, ...props}) {
       </MenuButton>
       <MenuList>{children}</MenuList>
     </ChakraMenu>
+  )
+}
+
+const FilterContext = React.createContext()
+
+export function FilterButtonList({value, onChange, children, ...props}) {
+  return (
+    <HStack {...props}>
+      <FilterContext.Provider value={{value, onChange}}>
+        {children}
+      </FilterContext.Provider>
+    </HStack>
+  )
+}
+
+export function FilterButton({value, onClick, ...props}) {
+  const {
+    value: currentValue,
+    onChange: onChangeCurrentValue,
+  } = React.useContext(FilterContext)
+
+  return (
+    <Button
+      variant="tab"
+      isActive={value === currentValue}
+      onClick={e => {
+        onChangeCurrentValue(value)
+        if (onClick) onClick(e)
+      }}
+      {...props}
+    />
   )
 }

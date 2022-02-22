@@ -396,6 +396,7 @@ export async function publishAd({ad, from}) {
     cid: profileCid,
   })
 
+  // TODO: sign with pk
   await callRpc('dna_storeToIpfs', {
     cid: profileCid,
   })

@@ -1,15 +1,16 @@
 import React from 'react'
-import {Box, Flex, Stack, HStack} from '@chakra-ui/react'
+import {Box, Flex, Stack, HStack, useDisclosure} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {AdList, EmptyAdList, AdStatNumber} from '../../screens/ads/components'
 import Layout from '../../shared/components/layout'
 import {Page, PageTitle} from '../../screens/app/components'
 import {byId} from '../../shared/utils/utils'
 import {
-  AdStatusFilterButton,
-  AdStatusFilterButtonList,
   BlockAdStat,
   AdListItem,
+  ReviewAdDrawer,
+  PublishAdDrawer,
+  BurnDrawer,
 } from '../../screens/ads/containers'
 import {
   useAds,
@@ -18,7 +19,12 @@ import {
   usePersistedAds,
 } from '../../screens/ads/hooks'
 import {AdStatus} from '../../screens/ads/types'
-import {Debug, VDivider} from '../../shared/components/components'
+import {
+  Debug,
+  FilterButton,
+  FilterButtonList,
+  VDivider,
+} from '../../shared/components/components'
 import IconLink from '../../shared/components/icon-link'
 import {PlusSolidIcon} from '../../shared/components/icons'
 import {filterAdsByStatus} from '../../screens/ads/utils'
@@ -28,6 +34,10 @@ export default function AdListPage() {
   const {t} = useTranslation()
 
   const {format: formatDna} = useDnaFormatter()
+
+  const reviewDisclosure = useDisclosure()
+  const publishDisclosure = useDisclosure()
+  const burnDisclosure = useDisclosure()
 
   const {coinbase} = useAuthState()
 
@@ -52,6 +62,8 @@ export default function AdListPage() {
 
   const ads = filterAdsByStatus([...knownAds, ...drafts], filter)
 
+  const [selectedAd, setSelectedAd] = React.useState({})
+
   return (
     <Layout>
       <Page as={Stack} spacing={4}>
@@ -66,20 +78,16 @@ export default function AdListPage() {
         </Stack>
 
         <Flex align="center" justify="space-between" w="full">
-          <AdStatusFilterButtonList value={filter} onChange={setFilter}>
-            <AdStatusFilterButton value={AdStatus.Active}>
-              {t('Active')}
-            </AdStatusFilterButton>
-            <AdStatusFilterButton value={AdStatus.Draft}>
-              {t('Drafts')}
-            </AdStatusFilterButton>
-            <AdStatusFilterButton value={AdStatus.Reviewing}>
+          <FilterButtonList value={filter} onChange={setFilter}>
+            <FilterButton value={AdStatus.Active}>{t('Active')}</FilterButton>
+            <FilterButton value={AdStatus.Draft}>{t('Drafts')}</FilterButton>
+            <FilterButton value={AdStatus.Reviewing}>
               {t('On review')}
-            </AdStatusFilterButton>
-            <AdStatusFilterButton value={AdStatus.Rejected}>
+            </FilterButton>
+            <FilterButton value={AdStatus.Rejected}>
               {t('Rejected')}
-            </AdStatusFilterButton>
-          </AdStatusFilterButtonList>
+            </FilterButton>
+          </FilterButtonList>
           <HStack spacing={1} align="center">
             <VDivider />
             <IconLink icon={<PlusSolidIcon boxSize={5} />} href="/ads/new">
@@ -88,13 +96,34 @@ export default function AdListPage() {
           </HStack>
         </Flex>
 
-        <AdList py={4} spacing={4} alignSelf="stretch">
-          {ads.map(ad => (
-            <AdListItem key={ad.id} ad={ad} />
-          ))}
-        </AdList>
+        {status === 'ready' && ads.length > 0 ? (
+          <AdList py={4} spacing={4} alignSelf="stretch">
+            {ads.map(ad => (
+              <AdListItem
+                key={ad.id}
+                ad={ad}
+                onReview={() => {
+                  setSelectedAd(ad)
+                  reviewDisclosure.onOpen()
+                }}
+                onPublish={() => {
+                  setSelectedAd(ad)
+                  publishDisclosure.onOpen()
+                }}
+                onBurn={() => {
+                  setSelectedAd(ad)
+                  burnDisclosure.onOpen()
+                }}
+              />
+            ))}
+          </AdList>
+        ) : (
+          <EmptyAdList />
+        )}
 
-        {status === 'ready' && ads.length === 0 && <EmptyAdList />}
+        <ReviewAdDrawer ad={selectedAd} {...reviewDisclosure} />
+        <PublishAdDrawer ad={selectedAd} {...publishDisclosure} />
+        <BurnDrawer ad={selectedAd} {...burnDisclosure} />
 
         <Box>
           <Debug>{ads}</Debug>

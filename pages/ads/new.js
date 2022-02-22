@@ -73,13 +73,16 @@ export default function NewAdPage() {
                       )
 
                       if (hasValues) {
-                        createMutation.mutate(ad, {
-                          onSuccess: () => {
-                            toast(t('Ad has been saved'))
-                            router.push('/ads/list')
-                          },
-                          onError: failToast,
-                        })
+                        createMutation.mutate(
+                          {...ad, createdAt: Date.now()},
+                          {
+                            onSuccess: () => {
+                              toast(t('Ad has been saved'))
+                              router.push('/ads/list')
+                            },
+                            onError: failToast,
+                          }
+                        )
                       } else {
                         router.push('/ads/list')
                       }

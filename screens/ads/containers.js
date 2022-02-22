@@ -4,7 +4,6 @@ import {
   AspectRatio,
   Badge,
   Box,
-  Button,
   DrawerFooter,
   Flex,
   FormControl,
@@ -22,7 +21,6 @@ import {
   LinkBox,
   LinkOverlay,
   MenuDivider,
-  useDisclosure,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
@@ -49,7 +47,7 @@ import {
   TextLink,
   VDivider,
 } from '../../shared/components/components'
-import {toLocaleDna} from '../../shared/utils/utils'
+import {omit, pick, toLocaleDna} from '../../shared/utils/utils'
 import {
   AdFormField,
   AdInput,
@@ -61,10 +59,12 @@ import {
 } from './components'
 import {Fill} from '../../shared/components'
 import {
-  useAdAction,
-  useAdRotation2,
+  useAdRotation,
   useAdStatusColor,
   useAdStatusText,
+  useBurnDna,
+  useBurntCoins,
+  useProfileProtoEncoder,
 } from './hooks'
 import {hasImageType} from '../../shared/utils/img'
 import {AVAILABLE_LANGS} from '../../i18n'
@@ -80,9 +80,9 @@ import {
 import {isApprovedAd, isReviewingAd, OS} from './utils'
 import {getRandomInt} from '../flips/utils'
 import {AdStatus, AdVotingOptionId} from './types'
-import {useAuthState} from '../../shared/providers/auth-context'
 import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
 import {viewVotingHref} from '../oracles/utils'
+import {useAuthState} from '../../shared/providers/auth-context'
 
 export function BlockAdStat({label, value, children, ...props}) {
   return (
@@ -151,7 +151,7 @@ export function AdBanner() {
 
   const router = useRouter()
 
-  const {ads, status} = useAdRotation2()
+  const {ads, status} = useAdRotation()
 
   const ad = ads[getRandomInt(0, ads.length)]
 
@@ -225,32 +225,25 @@ export function AdStatusText({children, status = children}) {
   )
 }
 
-export function AdCoverImage({ad: {cover, coverUrl}, w, width = w, ...props}) {
+export function AdCoverImage({ad, ...props}) {
+  const cover = ad?.cover
+
   const src = React.useMemo(
-    () =>
-      coverUrl ||
-      (cover && URL.createObjectURL(new Blob([cover], {type: 'image/jpeg'}))),
-    [cover, coverUrl]
+    () => URL.createObjectURL(new Blob([cover], {type: 'image/jpeg'})),
+    [cover]
   )
 
-  return (
-    <AspectRatio ratio={1} w={width}>
-      <Image
-        src={src}
-        fallbackSrc="/static/body-medium-pic-icn.svg"
-        bg="gray.50"
-        rounded="lg"
-        {...props}
-      />
-    </AspectRatio>
-  )
+  return <PlainAdCoverImage src={src} {...props} />
 }
 
-// FIXME: https://github.com/chakra-ui/chakra-ui/issues/5285
-export function PlainAdCoverImage({w, width = w, boxSize, ...props}) {
+// TODO: https://github.com/chakra-ui/chakra-ui/issues/5285
+export function PlainAdCoverImage(props) {
+  const boxProps = pick(props, ['w', 'width', 'h', 'height', 'boxSize'])
+  const imageProps = omit(props, Object.keys(boxProps))
+
   return (
-    <AspectRatio ratio={1} width={width} boxSize={boxSize}>
-      <Image ignoreFallback bg="gray.50" rounded="lg" {...props} />
+    <AspectRatio ratio={1} {...boxProps}>
+      <Image ignoreFallback bg="gray.50" rounded="lg" {...imageProps} />
     </AspectRatio>
   )
 }
@@ -288,7 +281,7 @@ export function AdForm({ad, onSubmit, ...props}) {
             </Stack>
             <Stack spacing={4} alignItems="flex-start">
               {cover ? (
-                <AdCoverImage ad={{cover}} w="20" />
+                <AdCoverImage ad={{cover}} w={20} />
               ) : (
                 <FillCenter
                   bg="gray.50"
@@ -367,11 +360,15 @@ export function AdForm({ad, onSubmit, ...props}) {
   )
 }
 
-export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
+export function ReviewAdDrawer({ad, ...props}) {
   const {t} = useTranslation()
 
+  const {onClose} = props
+
+  const isMining = true
+
   return (
-    <AdDrawer isMining={isMining} onClose={onCancel} {...props}>
+    <AdDrawer isMining={isMining} {...props}>
       <DrawerHeader>
         <Stack spacing={4}>
           <Center
@@ -432,10 +429,10 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
             </Stack>
           </Stack>
           <form
-            id="amountForm"
+            id="reviewForm"
             onSubmit={e => {
               e.preventDefault()
-              onSubmit(Number(e.target.elements.amount.value))
+              // onSubmit(Number(e.target.elements.amount.value))
             }}
           >
             <FormControl>
@@ -451,10 +448,10 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
       </DrawerBody>
       <DrawerFooter bg="white">
         <HStack>
-          <SecondaryButton onClick={onCancel}>{t('Not now')}</SecondaryButton>
+          <SecondaryButton onClick={onClose}>{t('Not now')}</SecondaryButton>
           <PrimaryButton
             type="submit"
-            form="amountForm"
+            form="reviewForm"
             isLoading={isMining}
             loadingText={t('Mining...')}
           >
@@ -466,11 +463,13 @@ export function ReviewAdDrawer({ad, isMining, onCancel, onSubmit, ...props}) {
   )
 }
 
-export function PublishAdDrawer({ad, isMining, onSubmit, onCancel, ...props}) {
+export function PublishAdDrawer({ad, ...props}) {
   const {t, i18n} = useTranslation()
 
+  const isMining = true
+
   return (
-    <AdDrawer isMining={isMining} onClose={onCancel} {...props}>
+    <AdDrawer isMining={isMining} {...props}>
       <DrawerHeader>
         <Stack spacing={4}>
           <FillCenter
@@ -551,7 +550,9 @@ export function PublishAdDrawer({ad, isMining, onSubmit, onCancel, ...props}) {
         <PrimaryButton
           isLoading={isMining}
           loadingText={t('Mining...')}
-          onClick={onSubmit}
+          onClick={() => {
+            // submit form
+          }}
         >
           {t('Publish')}
         </PrimaryButton>
@@ -560,8 +561,15 @@ export function PublishAdDrawer({ad, isMining, onSubmit, onCancel, ...props}) {
   )
 }
 
-export function BurnDrawer({ad, onSubmit, ...props}) {
+export function BurnDrawer({ad, ...props}) {
   const {t, i18n} = useTranslation()
+
+  const toast = useSuccessToast()
+  const failToast = useFailToast()
+
+  const {coinbase} = useAuthState()
+
+  const burnMutation = useBurnDna({ad, from: coinbase})
 
   return (
     <Drawer {...props}>
@@ -601,20 +609,31 @@ export function BurnDrawer({ad, onSubmit, ...props}) {
                   value={toLocaleDna(i18n.language)(0)}
                 />
               </Stack>
-              {/* <HDivider />
+              <HDivider />
               <Stack>
                 <SmallInlineAdStat label="Language" value={ad.language} />
                 <SmallInlineAdStat label="Stake" value={ad.stake} />
                 <SmallInlineAdStat label="Age" value={ad.age} />
                 <SmallInlineAdStat label="OS" value={ad.os} />
-              </Stack> */}
+              </Stack>
             </Stack>
           </Stack>
           <form
             id="burnForm"
             onSubmit={e => {
               e.preventDefault()
-              onSubmit(Number(e.target.elements.amount.value))
+
+              const formData = new FormData(e.target)
+
+              const amount = Number(formData.get('amount'))
+
+              burnMutation.mutate(amount, {
+                onSuccess: () => {
+                  toast(`${amount} iDNA 🔥🔥🔥`)
+                  props.onClose()
+                },
+                onError: failToast,
+              })
             }}
           >
             <FormControl>
@@ -622,7 +641,7 @@ export function BurnDrawer({ad, onSubmit, ...props}) {
                 <FormLabel htmlFor="amount" mb={0}>
                   {t('Amount, iDNA')}
                 </FormLabel>
-                <Input id="amount" />
+                <Input id="amount" name="amount" />
               </Stack>
             </FormControl>
           </form>
@@ -706,55 +725,12 @@ function AdPromotion({
   )
 }
 
-const AdStatusFilterContext = React.createContext()
-
-export function AdStatusFilterButtonList({
-  value,
-  onChange,
-  children,
-  ...props
-}) {
-  return (
-    <HStack {...props}>
-      <AdStatusFilterContext.Provider value={{value, onChange}}>
-        {children}
-      </AdStatusFilterContext.Provider>
-    </HStack>
-  )
-}
-
-export function AdStatusFilterButton({value, onClick, ...props}) {
-  const {
-    value: currentValue,
-    onChange: onChangeCurrentValue,
-  } = React.useContext(AdStatusFilterContext)
-
-  return (
-    <Button
-      variant="tab"
-      isActive={value === currentValue}
-      onClick={e => {
-        onChangeCurrentValue(value)
-        if (onClick) onClick(e)
-      }}
-      {...props}
-    />
-  )
-}
-
-export function AdListItem({ad}) {
+export function AdListItem({ad, onReview, onPublish, onBurn}) {
   const {t, i18n} = useTranslation()
 
   const router = useRouter()
 
   const toast = useSuccessToast()
-  const failToast = useFailToast()
-
-  const reviewDisclosure = useDisclosure()
-  const publishDisclosure = useDisclosure()
-  const burnDisclosure = useDisclosure()
-
-  const {coinbase} = useAuthState()
 
   const {
     id,
@@ -766,194 +742,151 @@ export function AdListItem({ad}) {
     status,
     votingAddress,
     isPublished,
-    competitorCount,
-    maxCompetitorPrice,
-    coverUrl,
     result: votingResult,
   } = ad
 
-  const {
-    status: actionStatus,
-    sendToReview,
-    publish,
-    burn,
-    remove,
-  } = useAdAction({
-    ad,
-  })
+  const {data: burntCoins} = useBurntCoins()
 
-  const isMining = actionStatus === 'pending'
+  const isDraft = status === AdStatus.Draft
+
+  const {encodeAdKey} = useProfileProtoEncoder()
+
+  const competitors =
+    burntCoins?.filter(
+      coin =>
+        coin.key === encodeAdKey && encodeAdKey({language, age, os, stake})
+    ) ?? []
+
+  const competitorCount = competitors.length
+  const maxCompetitorPrice = Math.max(competitors.map(x => x.amount ?? 0))
 
   return (
-    <>
-      <HStack key={id} spacing="5" align="flex-start">
-        <Stack spacing={2} w="16" flexShrink={0}>
-          <Box position="relative">
-            <PlainAdCoverImage
-              src={coverUrl}
-              fallbackSrc={
-                status === AdStatus.Draft
-                  ? '/static/body-medium-pic-icn.svg'
-                  : null
-              }
-              ignoreFallback={status !== AdStatus.Draft}
-            />
-            {isApprovedAd({status}) && <AdOverlayStatus status={status} />}
-          </Box>
-          <AdStatusText status={status} />
-        </Stack>
-        <Box flex={1}>
-          <Flex justify="space-between">
-            <TextLink
-              href={`/ads/${isPublished ? `view` : `edit`}?id=${id}`}
-              color="gray.500"
-              fontSize="mdx"
-              fontWeight={500}
-              _hover={{color: 'muted'}}
-            >
-              {title}
-            </TextLink>
+    <HStack key={id} spacing="5" align="flex-start">
+      <Stack spacing={2} w="16" flexShrink={0}>
+        <Box position="relative">
+          <AdCoverImage
+            ad={ad}
+            fallbackSrc={isDraft ? '/static/body-medium-pic-icn.svg' : null}
+            ignoreFallback={!isDraft}
+          />
+          {isApprovedAd({status}) && <AdOverlayStatus status={status} />}
+        </Box>
+        <AdStatusText status={status} />
+      </Stack>
+      <Box flex={1}>
+        <Flex justify="space-between">
+          <TextLink
+            href={`/ads/${isPublished ? `view` : `edit`}?id=${id}`}
+            color="gray.500"
+            fontSize="mdx"
+            fontWeight={500}
+            _hover={{color: 'muted'}}
+          >
+            {title}
+          </TextLink>
 
-            <Stack isInline align="center">
-              <Box>
-                <Menu>
-                  <NextLink href={`/ads/edit?id=${id}`} passHref>
-                    <MenuItem
-                      isDisabled={isPublished}
-                      icon={<EditIcon boxSize={5} color="blue.500" />}
-                    >
-                      {t('Edit')}
-                    </MenuItem>
-                  </NextLink>
-                  <MenuDivider />
+          <Stack isInline align="center">
+            <Box>
+              <Menu>
+                <NextLink href={`/ads/edit?id=${id}`} passHref>
                   <MenuItem
-                    icon={<DeleteIcon boxSize={5} />}
-                    color="red.500"
-                    onClick={() => {
-                      remove(id)
-                    }}
+                    isDisabled={isPublished}
+                    icon={<EditIcon boxSize={5} color="blue.500" />}
                   >
-                    {t('Delete')}
+                    {t('Edit')}
                   </MenuItem>
-                </Menu>
-              </Box>
-
-              {isPublished && isApprovedAd({status}) && (
-                <SecondaryButton onClick={burnDisclosure.onOpen}>
-                  {t('Burn')}
-                </SecondaryButton>
-              )}
-
-              {!isPublished && isApprovedAd({status}) && (
-                <SecondaryButton onClick={publishDisclosure.onOpen}>
-                  {t('Publish')}
-                </SecondaryButton>
-              )}
-
-              {status === AdStatus.Draft && (
-                <SecondaryButton onClick={reviewDisclosure.onOpen}>
-                  {t('Review')}
-                </SecondaryButton>
-              )}
-
-              {isReviewingAd({status}) && (
-                <SecondaryButton
-                  onClick={async () => {
-                    toast({
-                      title: ad.status,
-                      onAction: () => {
-                        router.push(viewVotingHref(votingAddress))
-                      },
-                      actionContent: t('View details'),
-                    })
+                </NextLink>
+                <MenuDivider />
+                <MenuItem
+                  icon={<DeleteIcon boxSize={5} />}
+                  color="red.500"
+                  onClick={() => {
+                    // remove(id)
                   }}
                 >
-                  {t('Check status')}
-                </SecondaryButton>
-              )}
-            </Stack>
-          </Flex>
-          <Stack isInline spacing={16}>
-            <BlockAdStat label="Competitors" value={competitorCount} flex={0} />
-            <BlockAdStat
-              label="Max competitor price"
-              value={toLocaleDna(i18n.language)(maxCompetitorPrice)}
-            />
+                  {t('Delete')}
+                </MenuItem>
+              </Menu>
+            </Box>
+
+            {isPublished && isApprovedAd({status}) && (
+              <SecondaryButton onClick={onBurn}>{t('Burn')}</SecondaryButton>
+            )}
+
+            {!isPublished && isApprovedAd({status}) && (
+              <SecondaryButton onClick={onPublish}>
+                {t('Publish')}
+              </SecondaryButton>
+            )}
+
+            {status === AdStatus.Draft && (
+              <SecondaryButton onClick={onReview}>
+                {t('Review')}
+              </SecondaryButton>
+            )}
+
+            {isReviewingAd({status}) && (
+              <SecondaryButton
+                onClick={async () => {
+                  toast({
+                    title: ad.status,
+                    onAction: () => {
+                      router.push(viewVotingHref(votingAddress))
+                    },
+                    actionContent: t('View details'),
+                  })
+                }}
+              >
+                {t('Check status')}
+              </SecondaryButton>
+            )}
+          </Stack>
+        </Flex>
+        <Stack isInline spacing={16}>
+          <BlockAdStat label="Competitors" value={competitorCount} flex={0} />
+          <BlockAdStat
+            label="Max competitor price"
+            value={toLocaleDna(i18n.language)(maxCompetitorPrice)}
+          />
+        </Stack>
+
+        <HStack spacing={4} bg="gray.50" p={2} mt="5" rounded="md">
+          <Stack flex={1} isInline px={2} pt={1}>
+            <InlineAdStatGroup spacing="1.5" labelWidth={14} flex={1}>
+              <SmallInlineAdStat label="Language" value={language} />
+              <SmallInlineAdStat label="Stake" value={stake} />
+            </InlineAdStatGroup>
+            <InlineAdStatGroup spacing="1.5" labelWidth={6} flex={1}>
+              <SmallInlineAdStat label="Age" value={age} />
+              <SmallInlineAdStat label="OS" value={os || 'Any'} />
+            </InlineAdStatGroup>
           </Stack>
 
-          <HStack spacing={4} bg="gray.50" p={2} mt="5" rounded="md">
-            <Stack flex={1} isInline px={2} pt={1}>
-              <InlineAdStatGroup spacing="1.5" labelWidth={14} flex={1}>
-                <SmallInlineAdStat label="Language" value={language} />
-                <SmallInlineAdStat label="Stake" value={stake} />
-              </InlineAdStatGroup>
-              <InlineAdStatGroup spacing="1.5" labelWidth={6} flex={1}>
-                <SmallInlineAdStat label="Age" value={age} />
-                <SmallInlineAdStat label="OS" value={os || 'Any'} />
-              </InlineAdStatGroup>
-            </Stack>
+          <VDivider minH={68} h="full" />
 
-            <VDivider minH={68} h="full" />
-
-            <Stack flex={1} justify="center">
-              <InlineAdStatGroup spacing="1.5" labelWidth={24} flex={1}>
-                <SmallInlineAdStat
-                  label="Voting address"
-                  value={votingAddress ?? '--'}
-                />
-                <SmallInlineAdStat
-                  label="Voting status"
-                  value={
-                    Object.keys(AdVotingOptionId).find(
-                      key => AdVotingOptionId[key] === votingResult
-                    ) ?? '--'
-                  }
-                  sx={{
-                    '& dd': {
-                      textTransform: 'capitalize',
-                    },
-                  }}
-                />
-              </InlineAdStatGroup>
-            </Stack>
-          </HStack>
-        </Box>
-      </HStack>
-
-      {reviewDisclosure.isOpen && (
-        <ReviewAdDrawer
-          {...reviewDisclosure}
-          isMining={isMining}
-          onSubmit={amount => {
-            sendToReview({ad: {...ad, amount}, from: coinbase})
-          }}
-        />
-      )}
-
-      {publishDisclosure.isOpen && (
-        <PublishAdDrawer
-          {...publishDisclosure}
-          isMining={isMining}
-          onSubmit={() => {
-            publish({ad, from: coinbase})
-          }}
-        />
-      )}
-
-      {burnDisclosure.isOpen && (
-        <BurnDrawer
-          {...burnDisclosure}
-          onSubmit={async amount => {
-            burn(amount, {
-              onSuccess: () => {
-                toast('🔥🔥🔥')
-                burnDisclosure.onClose()
-              },
-              onError: failToast,
-            })
-          }}
-        />
-      )}
-    </>
+          <Stack flex={1} justify="center">
+            <InlineAdStatGroup spacing="1.5" labelWidth={24} flex={1}>
+              <SmallInlineAdStat
+                label="Voting address"
+                value={votingAddress ?? '--'}
+              />
+              <SmallInlineAdStat
+                label="Voting status"
+                value={
+                  Object.keys(AdVotingOptionId).find(
+                    key => AdVotingOptionId[key] === votingResult
+                  ) ?? '--'
+                }
+                sx={{
+                  '& dd': {
+                    textTransform: 'capitalize',
+                  },
+                }}
+              />
+            </InlineAdStatGroup>
+          </Stack>
+        </HStack>
+      </Box>
+    </HStack>
   )
 }

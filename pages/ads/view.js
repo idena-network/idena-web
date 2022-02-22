@@ -1,7 +1,7 @@
 import {Box, Stack, Text} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
-import {InlineAdStat, PlainAdCoverImage} from '../../screens/ads/containers'
+import {InlineAdStat, AdCoverImage} from '../../screens/ads/containers'
 import {useAd} from '../../screens/ads/hooks'
 import {Page, PageTitle} from '../../screens/app/components'
 import {ExternalLink, HDivider} from '../../shared/components/components'
@@ -21,7 +21,7 @@ export default function AdViewPage() {
         <PageTitle>{t('View ad')}</PageTitle>
         <Stack spacing={6} bg="gray.50" p={6} rounded="lg" w="full">
           <Stack isInline spacing={5}>
-            <PlainAdCoverImage src={ad?.coverUrl} w="16" />
+            <AdCoverImage ad={ad} w="16" />
             <Box>
               <Text fontWeight={500}>{ad.title}</Text>
               <ExternalLink href={ad.url}>{ad.url}</ExternalLink>

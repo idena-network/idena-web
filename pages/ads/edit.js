@@ -71,24 +71,19 @@ export default function EditAdPage() {
                     id="adForm"
                     ad={ad}
                     onSubmit={nextAd => {
-                      const hasValues = Object.values(nextAd).some(value =>
-                        value instanceof File ? value.size > 0 : Boolean(value)
-                      )
+                      const cover =
+                        nextAd.cover.size > 0 ? nextAd.cover : ad.cover
 
-                      if (hasValues) {
-                        updateMutation.mutate(
-                          {...nextAd, id: ad?.id, modifiedAt: Date.now()},
-                          {
-                            onSuccess: () => {
-                              toast(t('Ad has been saved'))
-                              router.push('/ads/list')
-                            },
-                            onError: failToast,
-                          }
-                        )
-                      } else {
-                        router.push('/ads/list')
-                      }
+                      updateMutation.mutate(
+                        {...nextAd, id: ad?.id, cover, modifiedAt: Date.now()},
+                        {
+                          onSuccess: () => {
+                            toast(t('Ad has been saved'))
+                            router.push('/ads/list')
+                          },
+                          onError: failToast,
+                        }
+                      )
                     }}
                   />
                 </TabPanel>
