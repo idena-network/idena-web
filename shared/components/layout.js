@@ -14,6 +14,7 @@ import {useIdentity} from '../providers/identity-context'
 import {useEpoch} from '../providers/epoch-context'
 import {useTestValidationState} from '../providers/test-validation-context'
 import {EpochPeriod} from '../types'
+import {useInterval} from '../hooks/use-interval'
 
 export default function Layout({
   showHamburger = true,
@@ -58,22 +59,17 @@ function NormalApp({children, canRedirect = true}) {
     epoch: testValidationEpoch,
   } = useTestValidationState()
 
+  useInterval(() => {
+    if (shouldStartValidation(epoch, identity)) router.push('/validation')
+  }, 1000)
+
   React.useEffect(() => {
     if (!canRedirect) return
     if (settings.apiKeyState === apiKeyStates.OFFLINE) {
       router.push('/node/offline')
-    } else if (shouldStartValidation(epoch, identity))
-      router.push('/validation')
-    else if (currentTrainingValidation?.period === EpochPeriod.ShortSession)
+    } else if (currentTrainingValidation?.period === EpochPeriod.ShortSession)
       router.push('/try/validation')
-  }, [
-    canRedirect,
-    currentTrainingValidation,
-    epoch,
-    identity,
-    router,
-    settings.apiKeyState,
-  ])
+  }, [canRedirect, currentTrainingValidation, router, settings.apiKeyState])
 
   return (
     <Flex
