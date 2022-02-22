@@ -2,7 +2,7 @@ import axios from 'axios'
 
 function apiClient() {
   return axios.create({
-    baseURL: 'https://api.idena.io/api',
+    baseURL: process.env.NEXT_PUBLIC_INDEXER_URL,
   })
 }
 
@@ -30,9 +30,11 @@ export async function searchInvite(invite) {
   return getResponse(apiClient().get('search', {params: {value: invite}}))
 }
 
-export async function getTxs(address) {
+export async function getTxs(address, count = 10, continuationToken) {
   return getResponse(
-    apiClient().get(`address/${address}/txs`, {params: {limit: 10}})
+    apiClient().get(`address/${address}/txs`, {
+      params: {limit: count, continuationToken},
+    })
   )
 }
 

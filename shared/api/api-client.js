@@ -31,9 +31,3 @@ export default function api(useProxy = false) {
   })
   return instance
 }
-
-export function indexerApi() {
-  return axios.create({
-    baseURL: INDEXER_API_URL,
-  })
-}

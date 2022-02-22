@@ -2,6 +2,7 @@
 /* eslint-disable react/prop-types */
 import React from 'react'
 import {Button as ChakraButton, Flex, Box, Button} from '@chakra-ui/react'
+import {InfoIcon} from './icons'
 
 export const PrimaryButton = React.forwardRef((props, ref) => (
   <Button ref={ref} variant="primary" {...props} />
@@ -111,3 +112,26 @@ export function CornerButton({
     </Box>
   )
 }
+
+export const InfoButton = React.forwardRef((props, ref) => (
+  <IconButton
+    ref={ref}
+    icon={<InfoIcon boxSize={5} />}
+    color="brandBlue.500"
+    bg="unset"
+    fontSize="20px"
+    minW={5}
+    w={5}
+    h={5}
+    _active={{
+      bg: 'unset',
+    }}
+    _hover={{
+      bg: 'unset',
+    }}
+    _focus={{
+      outline: 'none',
+    }}
+    {...props}
+  />
+))

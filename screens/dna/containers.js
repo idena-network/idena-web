@@ -42,12 +42,12 @@ import {
   DNA_SEND_CONFIRM_TRESHOLD,
   handleCallbackUrl,
   isValidUrl,
-  signNonceOffline,
   startSession,
 } from './utils'
 import {ExclamationMarkIcon, GlobeIcon} from '../../shared/components/icons'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {getRawTx, sendRawTx} from '../../shared/api'
+import {dnaSign} from '../../shared/utils/crypto'
 
 export function DnaSignInDialog({
   token,
@@ -124,7 +124,7 @@ export function DnaSignInDialog({
               token,
               coinbase,
             })
-              .then(nonce => signNonceOffline(nonce, privateKey))
+              .then(nonce => dnaSign(nonce, privateKey))
               .then(bytes =>
                 authenticate(authenticationEndpoint, {
                   token,

@@ -1,8 +1,4 @@
 import axios from 'axios'
-import sha3 from 'js-sha3'
-import secp256k1 from 'secp256k1'
-import apiClient from '../../shared/api/api-client'
-import {hexToUint8Array} from '../../shared/utils/buffers'
 
 export const DNA_NONCE_PREFIX = 'signin-'
 
@@ -48,32 +44,6 @@ export async function startSession(
   if (nonce.startsWith(DNA_NONCE_PREFIX)) return nonce
 
   throw new Error(`You must start prefix with ${DNA_NONCE_PREFIX}`)
-}
-
-export async function signNonce(nonce) {
-  const {
-    data: {result, error},
-  } = await apiClient().post('/', {
-    method: 'dna_sign',
-    params: [nonce],
-    id: 1,
-  })
-  if (error) throw new Error(error.message)
-  return result
-}
-
-export function signNonceOffline(nonce, privateKey) {
-  const firstIteration = sha3.keccak_256.array(nonce)
-  const secondIteration = sha3.keccak_256.array(firstIteration)
-
-  const {signature, recid} = secp256k1.ecdsaSign(
-    new Uint8Array(secondIteration),
-    typeof privateKey === 'string'
-      ? hexToUint8Array(privateKey)
-      : new Uint8Array(privateKey)
-  )
-
-  return [...signature, recid]
 }
 
 export async function authenticate(authenticationEndpoint, {token, signature}) {

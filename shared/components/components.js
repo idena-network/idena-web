@@ -38,16 +38,19 @@ import {
   keyframes,
   useBreakpointValue,
   Th,
+  InputGroup,
+  InputRightAddon,
+  Badge as ChakraBadge,
 } from '@chakra-ui/react'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
 import NextLink from 'next/link'
 import dynamic from 'next/dynamic'
 import {rem} from '../theme'
-import {ChevronDownIcon} from './icons'
+import {ChevronDownIcon, GtranslateIcon} from './icons'
 import {openExternalUrl} from '../utils/utils'
 import {Heading} from './typo'
-import {FlatButton} from './button'
+import {FlatButton, IconButton} from './button'
 
 export function FloatDebug({children, ...props}) {
   return (
@@ -345,7 +348,7 @@ export function DialogBody(props) {
 export function DialogFooter({children, ...props}) {
   return (
     <ModalFooter p={0} {...props}>
-      <Stack isInline spacing={2} justify="flex-end">
+      <Stack isInline spacing={2} justify="flex-end" w={['100%', 'auto']}>
         {children}
       </Stack>
     </ModalFooter>
@@ -538,5 +541,97 @@ export function RoundedTh({isLeft, isRight, children, ...props}) {
         borderRightRadius={isRight ? 'md' : 'none'}
       />
     </Th>
+  )
+}
+
+export function GoogleTranslateButton({
+  phrases = [],
+  text = encodeURIComponent(phrases.join('\n\n')),
+  locale,
+  children,
+  ...props
+}) {
+  return (
+    <IconButton
+      icon={<GtranslateIcon boxSize={5} />}
+      _hover={{background: 'transparent'}}
+      onClick={() => {
+        openExternalUrl(
+          `https://translate.google.com/#view=home&op=translate&sl=auto&tl=${locale}&text=${text}`
+        )
+      }}
+      {...props}
+    >
+      {children || 'Google Translate'}
+    </IconButton>
+  )
+}
+
+export function ChainedInputGroup({addon, children, ...props}) {
+  const {isDisabled} = props
+
+  return (
+    <InputGroup flex={1} {...props}>
+      {addon ? (
+        <>
+          <ChainedInput {...props} />
+          <ChainedInputAddon isDisabled={isDisabled}>%</ChainedInputAddon>
+        </>
+      ) : (
+        children
+      )}
+    </InputGroup>
+  )
+}
+
+export function ChainedInput(props) {
+  const {isDisabled, bg, _hover} = props
+
+  const borderRightColor = isDisabled ? 'gray.50' : bg
+
+  return (
+    <Input
+      borderRightColor={borderRightColor}
+      borderTopRightRadius={0}
+      borderBottomRightRadius={0}
+      _hover={{
+        borderRightColor,
+        ..._hover,
+      }}
+      {...props}
+    />
+  )
+}
+
+export function ChainedInputAddon({isDisabled, bg = 'white', ...props}) {
+  return (
+    <InputRightAddon
+      bg={isDisabled ? 'gray.50' : bg}
+      borderColor="gray.100"
+      color="muted"
+      h={8}
+      px={3}
+      {...props}
+    />
+  )
+}
+
+export function Badge(props) {
+  return (
+    <Flex
+      as={ChakraBadge}
+      align="center"
+      justify="center"
+      bg="blue.500"
+      color="white"
+      fontSize={8}
+      fontWeight={700}
+      rounded={4}
+      px={1}
+      py={1 / 2}
+      h={4}
+      minW={4}
+      {...props}
+    />
   )
 }

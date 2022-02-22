@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useMemo} from 'react'
+import React, {useState, useEffect} from 'react'
 import {useToast} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
@@ -24,7 +24,7 @@ import {
 import {getKeyById, getProvider} from '../api'
 import {useIdentity} from './identity-context'
 import {useAuthState} from './auth-context'
-import {createRestrictedModalMachine} from '../machines'
+import {restrictedModalMachine} from '../machines'
 
 const AppContext = React.createContext()
 
@@ -148,11 +148,6 @@ export function AppProvider({tabId, ...props}) {
       }
     },
     apiKeyId && apiKeyData?.provider ? 3000 : null
-  )
-
-  const restrictedModalMachine = useMemo(
-    () => createRestrictedModalMachine(),
-    []
   )
 
   const [, send] = useMachine(restrictedModalMachine, {

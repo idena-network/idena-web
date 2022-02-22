@@ -1,5 +1,6 @@
 import dayjs from 'dayjs'
 import {useBreakpointValue} from '@chakra-ui/react'
+import {isMobile} from 'react-device-detect'
 import {getRpcParams} from '../api/api-client'
 import {IdentityStatus} from '../types'
 import {stripHexPrefix} from './buffers'
@@ -42,9 +43,10 @@ export function toPercent(value) {
   })
 }
 
-export const toLocaleDna = (locale, maxDigits) => {
+export const toLocaleDna = (locale, options) => {
   const formatter = new Intl.NumberFormat(locale, {
-    maximumFractionDigits: maxDigits || 18,
+    maximumFractionDigits: 18,
+    ...options,
   })
   return value => `${formatter.format(value)} iDNA`
 }
@@ -150,3 +152,33 @@ export function useIsDesktop() {
   const isDesktop = useBreakpointValue([false, true])
   return isDesktop
 }
+
+export function clampValue(min, max, value) {
+  return Math.min(Math.max(value, min), max)
+}
+
+export function roundToPrecision(precision, value) {
+  return (
+    Math.ceil((Number(value) + Number.EPSILON) * 10 ** precision) /
+    10 ** precision
+  )
+}
+
+export function getDateFromBlocks(needBlock = 0, currentBlock = 0) {
+  return dayjs().add((needBlock - currentBlock) * 20, 'second')
+}
+
+export function formatDateTimeShort(dt) {
+  return new Date(dt).toLocaleString(undefined, {
+    dateStyle: 'short',
+    timeStyle: 'short',
+  })
+}
+
+const browserClientType = parseInt(process.env.NEXT_PUBLIC_WEB_CLIENT_TYPE || 3)
+
+const mobileClientType = parseInt(
+  process.env.NEXT_PUBLIC_WEB_CLIENT_TYPE_MOBILE || 4
+)
+
+export const webClientType = isMobile ? mobileClientType : browserClientType

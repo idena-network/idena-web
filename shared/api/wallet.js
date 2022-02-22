@@ -1,5 +1,5 @@
 /* eslint-disable import/prefer-default-export */
-import api, {indexerApi} from './api-client'
+import api from './api-client'
 import {strip} from '../utils/obj'
 
 /**
@@ -61,13 +61,5 @@ export async function fetchPendingTransactions(address, count) {
     ],
     id: 1,
   })
-  return data
-}
-
-export async function fetchApiTransactions(address, count, continuationToken) {
-  const {data} = await indexerApi().get(`/api/address/${address}/txs`, {
-    params: {limit: count, continuationToken},
-  })
-
   return data
 }

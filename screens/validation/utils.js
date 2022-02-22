@@ -1,6 +1,5 @@
 import {State} from 'xstate'
 import dayjs, {isDayjs} from 'dayjs'
-import {isMobile} from 'react-device-detect'
 import {loadPersistentStateValue} from '../../shared/utils/persist'
 import {EpochPeriod, IdentityStatus} from '../../shared/types'
 import db from '../../shared/utils/db'
@@ -251,14 +250,6 @@ export const decodedWithoutKeywords = ({decoded, words}) =>
 export function availableReportsNumber(flips) {
   return Math.floor(flips.length / 3)
 }
-
-const browserClientType = parseInt(process.env.NEXT_PUBLIC_WEB_CLIENT_TYPE || 3)
-
-const mobileClientType = parseInt(
-  process.env.NEXT_PUBLIC_WEB_CLIENT_TYPE_MOBILE || 4
-)
-
-export const webClientType = isMobile ? mobileClientType : browserClientType
 
 export const transformLog = data => {
   if (typeof data === 'object') {

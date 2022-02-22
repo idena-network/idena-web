@@ -40,7 +40,7 @@ import {
   CropIcon,
   DrawIcon,
   EraserIcon,
-  FlipEditorDeleteIcon,
+  BasketIcon,
   FolderIcon,
   RedoIcon,
   UndoIcon,
@@ -811,7 +811,7 @@ export default function FlipEditor({
 
               <FlipEditorIcon
                 tooltip={t('Clear')}
-                icon={<FlipEditorDeleteIcon />}
+                icon={<BasketIcon />}
                 color="red.500"
                 _hover={{color: 'red.500'}}
                 onClick={handleOnClear}

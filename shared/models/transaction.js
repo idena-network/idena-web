@@ -67,8 +67,8 @@ export class Transaction {
     return Buffer.from(transaction.serializeBinary())
   }
 
-  toHex() {
-    return this.toBytes().toString('hex')
+  toHex(withPrefix) {
+    return (withPrefix ? '0x' : '') + this.toBytes().toString('hex')
   }
 
   _createProtoTxData() {

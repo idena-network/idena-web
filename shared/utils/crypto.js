@@ -221,6 +221,18 @@ export function signMessage(data, key) {
   return Buffer.from([...signature, recid])
 }
 
+export function dnaSign(data, key) {
+  const hash = sha3.keccak_256.array(data)
+  const hash2 = sha3.keccak_256.array(hash)
+
+  const {signature, recid} = secp256k1.ecdsaSign(
+    new Uint8Array(hash2),
+    typeof key === 'string' ? hexToUint8Array(key) : new Uint8Array(key)
+  )
+
+  return Buffer.from([...signature, recid])
+}
+
 export function checkSignature(data, signature) {
   try {
     const hash = sha3.keccak_256.array(data)
