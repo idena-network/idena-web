@@ -192,32 +192,38 @@ export default function Index() {
           {t('Transactions')}
         </Heading>
 
-        <Tabs variant="unstyled" w={['100%', 'auto']} mt={[8, 6]}>
-          <TabList bg={['gray.50', 'white']} borderRadius="md" p={[1, 0]}>
-            <TransactionsTab>
-              {t('Scheduled')}
-              {all.length > 0 && (
-                <>
-                  <Badge ml={2} display={['none', 'inline-block']}>
-                    {all.length}
-                  </Badge>
-                  <Box as="span" ml={1} display={['inline', 'none']}>
-                    {all.length}
-                  </Box>
-                </>
-              )}
-            </TransactionsTab>
-            <TransactionsTab> {t('Recent')}</TransactionsTab>
-          </TabList>
-          <TabPanels mt={4}>
-            <TabPanel p={0}>
-              <WalletPendingTransactions />
-            </TabPanel>
-            <TabPanel p={0}>
-              <WalletTransactions address={coinbase} />
-            </TabPanel>
-          </TabPanels>
-        </Tabs>
+        {all.length > 0 ? (
+          <Tabs variant="unstyled" w={['100%', 'auto']} mt={[8, 6]}>
+            <TabList bg={['gray.50', 'white']} borderRadius="md" p={[1, 0]}>
+              <TransactionsTab>
+                {t('Scheduled')}
+                {all.length > 0 && (
+                  <>
+                    <Badge ml={2} display={['none', 'inline-block']}>
+                      {all.length}
+                    </Badge>
+                    <Box as="span" ml={1} display={['inline', 'none']}>
+                      {all.length}
+                    </Box>
+                  </>
+                )}
+              </TransactionsTab>
+              <TransactionsTab> {t('Recent')}</TransactionsTab>
+            </TabList>
+            <TabPanels mt={4}>
+              <TabPanel p={0}>
+                <WalletPendingTransactions />
+              </TabPanel>
+              <TabPanel p={0}>
+                <WalletTransactions address={coinbase} />
+              </TabPanel>
+            </TabPanels>
+          </Tabs>
+        ) : (
+          <Flex mt={4}>
+            <WalletTransactions address={coinbase} />
+          </Flex>
+        )}
 
         <TransferForm
           isOpen={isTransferFormOpen}
