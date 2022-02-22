@@ -43,7 +43,7 @@ import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {fetchBalance} from '../../shared/api/wallet'
 import {useAuthState} from '../../shared/providers/auth-context'
-import {ExternalLink, TextLink} from '../../shared/components/components'
+import {ExternalLink, Input, TextLink} from '../../shared/components/components'
 import {useOnboarding} from '../../shared/providers/onboarding-context'
 import {
   OnboardingPopover,

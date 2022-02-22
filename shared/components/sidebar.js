@@ -69,6 +69,7 @@ import {
 import {useTestValidationState} from '../providers/test-validation-context'
 import {TodoVotingCountBadge} from '../../screens/oracles/components'
 import useUnreadOraclesCount from '../hooks/use-unread-oracles-count'
+import {useDeferredVotes} from '../../screens/oracles/hooks'
 
 function Sidebar({isOpen, onClose}) {
   return (
@@ -228,6 +229,7 @@ function Nav({onClose}) {
   const [{nickname}] = useIdentity()
   const {logout} = useAuthDispatch()
   const [todoCount] = useUnreadOraclesCount()
+  const [{votes}] = useDeferredVotes()
 
   return (
     <Flex alignSelf="stretch">
@@ -241,6 +243,13 @@ function Nav({onClose}) {
           href="/wallets"
           icon={<WalletIcon boxSize={[8, 5]} />}
           text={t('Wallets')}
+          badge={
+            votes.length ? (
+              <TodoVotingCountBadge ml="auto">
+                {votes.length > 10 ? '10+' : votes.length}
+              </TodoVotingCountBadge>
+            ) : null
+          }
         ></NavItem>
         <NavItem
           href="/flips/list"

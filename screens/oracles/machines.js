@@ -38,7 +38,7 @@ import {
 } from '../../shared/utils/utils'
 import db from '../../shared/utils/db'
 
-import {VotingListFilter} from './types'
+import {DeferredVoteType, VotingListFilter} from './types'
 import {loadPersistentStateValue, persistItem} from '../../shared/utils/persist'
 import {dnaSign, privateKeyToAddress} from '../../shared/utils/crypto'
 import {sendDna} from '../../shared/api/utils'
@@ -1231,6 +1231,9 @@ export const viewVotingMachine = createMachine(
       restorePrevStatus: assign({
         status: ({prevStatus}) => prevStatus,
       }),
+      applyVoteTx: assign({
+        txHash: (_, {data: voteHash}) => voteHash,
+      }),
       applyTx: assign({
         txHash: (_, {data}) => data,
       }),
@@ -1329,17 +1332,18 @@ export const viewVotingMachine = createMachine(
           await readonlyCallContract('voteBlock', 'uint64')
         )
 
-        await addDeferredVote({
-          block: voteBlock,
-          contractHash,
-          amount: votingMinPayment,
-          args: [
-            {value: selectedOption.toString(), format: 'byte'},
-            {value: salt},
-          ],
-        })
-
-        return voteProofResponse
+        return {
+          voteHash: voteProofResponse,
+          vote: {
+            block: voteBlock,
+            contractHash,
+            amount: votingMinPayment,
+            args: [
+              {value: selectedOption.toString(), format: 'byte'},
+              {value: salt},
+            ],
+          },
+        }
       },
       prolongVoting: async ({contractHash}, {privateKey}) => {
         const {
@@ -1596,7 +1600,7 @@ function votingMiningStates(machineId) {
               src: 'vote',
               onDone: {
                 target: 'mining',
-                actions: ['applyTx', log()],
+                actions: ['applyVoteHash', 'addVote', log()],
               },
               onError: {
                 target: `#${machineId}.idle.hist`,

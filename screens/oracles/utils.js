@@ -756,6 +756,10 @@ export async function getDeferredVotes() {
     .toArray()
 }
 
+export async function getDeferredVote(id) {
+  return db.table('deferredVotes').get(id)
+}
+
 export async function updateDeferredVote(id, changes) {
   return db.table('deferredVotes').update(id, changes)
 }

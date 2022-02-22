@@ -15,6 +15,7 @@ import {useEpoch} from '../providers/epoch-context'
 import {useTestValidationState} from '../providers/test-validation-context'
 import {EpochPeriod} from '../types'
 import {useInterval} from '../hooks/use-interval'
+import {DeferredVotes} from '../../screens/oracles/components'
 
 export default function Layout({
   showHamburger = true,
@@ -86,6 +87,7 @@ function NormalApp({children, canRedirect = true}) {
       )}
       {epoch && <ValidationToast epoch={epoch} identity={identity} />}
       <Notifications />
+      <DeferredVotes />
     </Flex>
   )
 }

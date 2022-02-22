@@ -25,7 +25,6 @@ import {getKeyById, getProvider} from '../api'
 import {useIdentity} from './identity-context'
 import {useAuthState} from './auth-context'
 import {restrictedModalMachine} from '../machines'
-import {useDeferredVotes} from '../../screens/oracles/hooks'
 
 const AppContext = React.createContext()
 
@@ -34,8 +33,6 @@ const IDENA_ACTIVE_TAB = 'IDENA_ACTTIVE_TAB'
 
 // eslint-disable-next-line react/prop-types
 export function AppProvider({tabId, ...props}) {
-  useDeferredVotes()
-
   const {t} = useTranslation()
 
   const router = useRouter()

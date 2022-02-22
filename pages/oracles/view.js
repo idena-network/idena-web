@@ -98,12 +98,15 @@ import {
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useBalance} from '../../shared/hooks/use-balance'
 import {viewVotingMachine} from '../../screens/oracles/machines'
+import {useDeferredVotes} from '../../screens/oracles/hooks'
 
 dayjs.extend(relativeTime)
 dayjs.extend(duration)
 
 export default function ViewVotingPage() {
   const {t, i18n} = useTranslation()
+
+  const [, {addVote}] = useDeferredVotes()
 
   const toast = useToast()
 
@@ -127,6 +130,10 @@ export default function ViewVotingPage() {
             <Toast title={humanError(message, context)} status="error" />
           ),
         })
+      },
+      onVote: (_, vote) => {
+        addVote(vote)
+        console.log(vote)
       },
     },
   })

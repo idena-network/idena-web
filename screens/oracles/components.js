@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React from 'react'
+import React, {useState} from 'react'
 import {
   Flex,
   Icon,
@@ -18,6 +18,7 @@ import {
   Button,
   IconButton,
   RadioGroup,
+  useDisclosure,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {
@@ -27,9 +28,16 @@ import {
   ChainedInputGroup,
   ChainedInputAddon,
   Tooltip,
+  Dialog,
+  DialogHeader,
+  DialogBody,
+  DialogFooter,
 } from '../../shared/components/components'
 import {clampValue} from '../../shared/utils/utils'
 import {CrossSmallIcon, OracleIcon} from '../../shared/components/icons'
+import {useDeferredVotes} from './hooks'
+import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
+import {useInterval} from '../../shared/hooks/use-interval'
 
 export function OracleDrawerHeader({
   icon = <OracleIcon />,
@@ -539,5 +547,92 @@ export function TodoVotingCountBadge(props) {
       minW={4}
       {...props}
     />
+  )
+}
+
+function DeferredVotesModalDesc({label, value, ...props}) {
+  return (
+    <Flex {...props} justifyContent="space-between">
+      <Text fontSize="md" color="muted">
+        {label}
+      </Text>
+      <Text fontSize="md" color="gray.500">
+        {value}
+      </Text>
+    </Flex>
+  )
+}
+
+export function DeferredVotes() {
+  const [{votes: pendingVotes, isReady}] = useDeferredVotes()
+  const {t} = useTranslation()
+
+  const [state, setState] = useState({votes: [], index: 0})
+
+  const {isOpen, onOpen, onClose} = useDisclosure()
+
+  const openModal = () => {
+    if (isOpen) return
+    setState({votes: pendingVotes, index: 0})
+    onOpen()
+  }
+
+  const next = () => {
+    if (state.index >= state.votes.length - 1) onClose()
+    else {
+      setState(prevState => ({...prevState, index: prevState.index + 1}))
+    }
+  }
+
+  const send = () => {
+    console.log('sending!', state.index)
+    // send
+    next()
+  }
+
+  useInterval(
+    () => {
+      console.log('start interval')
+      if (pendingVotes.length) {
+        openModal()
+      }
+    },
+    isReady ? 30 * 1000 : null,
+    true
+  )
+
+  const currentVote = state.votes[state.index]
+
+  return (
+    <Dialog isOpen={isOpen} onClose={onClose}>
+      <DialogHeader>
+        {t('Scheduled transaction is about to be sent ({index} of {total})', {
+          index: state.index + 1,
+          total: state.votes.length,
+        })}
+      </DialogHeader>
+      <DialogBody>
+        <Stack bg="gray.100" borderRadius="md" px={4} py={3}>
+          <DeferredVotesModalDesc label={t('Date')} value="" />
+          <DeferredVotesModalDesc
+            label={t('Type')}
+            value={t('Send public vote')}
+          />
+          <DeferredVotesModalDesc
+            label={t('To address')}
+            value={currentVote?.contractHash}
+          />
+          <DeferredVotesModalDesc
+            label={t('Amount')}
+            value={currentVote?.amount}
+          />
+          <DeferredVotesModalDesc label={t('Fee')} value={currentVote?.fee} />
+        </Stack>
+      </DialogBody>
+      <DialogFooter align="center">
+        <SecondaryButton onClick={next}>{t('Not now')}</SecondaryButton>
+        <PrimaryButton onClick={() => send('SEND')}>{t('Send')}</PrimaryButton>
+      </DialogFooter>
+    </Dialog>
   )
 }

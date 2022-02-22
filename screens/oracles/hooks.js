@@ -1,14 +1,14 @@
 /* eslint-disable no-continue */
-import dayjs from 'dayjs'
+
 import {useQuery} from 'react-query'
-import {useInterval} from '../../shared/hooks/use-interval'
 import {useAuthState} from '../../shared/providers/auth-context'
+import {wait} from '../../shared/utils/fn'
 import {callRpc, isVercelProduction} from '../../shared/utils/utils'
 import {DeferredVoteType} from './types'
 import {
+  addDeferredVote,
   callContract,
   estimateCallContract,
-  getDeferredVotes,
   updateDeferredVote,
 } from './utils'
 
@@ -16,67 +16,78 @@ const REFETCH_INTERVAL = isVercelProduction ? 5 * 60 * 1000 : 30 * 1000
 
 export function useDeferredVotes() {
   const {privateKey} = useAuthState()
+
+  const {data: pendingVotes, refetch, isFetched} = useQuery(
+    'useDeferredVotes',
+    () =>
+      wait(5000).then(() => [
+        {contractHash: '0x1', block: 0, amount: 10},
+        {contractHash: '0x99', block: 5, amount: 999},
+      ]),
+    {
+      initialData: [],
+    }
+  )
+
   const {
     data: {currentBlock},
   } = useQuery('bcn_syncing', () => callRpc('bcn_syncing'), {
     initialData: {currentBlock: 0},
     refetchIntervalInBackground: true,
     refetchInterval: REFETCH_INTERVAL,
+    enabled: pendingVotes.length > 0,
   })
 
-  useInterval(
-    async () => {
-      try {
-        if (!privateKey) return
-        const txs = await getDeferredVotes()
+  const addVote = async vote => {
+    await addDeferredVote(vote)
+    refetch()
+  }
 
-        for (const tx of txs.filter(x => x.block < currentBlock)) {
-          try {
-            if (tx.retries > 10) {
-              await updateDeferredVote(tx.id, {
-                type: DeferredVoteType.Failed,
-              })
-              continue
-            }
-            if (tx.lastTry && dayjs().diff(dayjs(tx.lastTry), 'second') < 60)
-              continue
+  const estimateSendVote = async vote => {
+    const voteData = {
+      method: 'sendVote',
+      contractHash: vote.contractHash,
+      amount: vote.amount,
+      args: vote.args,
+    }
 
-            const voteData = {
-              method: 'sendVote',
-              contractHash: tx.contractHash,
-              amount: tx.amount,
-              args: tx.args,
-            }
+    return estimateCallContract(privateKey, voteData)
+  }
 
-            console.log(`sending deferred vote, contract: ${tx.contractHash}`)
+  const sendVote = async vote => {
+    const voteData = {
+      method: 'sendVote',
+      contractHash: vote.contractHash,
+      amount: vote.amount,
+      args: vote.args,
+    }
 
-            const {
-              receipt: {gasCost, txFee},
-            } = await estimateCallContract(privateKey, voteData)
+    console.log(`sending deferred vote, contract: ${vote.contractHash}`)
 
-            const voteResponse = await callContract(privateKey, {
-              ...voteData,
-              gasCost: Number(gasCost),
-              txFee: Number(txFee),
-            })
+    const {
+      receipt: {gasCost, txFee},
+    } = await estimateCallContract(privateKey, voteData)
 
-            await updateDeferredVote(tx.id, {
-              type: DeferredVoteType.Success,
-              txHash: voteResponse,
-            })
-          } catch (e) {
-            await updateDeferredVote(tx.id, {
-              retries: (tx.retries || 0) + 1,
-              lastTry: new Date().getTime(),
-              error: e.message.toString(),
-            })
-          }
-        }
-      } catch (e) {
-        console.error(e)
-      }
+    const voteResponse = await callContract(privateKey, {
+      ...voteData,
+      gasCost: Number(gasCost),
+      txFee: Number(txFee),
+    })
+
+    await updateDeferredVote(vote.id, {
+      type: DeferredVoteType.Success,
+      txHash: voteResponse,
+    })
+  }
+
+  return [
+    {
+      votes: [
+        {contractHash: '0x1', block: 0, amount: 10},
+        {contractHash: '0x99', block: 5, amount: 999},
+      ],
+      isReady: isFetched,
     },
-    20 * 1000,
-    true
-  )
+    {addVote, sendVote, estimateSendVote},
+  ]
 }
