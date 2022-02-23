@@ -1,6 +1,14 @@
 import React, {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
-import {Alert, AlertIcon, FormControl, Stack, useBreakpointValue, useMediaQuery} from '@chakra-ui/react'
+import {
+  Alert,
+  AlertIcon,
+  Box,
+  FormControl,
+  Stack,
+  useBreakpointValue,
+  useMediaQuery,
+} from '@chakra-ui/react'
 import {Link} from '../../shared/components'
 import theme, {rem} from '../../shared/theme'
 import Flex from '../../shared/components/flex'
@@ -18,10 +26,14 @@ import {
 } from '../../shared/components/components'
 import {PrimaryButton} from '../../shared/components/button'
 import {checkKey, getProvider} from '../../shared/api'
+import {AngleArrowBackIcon} from '../../shared/components/icons'
+import {PageTitleNew} from '../../screens/app/components'
+import {useRouter} from 'next/router'
 
 const BASIC_ERROR = 'Node is unavailable.'
 
 function Settings() {
+  const router = useRouter()
   const {t} = useTranslation()
   const {addNotification} = useNotificationDispatch()
   const settingsState = useSettingsState()
@@ -67,7 +79,21 @@ function Settings() {
 
   return (
     <SettingsLayout>
-      <Stack spacing={5} mt={rem(20)} width={['100%', '480px']}>
+      <Box display={['block', 'none']}>
+        <AngleArrowBackIcon
+          stroke="#578FFF"
+          position="absolute"
+          left={4}
+          top={4}
+          h="28px"
+          w="28px"
+          onClick={() => {
+            router.push('/settings')
+          }}
+        />
+        <PageTitleNew mt={-2}>{t('Node')}</PageTitleNew>
+      </Box>
+      <Stack spacing={5} mt={[8, 5]} width={['100%', '480px']}>
         {settingsState.apiKeyState === apiKeyStates.RESTRICTED && (
           <Alert
             status="error"

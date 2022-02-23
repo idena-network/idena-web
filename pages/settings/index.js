@@ -1,29 +1,31 @@
+/* eslint-disable react/prop-types */
 import React, {useState} from 'react'
-import {margin} from 'polished'
 import {useTranslation} from 'react-i18next'
 import {
-  Flex as ChakraFlex,
+  Flex,
   Box,
   Text,
   Button,
+  Divider,
   useBreakpointValue,
   useClipboard,
+  useDisclosure,
 } from '@chakra-ui/react'
 import QRCode from 'qrcode.react'
 import {saveAs} from 'file-saver'
-import theme, {rem} from '../../shared/theme'
-import Flex from '../../shared/components/flex'
+import {useRouter} from 'next/router'
+import {rem} from '../../shared/theme'
 import SettingsLayout from './layout'
 import {
   Dialog,
   DialogBody,
-  DialogFooter,
   DialogHeader,
   FormLabel,
   Input,
   PasswordInput,
+  Tooltip,
 } from '../../shared/components/components'
-import {FlatButton, PrimaryButton} from '../../shared/components/button'
+import {FlatButton} from '../../shared/components/button'
 import {
   useAuthDispatch,
   useAuthState,
@@ -32,26 +34,26 @@ import {Section} from '../../screens/settings/components'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {useNotificationDispatch} from '../../shared/providers/notification-context'
 import {readValidationLogs} from '../../shared/utils/logs'
-import {CopyIcon} from '../../shared/components/icons'
+import {
+  CopyIcon,
+  PrivateKeyIcon,
+  LogsIcon,
+  ExportIcon,
+  ImportIcon,
+  AngleArrowBackIcon,
+  OpenExplorerIcon,
+} from '../../shared/components/icons'
 import {useSuccessToast} from '../../shared/hooks/use-toast'
+import {WideLink} from '../../screens/home/components'
+import {PageTitleNew} from '../../screens/app/components'
 
 function Settings() {
-  return (
-    <SettingsLayout>
-      <ExportPK />
-      <ExportLogs />
-    </SettingsLayout>
-  )
-}
-
-function ExportLogs() {
-  const epochData = useEpoch()
+  const router = useRouter()
   const {t} = useTranslation()
+
+  const epochData = useEpoch()
   const {coinbase} = useAuthState()
-
   const {addError} = useNotificationDispatch()
-
-  const size = useBreakpointValue(['lg', 'md'])
 
   const getLogs = async () => {
     try {
@@ -72,19 +74,77 @@ function ExportLogs() {
   }
 
   return (
-    <Section title={t('Validation logs')}>
-      <PrimaryButton size={size} w={['100%', 'auto']} onClick={getLogs}>
-        {t('Export')}
-      </PrimaryButton>
+    <SettingsLayout>
+      <Box display={['block', 'none']}>
+        <AngleArrowBackIcon
+          stroke="#578FFF"
+          position="absolute"
+          left={4}
+          top={4}
+          h="28px"
+          w="28px"
+          onClick={() => {
+            router.push('/')
+          }}
+        />
+        <PageTitleNew mt={-2}>{t('Settings')}</PageTitleNew>
+      </Box>
+      <ExportPK mt={[8, 9]} />
+      <ExportLogs display={['none', 'block']} getLogs={getLogs} />
+      <Flex display={['flex', 'none']} direction="column" mt={6}>
+        <MobileSettingsItem
+          title={t('Node')}
+          onClick={() => router.push('/settings/node')}
+        />
+        <MobileSettingsItem
+          title={t('Affiliate program')}
+          onClick={() => router.push('/settings/affiliate')}
+          mb={6}
+        />
+        <WideLink label={t('Export validation logs')} onClick={getLogs}>
+          <Box boxSize={8} backgroundColor="brandBlue.10" borderRadius="10px">
+            <OpenExplorerIcon boxSize={5} mt="6px" ml="6px" />
+          </Box>
+        </WideLink>
+      </Flex>
+    </SettingsLayout>
+  )
+}
+
+function ExportLogs({getLogs, ...props}) {
+  const {t} = useTranslation()
+
+  return (
+    <Section title={t('Logs')} w={['100%', '480px']} {...props}>
+      <Divider />
+      <Flex justify="space-between" align="center" py={6}>
+        <Flex>
+          <LogsIcon h={5} w={5} />
+          <Text ml={3} fontSize="mdx" fontWeight={500}>
+            {t('Validation logs')}
+          </Text>
+        </Flex>
+        <Flex align="center">
+          <Button variant="link" onClick={getLogs}>
+            {t('Export')}
+          </Button>
+        </Flex>
+      </Flex>
+      <Divider />
     </Section>
   )
 }
 
-function ExportPK() {
+function ExportPK({...props}) {
   const {t} = useTranslation()
 
   const [password, setPassword] = useState()
-  const [showDialog, setShowDialog] = useState()
+  const [showQR, setShowQR] = useState()
+  const {
+    isOpen: isOpenExportPKDialog,
+    onOpen: onOpenExportPKDialog,
+    onClose: onCloseExportPKDialog,
+  } = useDisclosure()
 
   const [pk, setPk] = useState('')
   const {onCopy, hasCopied} = useClipboard(pk)
@@ -93,125 +153,210 @@ function ExportPK() {
 
   const size = useBreakpointValue(['lg', 'md'])
   const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
-  const justify = useBreakpointValue(['center', 'flex-end'])
-  const inputWidth = useBreakpointValue(['100%', '300px'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
+  const variantPrimaryLink = useBreakpointValue(['primaryFlat', 'link'])
+  const variantSecondaryLink = useBreakpointValue(['secondaryFlat', 'link'])
   const buttonWidth = useBreakpointValue(['100%', 'auto'])
   const successToast = useSuccessToast()
 
   return (
-    <Section title={t('Export private key')}>
-      <ChakraFlex
-        justify={['center', 'flex-start']}
-        textAlign={['center', 'start']}
-        w={['100%', 'auto']}
+    <Section title={t('Private key')} w={['100%', '480px']} {...props}>
+      <Divider display={['none', 'block']} />
+      <Flex
+        direction={['column', 'row']}
+        justify="space-between"
+        align="center"
+        borderRadius="8px"
+        boxShadow={[
+          '0 3px 12px 0 rgb(83 86 92 / 10%), 0 2px 3px 0 rgb(83 86 92 / 20%)',
+          'none',
+        ]}
+        pt={[4, 6]}
+        pb={[2, 6]}
+        px={[4, 0]}
       >
-        <Box w={['80%', 'auto']}>
-          <Text fontSize={['mdx', 'md']} mb={2}>
-            {t('Create a new password to export your private key')}
+        <Flex w={['100%', 'auto']}>
+          <PrivateKeyIcon display={['none', 'block']} mr={2} h={5} w={5} />
+          <Text ml={[0, 3]} fontSize="mdx" fontWeight={500}>
+            {t('My private key')}
           </Text>
-        </Box>
-      </ChakraFlex>
-      <form
-        onSubmit={e => {
-          e.preventDefault()
-          const key = exportKey(password)
-          setPk(key)
-          setShowDialog(true)
-        }}
-      >
-        <ChakraFlex
-          direction={['column', 'row']}
-          align={['flex-start', 'center']}
-        >
-          <FormLabel
-            fontSize={['base', 'md']}
-            w={['auto', '100px']}
-            htmlFor="url"
-          >
-            {t('New password')}
-          </FormLabel>
-          <PasswordInput
-            size={size}
-            value={password}
-            mr={[0, '15px']}
-            width={inputWidth}
-            disabled={showDialog}
-            onChange={e => setPassword(e.target.value)}
-          />
-        </ChakraFlex>
-        <Flex css={{marginTop: 10}}>
-          <PrimaryButton
-            size={size}
-            ml={[0, '110px']}
-            w={['100%', '100px']}
-            type="submit"
-            disabled={!password}
-          >
-            {t('Export')}
-          </PrimaryButton>
         </Flex>
-      </form>
-      <Dialog isOpen={showDialog} onClose={() => setShowDialog(false)}>
-        <DialogHeader>{t('Encrypted private key')}</DialogHeader>
-        <DialogBody>
-          <Text>
-            {t(
-              'Scan QR by your mobile phone or copy code below for export privatekey.'
-            )}
-          </Text>
-          <ChakraFlex justify="center" mx="auto" my={8}>
-            <QRCode value={pk} />
-          </ChakraFlex>
-          <ChakraFlex display={['none', 'flex']} justify="space-between">
-            <FormLabel style={{fontSize: rem(13)}}>
-              Your encrypted private key
-            </FormLabel>
-            {hasCopied ? (
-              <FormLabel style={{fontSize: rem(13)}}>Copied!</FormLabel>
-            ) : (
-              <FlatButton onClick={onCopy} marginBottom={rem(10)}>
-                Copy
-              </FlatButton>
-            )}
-          </ChakraFlex>
-          <ChakraFlex
-            width="100%"
-            style={{marginBottom: rem(20), position: 'relative'}}
-          >
-            <Input size={size} value={pk} width="100%" pr={[10, 0]} disabled />
-            <Box
-              display={['initial', 'none']}
-              position="absolute"
-              top={3}
-              right={3}
+        <Flex mt={[5, 0]} align="center">
+          <Flex align="center">
+            <Tooltip
+              label={t('Import is not available for the external node')}
+              placement="top"
+              shouldWrapChildren
             >
-              <CopyIcon
-                boxSize={6}
-                fill="muted"
-                opacity="0.4"
-                onClick={() => {
-                  onCopy()
-                  successToast({
-                    title: 'Private key copied!',
-                    duration: '5000',
-                  })
-                }}
-              />
-            </Box>
-          </ChakraFlex>
-        </DialogBody>
-        <DialogFooter justifyContent={justify}>
+              <Button
+                variant={variantSecondaryLink}
+                size={size}
+                as={Box}
+                d="flex"
+                isDisabled
+              >
+                <ImportIcon display={['block', 'none']} mr={2} h={5} w={5} />
+                {t('Import')}
+              </Button>
+            </Tooltip>
+          </Flex>
+          <Divider orientation="vertical" h={[8, 3]} mx={4} />
           <Button
-            variant={variantSecondary}
+            variant={variantPrimaryLink}
             size={size}
-            w={buttonWidth}
-            onClick={() => setShowDialog(false)}
+            onClick={onOpenExportPKDialog}
           >
-            {t('Close')}
+            <ExportIcon display={['block', 'none']} mr={2} h={5} w={5} />
+            {t('Export')}
           </Button>
-        </DialogFooter>
+        </Flex>
+      </Flex>
+      <Divider display={['none', 'block']} />
+      <Dialog isOpen={isOpenExportPKDialog} onClose={onCloseExportPKDialog}>
+        <DialogHeader>{t('Encrypted private key')}</DialogHeader>
+        <DialogBody mb={0}>
+          {!showQR ? (
+            <form
+              onSubmit={e => {
+                e.preventDefault()
+                const key = exportKey(password)
+                setPk(key)
+                setShowQR(true)
+              }}
+            >
+              <Flex direction="column" align="flex-start">
+                <Text fontSize="mdx" color="gray.300">
+                  {t('Create a new password to export your private key')}
+                </Text>
+                <FormLabel
+                  fontSize={['base', 'md']}
+                  mt={5}
+                  mb={3}
+                  w={['auto', '100px']}
+                  htmlFor="url"
+                >
+                  {t('New password')}
+                </FormLabel>
+                <PasswordInput
+                  size={size}
+                  value={password}
+                  mr={[0, '15px']}
+                  width="100%"
+                  disabled={showQR}
+                  onChange={e => setPassword(e.target.value)}
+                />
+              </Flex>
+              <Flex mt={6} justify="flex-end">
+                <Button
+                  variant={variantSecondary}
+                  size={size}
+                  w={buttonWidth}
+                  onClick={onCloseExportPKDialog}
+                >
+                  {t('Close')}
+                </Button>
+                <Button
+                  variant={variantPrimary}
+                  size={size}
+                  ml={[0, 2]}
+                  w={buttonWidth}
+                  type="submit"
+                  disabled={!password}
+                >
+                  {t('Export')}
+                </Button>
+              </Flex>
+            </form>
+          ) : (
+            <Box>
+              <Text>
+                {t(
+                  'Scan QR by your mobile phone or copy code below for export privatekey.'
+                )}
+              </Text>
+              <Flex justify="center" mx="auto" my={8}>
+                <QRCode value={pk} />
+              </Flex>
+              <Flex display={['none', 'flex']} justify="space-between">
+                <FormLabel style={{fontSize: rem(13)}}>
+                  Your encrypted private key
+                </FormLabel>
+                {hasCopied ? (
+                  <FormLabel style={{fontSize: rem(13)}}>Copied!</FormLabel>
+                ) : (
+                  <FlatButton onClick={onCopy} marginBottom={rem(10)}>
+                    Copy
+                  </FlatButton>
+                )}
+              </Flex>
+              <Flex
+                width="100%"
+                style={{marginBottom: rem(20), position: 'relative'}}
+              >
+                <Input
+                  size={size}
+                  value={pk}
+                  width="100%"
+                  pr={[10, 0]}
+                  disabled
+                />
+                <Box
+                  display={['initial', 'none']}
+                  position="absolute"
+                  top={3}
+                  right={3}
+                >
+                  <CopyIcon
+                    boxSize={6}
+                    fill="muted"
+                    opacity="0.4"
+                    onClick={() => {
+                      onCopy()
+                      successToast({
+                        title: 'Private key copied!',
+                        duration: '5000',
+                      })
+                    }}
+                  />
+                </Box>
+              </Flex>
+              <Flex justify="flex-end">
+                <Button
+                  variant={variantSecondary}
+                  size={size}
+                  w={buttonWidth}
+                  onClick={() => {
+                    setPk('')
+                    onCloseExportPKDialog()
+                  }}
+                >
+                  {t('Close')}
+                </Button>
+              </Flex>
+            </Box>
+          )}
+        </DialogBody>
       </Dialog>
     </Section>
+  )
+}
+
+function MobileSettingsItem({title, ...props}) {
+  return (
+    <Box w="100%" {...props}>
+      <Flex h={12} w="100%" align="center" justify="space-between">
+        <Text fontSize="base" fontWeight={500}>
+          {title}
+        </Text>
+        <AngleArrowBackIcon
+          stroke="#D8D8D8"
+          h={4}
+          w={4}
+          transform="rotate(180deg)"
+        />
+      </Flex>
+      <Divider />
+    </Box>
   )
 }
 

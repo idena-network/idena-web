@@ -1,19 +1,19 @@
 import {Box, Heading} from '@chakra-ui/react'
 
 // eslint-disable-next-line react/prop-types
-export function Section({title, children}) {
+export function Section({title, children, ...props}) {
   return (
-    <Box my={8}>
+    <Box mt={9} {...props}>
       <Heading
         as="h1"
-        fontSize="lg"
+        fontSize={['20px', 'lg']}
         fontWeight={500}
-        textAlign={['center', 'start']}
+        textAlign="start"
         mb={[0, '0.5em']}
       >
         {title}
       </Heading>
-      <Box my="8px">{children}</Box>
+      <Box mt={[5, 2]}>{children}</Box>
     </Box>
   )
 }

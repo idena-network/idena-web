@@ -391,7 +391,6 @@ export const uiTheme = {
           color: 'muted',
           borderRadius: 8,
           _disabled: {
-            bg: 'gray.100',
             color: 'gray.300',
           },
         },
