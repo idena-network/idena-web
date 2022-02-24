@@ -4,14 +4,14 @@ import {
   Alert,
   AlertIcon,
   Box,
+  Flex,
   FormControl,
+  Heading,
+  Link,
   Stack,
   useBreakpointValue,
-  useMediaQuery,
 } from '@chakra-ui/react'
-import {Link} from '../../shared/components'
-import theme, {rem} from '../../shared/theme'
-import Flex from '../../shared/components/flex'
+import {useRouter} from 'next/router'
 import SettingsLayout from './layout'
 import {
   useSettingsState,
@@ -20,6 +20,7 @@ import {
 } from '../../shared/providers/settings-context'
 import {useNotificationDispatch} from '../../shared/providers/notification-context'
 import {
+  ExternalLink,
   FormLabel,
   Input,
   PasswordInput,
@@ -28,7 +29,7 @@ import {PrimaryButton} from '../../shared/components/button'
 import {checkKey, getProvider} from '../../shared/api'
 import {AngleArrowBackIcon} from '../../shared/components/icons'
 import {PageTitleNew} from '../../screens/app/components'
-import {useRouter} from 'next/router'
+import {useIsDesktop} from '../../shared/utils/utils'
 
 const BASIC_ERROR = 'Node is unavailable.'
 
@@ -39,9 +40,13 @@ function Settings() {
   const settingsState = useSettingsState()
   const {saveConnection} = useSettingsDispatch()
 
-  const [isDesktop] = useMediaQuery('(min-width: 481px)')
   const size = useBreakpointValue(['lg', 'md'])
   const fontSize = useBreakpointValue(['16px', '13px'])
+  const flexDirection = useBreakpointValue(['column', 'row'])
+  const flexJustify = useBreakpointValue(['flex-start', 'space-between'])
+
+  const isDesktop = useIsDesktop()
+  const ComponentLink = isDesktop ? ExternalLink : Link
 
   const [state, setState] = useState({
     url: settingsState.url || '',
@@ -93,7 +98,12 @@ function Settings() {
         />
         <PageTitleNew mt={-2}>{t('Node')}</PageTitleNew>
       </Box>
-      <Stack spacing={5} mt={8} width={['100%', '480px']}>
+      <Stack
+        spacing={5}
+        mt={[3, 8]}
+        width={['100%', '480px']}
+        position="relative"
+      >
         {settingsState.apiKeyState === apiKeyStates.RESTRICTED && (
           <Alert
             status="error"
@@ -124,48 +134,72 @@ function Settings() {
               px={3}
               py={2}
             >
-              <AlertIcon
-                name="info"
-                color="red.500"
-                size={5}
-                mr={3}
-              ></AlertIcon>
+              <AlertIcon name="info" color="red.500" size={5} mr={3} />
               {t(offlineError, {nsSeparator: 'null'})}
             </Alert>
           )}
-        <FormControl>
+        <Flex display={['none', 'flex']} justify="space-between">
+          <Heading as="h1" fontSize="lg" fontWeight={500} textAlign="start">
+            {t('Node settings')}
+          </Heading>
+          <ExternalLink
+            height={6}
+            href="/node/rent"
+          >
+            {t('Rent a new node')}
+          </ExternalLink>
+        </Flex>
+        <FormControl
+          as={Flex}
+          direction={flexDirection}
+          justify={flexJustify}
+          mt={[0, 5]}
+        >
           <Flex justify="space-between">
-            <FormLabel fontSize={['base', 'md']} color="brandGray.500" mb={2}>
+            <FormLabel
+              fontSize={['base', 'md']}
+              color={['brandGray.500', 'muted']}
+              fontWeight={[500, 400]}
+              mb={[2, 0]}
+              lineHeight={[6, 8]}
+            >
               {t('Shared node URL')}
             </FormLabel>
-            <Flex>
-              <Link
-                href="/node/rent"
-                color={theme.colors.primary}
-                fontSize={fontSize}
-                style={{fontWeight: 500}}
-              >
-                {t('Rent a new node')} {isDesktop && '>'}
-              </Link>
-            </Flex>
+            <Link
+              display={['block', 'none']}
+              fontSize={['base', 'md']}
+              fontWeight={500}
+              color="brandBlue.500"
+              href="/node/rent"
+            >
+              {t('Rent a new node')}
+            </Link>
           </Flex>
           <Input
             id="url"
+            w={['100%', '360px']}
             size={size}
             value={state.url}
             onChange={e => setState({...state, url: e.target.value})}
           />
         </FormControl>
-        <FormControl>
-          <FormLabel fontSize={['base', 'md']} color="brandGray.500" mb={2}>
+        <FormControl as={Flex} direction={flexDirection} justify={flexJustify}>
+          <FormLabel
+            fontSize={['base', 'md']}
+            color={['brandGray.500', 'muted']}
+            fontWeight={[500, 400]}
+            mb={[2, 0]}
+            lineHeight={[6, 8]}
+          >
             {t('Node API key')}
           </FormLabel>
           <PasswordInput
             id="key"
+            w={['100%', '360px']}
             size={size}
             value={state.apiKey}
             onChange={e => setState({...state, apiKey: e.target.value})}
-          ></PasswordInput>
+          />
         </FormControl>
 
         {settingsState.apiKeyState === apiKeyStates.ONLINE && (
