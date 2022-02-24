@@ -524,6 +524,11 @@ export const uiTheme = {
         },
       },
       sizes: {
+        mdx: {
+          dialog: {
+            maxW: '400px',
+          },
+        },
         md: {
           dialog: {
             maxW: '480px',

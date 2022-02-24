@@ -93,7 +93,7 @@ function Settings() {
         />
         <PageTitleNew mt={-2}>{t('Node')}</PageTitleNew>
       </Box>
-      <Stack spacing={5} mt={[8, 5]} width={['100%', '480px']}>
+      <Stack spacing={5} mt={8} width={['100%', '480px']}>
         {settingsState.apiKeyState === apiKeyStates.RESTRICTED && (
           <Alert
             status="error"

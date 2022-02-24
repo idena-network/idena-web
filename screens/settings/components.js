@@ -3,7 +3,7 @@ import {Box, Heading} from '@chakra-ui/react'
 // eslint-disable-next-line react/prop-types
 export function Section({title, children, ...props}) {
   return (
-    <Box mt={9} {...props}>
+    <Box mt={8} {...props}>
       <Heading
         as="h1"
         fontSize={['20px', 'lg']}

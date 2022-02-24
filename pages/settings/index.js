@@ -212,7 +212,11 @@ function ExportPK({...props}) {
         </Flex>
       </Flex>
       <Divider display={['none', 'block']} />
-      <Dialog isOpen={isOpenExportPKDialog} onClose={onCloseExportPKDialog}>
+      <Dialog
+        size="mdx"
+        isOpen={isOpenExportPKDialog}
+        onClose={onCloseExportPKDialog}
+      >
         <DialogHeader>{t('Encrypted private key')}</DialogHeader>
         <DialogBody mb={0}>
           {!showQR ? (
@@ -326,7 +330,8 @@ function ExportPK({...props}) {
                   size={size}
                   w={buttonWidth}
                   onClick={() => {
-                    setPk('')
+                    setPassword('')
+                    setShowQR(false)
                     onCloseExportPKDialog()
                   }}
                 >
