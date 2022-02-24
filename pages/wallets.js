@@ -60,6 +60,7 @@ export default function Index() {
     <Layout>
       <Page pt={[4, 6]}>
         <AngleArrowBackIcon
+          stroke="#578FFF"
           display={['block', 'none']}
           position="absolute"
           left={4}
