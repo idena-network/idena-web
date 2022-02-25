@@ -7,7 +7,6 @@ import {
   Flex,
   FormControl,
   Heading,
-  Link,
   Stack,
   useBreakpointValue,
 } from '@chakra-ui/react'
@@ -27,7 +26,11 @@ import {
 } from '../../shared/components/components'
 import {PrimaryButton} from '../../shared/components/button'
 import {checkKey, getProvider} from '../../shared/api'
-import {AngleArrowBackIcon} from '../../shared/components/icons'
+import {Link} from '../../shared/components'
+import {
+  AngleArrowBackIcon,
+  ChevronDownIcon,
+} from '../../shared/components/icons'
 import {PageTitleNew} from '../../screens/app/components'
 import {useIsDesktop} from '../../shared/utils/utils'
 
@@ -142,12 +145,18 @@ function Settings() {
           <Heading as="h1" fontSize="lg" fontWeight={500} textAlign="start">
             {t('Node settings')}
           </Heading>
-          <ExternalLink
-            height={6}
-            href="/node/rent"
-          >
-            {t('Rent a new node')}
-          </ExternalLink>
+          <Box mt="3px">
+            <Link
+              color="#578fff"
+              fontSize="13px"
+              fontWeight="500"
+              height="17px"
+              href="/node/rent"
+            >
+              {t('Rent a new node')}
+              <ChevronDownIcon boxSize={4} transform="rotate(-90deg)" />
+            </Link>
+          </Box>
         </Flex>
         <FormControl
           as={Flex}
@@ -165,15 +174,16 @@ function Settings() {
             >
               {t('Shared node URL')}
             </FormLabel>
-            <Link
-              display={['block', 'none']}
-              fontSize={['base', 'md']}
-              fontWeight={500}
-              color="brandBlue.500"
-              href="/node/rent"
-            >
-              {t('Rent a new node')}
-            </Link>
+            <Box display={['block', 'none']}>
+              <Link
+                fontSize="16px"
+                fontWeight="500"
+                color="#578fff"
+                href="/node/rent"
+              >
+                {t('Rent a new node')}
+              </Link>
+            </Box>
           </Flex>
           <Input
             id="url"

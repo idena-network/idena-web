@@ -20,7 +20,6 @@ import {
   DrawerBody,
   DrawerFooter,
   DrawerHeader,
-  FormControlWithLabel,
   FormLabel,
   Input,
 } from '../../shared/components/components'
@@ -103,7 +102,7 @@ export function BuySharedNodeForm({
             rounded="xl"
             bg="red.012"
           >
-            <SendOutIcon boxSize={6} />
+            <SendOutIcon boxSize={6} color="red.500" />
           </Flex>
           <Heading
             order={[1, 2]}

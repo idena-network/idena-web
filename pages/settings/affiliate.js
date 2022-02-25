@@ -190,6 +190,7 @@ function UniversalListItem({title, isLast, children, ...props}) {
           fontWeight={500}
           color="gray.500"
           mt={1.5}
+          mb={1}
         >
           {title}
         </Text>
@@ -215,7 +216,7 @@ function FullSizeLink({label, href, children, ...props}) {
   const ComponentLink = isDesktop ? ExternalLink : WideLink
 
   return (
-    <ComponentLink label={label} href={href} {...props}>
+    <ComponentLink label={label} href={href} target="_blank" {...props}>
       {isDesktop ? label : children}
     </ComponentLink>
   )
@@ -226,7 +227,7 @@ function SimpleLink({href, children, ...props}) {
   const ComponentLink = isDesktop ? ExternalLink : Link
 
   return (
-    <ComponentLink color="brandBlue.500" href={href} {...props}>
+    <ComponentLink color="brandBlue.500" href={href} target="_blank" {...props}>
       {children}
     </ComponentLink>
   )

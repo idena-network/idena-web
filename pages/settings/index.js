@@ -23,7 +23,6 @@ import {
   FormLabel,
   Input,
   PasswordInput,
-  Tooltip,
 } from '../../shared/components/components'
 import {FlatButton} from '../../shared/components/button'
 import {
@@ -38,8 +37,6 @@ import {
   CopyIcon,
   PrivateKeyIcon,
   LogsIcon,
-  ExportIcon,
-  ImportIcon,
   AngleArrowBackIcon,
   OpenExplorerIcon,
 } from '../../shared/components/icons'
@@ -123,7 +120,10 @@ function Settings() {
           onClick={() => router.push('/settings/affiliate')}
           mb={6}
         />
-        <WideLink label={t('Export my private key')} onClick={onOpenExportPKDialog}>
+        <WideLink
+          label={t('Export my private key')}
+          onClick={onOpenExportPKDialog}
+        >
           <Box boxSize={8} backgroundColor="brandBlue.10" borderRadius="10px">
             <PrivateKeyIcon fill="#578FFF" boxSize={5} mt="6px" ml="6px" />
           </Box>
