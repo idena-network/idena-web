@@ -16,6 +16,7 @@ import {useTestValidationState} from '../providers/test-validation-context'
 import {EpochPeriod} from '../types'
 import {useInterval} from '../hooks/use-interval'
 import {DeferredVotes} from '../../screens/oracles/components'
+import {useAdRotation} from '../../screens/ads/hooks'
 
 export default function Layout({
   showHamburger = true,
@@ -71,6 +72,12 @@ function NormalApp({children, canRedirect = true}) {
     } else if (currentTrainingValidation?.period === EpochPeriod.ShortSession)
       router.push('/try/validation')
   }, [canRedirect, currentTrainingValidation, router, settings.apiKeyState])
+
+  const ads = useAdRotation()
+
+  React.useEffect(() => {
+    console.log({ads})
+  }, [ads])
 
   return (
     <Flex
