@@ -53,7 +53,7 @@ export function SubHeading({children, ...props}) {
       fontWeight={500}
       lineHeight={6}
       m="0.25em 0"
-      w="100%"
+      w="auto"
       {...props}
     >
       {children}
