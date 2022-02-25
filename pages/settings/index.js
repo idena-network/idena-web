@@ -51,6 +51,25 @@ function Settings() {
   const router = useRouter()
   const {t} = useTranslation()
 
+  const [password, setPassword] = useState()
+  const [showQR, setShowQR] = useState()
+  const {
+    isOpen: isOpenExportPKDialog,
+    onOpen: onOpenExportPKDialog,
+    onClose: onCloseExportPKDialog,
+  } = useDisclosure()
+
+  const [pk, setPk] = useState('')
+  const {onCopy, hasCopied} = useClipboard(pk)
+
+  const {exportKey} = useAuthDispatch()
+
+  const size = useBreakpointValue(['lg', 'md'])
+  const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
+  const buttonWidth = useBreakpointValue(['100%', 'auto'])
+  const successToast = useSuccessToast()
+
   const epochData = useEpoch()
   const {coinbase} = useAuthState()
   const {addError} = useNotificationDispatch()
@@ -89,7 +108,10 @@ function Settings() {
         />
         <PageTitleNew mt={-2}>{t('Settings')}</PageTitleNew>
       </Box>
-      <ExportPK mt={[8, 9]} />
+      <ExportPK
+        display={['none', 'block']}
+        onDialogOpen={onOpenExportPKDialog}
+      />
       <ExportLogs display={['none', 'block']} getLogs={getLogs} />
       <Flex display={['flex', 'none']} direction="column" mt={6}>
         <MobileSettingsItem
@@ -101,117 +123,18 @@ function Settings() {
           onClick={() => router.push('/settings/affiliate')}
           mb={6}
         />
+        <WideLink label={t('Export my private key')} onClick={onOpenExportPKDialog}>
+          <Box boxSize={8} backgroundColor="brandBlue.10" borderRadius="10px">
+            <PrivateKeyIcon fill="#578FFF" boxSize={5} mt="6px" ml="6px" />
+          </Box>
+        </WideLink>
         <WideLink label={t('Export validation logs')} onClick={getLogs}>
           <Box boxSize={8} backgroundColor="brandBlue.10" borderRadius="10px">
             <OpenExplorerIcon boxSize={5} mt="6px" ml="6px" />
           </Box>
         </WideLink>
       </Flex>
-    </SettingsLayout>
-  )
-}
 
-function ExportLogs({getLogs, ...props}) {
-  const {t} = useTranslation()
-
-  return (
-    <Section title={t('Logs')} w={['100%', '480px']} {...props}>
-      <Divider />
-      <Flex justify="space-between" align="center" py={6}>
-        <Flex>
-          <LogsIcon h={5} w={5} />
-          <Text ml={3} fontSize="mdx" fontWeight={500}>
-            {t('Validation logs')}
-          </Text>
-        </Flex>
-        <Flex align="center">
-          <Button variant="link" onClick={getLogs}>
-            {t('Export')}
-          </Button>
-        </Flex>
-      </Flex>
-      <Divider />
-    </Section>
-  )
-}
-
-function ExportPK({...props}) {
-  const {t} = useTranslation()
-
-  const [password, setPassword] = useState()
-  const [showQR, setShowQR] = useState()
-  const {
-    isOpen: isOpenExportPKDialog,
-    onOpen: onOpenExportPKDialog,
-    onClose: onCloseExportPKDialog,
-  } = useDisclosure()
-
-  const [pk, setPk] = useState('')
-  const {onCopy, hasCopied} = useClipboard(pk)
-
-  const {exportKey} = useAuthDispatch()
-
-  const size = useBreakpointValue(['lg', 'md'])
-  const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
-  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
-  const variantPrimaryLink = useBreakpointValue(['primaryFlat', 'link'])
-  const variantSecondaryLink = useBreakpointValue(['secondaryFlat', 'link'])
-  const buttonWidth = useBreakpointValue(['100%', 'auto'])
-  const successToast = useSuccessToast()
-
-  return (
-    <Section title={t('Private key')} w={['100%', '480px']} {...props}>
-      <Divider display={['none', 'block']} />
-      <Flex
-        direction={['column', 'row']}
-        justify="space-between"
-        align="center"
-        borderRadius="8px"
-        boxShadow={[
-          '0 3px 12px 0 rgb(83 86 92 / 10%), 0 2px 3px 0 rgb(83 86 92 / 20%)',
-          'none',
-        ]}
-        pt={[4, 6]}
-        pb={[2, 6]}
-        px={[4, 0]}
-      >
-        <Flex w={['100%', 'auto']}>
-          <PrivateKeyIcon display={['none', 'block']} mr={2} h={5} w={5} />
-          <Text ml={[0, 3]} fontSize="mdx" fontWeight={500}>
-            {t('My private key')}
-          </Text>
-        </Flex>
-        <Flex mt={[5, 0]} align="center">
-          <Flex align="center">
-            <Tooltip
-              label={t('Import is not available for the external node')}
-              placement="top"
-              shouldWrapChildren
-            >
-              <Button
-                variant={variantSecondaryLink}
-                size={size}
-                as={Box}
-                d="flex"
-                isDisabled
-              >
-                <ImportIcon display={['block', 'none']} mr={2} h={5} w={5} />
-                {t('Import')}
-              </Button>
-            </Tooltip>
-          </Flex>
-          <Divider orientation="vertical" h={[8, 3]} mx={4} />
-          <Button
-            variant={variantPrimaryLink}
-            size={size}
-            onClick={onOpenExportPKDialog}
-          >
-            <ExportIcon display={['block', 'none']} mr={2} h={5} w={5} />
-            {t('Export')}
-          </Button>
-        </Flex>
-      </Flex>
-      <Divider display={['none', 'block']} />
       <Dialog
         size="mdx"
         isOpen={isOpenExportPKDialog}
@@ -342,6 +265,54 @@ function ExportPK({...props}) {
           )}
         </DialogBody>
       </Dialog>
+    </SettingsLayout>
+  )
+}
+
+function ExportLogs({getLogs, ...props}) {
+  const {t} = useTranslation()
+
+  return (
+    <Section title={t('Logs')} w={['100%', '480px']} {...props}>
+      <Divider />
+      <Flex justify="space-between" align="center" py={6}>
+        <Flex>
+          <LogsIcon h={5} w={5} />
+          <Text ml={3} fontSize="mdx" fontWeight={500}>
+            {t('Validation logs')}
+          </Text>
+        </Flex>
+        <Flex align="center">
+          <Button variant="link" color="blue.500" onClick={getLogs}>
+            {t('Export')}
+          </Button>
+        </Flex>
+      </Flex>
+      <Divider />
+    </Section>
+  )
+}
+
+function ExportPK({onDialogOpen, ...props}) {
+  const {t} = useTranslation()
+
+  return (
+    <Section title={t('Private key')} w={['100%', '480px']} {...props}>
+      <Divider display={['none', 'block']} />
+      <Flex justify="space-between" align="center" py={6}>
+        <Flex>
+          <PrivateKeyIcon fill="#53565C" mr={2} h={5} w={5} />
+          <Text ml={[0, 3]} fontSize="mdx" fontWeight={500}>
+            {t('My private key')}
+          </Text>
+        </Flex>
+        <Flex align="center">
+          <Button variant="link" color="blue.500" onClick={onDialogOpen}>
+            {t('Export')}
+          </Button>
+        </Flex>
+      </Flex>
+      <Divider display={['none', 'block']} />
     </Section>
   )
 }
