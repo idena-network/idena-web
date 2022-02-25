@@ -20,9 +20,8 @@ export const setVotingStatus = status =>
     status,
   })
 
-// const prodApiResolver = createApiUrlResolver('https://api.idena.io/api')
-
-export const resolveApiUrl = path => testApiResolver(path)
+export const resolveApiUrl = path =>
+  createApiUrlResolver('https://api.idena.io')(path)
 
 function createApiUrlResolver(host) {
   return (...paths) => new URL(paths.join('/'), host)
