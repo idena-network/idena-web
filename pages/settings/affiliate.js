@@ -84,9 +84,6 @@ export default function Affiliate() {
               Referral link request form
             </SimpleLink>
           </UniversalListItem>
-          <UniversalListItem title="Get approved">
-            <Text>And get your personal referral link</Text>
-          </UniversalListItem>
           <UniversalListItem title="Spread the word">
             <Text>Educate your community about Idena</Text>
           </UniversalListItem>
@@ -160,13 +157,18 @@ export default function Affiliate() {
               </Text>
             </Box>
           </UniversalListItem>
-          <UniversalListItem
-            isLast
-            title="Help your invitees through the onboarding process"
-          >
+          <UniversalListItem title="Help your invitees through the onboarding process">
             <Text>
               Remind them about the validation ceremony and help them get
               validated
+            </Text>
+          </UniversalListItem>
+          <UniversalListItem isLast title="Get rewards">
+            <Text>
+              Find the rewards you get and reward conditions on the{' '}
+              <SimpleLink href="https://docs.idena.io/docs/community/affiliate">
+                Idena affiliate program page
+              </SimpleLink>
             </Text>
           </UniversalListItem>
         </UnorderedList>
@@ -189,8 +191,8 @@ function UniversalListItem({title, isLast, children, ...props}) {
           fontSize={['base', 'mdx']}
           fontWeight={500}
           color="gray.500"
-          mt={1.5}
-          mb={1}
+          pt={0.5}
+          my={1}
         >
           {title}
         </Text>
@@ -198,10 +200,10 @@ function UniversalListItem({title, isLast, children, ...props}) {
         <Divider
           display={isLast ? 'none' : 'block'}
           position={['initial', 'absolute']}
-          top="12px"
+          top="15px"
           left="-15px"
           mt={[6, 0]}
-          borderColor={['brandGray.800', 'gray.50']}
+          borderColor="brandGray.800"
           orientation={orientation}
           zIndex={-1}
         />
