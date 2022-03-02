@@ -135,6 +135,7 @@ function ProviderInfoDrawer({p, identity, onClose, onSubmit, ...props}) {
       <DrawerContent>
         <DrawerHeader>
           <AngleArrowBackIcon
+            stroke="#578FFF"
             position="absolute"
             left={4}
             top={4}
@@ -255,6 +256,7 @@ export default function Rent() {
         <Box w="full">
           <Flex align="center" justify="space-between">
             <AngleArrowBackIcon
+              stroke="#578FFF"
               display={['block', 'none']}
               position="absolute"
               left={4}

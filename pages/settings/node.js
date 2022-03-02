@@ -1,9 +1,16 @@
 import React, {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
-import {Alert, AlertIcon, FormControl, Stack, useBreakpointValue, useMediaQuery} from '@chakra-ui/react'
-import {Link} from '../../shared/components'
-import theme, {rem} from '../../shared/theme'
-import Flex from '../../shared/components/flex'
+import {
+  Alert,
+  AlertIcon,
+  Box,
+  Flex,
+  FormControl,
+  Heading,
+  Stack,
+  useBreakpointValue,
+} from '@chakra-ui/react'
+import {useRouter} from 'next/router'
 import SettingsLayout from './layout'
 import {
   useSettingsState,
@@ -12,24 +19,37 @@ import {
 } from '../../shared/providers/settings-context'
 import {useNotificationDispatch} from '../../shared/providers/notification-context'
 import {
+  ExternalLink,
   FormLabel,
   Input,
   PasswordInput,
 } from '../../shared/components/components'
 import {PrimaryButton} from '../../shared/components/button'
 import {checkKey, getProvider} from '../../shared/api'
+import {Link} from '../../shared/components'
+import {
+  AngleArrowBackIcon,
+  ChevronDownIcon,
+} from '../../shared/components/icons'
+import {PageTitleNew} from '../../screens/app/components'
+import {useIsDesktop} from '../../shared/utils/utils'
 
 const BASIC_ERROR = 'Node is unavailable.'
 
 function Settings() {
+  const router = useRouter()
   const {t} = useTranslation()
   const {addNotification} = useNotificationDispatch()
   const settingsState = useSettingsState()
   const {saveConnection} = useSettingsDispatch()
 
-  const [isDesktop] = useMediaQuery('(min-width: 481px)')
   const size = useBreakpointValue(['lg', 'md'])
   const fontSize = useBreakpointValue(['16px', '13px'])
+  const flexDirection = useBreakpointValue(['column', 'row'])
+  const flexJustify = useBreakpointValue(['flex-start', 'space-between'])
+
+  const isDesktop = useIsDesktop()
+  const ComponentLink = isDesktop ? ExternalLink : Link
 
   const [state, setState] = useState({
     url: settingsState.url || '',
@@ -67,7 +87,26 @@ function Settings() {
 
   return (
     <SettingsLayout>
-      <Stack spacing={5} mt={rem(20)} width={['100%', '480px']}>
+      <Box display={['block', 'none']}>
+        <AngleArrowBackIcon
+          stroke="#578FFF"
+          position="absolute"
+          left={4}
+          top={4}
+          h="28px"
+          w="28px"
+          onClick={() => {
+            router.push('/settings')
+          }}
+        />
+        <PageTitleNew mt={-2}>{t('Node')}</PageTitleNew>
+      </Box>
+      <Stack
+        spacing={5}
+        mt={[3, 8]}
+        width={['100%', '480px']}
+        position="relative"
+      >
         {settingsState.apiKeyState === apiKeyStates.RESTRICTED && (
           <Alert
             status="error"
@@ -98,48 +137,79 @@ function Settings() {
               px={3}
               py={2}
             >
-              <AlertIcon
-                name="info"
-                color="red.500"
-                size={5}
-                mr={3}
-              ></AlertIcon>
+              <AlertIcon name="info" color="red.500" size={5} mr={3} />
               {t(offlineError, {nsSeparator: 'null'})}
             </Alert>
           )}
-        <FormControl>
+        <Flex display={['none', 'flex']} justify="space-between">
+          <Heading as="h1" fontSize="lg" fontWeight={500} textAlign="start">
+            {t('Node settings')}
+          </Heading>
+          <Box mt="3px">
+            <Link
+              color="#578fff"
+              fontSize="13px"
+              fontWeight="500"
+              height="17px"
+              href="/node/rent"
+            >
+              {t('Rent a new node')}
+              <ChevronDownIcon boxSize={4} transform="rotate(-90deg)" />
+            </Link>
+          </Box>
+        </Flex>
+        <FormControl
+          as={Flex}
+          direction={flexDirection}
+          justify={flexJustify}
+          mt={[0, 5]}
+        >
           <Flex justify="space-between">
-            <FormLabel fontSize={['base', 'md']} color="brandGray.500" mb={2}>
+            <FormLabel
+              fontSize={['base', 'md']}
+              color={['brandGray.500', 'muted']}
+              fontWeight={[500, 400]}
+              mb={[2, 0]}
+              lineHeight={[6, 8]}
+            >
               {t('Shared node URL')}
             </FormLabel>
-            <Flex>
+            <Box display={['block', 'none']}>
               <Link
+                fontSize="16px"
+                fontWeight="500"
+                color="#578fff"
                 href="/node/rent"
-                color={theme.colors.primary}
-                fontSize={fontSize}
-                style={{fontWeight: 500}}
               >
-                {t('Rent a new node')} {isDesktop && '>'}
+                {t('Rent a new node')}
               </Link>
-            </Flex>
+            </Box>
           </Flex>
           <Input
             id="url"
+            w={['100%', '360px']}
             size={size}
             value={state.url}
             onChange={e => setState({...state, url: e.target.value})}
           />
         </FormControl>
-        <FormControl>
-          <FormLabel fontSize={['base', 'md']} color="brandGray.500" mb={2}>
+        <FormControl as={Flex} direction={flexDirection} justify={flexJustify}>
+          <FormLabel
+            fontSize={['base', 'md']}
+            color={['brandGray.500', 'muted']}
+            fontWeight={[500, 400]}
+            mb={[2, 0]}
+            lineHeight={[6, 8]}
+          >
             {t('Node API key')}
           </FormLabel>
           <PasswordInput
             id="key"
+            w={['100%', '360px']}
             size={size}
             value={state.apiKey}
             onChange={e => setState({...state, apiKey: e.target.value})}
-          ></PasswordInput>
+          />
         </FormControl>
 
         {settingsState.apiKeyState === apiKeyStates.ONLINE && (

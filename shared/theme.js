@@ -84,13 +84,6 @@ export default {
     lineHeight: rem(32),
     ...margin(0),
   },
-  SubHeading: {
-    color: colors.text,
-    fontSize: fontSizes.subHeading,
-    fontWeight: 500,
-    lineHeight: rem(24),
-    ...margin(0),
-  },
   Text: {
     color: colors.text,
     fontSize: fontSizes.normal,
@@ -398,7 +391,6 @@ export const uiTheme = {
           color: 'muted',
           borderRadius: 8,
           _disabled: {
-            bg: 'gray.100',
             color: 'gray.300',
           },
         },
@@ -532,6 +524,11 @@ export const uiTheme = {
         },
       },
       sizes: {
+        mdx: {
+          dialog: {
+            maxW: '400px',
+          },
+        },
         md: {
           dialog: {
             maxW: '480px',

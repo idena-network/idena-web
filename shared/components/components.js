@@ -318,6 +318,7 @@ export function Dialog({
         pb={[4, 8]}
         pt={6}
         mt={0}
+        mx={[4, 'auto']}
         mb={[9, 0]}
         rounded="lg"
       >

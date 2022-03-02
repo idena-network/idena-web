@@ -1116,6 +1116,7 @@ function TransactionDetailDrawer({tx, direction, onClose, ...props}) {
         <DrawerContent>
           <ChakraDrawerHeader>
             <AngleArrowBackIcon
+              stroke="#578FFF"
               position="absolute"
               left={4}
               top={4}
