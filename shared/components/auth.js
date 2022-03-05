@@ -9,7 +9,7 @@ import {
 } from '@chakra-ui/react'
 import React, {useState} from 'react'
 import {FiChevronRight} from 'react-icons/fi'
-import Router from 'next/router'
+import Router, {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
 import {
   Avatar,
@@ -36,6 +36,8 @@ function RestoreKey() {
   const [error, setError] = useState()
 
   const [dnaAppUrl, {dismiss: dimissDnaAppLink}] = useDnaAppLink()
+
+  const router = useRouter()
 
   return (
     <AuthLayout>
@@ -149,6 +151,13 @@ function RestoreKey() {
 
       {dnaAppUrl && (
         <DnaAppUrl url={dnaAppUrl} onOpenInApp={dimissDnaAppLink} />
+      )}
+
+      {router.pathname === '/oracles/view' && (
+        <DnaAppUrl
+          url={`dna://vote/v1?address=${router.query.id}`}
+          onOpenInApp={() => {}}
+        />
       )}
 
       <Dialog key="warning" isOpen={warning} onClose={() => showWarning(false)}>
