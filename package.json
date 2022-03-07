@@ -44,6 +44,8 @@
     "@idena/vrf-js": "^1.0.1",
     "@toast-ui/react-image-editor": "^1.2.0",
     "@xstate/react": "^1.6.3",
+    "@react-spring/web": "^9.4.3",
+    "@use-gesture/react": "^10.2.6",
     "ansi-to-react": "^6.0.5",
     "axios": "^0.18.1",
     "bn.js": "^5.1.3",

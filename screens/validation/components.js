@@ -28,6 +28,8 @@ import {
 import {useSwipeable} from 'react-swipeable'
 import {useMachine} from '@xstate/react'
 import {Trans, useTranslation} from 'react-i18next'
+import {useSpring, animated} from '@react-spring/web'
+import {useDrag} from '@use-gesture/react'
 import dayjs from 'dayjs'
 import {useRouter} from 'next/router'
 import {State} from 'xstate'
@@ -245,8 +247,15 @@ export function Flip({
 
 function FlipHolder({css, ...props}) {
   const windowHeight = use100vh()
+  const AnimatedFlex = animated(ChakraFlex)
+  const [{x, y, scale}, api] = useSpring(() => ({x: 0, y: 0, scale: 1}))
+  const bind = useDrag(
+    ({down, movement: [mx, my]}) =>
+      api.start({x: 0, y: down ? -my : 0, scale: down ? 2 : 1}),
+    {delay: 100}
+  )
   return (
-    <ChakraFlex
+    <AnimatedFlex
       justify="center"
       direction="column"
       position="relative"
@@ -261,7 +270,9 @@ function FlipHolder({css, ...props}) {
         0.95,
         theme.colors.primary2
       )}`}
+      style={{x, y, scale, touchAction: 'none'}}
       css={css}
+      {...bind()}
       {...props}
     />
   )
