@@ -1,5 +1,6 @@
 import {WarningIcon} from '@chakra-ui/icons'
 import {
+  Box,
   CloseButton,
   Flex,
   Heading,
@@ -11,10 +12,10 @@ import {
   Tr,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
-import {useState} from 'react'
+import React, {useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
-import {Page, PageTitle} from '../../../screens/app/components'
+import {Page, PageTitleNew} from '../../../screens/app/components'
 import {
   AlertBox,
   DetailsPoints,
@@ -31,16 +32,20 @@ import {GetAnswerTitle} from '../../../screens/try/utils'
 import {getCertificate} from '../../../shared/api/self'
 import {Skeleton, TextLink} from '../../../shared/components/components'
 import {
+  AngleArrowBackIcon,
   CertificateIcon,
   RightIcon,
   WrongIcon,
 } from '../../../shared/components/icons'
 import Layout from '../../../shared/components/layout'
 import {CertificateActionType} from '../../../shared/types'
+import {WideLink} from '../../../screens/home/components'
+import {useIsDesktop} from '../../../shared/utils/utils'
 
 export default function Details() {
   const {t} = useTranslation()
   const router = useRouter()
+  const isDesktop = useIsDesktop()
 
   const [flipView, setFlipView] = useState({
     isOpen: false,
@@ -89,21 +94,34 @@ export default function Details() {
             align="center"
             alignSelf="stretch"
             justify="space-between"
-            mt={8}
+            mt={[4, 8]}
           >
-            <PageTitle>{t('Training validation report')}</PageTitle>
+            <AngleArrowBackIcon
+              stroke="#578FFF"
+              display={['block', 'none']}
+              position="absolute"
+              left={4}
+              top={4}
+              h="28px"
+              w="28px"
+              onClick={() => {
+                router.push('/try')
+              }}
+            />
+            <PageTitleNew>{t('Training validation report')}</PageTitleNew>
             <CloseButton
+              display={['none', 'flex']}
               alignSelf="flex-start"
               onClick={() => {
                 router.push('/try')
               }}
             />
           </Flex>
-          <Flex width="720px" direction="column">
+          <Flex width={['100%', '720px']} direction="column">
             {data.actionType === CertificateActionType.Passed && (
               <AlertBox>
                 <Flex align="center">
-                  <RightIcon boxSize={4} color="green.500" mr={2} />
+                  <RightIcon boxSize={[5, 4]} color="green.500" mr={[3, 2]} />
                   <Text fontWeight={500}>{t('Passed successfully')}</Text>
                 </Flex>
               </AlertBox>
@@ -117,12 +135,13 @@ export default function Details() {
               </AlertBox>
             )}
             <Flex
+              direction={['column', 'row']}
               justifyContent="space-between"
               fontSize="md"
               align="center"
               mt={8}
             >
-              <Flex>
+              <Flex direction={['column', 'row']} w={['100%', 'auto']}>
                 <DetailsPoints
                   title={t('Short score')}
                   isLoading={isFetching}
@@ -140,29 +159,51 @@ export default function Details() {
                   isLoading={isFetching}
                   value={`${data.reportScore || 0}/6`}
                   isFailed={data.reportScore < 4}
+                  mb={[8, 0]}
                 />
               </Flex>
               {data.actionType === CertificateActionType.Passed && (
-                <Flex>
-                  <TextLink
-                    href="/certificate/[id]"
-                    as={`/certificate/${id}`}
-                    fontWeight={500}
-                    mr={4}
-                    target="_blank"
-                  >
-                    <CertificateIcon boxSize={5} mr={1} />
-                    {t('Show certificate')}
-                  </TextLink>
+                <Flex w={['100%', 'auto']}>
+                  {isDesktop ? (
+                    <TextLink
+                      href="/certificate/[id]"
+                      as={`/certificate/${id}`}
+                      fontWeight={500}
+                      mr={4}
+                      target="_blank"
+                    >
+                      <CertificateIcon boxSize={5} mr={1} />
+                      {t('Show certificate')}
+                    </TextLink>
+                  ) : (
+                    <WideLink
+                      href={`/certificate/${id}`}
+                      target="_blank"
+                      label={t('Show certificate')}
+                    >
+                      <Box
+                        boxSize={8}
+                        backgroundColor="brandBlue.10"
+                        borderRadius="10px"
+                      >
+                        <CertificateIcon boxSize={5} mr={1} mt="6px" ml="6px" />
+                      </Box>
+                    </WideLink>
+                  )}
                 </Flex>
               )}
             </Flex>
-            <Heading fontSize="lg" fontWeight="500" mt={8}>
+            <Heading
+              fontSize={['md', 'lg']}
+              fontWeight="500"
+              color={['muted', 'brandGray.500']}
+              mt={[10, 8]}
+            >
               {t('Short session')}
             </Heading>
-            <Flex mt={5}>
+            <Flex mt={[0, 5]}>
               <Table>
-                <Thead>
+                <Thead display={['none', 'table-header-group']}>
                   <Tr>
                     <RoundedFlipsTh>
                       {t('Flips')}
@@ -193,14 +234,16 @@ export default function Details() {
                               }
                             />
                           </FlipsValueTd>
-                          <FlipsValueTd>
+                          <FlipsValueTd w={['60px', 'auto']}>
                             <Flex alignItems="center">
                               {correct ? (
                                 <RightIcon color="green.500" boxSize={5} />
                               ) : (
                                 <WrongIcon color="red.500" boxSize={5} />
                               )}
-                              <Flex ml={2}>{GetAnswerTitle(t, answer)}</Flex>
+                              <Flex fontSize={['base', 'md']} ml={[1, 2]}>
+                                {GetAnswerTitle(t, answer)}
+                              </Flex>
                             </Flex>
                           </FlipsValueTd>
                         </Tr>
@@ -208,12 +251,17 @@ export default function Details() {
                 </Tbody>
               </Table>
             </Flex>
-            <Heading fontSize="lg" fontWeight="500" mt={8}>
+            <Heading
+              fontSize={['md', 'lg']}
+              fontWeight="500"
+              color={['muted', 'brandGray.500']}
+              mt={[10, 8]}
+            >
               {t('Long session')}
             </Heading>
-            <Flex mt={5}>
+            <Flex mt={[0, 5]}>
               <Table style={{tableLayout: 'fixed'}}>
-                <Thead>
+                <Thead display={['none', 'table-header-group']}>
                   <Tr>
                     <RoundedFlipsTh w="35%">
                       {t('Flips')}
@@ -245,8 +293,8 @@ export default function Details() {
                           wrongWords,
                           reason,
                         }) => (
-                          <Tr key={hash}>
-                            <FlipsValueTd>
+                          <Tr position={['relative', 'initial']} key={hash}>
+                            <FlipsValueTd pb={['72px', 0]}>
                               <LongFlipWithIcon
                                 hash={hash}
                                 onClick={() =>
@@ -260,32 +308,95 @@ export default function Details() {
                                   )
                                 }
                               />
-                            </FlipsValueTd>
-                            <FlipsValueTd>
-                              <Flex alignItems="center">
-                                {correct ? (
-                                  <RightIcon color="green.500" boxSize={5} />
-                                ) : (
-                                  <WrongIcon color="red.500" boxSize={5} />
-                                )}
-                                <Flex ml={2}>{GetAnswerTitle(t, answer)}</Flex>
-                              </Flex>
-                            </FlipsValueTd>
-                            <FlipsValueTd>
-                              <Flex alignItems="center">
-                                {correctReport ? (
-                                  <RightIcon color="green.500" boxSize={5} />
-                                ) : (
-                                  <WrongIcon color="red.500" boxSize={5} />
-                                )}
-                                <Flex ml={2}>
-                                  {wrongWords
-                                    ? t('Reported')
-                                    : t('Not reported')}
+                              <Box
+                                display={['block', 'none']}
+                                position={['absolute', 'initial']}
+                                left={0}
+                                right={0}
+                                bottom={0}
+                                borderRadius="8px"
+                                backgroundColor="gray.50"
+                                mb={2}
+                              >
+                                <Flex py={2} px={5} direction="column" w="100%">
+                                  <Text
+                                    fontSize="base"
+                                    fontWeight={500}
+                                    textOverflow="ellipsis"
+                                    overflow="hidden"
+                                    whiteSpace="nowrap"
+                                  >
+                                    {GetReasonDesc(t, reason)}
+                                  </Text>
+                                  <Text
+                                    color="muted"
+                                    fontSize="md"
+                                    fontWeight={500}
+                                  >
+                                    Reason
+                                  </Text>
                                 </Flex>
+                              </Box>
+                            </FlipsValueTd>
+                            <FlipsValueTd pb={['72px', 0]} w={['75px', 'auto']}>
+                              <Flex direction={['column', 'row']}>
+                                <Flex alignItems="center">
+                                  {correct ? (
+                                    <RightIcon color="green.500" boxSize={5} />
+                                  ) : (
+                                    <WrongIcon color="red.500" boxSize={5} />
+                                  )}
+                                  <Text
+                                    textOverflow="ellipsis"
+                                    overflow="hidden"
+                                    whiteSpace="nowrap"
+                                    fontSize={['base', 'md']}
+                                    ml={[1, 2]}
+                                  >
+                                    {GetAnswerTitle(t, answer)}
+                                  </Text>
+                                </Flex>
+                                <Text
+                                  display={['block', 'none']}
+                                  color="muted"
+                                  fontSize="md"
+                                  fontWeight={500}
+                                >
+                                  Answer
+                                </Text>
                               </Flex>
                             </FlipsValueTd>
-                            <FlipsValueTd>
+                            <FlipsValueTd pb={['72px', 0]} w={['90px', 'auto']}>
+                              <Flex direction={['column', 'row']}>
+                                <Flex alignItems="center">
+                                  {correctReport ? (
+                                    <RightIcon color="green.500" boxSize={5} />
+                                  ) : (
+                                    <WrongIcon color="red.500" boxSize={5} />
+                                  )}
+                                  <Text
+                                    textOverflow="ellipsis"
+                                    overflow="hidden"
+                                    whiteSpace="nowrap"
+                                    fontSize={['base', 'md']}
+                                    ml={[1, 2]}
+                                  >
+                                    {wrongWords
+                                      ? t('Reported')
+                                      : t('Not reported')}
+                                  </Text>
+                                </Flex>
+                                <Text
+                                  display={['block', 'none']}
+                                  color="muted"
+                                  fontSize="md"
+                                  fontWeight={500}
+                                >
+                                  Qualification
+                                </Text>
+                              </Flex>
+                            </FlipsValueTd>
+                            <FlipsValueTd display={['none', 'table-cell']}>
                               {GetReasonDesc(t, reason)}
                             </FlipsValueTd>
                           </Tr>

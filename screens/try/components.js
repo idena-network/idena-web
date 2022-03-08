@@ -18,6 +18,7 @@ import {
   Td,
   Text,
   Th,
+  useBreakpointValue,
   useDisclosure,
   useTheme,
 } from '@chakra-ui/react'
@@ -56,7 +57,7 @@ import {AnswerType, CertificateActionType} from '../../shared/types'
 import {reorderList} from '../../shared/utils/arr'
 import {keywords} from '../../shared/utils/keywords'
 import {capitalize} from '../../shared/utils/string'
-import {toBlob} from '../../shared/utils/utils'
+import {toBlob, useIsDesktop} from '../../shared/utils/utils'
 import {canScheduleValidation, GetAnswerTitle} from './utils'
 
 function CertificateCardPanelItem({title, children}) {
@@ -360,7 +361,15 @@ export function FlipsThCorner(props) {
 }
 
 export function FlipsValueTd(props) {
-  return <Td color="gray.500" fontWeight="500" px={3} py={3 / 2} {...props} />
+  return (
+    <Td
+      color="gray.500"
+      fontWeight="500"
+      px={[0, 3]}
+      py={[2, 3 / 2]}
+      {...props}
+    />
+  )
 }
 
 export function GetReasonDesc(t, reason) {
@@ -380,25 +389,41 @@ export function GetReasonDesc(t, reason) {
   }
 }
 
-export function DetailsPoints({title, value, isLoading, isFailed}) {
+export function DetailsPoints({title, value, isLoading, isFailed, ...props}) {
+  const countColor = useBreakpointValue(['muted', 'gray.500'])
+
   return (
-    <Flex direction="column" lineHeight={5} mr={16}>
-      <Flex color="muted" fontSize="md">
+    <Flex
+      direction="column"
+      lineHeight={5}
+      mt={[2, 0]}
+      mr={[0, 16]}
+      w={['100%', 'auto']}
+      {...props}
+    >
+      <Flex
+        color={['gray.500', 'muted']}
+        fontSize={['base', 'md']}
+        fontWeight={[500, 400]}
+      >
         {title}
       </Flex>
       <Flex
-        fontSize="lg"
-        fontWeight="500"
-        color={isFailed ? 'red.500' : 'gray.500'}
+        mt={[3 / 2, 0]}
+        fontSize={['base', 'lg']}
+        fontWeight={[400, 500]}
+        color={isFailed ? 'red.500' : countColor}
       >
         {isLoading ? <Skeleton h={5} w={8} /> : value}
       </Flex>
+      <Divider mt={2} display={['initial', 'none']} />
     </Flex>
   )
 }
 
 export function ShortFlipWithIcon({hash, onClick}) {
   const [url, setUrl] = useState()
+  const isDesktop = useIsDesktop()
 
   const {data} = useQuery(['get-flip-cache', hash], () => getFlipCache(hash), {
     enabled: !!hash,
@@ -421,14 +446,30 @@ export function ShortFlipWithIcon({hash, onClick}) {
     <>
       <Flex alignItems="center" onClick={onClick} cursor="pointer">
         {url ? (
-          <Avatar boxSize={8} src={url} bg="gray.50" borderRadius="lg" mr={3} />
+          <Avatar
+            boxSize={[10, 8]}
+            src={url}
+            bg="gray.50"
+            borderRadius={['lgx', 'lg']}
+            mr={3}
+          />
         ) : (
-          <Box w={8} h={8} rounded="lg" mr={3}>
-            <EmptyFlipIcon boxSize={8} />
+          <Box w={[10, 8]} h={[10, 8]} rounded={['lgx', 'lg']} mr={3}>
+            <EmptyFlipIcon boxSize={[10, 8]} />
           </Box>
         )}
-        <Flex fontWeight={500} color="blue.500">
-          {hash}
+        <Flex direction={['column', 'row']}>
+          <Text fontSize={['base', 'md']} fontWeight={500} color="blue.500">
+            {isDesktop ? hash : `${hash.substr(0, 4)}...${hash.substr(-4, 4)}`}
+          </Text>
+          <Text
+            display={['block', 'none']}
+            fontSize="md"
+            fontWeight={500}
+            color="muted"
+          >
+            Flip
+          </Text>
         </Flex>
       </Flex>
     </>
@@ -437,6 +478,7 @@ export function ShortFlipWithIcon({hash, onClick}) {
 
 export function LongFlipWithIcon({hash, onClick}) {
   const [url, setUrl] = useState()
+  const isDesktop = useIsDesktop()
 
   const {data, isLoading} = useQuery(
     ['get-flip-cache', hash],
@@ -474,28 +516,48 @@ export function LongFlipWithIcon({hash, onClick}) {
 
   return (
     <>
-      <Flex alignItems="center" cursor="pointer" onClick={onClick}>
+      <Flex mr={[1, 0]} alignItems="center" cursor="pointer" onClick={onClick}>
         <Flex>
           {url ? (
             <Avatar
-              boxSize={8}
+              boxSize={[10, 8]}
               src={url}
               bg="gray.50"
-              borderRadius="lg"
+              borderRadius={['lgx', 'lg']}
               mr={3}
             />
           ) : (
-            <Box w={8} h={8} rounded="lg" mr={3}>
-              <EmptyFlipIcon boxSize={8} />
+            <Box w={[10, 8]} h={[10, 8]} rounded={['lgx', 'lg']} mr={3}>
+              <EmptyFlipIcon boxSize={[10, 8]} />
             </Box>
           )}
         </Flex>
         <Flex direction="column" lineHeight={1} overflow="hidden">
-          <Flex color="gray.500" fontWeight={500}>
-            {isLoading ? <Skeleton w={10} h={3} /> : getWords()}
+          <Flex order={[2, 1]} color={['muted', 'gray.500']} fontWeight={500}>
+            {isLoading ? (
+              <Skeleton w={10} h={3} />
+            ) : (
+              <Text
+                textOverflow="ellipsis"
+                overflow="hidden"
+                whiteSpace="nowrap"
+              >
+                {getWords()}
+              </Text>
+            )}
           </Flex>
-          <Flex color="blue.500" fontWeight={500}>
-            <Text isTruncated>{hash}</Text>
+          <Flex
+            order={[1, 2]}
+            color="blue.500"
+            fontSize={['base', 'md']}
+            fontWeight={500}
+            h={[6, 'auto']}
+          >
+            <Text isTruncated>
+              {isDesktop
+                ? hash
+                : `${hash.substr(0, 4)}...${hash.substr(-4, 4)}`}
+            </Text>
           </Flex>
         </Flex>
       </Flex>
