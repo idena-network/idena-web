@@ -13,6 +13,7 @@ import {
   Box,
   Divider,
   Flex,
+  Button,
   Heading,
   Image,
   Td,
@@ -60,11 +61,18 @@ import {capitalize} from '../../shared/utils/string'
 import {toBlob, useIsDesktop} from '../../shared/utils/utils'
 import {canScheduleValidation, GetAnswerTitle} from './utils'
 
-function CertificateCardPanelItem({title, children}) {
+function CertificateCardPanelItem({title, children, ...props}) {
   return (
-    <Flex direction="column" flex={1}>
-      <Text color="muted">{title}</Text>
-      <Text fontSize="base" fontWeight={500}>
+    <Flex
+      direction={['row', 'column']}
+      justify={['space-between', 'initial']}
+      flex={1}
+      {...props}
+    >
+      <Text fontSize={['mdx', 'md']} color={['gray.500', 'muted']}>
+        {title}
+      </Text>
+      <Text fontSize={['mdx', 'base']} fontWeight={500}>
         {children}
       </Text>
     </Flex>
@@ -124,6 +132,7 @@ export function CertificateCard({
 }) {
   const {t} = useTranslation()
   const [waiting, setWaiting] = useState(false)
+  const size = useBreakpointValue(['lg', 'md'])
 
   const {isOpen, onOpen, onClose} = useDisclosure()
   const cancelRef = useRef()
@@ -172,20 +181,29 @@ export function CertificateCard({
       alignSelf="stretch"
       direction="column"
       shadow="0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)"
-      p={10}
+      p={['28px', 10]}
       borderRadius="lg"
       borderTop="4px solid"
       borderTopColor={certificateColor}
       {...props}
     >
-      <Flex alignItems="center" mb={2}>
-        <CertificateStarIcon boxSize={4} color={certificateColor} />
+      <Flex
+        justify={['space-between', 'flex-start']}
+        alignItems="center"
+        mb={2}
+      >
+        <CertificateStarIcon
+          order={[2, 1]}
+          boxSize={[6, 4]}
+          color={certificateColor}
+        />
         <Heading
+          order={[1, 2]}
           as="h2"
           fontSize="lg"
           fontWeight={500}
           verticalAlign="center"
-          ml={1}
+          ml={[0, 1]}
         >
           {title}
         </Heading>
@@ -194,8 +212,15 @@ export function CertificateCard({
       <Flex>
         <Text color="muted">{description}</Text>
       </Flex>
-      <Flex bg="gray.50" px={6} py={5} mt={6} rounded="lg">
-        <CertificateCardPanelItem title={t('Schedule')}>
+      <Flex
+        direction={['column', 'row']}
+        bg="gray.50"
+        px={6}
+        py={['30px', 5]}
+        mt={6}
+        rounded="lg"
+      >
+        <CertificateCardPanelItem title={t('Schedule')} mb={[5, 0]}>
           {isStarted
             ? dayjs(current.startTime).format('D MMM HH:mm')
             : scheduleText}
@@ -212,7 +237,7 @@ export function CertificateCard({
       {cardValue.actionType === CertificateActionType.Passed && (
         <AlertBox>
           <Flex align="center">
-            <RightIcon boxSize={4} color="green.500" mr={2} />
+            <RightIcon boxSize={[5, 4]} color="green.500" mr={2} />
             <Text fontWeight={500}>{t('Passed successfully')}</Text>
           </Flex>
           <Box>
@@ -229,7 +254,7 @@ export function CertificateCard({
       {cardValue.actionType === CertificateActionType.Failed && (
         <AlertBox borderColor="red.050" bg="red.010">
           <Flex align="center">
-            <WarningIcon boxSize={4} color="red.500" mr={2} />
+            <WarningIcon boxSize={[5, 4]} color="red.500" mr={2} />
             <Text fontWeight={500}>{t('Failed. Please try again')}</Text>
           </Flex>
           <Box>
@@ -262,10 +287,16 @@ export function CertificateCard({
       )}
 
       <Flex mt={6}>
-        <Flex ml="auto" alignItems="center">
+        <Flex
+          direction={['column', 'row']}
+          ml={[0, 'auto']}
+          w={['100%', 'auto']}
+          alignItems="center"
+        >
           {cardValue.actionType === CertificateActionType.Passed && (
             <>
               <TextLink
+                display={['none', 'block']}
                 href="/certificate/[id]"
                 as={`/certificate/${cardValue.id}`}
                 fontWeight={500}
@@ -275,11 +306,18 @@ export function CertificateCard({
                 <CertificateIcon boxSize={5} mr={1} />
                 {t('Show certificate')}
               </TextLink>
-              <Divider borderColor="gray.100" orientation="vertical" mr={4} />
+              <Divider
+                display={['none', 'block']}
+                borderColor="gray.100"
+                orientation="vertical"
+                mr={4}
+              />
             </>
           )}
 
           <PrimaryButton
+            size={size}
+            w={['100%', 'auto']}
             isDisabled={isStarted}
             onClick={() => schedule()}
             isLoading={waiting}
@@ -287,6 +325,20 @@ export function CertificateCard({
           >
             {t('Schedule')}
           </PrimaryButton>
+
+          {cardValue.actionType === CertificateActionType.Passed && (
+            <TextLink
+              display={['block', 'none']}
+              href="/certificate/[id]"
+              as={`/certificate/${cardValue.id}`}
+              fontSize="mobile"
+              fontWeight={500}
+              mt={5}
+              target="_blank"
+            >
+              {t('Show certificate')}
+            </TextLink>
+          )}
         </Flex>
       </Flex>
 

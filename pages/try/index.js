@@ -18,7 +18,13 @@ export default function Try() {
   return (
     <Layout>
       <Page p={0}>
-        <Flex direction="column" flex={1} alignSelf="stretch" pb={10}>
+        <Flex
+          direction="column"
+          flex={1}
+          alignSelf="stretch"
+          px={[8, 0]}
+          pb={[6, 10]}
+        >
           <Flex
             align="center"
             alignSelf="stretch"
@@ -56,7 +62,7 @@ export default function Try() {
               }}
             />
           </Flex>
-          <Stack width="480px" spacing={5}>
+          <Stack width={['100%', '480px']} spacing={5}>
             <CertificateCard
               title={t('Easy')}
               description={t('Pass the training validation immediately.')}
