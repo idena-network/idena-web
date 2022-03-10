@@ -588,5 +588,22 @@ export const uiTheme = {
         },
       },
     },
+    Drawer: {
+      baseStyle: {
+        overlay: {
+          bg: 'xblack.080',
+        },
+        footer: {
+          borderWidth: 1,
+          borderColor: 'gray.100',
+          py: 3,
+          px: 4,
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+        },
+      },
+    },
   },
 }

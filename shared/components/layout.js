@@ -76,10 +76,6 @@ function NormalApp({children, canRedirect = true}) {
 
   const ads = useAdRotation()
 
-  React.useEffect(() => {
-    console.log({ads})
-  }, [ads])
-
   const hasRotatingAds = ads.length > 0
 
   return (
