@@ -9,15 +9,27 @@ import {
   Stack,
   Text,
   MenuItem,
+  Box,
+  Heading,
+  Stat,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
-import {Avatar, Menu, Skeleton} from '../../shared/components/components'
+import {
+  Avatar,
+  Drawer,
+  DrawerPromotionPortal,
+  ExternalLink,
+  Menu,
+  Skeleton,
+  SuccessAlert,
+} from '../../shared/components/components'
 import {AdsIcon, PicIcon} from '../../shared/components/icons'
 
 import {useAdRotation} from './hooks'
 import {omit, pick} from '../../shared/utils/utils'
 import {getRandomInt} from '../flips/utils'
+import {AdStatLabel, AdStatNumber} from './components'
 
 export function AdBanner() {
   const {t} = useTranslation()
@@ -111,5 +123,63 @@ export function PlainAdCoverImage(props) {
     <AspectRatio ratio={1} {...boxProps}>
       <Image ignoreFallback bg="gray.50" rounded="lg" {...imageProps} />
     </AspectRatio>
+  )
+}
+
+export function AdDrawer({isMining = true, children, ...props}) {
+  const ads = useAdRotation()
+
+  const hasRotatingAds = ads?.length > 0
+
+  return (
+    <Drawer {...props}>
+      {children}
+
+      {isMining && hasRotatingAds && (
+        <DrawerPromotionPortal>
+          <AdPromotion {...ads[getRandomInt(0, ads?.length)]} />
+        </DrawerPromotionPortal>
+      )}
+    </Drawer>
+  )
+}
+
+function AdPromotion({title, url, cover, author}) {
+  const {t} = useTranslation()
+
+  return (
+    <Box bg="white" rounded="lg" px={10} pt={37} pb={44} w={400} h={620}>
+      <Stack spacing="10">
+        <Stack spacing="4">
+          <Stack spacing="1.5">
+            <Heading as="h4" fontWeight="semibold" fontSize="md">
+              {title}
+            </Heading>
+            <ExternalLink href={url}>{url}</ExternalLink>
+          </Stack>
+          <PlainAdCoverImage src={cover} w={320} objectFit="cover" />
+        </Stack>
+        <Stack spacing={6}>
+          <HStack justify="space-between" align="flex-start">
+            <BlockAdStat label="Sponsored by" value={author} />
+          </HStack>
+          <Box>
+            <SuccessAlert fontSize="md">
+              {t('Watching ads makes your coin valuable!')}
+            </SuccessAlert>
+          </Box>
+        </Stack>
+      </Stack>
+    </Box>
+  )
+}
+
+export function BlockAdStat({label, value, children, ...props}) {
+  return (
+    <Stat {...props}>
+      {label && <AdStatLabel>{label}</AdStatLabel>}
+      {value && <AdStatNumber>{value}</AdStatNumber>}
+      {children}
+    </Stat>
   )
 }

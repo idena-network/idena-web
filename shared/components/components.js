@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, {useState} from 'react'
+import ReactDOM from 'react-dom'
 import {
   Code,
   Drawer as ChakraDrawer,
@@ -44,6 +45,7 @@ import {
   Menu as ChakraMenu,
   MenuButton,
   MenuList,
+  Center,
 } from '@chakra-ui/react'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
@@ -76,27 +78,60 @@ export function Drawer({isCloseable = true, children, ...props}) {
   const drawerSize = useBreakpointValue(['full', 'xs'])
   const closeButtonSize = useBreakpointValue(['lg', 'md'])
 
+  const drawerPromotion = React.useState()
+
   return (
-    <ChakraDrawer placement="right" {...props}>
-      <DrawerOverlay bg="xblack.080" />
-      <DrawerContent
-        px={8}
-        pt={[4, 12]}
-        pb={4}
-        size={drawerSize}
-        maxW={maxWidth}
-      >
-        {isCloseable && (
-          <DrawerCloseButton
-            size={closeButtonSize}
-            color={['brandBlue.100', 'initial']}
-          />
-        )}
-        {children}
-      </DrawerContent>
-    </ChakraDrawer>
+    <DrawerPromotionContext.Provider value={drawerPromotion}>
+      <ChakraDrawer placement="right" {...props}>
+        <DrawerOverlay bg="xblack.080" />
+        <DrawerContent
+          px={8}
+          pt={[4, 12]}
+          pb={4}
+          size={drawerSize}
+          maxW={maxWidth}
+        >
+          {isCloseable && (
+            <DrawerCloseButton
+              size={closeButtonSize}
+              color={['brandBlue.100', 'initial']}
+            />
+          )}
+          {children}
+        </DrawerContent>
+        <DrawerPromotion pr={maxWidth} />
+      </ChakraDrawer>
+    </DrawerPromotionContext.Provider>
   )
 }
+
+const DrawerPromotionContext = React.createContext([])
+
+export function DrawerPromotion(props) {
+  const [, setDrawerPromotion] = React.useContext(DrawerPromotionContext)
+
+  return (
+    <Center
+      ref={setDrawerPromotion}
+      position="absolute"
+      top={0}
+      left={0}
+      w="full"
+      h="full"
+      zIndex="overlay"
+      {...props}
+    />
+  )
+}
+
+export function DrawerPromotionPortal({children}) {
+  const [drawerPromotion] = React.useContext(DrawerPromotionContext)
+
+  return drawerPromotion
+    ? ReactDOM.createPortal(children, drawerPromotion)
+    : null
+}
+
 export function DrawerHeader(props) {
   return <ChakraDrawerHeader p={0} mb={3} {...props} />
 }
