@@ -1,4 +1,4 @@
-import {toHexString} from '../utils/buffers'
+import {stripHexPrefix, toHexString} from '../utils/buffers'
 import root from './proto/models_pb'
 
 export class Profile {
@@ -17,7 +17,8 @@ export class Profile {
         })),
     })
 
-  static fromHex = hex => this.fromBytes(Buffer.from(hex, 'hex'))
+  static fromHex = hex =>
+    Profile.fromBytes(Buffer.from(stripHexPrefix(hex), 'hex'))
 
   toBytes() {
     const protoProfile = new root.ProtoProfile()

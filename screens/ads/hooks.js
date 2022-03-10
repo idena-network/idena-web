@@ -4,17 +4,27 @@ import {useQueries, useQuery} from 'react-query'
 import {Ad} from '../../shared/models/ad'
 import {AdKey} from '../../shared/models/adKey'
 import {Profile} from '../../shared/models/profile'
-import ProtoProfileRoot from '../../shared/models/proto/models_pb'
-import {stripHexPrefix} from '../../shared/utils/buffers'
-import {callRpc} from '../../shared/utils/utils'
+import {useIdentity} from '../../shared/providers/identity-context'
+import {areSameCaseInsensitive, callRpc} from '../../shared/utils/utils'
+import {currentOs} from './utils'
 
 export function useAdRotation(limit = 5) {
   const rpcFetcher = useRpcFetcher()
 
   const coinbase = useCoinbase()
 
+  const [identity] = useIdentity()
+
   const {data: competitorAds} = useAdCompetitors(
-    {address: coinbase ?? '', key: '1202656e180022002800'},
+    {
+      address: String(coinbase),
+      key: new AdKey({
+        language: new Intl.Locale(navigator?.language).language,
+        os: currentOs(),
+        age: identity.age,
+        stake: identity.stake,
+      }),
+    },
     limit
   )
 
@@ -24,7 +34,7 @@ export function useAdRotation(limit = 5) {
 
   const competingProfileHashQueries = useQueries(
     uniqueCompetitorAds.map(address => ({
-      queryKey: ['dna_identity', [address]],
+      queryKey: ['dna_identity', address],
       queryFn: rpcFetcher,
       select: selectProfileHash,
     })) ?? []
@@ -37,7 +47,7 @@ export function useAdRotation(limit = 5) {
 
   const decodedProfiles = useQueries(
     nonNullableCompetingProfileHashes.map(({data}) => ({
-      queryKey: ['ipfs_get', [data]],
+      queryKey: ['ipfs_get', data],
       queryFn: rpcFetcher,
       enabled: Boolean(data),
       select: decodeProfile,
@@ -52,7 +62,7 @@ export function useAdRotation(limit = 5) {
 
   const decodedProfileAds = useQueries(
     profileAdHashes.map(hash => ({
-      queryKey: ['ipfs_get', [hash]],
+      queryKey: ['ipfs_get', hash],
       queryFn: rpcFetcher,
       enabled: Boolean(hash),
       select: decodeAd,
@@ -60,21 +70,50 @@ export function useAdRotation(limit = 5) {
     }))
   )
 
-  return decodedProfileAds.map(x => x.data) ?? []
+  return decodedProfileAds?.map(x => x.data) ?? []
 }
 
 function useAdCompetitors(target, limit) {
+  const {decodeAdKey} = useProtoProfileDecoder()
+
   return useRpc('bcn_burntCoins', [], {
     enabled: Boolean(target.address),
     select: React.useCallback(
-      data => data?.filter(isCompetingAd(target)).slice(0, limit) ?? [],
-      [target, limit]
+      data =>
+        data
+          ?.filter(burn =>
+            isCompetingAd(target)({...burn, key: decodeAdKey(burn.key)})
+          )
+          .slice(0, limit) ?? [],
+      [limit, target, decodeAdKey]
     ),
   })
 }
 
 const isCompetingAd = targetAd => ad =>
-  targetAd.address === ad.address && targetAd.key === ad.key
+  targetAd.address === ad.address && isCompetingAdKey(ad.key, targetAd.key)
+
+const isCompetingAdKey = (
+  {language: adLanguage, os: adOS, age: adAge, stake: adStake},
+  {language: targetLanguage, os: targetOS, age: targetAge, stake: targetStake}
+) =>
+  weakCompare(adLanguage, targetLanguage, areSameCaseInsensitive) &&
+  weakCompare(adOS, targetOS, areSameCaseInsensitive) &&
+  weakCompare(
+    adAge,
+    targetAge,
+    // eslint-disable-next-line no-shadow
+    (adAge, targetAge) => Number(targetAge) >= Number(adAge)
+  ) &&
+  weakCompare(
+    adStake,
+    targetStake,
+    // eslint-disable-next-line no-shadow
+    (adStake, targetStake) => Number(targetStake) >= Number(adStake)
+  )
+
+export const weakCompare = (field, targetField, condition) =>
+  field ? condition(field, targetField) : true
 
 const selectProfileHash = data => data.profileHash
 
@@ -90,25 +129,11 @@ export function useProtoProfileEncoder() {
 }
 
 export function useProtoProfileDecoder() {
-  const root = useProfileProtoRoot()
-
   return {
-    decodeAd: React.useCallback(Ad.fromHex, [root]),
-    decodeAdKey: React.useCallback(
-      hex => createProfileProtoDecoder(root, 'ProtoAdKey')(hex).toObject(),
-      [root]
-    ),
+    decodeAd: React.useCallback(Ad.fromHex, []),
+    decodeAdKey: React.useCallback(AdKey.fromHex, []),
     decodeProfile: React.useCallback(Profile.fromHex, []),
   }
-}
-
-export function createProfileProtoDecoder(root, type) {
-  return hex =>
-    root[type].deserializeBinary(Buffer.from(stripHexPrefix(hex), 'hex'))
-}
-
-function useProfileProtoRoot() {
-  return ProtoProfileRoot
 }
 
 export function useCoinbase() {
