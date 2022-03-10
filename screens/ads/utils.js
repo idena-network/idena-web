@@ -12,7 +12,7 @@ import {VotingStatus} from '../../shared/types'
 export async function buildAdKeyHex({language, age, stake, os = currentOs()}) {
   const AdKeyType = (
     await protobuf.load('/static/pb/profile.proto')
-  ).lookupType('profile.AdKey')
+  ).lookupType('profile.ProtoAdKey')
 
   const adKeyMessage = AdKeyType.create({
     language,
@@ -29,7 +29,7 @@ export async function buildAdKeyHex({language, age, stake, os = currentOs()}) {
 export async function buildProfileHex(ads) {
   const ProfileType = (
     await protobuf.load('/static/pb/profile.proto')
-  ).lookupType('profile.Profile')
+  ).lookupType('profile.ProtoProfile')
 
   const profileMessage = ProfileType.create({ads})
 
@@ -48,7 +48,7 @@ export async function fetchProfileAds(address) {
 
     const ProfileType = (
       await protobuf.load('/static/pb/profile.proto')
-    ).lookupType('profile.Profile')
+    ).lookupType('profile.ProtoProfile')
 
     const {ads} = ProfileType.decode(Buffer.from(profileHex.slice(2), 'hex'))
 
@@ -65,7 +65,7 @@ export async function fetchProfileAd(cid) {
   if (adHex) {
     const AdContentType = (
       await protobuf.load('/static/pb/profile.proto')
-    ).lookupType('profile.AdContent')
+    ).lookupType('profile.ProtoAd')
 
     return AdContentType.decode(Buffer.from(adHex.slice(2), 'hex'))
   }

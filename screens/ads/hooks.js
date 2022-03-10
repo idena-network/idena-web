@@ -406,7 +406,7 @@ export function useAdList() {
       ) => {
         const root = await protobuf.load('/static/pb/profile.proto')
 
-        const AdContentMessage = root.lookupType('profile.AdContent')
+        const AdContentMessage = root.lookupType('profile.ProtoAd')
 
         const adContent = AdContentMessage.create({
           id,
@@ -731,7 +731,7 @@ export function useAdRotation(limit = 5) {
                   try {
                     const AdKeyType = (
                       await protobuf.load('/static/pb/profile.proto')
-                    ).lookupType('profile.AdKey')
+                    ).lookupType('profile.ProtoAdKey')
 
                     return {
                       ...item,
