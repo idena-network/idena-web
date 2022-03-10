@@ -41,13 +41,16 @@ import {
   InputGroup,
   InputRightAddon,
   Badge as ChakraBadge,
+  Menu as ChakraMenu,
+  MenuButton,
+  MenuList,
 } from '@chakra-ui/react'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
 import NextLink from 'next/link'
 import dynamic from 'next/dynamic'
 import {rem} from '../theme'
-import {ChevronRightIcon, GtranslateIcon, InfoIcon} from './icons'
+import {ChevronRightIcon, GtranslateIcon, InfoIcon, MoreIcon} from './icons'
 import {openExternalUrl} from '../utils/utils'
 import {Heading} from './typo'
 import {FlatButton, IconButton} from './button'
@@ -635,5 +638,16 @@ export function Badge(props) {
       minW={4}
       {...props}
     />
+  )
+}
+
+export function Menu({children, ...props}) {
+  return (
+    <ChakraMenu autoSelect={false} placement="bottom-end" {...props}>
+      <MenuButton>
+        <MoreIcon boxSize={5} color="muted" />
+      </MenuButton>
+      <MenuList>{children}</MenuList>
+    </ChakraMenu>
   )
 }

@@ -17,6 +17,7 @@ import {EpochPeriod} from '../types'
 import {useInterval} from '../hooks/use-interval'
 import {DeferredVotes} from '../../screens/oracles/components'
 import {useAdRotation} from '../../screens/ads/hooks'
+import {AdBanner} from '../../screens/ads/containers'
 
 export default function Layout({
   showHamburger = true,
@@ -79,6 +80,8 @@ function NormalApp({children, canRedirect = true}) {
     console.log({ads})
   }, [ads])
 
+  const hasRotatingAds = ads.length > 0
+
   return (
     <Flex
       as="section"
@@ -87,6 +90,8 @@ function NormalApp({children, canRedirect = true}) {
       h={['auto', '100vh']}
       overflowY="auto"
     >
+      {hasRotatingAds && <AdBanner />}
+
       {children}
 
       {currentTrainingValidation && (

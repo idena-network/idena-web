@@ -183,3 +183,15 @@ const mobileClientType = parseInt(
 )
 
 export const webClientType = isMobile ? mobileClientType : browserClientType
+
+export function pick(obj, keys) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([k]) => keys.includes(k))
+  )
+}
+
+export function omit(obj, keys) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([k]) => !keys.includes(k))
+  )
+}
