@@ -1,5 +1,6 @@
 /* eslint-disable no-use-before-define */
 import React from 'react'
+import {useTranslation} from 'react-i18next'
 import {useQueries, useQuery} from 'react-query'
 import {Ad} from '../../shared/models/ad'
 import {AdKey} from '../../shared/models/adKey'
@@ -9,6 +10,7 @@ import {areSameCaseInsensitive, callRpc} from '../../shared/utils/utils'
 import {currentOs} from './utils'
 
 export function useAdRotation(limit = 5) {
+  const {i18n} = useTranslation()
   const rpcFetcher = useRpcFetcher()
 
   const coinbase = useCoinbase()
@@ -19,8 +21,8 @@ export function useAdRotation(limit = 5) {
     {
       address: String(coinbase),
       key: new AdKey({
-        language: new Intl.Locale(navigator?.language).language,
-        os: currentOs(),
+        language: i18n.language,
+        os: typeof window !== 'undefined' ? currentOs() : '',
         age: identity.age,
         stake: identity.stake,
       }),
