@@ -16,7 +16,6 @@ import {useTranslation} from 'react-i18next'
 import {getRawTx, buyKey} from '../../shared/api'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {
-  Drawer,
   DrawerBody,
   DrawerFooter,
   DrawerHeader,
@@ -30,6 +29,7 @@ import {useFailToast} from '../../shared/hooks/use-toast'
 import {Transaction} from '../../shared/models/transaction'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {privateKeyToPublicKey} from '../../shared/utils/crypto'
+import {AdDrawer} from '../ads/containers'
 
 export function BuySharedNodeForm({
   isOpen,
@@ -83,8 +83,9 @@ export function BuySharedNodeForm({
   const waiting = submitting || isPurchasing
 
   return (
-    <Drawer
+    <AdDrawer
       isOpen={isOpen}
+      isMining={waiting}
       onClose={onClose}
       isCloseable={!waiting}
       closeOnEsc={!waiting}
@@ -201,7 +202,7 @@ export function BuySharedNodeForm({
           </Stack>
         </Box>
       </DrawerFooter>
-    </Drawer>
+    </AdDrawer>
   )
 }
 

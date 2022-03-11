@@ -141,7 +141,7 @@ export function DrawerBody(props) {
 }
 
 export function DrawerFooter(props) {
-  return <ChakraDrawerFooter p={0} {...props} />
+  return <ChakraDrawerFooter {...props} />
 }
 
 export function FormLabel(props) {

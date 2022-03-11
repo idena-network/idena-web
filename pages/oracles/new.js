@@ -136,7 +136,7 @@ function NewVotingPage() {
 
   return (
     <Layout>
-      <Page p={0}>
+      <Page px={0} py={0}>
         <Box px={20} py={6} w="full" overflowY="auto">
           <Flex justify="space-between" align="center">
             <PageTitle mb={0}>{t('New voting')}</PageTitle>

@@ -99,7 +99,6 @@ function AdBannerActiveAd({title, url, cover, author}) {
 }
 
 function AdBannerSkeleton(props) {
-  // usetheme
   return <Skeleton startColor="gray.50" endColor="gray.100" {...props} />
 }
 

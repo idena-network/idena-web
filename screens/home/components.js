@@ -33,6 +33,7 @@ import {
   InputGroup,
   InputLeftElement,
   useTab,
+  HStack,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
@@ -93,6 +94,7 @@ import {
   OnboardingPopoverContentIconRow,
 } from '../../shared/components/onboarding'
 import {useInviteActivation} from './hooks'
+import {AdDrawer} from '../ads/containers'
 
 export function UserInlineCard({address, state, ...props}) {
   return (
@@ -903,7 +905,7 @@ export function ActivateMiningDrawer({
   const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
 
   return (
-    <Drawer onClose={onClose} {...props}>
+    <AdDrawer isMining={isLoading} onClose={onClose} {...props}>
       <DrawerHeader>
         <Flex
           direction="column"
@@ -1166,7 +1168,7 @@ export function ActivateMiningDrawer({
           </Button>
         </Flex>
       </DrawerFooter>
-    </Drawer>
+    </AdDrawer>
   )
 }
 
@@ -1188,7 +1190,7 @@ export function DeactivateMiningDrawer({
   const isDelegator = typeof delegatee === 'string'
 
   return (
-    <Drawer onClose={onClose} {...props}>
+    <AdDrawer isMining={isLoading} onClose={onClose} {...props}>
       <DrawerHeader>
         <Flex
           direction="column"
@@ -1304,7 +1306,7 @@ export function DeactivateMiningDrawer({
           </Button>
         </Flex>
       </DrawerFooter>
-    </Drawer>
+    </AdDrawer>
   )
 }
 
@@ -1365,7 +1367,6 @@ export function KillForm({isOpen, onClose}) {
           color="brandGray.500"
           mt={4}
           mb={0}
-          textAlign="center"
         >
           {t('Terminate identity')}
         </Heading>
@@ -1388,33 +1389,24 @@ export function KillForm({isOpen, onClose}) {
         </FormControlWithLabel>
       </DrawerBody>
       <DrawerFooter>
-        <Box
-          alignSelf="stretch"
-          borderTop="1px"
-          borderTopColor="gray.100"
-          mt="auto"
-          pt={5}
-          width="100%"
-        >
-          <Stack isInline spacing={2} justify="flex-end">
-            <PrimaryButton
-              onClick={terminate}
-              isLoading={submitting}
-              colorScheme="red"
-              _hover={{
-                bg: 'rgb(227 60 60)',
-              }}
-              _active={{
-                bg: 'rgb(227 60 60)',
-              }}
-              _focus={{
-                boxShadow: '0 0 0 3px rgb(255 102 102 /0.50)',
-              }}
-            >
-              {t('Terminate')}
-            </PrimaryButton>
-          </Stack>
-        </Box>
+        <HStack justify="flex-end">
+          <PrimaryButton
+            onClick={terminate}
+            isLoading={submitting}
+            colorScheme="red"
+            _hover={{
+              bg: 'rgb(227 60 60)',
+            }}
+            _active={{
+              bg: 'rgb(227 60 60)',
+            }}
+            _focus={{
+              boxShadow: '0 0 0 3px rgb(255 102 102 /0.50)',
+            }}
+          >
+            {t('Terminate')}
+          </PrimaryButton>
+        </HStack>
       </DrawerFooter>
     </Drawer>
   )
