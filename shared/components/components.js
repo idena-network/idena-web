@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, {useState} from 'react'
+// eslint-disable-next-line import/no-extraneous-dependencies
 import ReactDOM from 'react-dom'
 import {
   Code,
