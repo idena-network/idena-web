@@ -601,10 +601,10 @@ export const uiTheme = {
           bg: 'xblack.080',
         },
         footer: {
-          borderWidth: 1,
-          borderColor: 'gray.100',
+          borderTopWidth: 1,
+          borderTopColor: 'gray.100',
           py: 3,
-          px: 4,
+          paddingX: 4,
           position: 'absolute',
           left: 0,
           right: 0,

@@ -101,6 +101,7 @@ import {useTotalValidationScore} from '../validation-report/hooks'
 import {DnaInput} from '../oracles/components'
 import {BLOCK_TIME} from '../oracles/utils'
 import {useFailToast} from '../../shared/hooks/use-toast'
+import {AdDrawer} from '../ads/containers'
 
 export function UserInlineCard({
   identity: {address, state, age, penalty},
@@ -822,7 +823,7 @@ export function ActivateMiningDrawer({
       : 3 - (currentEpoch - delegationEpoch)
 
   return (
-    <Drawer onClose={onClose} {...props}>
+    <AdDrawer isMining={isLoading} onClose={onClose} {...props}>
       <DrawerHeader>
         <Flex
           direction="column"
@@ -1080,7 +1081,7 @@ export function ActivateMiningDrawer({
           </Button>
         </Flex>
       </DrawerFooter>
-    </Drawer>
+    </AdDrawer>
   )
 }
 
@@ -1102,7 +1103,7 @@ export function DeactivateMiningDrawer({
   const isDelegator = typeof delegatee === 'string'
 
   return (
-    <Drawer onClose={onClose} {...props}>
+    <AdDrawer isMining={isLoading} onClose={onClose} {...props}>
       <DrawerHeader>
         <Flex
           direction="column"
@@ -1218,7 +1219,7 @@ export function DeactivateMiningDrawer({
           </Button>
         </Flex>
       </DrawerFooter>
-    </Drawer>
+    </AdDrawer>
   )
 }
 
@@ -1279,7 +1280,6 @@ export function KillForm({isOpen, onClose}) {
           color="brandGray.500"
           mt={4}
           mb={0}
-          textAlign="center"
         >
           {t('Terminate identity')}
         </Heading>
@@ -1302,33 +1302,24 @@ export function KillForm({isOpen, onClose}) {
         </FormControlWithLabel>
       </DrawerBody>
       <DrawerFooter>
-        <Box
-          alignSelf="stretch"
-          borderTop="1px"
-          borderTopColor="gray.100"
-          mt="auto"
-          pt={5}
-          width="100%"
-        >
-          <Stack isInline spacing={2} justify="flex-end">
-            <PrimaryButton
-              onClick={terminate}
-              isLoading={submitting}
-              colorScheme="red"
-              _hover={{
-                bg: 'rgb(227 60 60)',
-              }}
-              _active={{
-                bg: 'rgb(227 60 60)',
-              }}
-              _focus={{
-                boxShadow: '0 0 0 3px rgb(255 102 102 /0.50)',
-              }}
-            >
-              {t('Terminate')}
-            </PrimaryButton>
-          </Stack>
-        </Box>
+        <HStack justify="flex-end">
+          <PrimaryButton
+            onClick={terminate}
+            isLoading={submitting}
+            colorScheme="red"
+            _hover={{
+              bg: 'rgb(227 60 60)',
+            }}
+            _active={{
+              bg: 'rgb(227 60 60)',
+            }}
+            _focus={{
+              boxShadow: '0 0 0 3px rgb(255 102 102 /0.50)',
+            }}
+          >
+            {t('Terminate')}
+          </PrimaryButton>
+        </HStack>
       </DrawerFooter>
     </Drawer>
   )

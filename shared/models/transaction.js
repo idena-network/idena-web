@@ -73,10 +73,10 @@ export class Transaction {
 
   _createProtoTxData() {
     const data = new messages.ProtoTransaction.Data()
-    data
-      .setNonce(this.nonce)
-      .setEpoch(this.epoch)
-      .setType(this.type)
+
+    data.setNonce(this.nonce)
+    data.setEpoch(this.epoch)
+    data.setType(this.type)
 
     if (this.to) {
       data.setTo(toBuffer(this.to))

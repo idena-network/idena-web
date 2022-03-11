@@ -864,8 +864,8 @@ export function WalletTransactions({address}) {
       </Table>
       {isLoading && (
         <Stack spacing={2} mt={2}>
-          {new Array(10).fill(0).map(() => (
-            <Skeleton height={10} w="full"></Skeleton>
+          {new Array(10).fill(0).map((_, i) => (
+            <Skeleton key={i} height={10} w="full"></Skeleton>
           ))}
         </Stack>
       )}
