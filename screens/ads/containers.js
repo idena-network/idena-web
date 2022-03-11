@@ -50,19 +50,21 @@ export function AdBanner() {
       py={2}
     >
       <AdBannerActiveAd {...ad} />
-      <Menu>
-        <MenuItem
-          icon={<AdsIcon boxSize={5} color="blue.500" />}
-          onClick={() => {
-            router.push(`/ads/list`)
-          }}
-        >
-          {t('My Ads')}
-        </MenuItem>
-        <MenuItem icon={<PicIcon boxSize={5} color="blue.500" />}>
-          {t('View all offers')}
-        </MenuItem>
-      </Menu>
+      {false && (
+        <Menu>
+          <MenuItem
+            icon={<AdsIcon boxSize={5} color="blue.500" />}
+            onClick={() => {
+              router.push(`/ads/list`)
+            }}
+          >
+            {t('My Ads')}
+          </MenuItem>
+          <MenuItem icon={<PicIcon boxSize={5} color="blue.500" />}>
+            {t('View all offers')}
+          </MenuItem>
+        </Menu>
+      )}
     </Flex>
   )
 }
@@ -74,12 +76,12 @@ function AdBannerActiveAd({title, url, cover, author}) {
         <PlainAdCoverImage src={cover} w={10} />
       </AdBannerSkeleton>
       <Stack spacing={1}>
-        <AdBannerSkeleton isLoaded={Boolean(title)}>
+        <AdBannerSkeleton isLoaded={Boolean(title)} minW="2xs" w="2xs" minH={4}>
           <LinkOverlay href={url} target="_blank">
             <Text lineHeight="none">{title}</Text>
           </LinkOverlay>
         </AdBannerSkeleton>
-        <AdBannerSkeleton isLoaded={Boolean(author)}>
+        <AdBannerSkeleton isLoaded={Boolean(author)} minW="xs">
           <HStack spacing={1}>
             <Avatar
               address={author}

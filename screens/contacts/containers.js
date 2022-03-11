@@ -571,6 +571,7 @@ export function IssueInviteDrawer({
           form="issueInvite"
           ml="auto"
           isLoading={isSubmitting || isMining}
+          loadingText={t('Mining...')}
         >
           {t('Create invitation')}
         </PrimaryButton>
