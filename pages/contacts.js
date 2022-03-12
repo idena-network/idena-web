@@ -46,7 +46,7 @@ export default function ContactsPage() {
   const [isMining, setIsMining] = useBoolean()
 
   const handleInviteMined = React.useCallback(() => {
-    setIsMining.on()
+    setIsMining.off()
     sendInviteDisclosure.onClose()
   }, [sendInviteDisclosure, setIsMining])
 

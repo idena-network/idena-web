@@ -1273,16 +1273,18 @@ export function KillForm({isOpen, onClose}) {
   return (
     <Drawer isOpen={isOpen} onClose={onClose}>
       <DrawerHeader mb={6}>
-        <Avatar address={coinbase} mx="auto" />
-        <Heading
-          fontSize="lg"
-          fontWeight={500}
-          color="brandGray.500"
-          mt={4}
-          mb={0}
-        >
-          {t('Terminate identity')}
-        </Heading>
+        <Center flexDirection="column">
+          <Avatar address={coinbase} />
+          <Heading
+            fontSize="lg"
+            fontWeight={500}
+            color="brandGray.500"
+            mt={4}
+            mb={0}
+          >
+            {t('Terminate identity')}
+          </Heading>
+        </Center>
       </DrawerHeader>
       <DrawerBody>
         <Text fontSize="md" mb={6}>
