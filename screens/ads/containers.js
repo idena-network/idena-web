@@ -25,7 +25,6 @@ import {
   SuccessAlert,
 } from '../../shared/components/components'
 import {AdsIcon, PicIcon} from '../../shared/components/icons'
-
 import {useAdRotation} from './hooks'
 import {omit, pick} from '../../shared/utils/utils'
 import {getRandomInt} from '../flips/utils'

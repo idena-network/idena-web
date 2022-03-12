@@ -598,6 +598,7 @@ export const uiTheme = {
           borderTopColor: 'gray.100',
           py: 3,
           paddingX: 4,
+          justify: 'flex-end',
           position: 'absolute',
           left: 0,
           right: 0,
