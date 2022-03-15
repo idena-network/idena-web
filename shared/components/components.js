@@ -194,7 +194,7 @@ export function Avatar({address, size = ['88px', '80px'], ...props}) {
   return address ? (
     <ChakraAvatar
       boxSize={size}
-      src={`https://robohash.idena.io/${address}`}
+      src={`https://robohash.idena.io/${address?.toLowerCase()}`}
       bg="gray.50"
       borderRadius={['mobile', 'lg']}
       {...props}
