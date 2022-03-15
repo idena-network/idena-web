@@ -8,7 +8,6 @@ import {
   Divider,
   Flex,
   IconButton,
-  Skeleton,
   Stack,
   Stat,
   StatLabel,
@@ -28,6 +27,7 @@ import {
   Dialog,
   DialogBody,
   DialogFooter,
+  Skeleton,
   SmallText,
   TextLink,
 } from '../../shared/components/components'
@@ -106,12 +106,7 @@ export function ValidationReportSummary({onClose}) {
         onClick={onClose}
       />
       <Stack spacing={6} w="full">
-        <Skeleton
-          isLoaded={!isLoading}
-          colorStart="gray.050"
-          colorEnd="gray.100"
-          alignSelf="start"
-        >
+        <Skeleton isLoaded={!isLoading} alignSelf="start" w="auto">
           <Text fontSize="lg" fontWeight={500}>
             {(() => {
               switch (validationResult) {
@@ -130,10 +125,7 @@ export function ValidationReportSummary({onClose}) {
             <ValidationReportGauge>
               <ValidationReportGaugeBox>
                 {isLoading ? (
-                  <ValidationReportGaugeBar
-                    value={shortScore || 2}
-                    color="gray.100"
-                  />
+                  <ValidationReportGaugeBar color={colors.gray['100']} />
                 ) : isValidated ? (
                   <ValidationReportGaugeBar
                     value={totalScore * 100}
@@ -158,11 +150,7 @@ export function ValidationReportSummary({onClose}) {
                 />
               </ValidationReportGaugeBox>
               <ValidationReportGaugeStat>
-                <Skeleton
-                  isLoaded={!isLoading}
-                  colorStart="gray.050"
-                  colorEnd="gray.100"
-                >
+                <Skeleton isLoaded={!isLoading} w="auto">
                   {isValidated ? (
                     <ValidationReportGaugeStatValue>
                       {toPercent(totalScore)}
@@ -190,10 +178,7 @@ export function ValidationReportSummary({onClose}) {
             <ValidationReportGauge mt={[6, 0]}>
               <ValidationReportGaugeBox>
                 {isLoading ? (
-                  <ValidationReportGaugeBar
-                    value={shortScore || 2}
-                    color="gray.100"
-                  />
+                  <ValidationReportGaugeBar color={colors.gray['100']} />
                 ) : isValidated ? (
                   <ValidationReportGaugeBar
                     value={earningsScore * 100 || 2}
@@ -215,11 +200,7 @@ export function ValidationReportSummary({onClose}) {
                 />
               </ValidationReportGaugeBox>
               <ValidationReportGaugeStat>
-                <Skeleton
-                  isLoaded={!isLoading}
-                  colorStart="gray.050"
-                  colorEnd="gray.100"
-                >
+                <Skeleton isLoaded={!isLoading} w="auto">
                   {validationResult === ValidationResult.Success ? (
                     <ValidationReportGaugeStatValue>
                       {dna(earnings)}

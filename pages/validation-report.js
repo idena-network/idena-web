@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 import {
   Box,
   CloseButton,
@@ -10,7 +11,6 @@ import {
   Thead,
   Tr,
   useTheme,
-  Skeleton,
   Divider,
 } from '@chakra-ui/react'
 import router from 'next/router'
@@ -43,6 +43,7 @@ import {
   ExternalLink,
   ErrorAlert,
   SuccessAlert,
+  Skeleton,
 } from '../shared/components/components'
 import {
   AngleArrowBackIcon,
@@ -128,12 +129,7 @@ export default function ValidationReport() {
         </Flex>
         <Stack spacing={6} w="full">
           <Box>
-            <Skeleton
-              isLoaded={!isLoading}
-              startColor={colors.gray[50]}
-              endColor={colors.gray[300]}
-              alignSelf="start"
-            >
+            <Skeleton isLoaded={!isLoading} alignSelf="start">
               {isValidated ? (
                 <SuccessAlert>
                   {validationResult === ValidationResult.Success &&
@@ -155,7 +151,9 @@ export default function ValidationReport() {
                 <Box>
                   <ValidationReportGauge>
                     <ValidationReportGaugeBox>
-                      {isValidated ? (
+                      {isLoading ? (
+                        <ValidationReportGaugeBar color={colors.gray['100']} />
+                      ) : isValidated ? (
                         <ValidationReportGaugeBar
                           value={totalScore * 100}
                           color={
@@ -181,11 +179,7 @@ export default function ValidationReport() {
                       />
                     </ValidationReportGaugeBox>
                     <ValidationReportGaugeStat>
-                      <Skeleton
-                        isLoaded={!isLoading}
-                        colorStart="gray.050"
-                        colorEnd="gray.100"
-                      >
+                      <Skeleton isLoaded={!isLoading} w="auto">
                         {isValidated ? (
                           <ValidationReportGaugeStatValue>
                             {toPercent(totalScore)}
@@ -196,11 +190,7 @@ export default function ValidationReport() {
                           </ValidationReportGaugeStatValue>
                         )}
                       </Skeleton>
-                      <Skeleton
-                        isLoaded={!isLoading}
-                        startColor="gray.050"
-                        endColor="gray.300"
-                      >
+                      <Skeleton isLoaded={!isLoading} w="auto">
                         <ValidationReportGaugeStatLabel>
                           {isValidated && t('Total score')}
                           {validationResult ===
@@ -218,11 +208,7 @@ export default function ValidationReport() {
                 </Box>
                 <Stack spacing={[2, 4]} isInline={!isMobile}>
                   <Flex justify="space-between">
-                    <Skeleton
-                      isLoaded={!isLoading}
-                      startColor="gray.050"
-                      endColor="gray.300"
-                    >
+                    <Skeleton isLoaded={!isLoading}>
                       <ValidationReportStat
                         label={t('Short session')}
                         value={
@@ -242,11 +228,7 @@ export default function ValidationReport() {
                     display={['initial', 'none']}
                   />
                   <Flex justify="space-between">
-                    <Skeleton
-                      isLoaded={!isLoading}
-                      startColor="gray.050"
-                      endColor="gray.300"
-                    >
+                    <Skeleton isLoaded={!isLoading}>
                       <ValidationReportStat
                         label={t('Long session')}
                         value={
@@ -269,7 +251,9 @@ export default function ValidationReport() {
                 <Box>
                   <ValidationReportGauge>
                     <ValidationReportGaugeBox>
-                      {isValidated ? (
+                      {isLoading ? (
+                        <ValidationReportGaugeBar color={colors.gray['100']} />
+                      ) : isValidated ? (
                         <ValidationReportGaugeBar
                           value={earningsScore * 100 || 2}
                           color={
@@ -295,11 +279,7 @@ export default function ValidationReport() {
                       />
                     </ValidationReportGaugeBox>
                     <ValidationReportGaugeStat>
-                      <Skeleton
-                        isLoaded={!isLoading}
-                        startColor="gray.050"
-                        endColor="gray.300"
-                      >
+                      <Skeleton isLoaded={!isLoading} w="auto">
                         {validationResult === ValidationResult.Success ? (
                           <ValidationReportGaugeStatValue>
                             {toDna(earnings)}
@@ -319,11 +299,7 @@ export default function ValidationReport() {
 
                 <Flex justify="space-between" flexWrap="wrap">
                   <Flex mr={4} mb={[0, 4]}>
-                    <Skeleton
-                      isLoaded={!isLoading}
-                      startColor="gray.050"
-                      endColor="gray.300"
-                    >
+                    <Skeleton isLoaded={!isLoading}>
                       <ValidationReportStat
                         label={t('Missed invitation earnings')}
                         value={toDna(missedInvitationReward)}
@@ -336,11 +312,7 @@ export default function ValidationReport() {
                     my={2}
                   />
                   <Flex mr={4} mb={[0, 4]}>
-                    <Skeleton
-                      isLoaded={!isLoading}
-                      startColor="gray.050"
-                      endColor="gray.300"
-                    >
+                    <Skeleton isLoaded={!isLoading}>
                       <ValidationReportStat
                         label={t('Missed reporting earnings')}
                         value={toDna(missedFlipReportReward)}
@@ -353,11 +325,7 @@ export default function ValidationReport() {
                     my={2}
                   />
                   <Flex mr={4} mb={[0, 4]}>
-                    <Skeleton
-                      isLoaded={!isLoading}
-                      startColor="gray.050"
-                      endColor="gray.300"
-                    >
+                    <Skeleton isLoaded={!isLoading}>
                       <ValidationReportStat
                         label={t('Missed flip earnings')}
                         value={toDna(missedFlipReward)}
