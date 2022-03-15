@@ -187,6 +187,7 @@ function RestoreKey() {
 
 function Init() {
   const [dnaAppUrl, {clear}] = useDnaAppLink()
+  const router = useRouter()
 
   const size = useBreakpointValue(['lg', 'md'])
 
@@ -234,6 +235,12 @@ function Init() {
         </Flex>
       </AuthLayout.Small>
       {dnaAppUrl && <DnaAppUrl url={dnaAppUrl} onOpenInApp={clear} />}
+      {router.pathname === '/oracles/view' && (
+        <DnaAppUrl
+          url={`dna://vote/v1?address=${router.query.id}`}
+          onOpenInApp={() => {}}
+        />
+      )}
     </AuthLayout>
   )
 }
