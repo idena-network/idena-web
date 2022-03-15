@@ -41,3 +41,9 @@ export async function getTxs(address, count = 10, continuationToken) {
 export async function getIdentity(address) {
   return getResponse(apiClient().get(`identity/${address}`))
 }
+
+export async function getValidationSummary(epoch, address) {
+  return getResponse(
+    apiClient().get(`epoch/${epoch}/identity/${address}/validationsummary`)
+  )
+}

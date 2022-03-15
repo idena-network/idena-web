@@ -161,7 +161,7 @@ export function WideLink({
         <Box
           ml={[4, 2]}
           color={color}
-          fontWeight={['400', '500']}
+          fontWeight={500}
           fontSize={['base', 'md']}
         >
           {label}
