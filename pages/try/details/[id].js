@@ -388,7 +388,20 @@ export default function Details() {
                               </FlipsValueTd>
                             </Tr>
                             <FlipsHiddenDescRow>
-                              <Flex direction="column" w="100%">
+                              <Flex
+                                direction="column"
+                                w="100%"
+                                onClick={() =>
+                                  openFlipView(
+                                    hash,
+                                    answer,
+                                    correct,
+                                    true,
+                                    correctReport,
+                                    reason !== 0
+                                  )
+                                }
+                              >
                                 <Text
                                   fontSize="base"
                                   fontWeight={500}
