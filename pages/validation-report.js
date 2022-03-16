@@ -124,7 +124,7 @@ export default function ValidationReport() {
           </PageTitleNew>
           <CloseButton
             display={['none', 'initial']}
-            onClick={() => router.push('/profile')}
+            onClick={() => router.push('/home')}
           />
         </Flex>
         <Stack spacing={6} w="full">

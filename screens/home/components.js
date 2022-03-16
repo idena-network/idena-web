@@ -35,7 +35,6 @@ import {
   useTab,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
-import dayjs from 'dayjs'
 import {useMachine} from '@xstate/react'
 import {useQuery} from 'react-query'
 import {useRouter} from 'next/router'
@@ -55,22 +54,12 @@ import {
   Dialog,
   TextLink,
 } from '../../shared/components/components'
-import {rem} from '../../shared/theme'
 import {
   FlatButton,
   PrimaryButton,
   SecondaryButton,
 } from '../../shared/components/button'
 import {IdentityStatus, NodeType} from '../../shared/types'
-import {NotificationType} from '../../shared/providers/notification-context'
-import {Notification, Snackbar} from '../../shared/components/notifications'
-import {Spinner} from '../../shared/components/spinner'
-import {
-  loadPersistentState,
-  loadPersistentStateValue,
-} from '../../shared/utils/persist'
-import {createTimerMachine} from '../../shared/machines'
-import {usePersistence} from '../../shared/hooks/use-persistent-state'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {
   eitherState,
@@ -87,7 +76,6 @@ import {
   TestValidationIcon,
   UserIcon,
 } from '../../shared/components/icons'
-import {sendSuccessValidation} from '../../shared/utils/analytics'
 import {
   OnboardingPopoverContent,
   OnboardingPopoverContentIconRow,
@@ -625,116 +613,6 @@ export const StartIdenaJourneyOnboardingContent = ({onDismiss}) => {
       </Stack>
     </OnboardingPopoverContent>
   )
-}
-
-export function ValidationResultToast({epoch}) {
-  const timerMachine = React.useMemo(
-    () =>
-      createTimerMachine(
-        dayjs(loadPersistentStateValue('validationResults', epoch)?.epochStart)
-          .add(1, 'minute')
-          .diff(dayjs(), 'second')
-      ),
-    [epoch]
-  )
-  const [current] = useMachine(timerMachine)
-
-  const [state, dispatch] = usePersistence(
-    React.useReducer((prevState, action) => {
-      switch (action.type) {
-        case 'seen':
-          return {
-            ...prevState,
-            [epoch]: {
-              ...prevState[epoch],
-              seen: action.value,
-            },
-          }
-        case 'analytics':
-          return {
-            ...prevState,
-            [epoch]: {
-              ...prevState[epoch],
-              analyticsSent: action.value,
-            },
-          }
-        default:
-          return prevState
-      }
-    }, loadPersistentState('validationResults') || {}),
-    'validationResults'
-  )
-
-  const [{address, state: identityStatus}] = useIdentity()
-
-  const isValidationSucceeded = [
-    IdentityStatus.Newbie,
-    IdentityStatus.Verified,
-    IdentityStatus.Human,
-  ].includes(identityStatus)
-
-  const {t} = useTranslation()
-
-  const {colors} = useTheme()
-
-  const url = `https://scan.idena.io/identity/${address}/epoch/${epoch}/${
-    isValidationSucceeded ? 'rewards' : 'validation'
-  }`
-
-  const notSeen = state[epoch] && !state[epoch].seen
-
-  const analyticsNotSent = state[epoch] && !state[epoch].analyticsSent
-
-  useEffect(() => {
-    if (isValidationSucceeded && analyticsNotSent) {
-      sendSuccessValidation(address)
-      dispatch({type: 'analytics', value: true})
-    }
-  }, [isValidationSucceeded, address, dispatch, analyticsNotSent])
-
-  return notSeen ? (
-    <Snackbar>
-      {current.matches('running') && (
-        <Notification
-          pinned
-          type={NotificationType.Info}
-          icon={
-            <Flex
-              align="center"
-              justify="center"
-              css={{
-                height: rem(20),
-                width: rem(20),
-                marginRight: rem(12),
-              }}
-            >
-              <Box style={{transform: 'scale(0.35) translateY(-10px)'}}>
-                <Spinner color={colors.brandBlue[500]} />
-              </Box>
-            </Flex>
-          }
-          title={t('Please wait for the validation report')}
-        />
-      )}
-      {current.matches('stopped') && (
-        <Notification
-          pinned
-          type={NotificationType.Info}
-          title={
-            isValidationSucceeded
-              ? t('See your validation rewards in the blockchain explorer')
-              : t('See your validation results in the blockchain explorer')
-          }
-          action={() => {
-            dispatch({type: 'seen', value: true})
-            const win = openExternalUrl(url)
-            win.focus()
-          }}
-          actionName={t('Open')}
-        />
-      )}
-    </Snackbar>
-  ) : null
 }
 
 export function ActivateMiningForm({

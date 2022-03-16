@@ -195,24 +195,6 @@ export function didValidate(currentEpoch) {
   return false
 }
 
-export function shouldExpectValidationResults(epoch) {
-  const validationStateDefinition = loadValidationState()
-
-  if (validationStateDefinition) {
-    const {
-      done,
-      context: {epoch: validationEpoch},
-    } = State.create(validationStateDefinition)
-    return done && epoch - validationEpoch === 1
-  }
-
-  return false
-}
-
-export function hasPersistedValidationResults(epoch) {
-  return !!loadPersistentStateValue('validationResults', epoch)
-}
-
 export function shouldTranslate(translations, flip) {
   if (!flip) return false
 
