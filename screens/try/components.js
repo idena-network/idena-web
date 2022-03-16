@@ -16,6 +16,7 @@ import {
   Button,
   Heading,
   Image,
+  Tr,
   Td,
   Text,
   Th,
@@ -412,6 +413,18 @@ export function FlipsThCorner(props) {
   )
 }
 
+export function FlipsHiddenDescRow({children}) {
+  return (
+    <Tr display={['table-row', 'none']}>
+      <Td colSpan={3} px={0} pt={1} pb={3}>
+        <Box bg="gray.50" borderRadius="md" px={5} py={2}>
+          {children}
+        </Box>
+      </Td>
+    </Tr>
+  )
+}
+
 export function FlipsValueTd(props) {
   return (
     <Td
@@ -617,25 +630,28 @@ export function LongFlipWithIcon({hash, onClick}) {
   )
 }
 
-function FlipHolder(props) {
+function FlipHolder({isSmall, ...props}) {
+  const borderRadius = useBreakpointValue(['16px', 'lg'])
+
   return (
     <Flex
       position="relative"
       justify="center"
       direction="column"
-      borderRadius="lg"
+      borderRadius={borderRadius}
       border="2px solid"
       p={1 / 2}
-      w={140}
-      h={450}
+      w={isSmall ? 63 : 140}
+      h={isSmall ? 200 : 450}
       {...props}
     />
   )
 }
 
-function LoadingFlip() {
+function LoadingFlip({isSmall}) {
   return (
     <FlipHolder
+      isSmall={isSmall}
       css={{cursor: 'not-allowed'}}
       opacity={1}
       borderColor="blue.025"
@@ -655,14 +671,24 @@ function LoadingFlip() {
   )
 }
 
-function Flip({isLoading, images, orders, answer, variant, isCorrect}) {
+function Flip({
+  isLoading,
+  images,
+  orders,
+  answer,
+  variant,
+  isCorrect,
+  isSmall,
+}) {
   const theme = useTheme()
   const isSelected = answer === variant
+  const borderRadius = useBreakpointValue(['lgx', 'lg'])
 
-  if (isLoading) return <LoadingFlip />
+  if (isLoading) return <LoadingFlip isSmall={isSmall} />
 
   return (
     <FlipHolder
+      isSmall={isSmall}
       borderColor={
         isSelected ? (isCorrect ? 'blue.500' : 'red.500') : 'blue.025'
       }
@@ -681,8 +707,8 @@ function Flip({isLoading, images, orders, answer, variant, isCorrect}) {
           height="100%"
           position="relative"
           overflow="hidden"
-          roundedTop={idx === 0 ? 'lg' : 0}
-          roundedBottom={idx === images.length - 1 ? 'lg' : 0}
+          roundedTop={idx === 0 ? borderRadius : 0}
+          roundedBottom={idx === images.length - 1 ? borderRadius : 0}
         >
           <Box
             background={`center center / cover no-repeat url(${src})`}
@@ -693,7 +719,7 @@ function Flip({isLoading, images, orders, answer, variant, isCorrect}) {
             left={0}
             right={0}
             bottom={0}
-          ></Box>
+          />
           <Image
             ignoreFallback
             src={src}
@@ -746,8 +772,8 @@ function FlipWords({
       <Flex
         direction="column"
         borderRadius="lg"
-        backgroundColor="gray.50"
-        px={10}
+        backgroundColor={['white', 'gray.50']}
+        px={[0, 10]}
         py={8}
         lineHeight={5}
         mb={4}
@@ -816,6 +842,9 @@ export function FlipView({
   ...props
 }) {
   const {t} = useTranslation()
+  const isDesktop = useIsDesktop()
+  const size = useBreakpointValue(['lg', 'md'])
+  const variant = useBreakpointValue(['primaryFlat', 'secondary'])
 
   const {data, isFetching} = useQuery(
     ['get-flip', hash],
@@ -851,17 +880,22 @@ export function FlipView({
               <WrongIcon boxSize={5} color="red.500" ml={1} />
             )}
           </Flex>
-          <Flex color="muted" fontSize="md">
+          <Text
+            color="muted"
+            fontSize={['base', 'md']}
+            fontWeight={[400, 500]}
+            mt={[2.5, 0]}
+          >
             {t('Your answer')}
-          </Flex>
+          </Text>
         </Flex>
       </DialogHeader>
       <DialogBody>
-        <Flex mt={8}>
+        <Flex direction={['column', 'row']} align={['center', 'normal']} mt={8}>
           <Flex
             position="relative"
             justify="space-between"
-            w={300}
+            w={withWords && !isDesktop ? 135 : 300}
             align="center"
           >
             <Flip
@@ -870,6 +904,7 @@ export function FlipView({
               answer={answer}
               isLoading={isFetching}
               isCorrect={isCorrect}
+              isSmall={withWords && !isDesktop}
             />
             <Flip
               {...data}
@@ -877,6 +912,7 @@ export function FlipView({
               answer={answer}
               isLoading={isFetching}
               isCorrect={isCorrect}
+              isSmall={withWords && !isDesktop}
             />
           </Flex>
           {withWords && (
@@ -886,13 +922,21 @@ export function FlipView({
               shouldBeReported={shouldBeReported}
               words={data.keywords}
               flex={1}
-              ml={8}
+              ml={[0, 8]}
+              w={['100%', 'auto']}
             />
           )}
         </Flex>
       </DialogBody>
       <DialogFooter>
-        <SecondaryButton onClick={onClose}>Close</SecondaryButton>
+        <Button
+          variant={variant}
+          size={size}
+          w={['100%', 'auto']}
+          onClick={onClose}
+        >
+          Close
+        </Button>
       </DialogFooter>
     </Dialog>
   )

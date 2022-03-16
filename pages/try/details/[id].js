@@ -19,6 +19,7 @@ import {Page, PageTitleNew} from '../../../screens/app/components'
 import {
   AlertBox,
   DetailsPoints,
+  FlipsHiddenDescRow,
   FlipsTh,
   FlipsThCorner,
   FlipsValueTd,
@@ -293,113 +294,120 @@ export default function Details() {
                           wrongWords,
                           reason,
                         }) => (
-                          <Tr position={['relative', 'initial']} key={hash}>
-                            <FlipsValueTd pb={['72px', 0]}>
-                              <LongFlipWithIcon
-                                hash={hash}
-                                onClick={() =>
-                                  openFlipView(
-                                    hash,
-                                    answer,
-                                    correct,
-                                    true,
-                                    correctReport,
-                                    reason !== 0
-                                  )
-                                }
-                              />
-                              <Box
-                                display={['block', 'none']}
-                                position={['absolute', 'initial']}
-                                left={0}
-                                right={0}
-                                bottom={0}
-                                borderRadius="8px"
-                                backgroundColor="gray.50"
-                                mb={2}
+                          <>
+                            <Tr position={['relative', 'initial']} key={hash}>
+                              <FlipsValueTd
+                                borderBottom={[0, '1px solid #e8eaed']}
                               >
-                                <Flex py={2} px={5} direction="column" w="100%">
+                                <LongFlipWithIcon
+                                  hash={hash}
+                                  onClick={() =>
+                                    openFlipView(
+                                      hash,
+                                      answer,
+                                      correct,
+                                      true,
+                                      correctReport,
+                                      reason !== 0
+                                    )
+                                  }
+                                />
+                              </FlipsValueTd>
+                              <FlipsValueTd
+                                borderBottom={[0, '1px solid #e8eaed']}
+                                w={['75px', 'auto']}
+                              >
+                                <Flex direction={['column', 'row']}>
+                                  <Flex alignItems="center">
+                                    {correct ? (
+                                      <RightIcon
+                                        color="green.500"
+                                        boxSize={5}
+                                      />
+                                    ) : (
+                                      <WrongIcon color="red.500" boxSize={5} />
+                                    )}
+                                    <Text
+                                      textOverflow="ellipsis"
+                                      overflow="hidden"
+                                      whiteSpace="nowrap"
+                                      fontSize={['base', 'md']}
+                                      ml={[1, 2]}
+                                    >
+                                      {GetAnswerTitle(t, answer)}
+                                    </Text>
+                                  </Flex>
                                   <Text
-                                    fontSize="base"
-                                    fontWeight={500}
-                                    textOverflow="ellipsis"
-                                    overflow="hidden"
-                                    whiteSpace="nowrap"
-                                  >
-                                    {GetReasonDesc(t, reason)}
-                                  </Text>
-                                  <Text
+                                    display={['block', 'none']}
                                     color="muted"
                                     fontSize="md"
                                     fontWeight={500}
                                   >
-                                    Reason
+                                    Answer
                                   </Text>
                                 </Flex>
-                              </Box>
-                            </FlipsValueTd>
-                            <FlipsValueTd pb={['72px', 0]} w={['75px', 'auto']}>
-                              <Flex direction={['column', 'row']}>
-                                <Flex alignItems="center">
-                                  {correct ? (
-                                    <RightIcon color="green.500" boxSize={5} />
-                                  ) : (
-                                    <WrongIcon color="red.500" boxSize={5} />
-                                  )}
+                              </FlipsValueTd>
+                              <FlipsValueTd
+                                borderBottom={[0, '1px solid #e8eaed']}
+                                w={['90px', 'auto']}
+                              >
+                                <Flex direction={['column', 'row']}>
+                                  <Flex alignItems="center">
+                                    {correctReport ? (
+                                      <RightIcon
+                                        color="green.500"
+                                        boxSize={5}
+                                      />
+                                    ) : (
+                                      <WrongIcon color="red.500" boxSize={5} />
+                                    )}
+                                    <Text
+                                      textOverflow="ellipsis"
+                                      overflow="hidden"
+                                      whiteSpace="nowrap"
+                                      fontSize={['base', 'md']}
+                                      ml={[1, 2]}
+                                    >
+                                      {wrongWords
+                                        ? t('Reported')
+                                        : t('Not reported')}
+                                    </Text>
+                                  </Flex>
                                   <Text
-                                    textOverflow="ellipsis"
-                                    overflow="hidden"
-                                    whiteSpace="nowrap"
-                                    fontSize={['base', 'md']}
-                                    ml={[1, 2]}
+                                    display={['block', 'none']}
+                                    color="muted"
+                                    fontSize="md"
+                                    fontWeight={500}
                                   >
-                                    {GetAnswerTitle(t, answer)}
+                                    Qualification
                                   </Text>
                                 </Flex>
+                              </FlipsValueTd>
+                              <FlipsValueTd display={['none', 'table-cell']}>
+                                {GetReasonDesc(t, reason)}
+                              </FlipsValueTd>
+                            </Tr>
+                            <FlipsHiddenDescRow>
+                              <Flex direction="column" w="100%">
                                 <Text
-                                  display={['block', 'none']}
+                                  fontSize="base"
+                                  fontWeight={500}
+                                  textOverflow="ellipsis"
+                                  overflow="hidden"
+                                  whiteSpace="nowrap"
+                                >
+                                  {GetReasonDesc(t, reason)}
+                                </Text>
+                                <Text
                                   color="muted"
                                   fontSize="md"
                                   fontWeight={500}
                                 >
-                                  Answer
+                                  Reason
                                 </Text>
                               </Flex>
-                            </FlipsValueTd>
-                            <FlipsValueTd pb={['72px', 0]} w={['90px', 'auto']}>
-                              <Flex direction={['column', 'row']}>
-                                <Flex alignItems="center">
-                                  {correctReport ? (
-                                    <RightIcon color="green.500" boxSize={5} />
-                                  ) : (
-                                    <WrongIcon color="red.500" boxSize={5} />
-                                  )}
-                                  <Text
-                                    textOverflow="ellipsis"
-                                    overflow="hidden"
-                                    whiteSpace="nowrap"
-                                    fontSize={['base', 'md']}
-                                    ml={[1, 2]}
-                                  >
-                                    {wrongWords
-                                      ? t('Reported')
-                                      : t('Not reported')}
-                                  </Text>
-                                </Flex>
-                                <Text
-                                  display={['block', 'none']}
-                                  color="muted"
-                                  fontSize="md"
-                                  fontWeight={500}
-                                >
-                                  Qualification
-                                </Text>
-                              </Flex>
-                            </FlipsValueTd>
-                            <FlipsValueTd display={['none', 'table-cell']}>
-                              {GetReasonDesc(t, reason)}
-                            </FlipsValueTd>
-                          </Tr>
+                            </FlipsHiddenDescRow>
+                          </>
                         )
                       )}
                 </Tbody>
