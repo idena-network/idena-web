@@ -337,7 +337,7 @@ export default function ValidationReport() {
             </ValidationReportBlockOverview>
           </Stack>
           <Stack spacing={[0, 5]}>
-            <Box display={['none', 'block']}>
+            <Box mb={2}>
               <Heading color="brandGray.500" fontSize="lg" fontWeight={500}>
                 {t('Earnings summary')}
               </Heading>
@@ -349,9 +349,6 @@ export default function ValidationReport() {
                 {t('See the full report in blockchain explorer')}
               </ExternalLink>
             </Box>
-            <Text display={['block', 'none']} color="muted" fontWeight={500}>
-              {t('Gains and losses')}
-            </Text>
             <Table fontWeight={500}>
               <Thead display={['none', 'table-header-group']}>
                 <Tr>
