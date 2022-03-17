@@ -157,7 +157,6 @@ export default function ValidationReport() {
                         <ValidationReportGaugeBar
                           value={totalScore * 100}
                           color={
-                            // eslint-disable-next-line no-nested-ternary
                             totalScore <= 0.75
                               ? colors.red['500']
                               : totalScore <= 0.9
