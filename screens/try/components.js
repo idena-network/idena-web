@@ -90,7 +90,7 @@ function Countdown({validationTime = 0}) {
   )
 
   return (
-    <Text fontSize="base" fontWeight={500}>
+    <Text fontSize={['mdx', 'base']} fontWeight={500}>
       {state.matches('stopped') && '00:00:00'}
       {state.matches('running') &&
         [
@@ -774,7 +774,8 @@ function FlipWords({
         borderRadius="lg"
         backgroundColor={['white', 'gray.50']}
         px={[0, 10]}
-        py={8}
+        pt={8}
+        pb={[2, 8]}
         lineHeight={5}
         mb={4}
       >
