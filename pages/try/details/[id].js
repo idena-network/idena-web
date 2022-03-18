@@ -402,13 +402,7 @@ export default function Details() {
                                   )
                                 }
                               >
-                                <Text
-                                  fontSize="base"
-                                  fontWeight={500}
-                                  textOverflow="ellipsis"
-                                  overflow="hidden"
-                                  whiteSpace="nowrap"
-                                >
+                                <Text fontSize="base" fontWeight={500}>
                                   {GetReasonDesc(t, reason)}
                                 </Text>
                                 <Text
