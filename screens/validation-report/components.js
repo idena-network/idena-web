@@ -38,17 +38,18 @@ import {
   TwitterIcon,
 } from '../../shared/components/icons'
 import {useIdentity} from '../../shared/providers/identity-context'
+import {IdentityStatus} from '../../shared/types'
 import {openExternalUrl, toLocaleDna, toPercent} from '../../shared/utils/utils'
 import {useValidationReportSummary} from './hooks'
 import {ValidationResult} from './types'
 
-export function ValidationReportSummary({onClose}) {
+export function ValidationReportSummary({onClose, ...props}) {
   const {t, i18n} = useTranslation()
 
   const {colors} = useTheme()
   const router = useRouter()
 
-  const [{isValidated}] = useIdentity()
+  const [{isValidated, status}] = useIdentity()
 
   const {
     lastValidationScore,
@@ -58,7 +59,18 @@ export function ValidationReportSummary({onClose}) {
     totalMissedReward,
     validationResult,
     isLoading,
+    isFailed,
   } = useValidationReportSummary()
+
+  const maybeNew =
+    !status ||
+    [
+      IdentityStatus.Undefined,
+      IdentityStatus.Invite,
+      IdentityStatus.Candidate,
+    ].includes(status)
+
+  if (isFailed || (isLoading && maybeNew)) return null
 
   const {
     short: {score: shortScore},
@@ -76,204 +88,209 @@ export function ValidationReportSummary({onClose}) {
 `)
 
   return (
-    <Flex
-      borderTop="4px solid"
-      borderTopColor={
-        // eslint-disable-next-line no-nested-ternary
-        isLoading
-          ? 'transparent'
-          : // eslint-disable-next-line no-nested-ternary
-          isValidated
-          ? validationResult === ValidationResult.Penalty
-            ? 'orange.500'
-            : 'green.500'
-          : 'red.500'
-      }
-      borderRadius="md"
-      boxShadow="0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)"
-      px={[7, 8]}
-      pt={6}
-      pb={[2, 6]}
-      position="relative"
-      w="100%"
-    >
-      <CloseButton
-        w={6}
-        h={6}
-        pos="absolute"
-        top={3}
-        right={3}
-        onClick={onClose}
-      />
-      <Stack spacing={6} w="full">
-        <Skeleton isLoaded={!isLoading} alignSelf="start" w="auto">
-          <Text fontSize="lg" fontWeight={500}>
-            {(() => {
-              switch (validationResult) {
-                case ValidationResult.Success:
-                  return t('Successfully validated')
-                case ValidationResult.Penalty:
-                  return t('Validated')
-                default:
-                  return t('Validation failed')
-              }
-            })()}
-          </Text>
-        </Skeleton>
-        <Stack spacing={[6, 10]}>
-          <Flex justify="space-between" direction={['column', 'row']}>
-            <ValidationReportGauge>
-              <ValidationReportGaugeBox>
-                {isLoading ? (
-                  <ValidationReportGaugeBar color={colors.gray['100']} />
-                ) : isValidated ? (
-                  <ValidationReportGaugeBar
-                    value={totalScore * 100}
-                    color={
-                      // eslint-disable-next-line no-nested-ternary
-                      totalScore <= 0.75
-                        ? colors.red[500]
-                        : totalScore <= 0.9
-                        ? colors.orange[500]
-                        : colors.green[500]
-                    }
-                  />
-                ) : (
-                  <ValidationReportGaugeBar
-                    value={shortScore || 2}
-                    color={colors.red[500]}
-                  />
-                )}
-                <ValidationReportGaugeIcon
-                  display={['none', 'initial']}
-                  icon={<TimerIcon />}
-                />
-              </ValidationReportGaugeBox>
-              <ValidationReportGaugeStat>
-                <Skeleton isLoaded={!isLoading} w="auto">
-                  {isValidated ? (
-                    <ValidationReportGaugeStatValue>
-                      {toPercent(totalScore)}
-                    </ValidationReportGaugeStatValue>
+    <Box w="100%" pb={[2, 0]} {...props}>
+      <Flex
+        borderTop="4px solid"
+        borderTopColor={
+          // eslint-disable-next-line no-nested-ternary
+          isLoading
+            ? 'transparent'
+            : // eslint-disable-next-line no-nested-ternary
+            isValidated
+            ? validationResult === ValidationResult.Penalty
+              ? 'orange.500'
+              : 'green.500'
+            : 'red.500'
+        }
+        borderRadius="md"
+        boxShadow="0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)"
+        px={[7, 8]}
+        pt={6}
+        pb={[2, 6]}
+        position="relative"
+        w="100%"
+      >
+        <CloseButton
+          w={6}
+          h={6}
+          pos="absolute"
+          top={3}
+          right={3}
+          onClick={onClose}
+        />
+        <Stack spacing={6} w="full">
+          <Skeleton isLoaded={!isLoading} alignSelf="start" w="auto">
+            <Text fontSize="lg" fontWeight={500}>
+              {(() => {
+                switch (validationResult) {
+                  case ValidationResult.Success:
+                    return t('Successfully validated')
+                  case ValidationResult.Penalty:
+                    return t('Validated')
+                  default:
+                    return t('Validation failed')
+                }
+              })()}
+            </Text>
+          </Skeleton>
+          <Stack spacing={[6, 10]}>
+            <Flex justify="space-between" direction={['column', 'row']}>
+              <ValidationReportGauge>
+                <ValidationReportGaugeBox>
+                  {isLoading ? (
+                    <ValidationReportGaugeBar color={colors.gray['100']} />
+                  ) : isValidated ? (
+                    <ValidationReportGaugeBar
+                      value={totalScore * 100}
+                      color={
+                        // eslint-disable-next-line no-nested-ternary
+                        totalScore <= 0.75
+                          ? colors.red[500]
+                          : totalScore <= 0.9
+                          ? colors.orange[500]
+                          : colors.green[500]
+                      }
+                    />
                   ) : (
-                    <ValidationReportGaugeStatValue color="red.500">
-                      {t('Failed')}
-                    </ValidationReportGaugeStatValue>
+                    <ValidationReportGaugeBar
+                      value={shortScore || 2}
+                      color={colors.red[500]}
+                    />
                   )}
-                </Skeleton>
-                <ValidationReportGaugeStatLabel>
-                  {[
-                    ValidationResult.Success,
-                    ValidationResult.Penalty,
-                  ].includes(validationResult) && t('Score')}
-                  {validationResult === ValidationResult.LateSubmission &&
-                    t('Late submission')}
-                  {validationResult === ValidationResult.MissedValidation &&
-                    t('Missed validation')}
-                  {validationResult === ValidationResult.WrongAnswers &&
-                    t('Wrong answers')}
-                </ValidationReportGaugeStatLabel>
-              </ValidationReportGaugeStat>
-            </ValidationReportGauge>
-            <ValidationReportGauge mt={[6, 0]}>
-              <ValidationReportGaugeBox>
-                {isLoading ? (
-                  <ValidationReportGaugeBar color={colors.gray['100']} />
-                ) : isValidated ? (
-                  <ValidationReportGaugeBar
-                    value={earningsScore * 100 || 2}
-                    color={
-                      // eslint-disable-next-line no-nested-ternary
-                      earningsScore <= 0.5
-                        ? colors.red[500]
-                        : earningsScore <= 0.75
-                        ? colors.orange[500]
-                        : colors.green[500]
-                    }
+                  <ValidationReportGaugeIcon
+                    display={['none', 'initial']}
+                    icon={<TimerIcon />}
                   />
-                ) : (
-                  <ValidationReportGaugeBar value={2} color={colors.red[500]} />
-                )}
-                <ValidationReportGaugeIcon
-                  display={['none', 'initial']}
-                  icon={<SendOutIcon />}
-                />
-              </ValidationReportGaugeBox>
-              <ValidationReportGaugeStat>
-                <Skeleton isLoaded={!isLoading} w="auto">
-                  {validationResult === ValidationResult.Success ? (
-                    <ValidationReportGaugeStatValue>
-                      {dna(earnings)}
-                    </ValidationReportGaugeStatValue>
+                </ValidationReportGaugeBox>
+                <ValidationReportGaugeStat>
+                  <Skeleton isLoaded={!isLoading} w="auto">
+                    {isValidated ? (
+                      <ValidationReportGaugeStatValue>
+                        {toPercent(totalScore)}
+                      </ValidationReportGaugeStatValue>
+                    ) : (
+                      <ValidationReportGaugeStatValue color="red.500">
+                        {t('Failed')}
+                      </ValidationReportGaugeStatValue>
+                    )}
+                  </Skeleton>
+                  <ValidationReportGaugeStatLabel>
+                    {[
+                      ValidationResult.Success,
+                      ValidationResult.Penalty,
+                    ].includes(validationResult) && t('Score')}
+                    {validationResult === ValidationResult.LateSubmission &&
+                      t('Late submission')}
+                    {validationResult === ValidationResult.MissedValidation &&
+                      t('Missed validation')}
+                    {validationResult === ValidationResult.WrongAnswers &&
+                      t('Wrong answers')}
+                  </ValidationReportGaugeStatLabel>
+                </ValidationReportGaugeStat>
+              </ValidationReportGauge>
+              <ValidationReportGauge mt={[6, 0]}>
+                <ValidationReportGaugeBox>
+                  {isLoading ? (
+                    <ValidationReportGaugeBar color={colors.gray['100']} />
+                  ) : isValidated ? (
+                    <ValidationReportGaugeBar
+                      value={earningsScore * 100 || 2}
+                      color={
+                        // eslint-disable-next-line no-nested-ternary
+                        earningsScore <= 0.5
+                          ? colors.red[500]
+                          : earningsScore <= 0.75
+                          ? colors.orange[500]
+                          : colors.green[500]
+                      }
+                    />
                   ) : (
-                    <ValidationReportGaugeStatValue color="red.500">
-                      {dna(totalMissedReward)}
-                    </ValidationReportGaugeStatValue>
+                    <ValidationReportGaugeBar
+                      value={2}
+                      color={colors.red[500]}
+                    />
                   )}
-                </Skeleton>
-                <ValidationReportGaugeStatLabel>
-                  {t('Earnings')}
-                </ValidationReportGaugeStatLabel>
-              </ValidationReportGaugeStat>
-            </ValidationReportGauge>
-          </Flex>
-          <Flex display={['flex', 'none']} justify="space-around">
-            <Button
-              onClick={tweet}
-              variant="primaryFlat"
-              size="lg"
-              fontWeight={500}
-              isDisabled={!isValidated}
-            >
-              {t('Share')}
-            </Button>
-            <Divider
-              display={['block', 'none']}
-              h={10}
-              orientation="vertical"
-              color="gray.100"
-            />
-            <Button
-              onClick={() => router.push('/validation-report')}
-              variant="primaryFlat"
-              size="lg"
-              fontWeight={500}
-            >
-              {t('Details')}
-            </Button>
-          </Flex>
-          <Flex
-            display={['none', 'flex']}
-            justify="space-between"
-            alignItems="center"
-          >
-            <Box>
-              <TextLink
-                href="/validation-report"
-                fontWeight={500}
-                display="inline-block"
-              >
-                <Stack isInline spacing={0} align="center">
-                  <Text as="span">{t('More details')}</Text>
-                  <ChevronDownIcon boxSize={4} transform="rotate(-90deg)" />
-                </Stack>
-              </TextLink>
-            </Box>
-            <Stack isInline color="muted">
-              <IconButton
-                icon={<TwitterIcon boxSize={5} />}
-                size="xs"
-                variant="ghost"
-                color="blue.500"
-                fontSize={20}
-                _hover={{bg: 'blue.50'}}
+                  <ValidationReportGaugeIcon
+                    display={['none', 'initial']}
+                    icon={<SendOutIcon />}
+                  />
+                </ValidationReportGaugeBox>
+                <ValidationReportGaugeStat>
+                  <Skeleton isLoaded={!isLoading} w="auto">
+                    {validationResult === ValidationResult.Success ? (
+                      <ValidationReportGaugeStatValue>
+                        {dna(earnings)}
+                      </ValidationReportGaugeStatValue>
+                    ) : (
+                      <ValidationReportGaugeStatValue color="red.500">
+                        {dna(totalMissedReward)}
+                      </ValidationReportGaugeStatValue>
+                    )}
+                  </Skeleton>
+                  <ValidationReportGaugeStatLabel>
+                    {t('Earnings')}
+                  </ValidationReportGaugeStatLabel>
+                </ValidationReportGaugeStat>
+              </ValidationReportGauge>
+            </Flex>
+            <Flex display={['flex', 'none']} justify="space-around">
+              <Button
                 onClick={tweet}
+                variant="primaryFlat"
+                size="lg"
+                fontWeight={500}
+                isDisabled={!isValidated}
+              >
+                {t('Share')}
+              </Button>
+              <Divider
+                display={['block', 'none']}
+                h={10}
+                orientation="vertical"
+                color="gray.100"
               />
-            </Stack>
-          </Flex>
+              <Button
+                onClick={() => router.push('/validation-report')}
+                variant="primaryFlat"
+                size="lg"
+                fontWeight={500}
+              >
+                {t('Details')}
+              </Button>
+            </Flex>
+            <Flex
+              display={['none', 'flex']}
+              justify="space-between"
+              alignItems="center"
+            >
+              <Box>
+                <TextLink
+                  href="/validation-report"
+                  fontWeight={500}
+                  display="inline-block"
+                >
+                  <Stack isInline spacing={0} align="center">
+                    <Text as="span">{t('More details')}</Text>
+                    <ChevronDownIcon boxSize={4} transform="rotate(-90deg)" />
+                  </Stack>
+                </TextLink>
+              </Box>
+              <Stack isInline color="muted">
+                <IconButton
+                  icon={<TwitterIcon boxSize={5} />}
+                  size="xs"
+                  variant="ghost"
+                  color="blue.500"
+                  fontSize={20}
+                  _hover={{bg: 'blue.50'}}
+                  onClick={tweet}
+                />
+              </Stack>
+            </Flex>
+          </Stack>
         </Stack>
-      </Stack>
-    </Flex>
+      </Flex>
+    </Box>
   )
 }
 

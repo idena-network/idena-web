@@ -290,11 +290,9 @@ export default function ProfilePage() {
               )}
 
             {showValidationResults && (
-              <Box w="100%" pb={[2, 0]}>
-                <ValidationReportSummary
-                  onClose={() => setValidationResultSeen()}
-                />
-              </Box>
+              <ValidationReportSummary
+                onClose={() => setValidationResultSeen()}
+              />
             )}
 
             {state &&

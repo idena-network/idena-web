@@ -30,5 +30,6 @@ export function useValidationReportSummary() {
     ...current.context,
     totalScore,
     isLoading: current.matches('idle') || current.matches('fetching'),
+    isFailed: current.matches('failed'),
   }
 }

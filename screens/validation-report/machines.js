@@ -27,6 +27,7 @@ export const validationReportMachine = createMachine({
         src: (_, {epochNumber, identity: {address}}) =>
           getValidationSummary(epochNumber, address),
         onDone: 'fetched',
+        onError: 'failed',
       },
     },
     fetched: {
@@ -112,5 +113,6 @@ export const validationReportMachine = createMachine({
         ),
       ],
     },
+    failed: {},
   },
 })
