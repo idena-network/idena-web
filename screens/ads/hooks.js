@@ -235,3 +235,11 @@ export function useFormatDna() {
 
   return React.useCallback(value => toLocaleDna(language)(value), [language])
 }
+
+export function useBalance(coinbase) {
+  const {data} = useRpc('dna_getBalance', coinbase, {
+    enabled: Boolean(coinbase),
+  })
+
+  return data?.balance
+}
