@@ -5,6 +5,7 @@ import {
   AlertIcon,
   Box,
   Flex,
+  Text,
   FormControl,
   Heading,
   Stack,
@@ -51,6 +52,7 @@ function Settings() {
   })
 
   const [offlineError, setOfflineError] = useState(BASIC_ERROR)
+  const [nodeProvider, setNodeProvider] = useState('')
 
   useEffect(() => {
     setState({url: settingsState.url, apiKey: settingsState.apiKey})
@@ -67,9 +69,7 @@ function Settings() {
       try {
         const result = await checkKey(settingsState.apiKey)
         const provider = await getProvider(result.provider)
-        setOfflineError(
-          `This node is unavailable. Please contact the node owner: ${provider.data.ownerName}`
-        )
+        setNodeProvider(provider.data.ownerName)
       } catch (e) {
         setOfflineError(BASIC_ERROR)
       }
@@ -120,7 +120,32 @@ function Settings() {
         )}
         {settingsState.apiKeyState === apiKeyStates.OFFLINE &&
           !!settingsState.url &&
-          !!settingsState.apiKey && (
+          !!settingsState.apiKey &&
+          (nodeProvider ? (
+            <Alert
+              status="error"
+              bg="red.010"
+              borderWidth="1px"
+              borderColor="red.050"
+              fontWeight={500}
+              rounded="md"
+              px={3}
+              py={2}
+            >
+              <AlertIcon name="info" color="red.500" size={5} mr={3} />
+              <Text>
+                This node is unavailable. Please contact the node owner:{' '}
+                <Link
+                  color="#578fff"
+                  href={`https://t.me/${nodeProvider}`}
+                  target="_blank"
+                  ml={1}
+                >
+                  {nodeProvider}
+                </Link>
+              </Text>
+            </Alert>
+          ) : (
             <Alert
               status="error"
               bg="red.010"
@@ -134,7 +159,7 @@ function Settings() {
               <AlertIcon name="info" color="red.500" size={5} mr={3} />
               {t(offlineError, {nsSeparator: 'null'})}
             </Alert>
-          )}
+          ))}
         <Flex display={['none', 'flex']} justify="space-between">
           <Heading as="h1" fontSize="lg" fontWeight={500} textAlign="start">
             {t('Node settings')}
