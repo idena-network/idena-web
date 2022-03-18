@@ -686,3 +686,7 @@ export function Menu({children, ...props}) {
     </ChakraMenu>
   )
 }
+
+export const HDivider = React.forwardRef(function HDivider(props, ref) {
+  return <Divider ref={ref} borderColor="gray.300" my={0} {...props} />
+})

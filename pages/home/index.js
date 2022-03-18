@@ -61,6 +61,7 @@ import {useScroll} from '../../shared/hooks/use-scroll'
 import {
   AddUserIcon,
   ChevronRightIcon,
+  AdsIcon,
   CopyIcon,
   DeleteIcon,
   OpenExplorerIcon,
@@ -578,6 +579,23 @@ export default function ProfilePage() {
                   borderRadius="10px"
                 >
                   <OracleIcon
+                    color="blue.500"
+                    boxSize={5}
+                    mt={['6px', 0]}
+                    ml={['6px', 0]}
+                  />
+                </Box>
+              </WideLink>
+              <WideLink
+                label={t('New ad')}
+                onClick={() => router.push('/ads/new')}
+              >
+                <Box
+                  boxSize={[8, 5]}
+                  backgroundColor={['brandBlue.10', 'initial']}
+                  borderRadius="10px"
+                >
+                  <AdsIcon
                     color="blue.500"
                     boxSize={5}
                     mt={['6px', 0]}

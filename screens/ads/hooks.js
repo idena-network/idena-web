@@ -1,14 +1,14 @@
 /* eslint-disable no-use-before-define */
+import {useToken, useInterval} from '@chakra-ui/react'
 import React from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQueries, useQuery} from 'react-query'
-import {useInterval} from '@chakra-ui/react'
 import {Ad} from '../../shared/models/ad'
 import {AdKey} from '../../shared/models/adKey'
 import {Profile} from '../../shared/models/profile'
 import {useIdentity} from '../../shared/providers/identity-context'
-import {callRpc} from '../../shared/utils/utils'
-import {AdVotingOption, AdVotingOptionId} from './types'
+import {callRpc, toLocaleDna} from '../../shared/utils/utils'
+import {AdStatus, AdVotingOption, AdVotingOptionId} from './types'
 import {
   currentOs,
   fetchAdVoting,
@@ -17,6 +17,7 @@ import {
   selectProfileHash,
 } from './utils'
 import {VotingStatus} from '../../shared/types'
+import {capitalize} from '../../shared/utils/string'
 
 export function useRotatingAdList(limit = 3) {
   const {i18n} = useTranslation()
@@ -200,4 +201,37 @@ export function useRpc(method, params, options) {
   const rpcFetcher = useRpcFetcher()
 
   return useQuery([method, params], rpcFetcher, options)
+}
+
+export function useAdStatusColor(status, fallbackColor = 'muted') {
+  const statusColor = {
+    [AdStatus.Showing]: 'green',
+    [AdStatus.NotShowing]: 'red',
+    [AdStatus.PartiallyShowing]: 'orange',
+    [AdStatus.Rejected]: 'red',
+  }
+
+  const color = useToken('colors', `${statusColor[status]}.500`, fallbackColor)
+
+  return color
+}
+
+export function useAdStatusText(status) {
+  const {t} = useTranslation()
+
+  const statusText = {
+    [AdStatus.Showing]: t('Showing'),
+    [AdStatus.NotShowing]: t('Not showing'),
+    [AdStatus.PartiallyShowing]: t('Partially showing'),
+  }
+
+  return statusText[status] ?? capitalize(status)
+}
+
+export function useFormatDna() {
+  const {
+    i18n: {language},
+  } = useTranslation()
+
+  return React.useCallback(value => toLocaleDna(language)(value), [language])
 }
