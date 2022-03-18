@@ -250,6 +250,7 @@ export const uiTheme = {
     sm: '0.25rem',
     md: rem(6),
     lg: rem(8),
+    lgx: '12px',
     xl: '0.75rem',
     mobile: '28px',
   },
