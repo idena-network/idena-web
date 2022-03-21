@@ -601,8 +601,7 @@ export function TableFlipsDesc({
     <TableDescText color="red.500">
       {t('Your flips were reported.')}
     </TableDescText>
-  ) : // eslint-disable-next-line no-nested-ternary
-  missedFlipReward > 0 ? (
+  ) : missedFlipReward > 0 ? (
     <TableDescText color="red.500">
       {t('Make all flips carefully')}
     </TableDescText>
@@ -625,8 +624,7 @@ export function TableInvitationsDesc({
     <TableDescText color="red.500">
       {t('Your flips were reported.')}
     </TableDescText>
-  ) : // eslint-disable-next-line no-nested-ternary
-  missedInvitationReward > 0 ? (
+  ) : missedInvitationReward > 0 ? (
     <TableDescText color="red.500">
       {t('Invite your friends and help them to pass the first 3 validations')}
     </TableDescText>
@@ -649,8 +647,7 @@ export function TableFlipReportsDesc({
     <TableDescText color="red.500">
       {t('Your flips were reported.')}
     </TableDescText>
-  ) : // eslint-disable-next-line no-nested-ternary
-  missedFlipReportReward > 0 ? (
+  ) : missedFlipReportReward > 0 ? (
     <TableDescText color="red.500">
       {t('Report all flips that break the rules')}
     </TableDescText>
