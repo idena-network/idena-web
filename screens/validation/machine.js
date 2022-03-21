@@ -12,7 +12,7 @@ import {
   sendPublicEncryptionKey,
 } from '../../shared/api/validation'
 import {sendRawTx, getRawTx} from '../../shared/api/chain'
-import {RelevanceType, SessionType} from '../../shared/types'
+import {FlipGrade, RelevanceType, SessionType} from '../../shared/types'
 import {fetchFlipKeys, fetchRawFlip} from '../../shared/api'
 import {fetchWordsSeed, fetchIdentity} from '../../shared/api/dna'
 import apiClient from '../../shared/api/api-client'
@@ -1460,10 +1460,13 @@ export const createValidationMachine = ({
                 longFlips.map(({option: answer = 0, hash, relevance}) => ({
                   answer,
                   hash,
-                  wrongWords:
-                    relevance ===
-                    // eslint-disable-next-line no-use-before-define
-                    RelevanceType.Irrelevant,
+                  grade:
+                    // eslint-disable-next-line no-nested-ternary
+                    relevance === RelevanceType.Relevant
+                      ? FlipGrade.GradeD
+                      : relevance === RelevanceType.Irrelevant
+                      ? FlipGrade.Reported
+                      : FlipGrade.None,
                 })),
                 wordsSeed,
                 epoch
