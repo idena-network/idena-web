@@ -153,7 +153,7 @@ export function ValidationReportSummary({onClose, ...props}) {
                     />
                   ) : (
                     <ValidationReportGaugeBar
-                      value={shortScore || 2}
+                      value={shortScore * 100 || 2}
                       color={colors.red[500]}
                     />
                   )}
