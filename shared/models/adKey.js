@@ -10,8 +10,8 @@ export class AdKey {
   }
 
   static fromBytes = bytes => {
-    const protoAd = root.ProtoAdKey.deserializeBinary(bytes)
-    return new AdKey(protoAd.toObject())
+    const protoAdKey = root.ProtoAdKey.deserializeBinary(bytes)
+    return new AdKey(protoAdKey.toObject())
   }
 
   static fromHex = hex =>
