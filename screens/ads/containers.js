@@ -12,9 +12,12 @@ import {
   Box,
   Heading,
   Stat,
+  IconButton,
+  Button,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
+import {TriangleUpIcon} from '@chakra-ui/icons'
 import {
   Avatar,
   Drawer,
@@ -25,9 +28,8 @@ import {
   SuccessAlert,
 } from '../../shared/components/components'
 import {AdsIcon, PicIcon} from '../../shared/components/icons'
-import {useAdRotation} from './hooks'
+import {useActiveAd, useAdRotationList, useAdRotation} from './hooks'
 import {omit, pick} from '../../shared/utils/utils'
-import {getRandomInt} from '../flips/utils'
 import {AdStatLabel, AdStatNumber} from './components'
 
 export function AdBanner() {
@@ -35,15 +37,7 @@ export function AdBanner() {
 
   const router = useRouter()
 
-  const ads = useAdRotation()
-
-  const adLength = ads?.length
-
-  const activeAdIndex = React.useMemo(() => getRandomInt(0, adLength), [
-    adLength,
-  ])
-
-  const activeAd = ads[activeAdIndex]
+  const activeAd = useActiveAd()
 
   return (
     <Flex
@@ -53,6 +47,7 @@ export function AdBanner() {
       borderBottomColor="gray.100"
       px={4}
       py={2}
+      maxH={14}
     >
       <AdBannerActiveAd {...activeAd} />
       {false && (
@@ -81,12 +76,14 @@ function AdBannerActiveAd({title, url, cover, author}) {
         <PlainAdCoverImage src={cover} w={10} />
       </AdBannerSkeleton>
       <Stack spacing={1}>
-        <AdBannerSkeleton isLoaded={Boolean(title)} minW="2xs" w="2xs" minH={4}>
+        <AdBannerSkeleton isLoaded={Boolean(title)} minH={4} w="md">
           <LinkOverlay href={url} target="_blank">
-            <Text lineHeight="none">{title}</Text>
+            <Text lineHeight={4} isTruncated>
+              {title}
+            </Text>
           </LinkOverlay>
         </AdBannerSkeleton>
-        <AdBannerSkeleton isLoaded={Boolean(author)} minW="xs">
+        <AdBannerSkeleton isLoaded={Boolean(author)} minW="lg">
           <HStack spacing={1}>
             <Avatar
               address={author}
@@ -133,17 +130,13 @@ export function PlainAdCoverImage(props) {
 }
 
 export function AdDrawer({isMining = true, children, ...props}) {
-  const ads = useAdRotation()
+  const ads = useAdRotationList()
 
-  const adLength = ads?.length
+  const hasRotatingAds = ads.length > 0
 
-  const hasRotatingAds = adLength > 0
+  const {currentIndex, prev, next, setCurrentIndex} = useAdRotation()
 
-  const activeAdIndex = React.useMemo(() => getRandomInt(0, adLength), [
-    adLength,
-  ])
-
-  const activeAd = ads[activeAdIndex]
+  const activeAd = ads[currentIndex]
 
   return (
     <Drawer {...props}>
@@ -151,7 +144,63 @@ export function AdDrawer({isMining = true, children, ...props}) {
 
       {isMining && hasRotatingAds && (
         <DrawerPromotionPortal>
-          <AdPromotion {...activeAd} />
+          <Stack spacing="4">
+            <HStack spacing="16">
+              <IconButton
+                variant="unstyled"
+                color="xwhite.050"
+                icon={<TriangleUpIcon transform="rotate(-90deg)" />}
+                _hover={{
+                  color: 'white',
+                }}
+                onClick={prev}
+              />
+
+              <AdPromotion {...activeAd} />
+
+              <IconButton
+                variant="unstyled"
+                color="xwhite.050"
+                icon={<TriangleUpIcon transform="rotate(90deg)" />}
+                _hover={{
+                  color: 'white',
+                }}
+                onClick={next}
+              />
+            </HStack>
+            <HStack spacing="2.5" justify="center" align="center" h="2">
+              {ads.map((_, idx) => {
+                const isCurrrent = currentIndex === idx
+
+                const isSibling = Math.abs(currentIndex - idx) === 1
+
+                // eslint-disable-next-line no-nested-ternary
+                const boxSize = isCurrrent ? '2' : isSibling ? '1.5' : '1'
+
+                return (
+                  <Button
+                    variant="unstyled"
+                    bg={
+                      // eslint-disable-next-line no-nested-ternary
+                      isCurrrent
+                        ? 'white'
+                        : isSibling
+                        ? 'transparent'
+                        : 'xwhite.016'
+                    }
+                    borderColor="xwhite.016"
+                    borderWidth={isSibling ? 2 : 0}
+                    rounded="full"
+                    boxSize={boxSize}
+                    minW={boxSize}
+                    onClick={() => {
+                      setCurrentIndex(idx)
+                    }}
+                  />
+                )
+              })}
+            </HStack>
+          </Stack>
         </DrawerPromotionPortal>
       )}
     </Drawer>
@@ -166,22 +215,30 @@ function AdPromotion({title, url, cover, author}) {
       <Stack spacing="10">
         <Stack spacing="4">
           <Stack spacing="1.5">
-            <Heading as="h4" fontWeight="semibold" fontSize="md">
+            <Heading as="h4" fontWeight="semibold" fontSize="md" isTruncated>
               {title}
             </Heading>
-            <ExternalLink href={url}>{url}</ExternalLink>
+            <ExternalLink href={url} fontWeight="semibold">
+              {url}
+            </ExternalLink>
           </Stack>
           <PlainAdCoverImage src={cover} w={320} objectFit="cover" />
         </Stack>
-        <Stack spacing={6}>
-          <HStack justify="space-between" align="flex-start">
-            <BlockAdStat label="Sponsored by" value={author} />
-          </HStack>
-          <Box>
-            <SuccessAlert fontSize="md">
-              {t('Watching ads makes your coin valuable!')}
-            </SuccessAlert>
-          </Box>
+        <Stack spacing="6">
+          <Stat>
+            <AdStatLabel color="gray.500" fontWeight={500} lineHeight={4}>
+              {t('Sponsored by')}
+            </AdStatLabel>
+            <AdStatNumber color="muted" fontSize="sm" mt="1.5" h="4">
+              <HStack spacing="1" align="center">
+                <Avatar address={author} boxSize={4} />
+                <Text as="span">{author}</Text>
+              </HStack>
+            </AdStatNumber>
+          </Stat>
+          <SuccessAlert fontSize="md">
+            {t('Watching ads makes your coin valuable!')}
+          </SuccessAlert>
         </Stack>
       </Stack>
     </Box>

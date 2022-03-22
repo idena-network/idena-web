@@ -100,7 +100,7 @@ export function Drawer({isCloseable = true, children, ...props}) {
           )}
           {children}
         </DrawerContent>
-        <DrawerPromotion pr={maxWidth} />
+        <DrawerPromotion right={maxWidth} />
       </ChakraDrawer>
     </DrawerPromotionContext.Provider>
   )
@@ -117,9 +117,8 @@ export function DrawerPromotion(props) {
       position="absolute"
       top={0}
       left={0}
-      w="full"
       h="full"
-      zIndex="overlay"
+      zIndex="modal"
       {...props}
     />
   )
