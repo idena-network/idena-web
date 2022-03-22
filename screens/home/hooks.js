@@ -1,5 +1,5 @@
 import {useMachine} from '@xstate/react'
-import {useState} from 'react'
+import {useEffect, useReducer, useState} from 'react'
 import {assign, createMachine} from 'xstate'
 import {
   activateKey,
@@ -8,17 +8,23 @@ import {
   sendRawTx,
 } from '../../shared/api'
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
+import {usePersistence} from '../../shared/hooks/use-persistent-state'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import useTx from '../../shared/hooks/use-tx'
 import {Transaction} from '../../shared/models/transaction'
 import {useAuthState} from '../../shared/providers/auth-context'
+import {useEpoch} from '../../shared/providers/epoch-context'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {IdentityStatus} from '../../shared/types'
-import {sendActivateInvitation} from '../../shared/utils/analytics'
+import {
+  sendActivateInvitation,
+  sendSuccessValidation,
+} from '../../shared/utils/analytics'
 import {
   privateKeyToAddress,
   privateKeyToPublicKey,
 } from '../../shared/utils/crypto'
+import {loadPersistentState} from '../../shared/utils/persist'
 import {validateInvitationCode} from '../../shared/utils/utils'
 
 const idenaBotMachine = createMachine({
@@ -140,4 +146,61 @@ export function useInviteActivation() {
     {isSuccess: state === IdentityStatus.Candidate, isMining: waiting},
     {activateInvite: sendActivateInviteTx},
   ]
+}
+
+export function useValidationResults() {
+  const epochData = useEpoch()
+
+  const epoch = epochData?.epoch || 0
+
+  const [state, dispatch] = usePersistence(
+    useReducer((prevState, action) => {
+      switch (action.type) {
+        case 'seen':
+          return {
+            ...prevState,
+            [epoch]: {
+              ...prevState[epoch],
+              seen: action.value,
+            },
+          }
+        case 'analytics':
+          return {
+            ...prevState,
+            [epoch]: {
+              ...prevState[epoch],
+              analyticsSent: action.value,
+            },
+          }
+        default:
+          return prevState
+      }
+    }, loadPersistentState('validationResults') || {}),
+    'validationResults'
+  )
+
+  const [{address, state: identityStatus}] = useIdentity()
+
+  const isValidationSucceeded = [
+    IdentityStatus.Newbie,
+    IdentityStatus.Verified,
+    IdentityStatus.Human,
+  ].includes(identityStatus)
+
+  const seen = state[epoch] && state[epoch].seen
+
+  const analyticsSent = state[epoch] && state[epoch].analyticsSent
+
+  useEffect(() => {
+    if (isValidationSucceeded && !analyticsSent) {
+      sendSuccessValidation(address)
+      dispatch({type: 'analytics', value: true})
+    }
+  }, [isValidationSucceeded, address, dispatch, analyticsSent])
+
+  const setValidationResultSeen = () => {
+    dispatch({type: 'seen', value: true})
+  }
+
+  return [seen, setValidationResultSeen]
 }

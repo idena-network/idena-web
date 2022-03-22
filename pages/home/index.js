@@ -18,7 +18,6 @@ import {
   UserInlineCard,
   UserStatList,
   UserStatistics,
-  ValidationResultToast,
   ActivateMiningForm,
   KillForm,
   AnnotatedUserStatistics,
@@ -35,10 +34,6 @@ import {
 import Layout from '../../shared/components/layout'
 import {IdentityStatus, OnboardingStep} from '../../shared/types'
 import {toPercent, toLocaleDna, eitherState} from '../../shared/utils/utils'
-import {
-  hasPersistedValidationResults,
-  shouldExpectValidationResults,
-} from '../../screens/validation/utils'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {fetchBalance} from '../../shared/api/wallet'
@@ -61,10 +56,10 @@ import {
   TestValidationIcon,
 } from '../../shared/components/icons'
 import {useSuccessToast} from '../../shared/hooks/use-toast'
-import {persistItem} from '../../shared/utils/persist'
 import {isValidDnaUrl} from '../../screens/dna/utils'
-import {useIdenaBot} from '../../screens/home/hooks'
+import {useIdenaBot, useValidationResults} from '../../screens/home/hooks'
 import {useTestValidationState} from '../../shared/providers/test-validation-context'
+import {ValidationReportSummary} from '../../screens/validation-report/components'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -120,24 +115,17 @@ export default function ProfilePage() {
     refetchInterval: 30 * 1000,
   })
 
+  const [validationResultSeen, setValidationResultSeen] = useValidationResults()
+
   useEffect(() => {
     if (epoch) {
       const {epoch: epochNumber} = epoch
       if (epochNumber) {
-        if (
-          shouldExpectValidationResults(epochNumber) &&
-          !hasPersistedValidationResults(epochNumber)
-        ) {
-          persistItem('validationResults', epochNumber, {
-            epochStart: new Date().toISOString(),
-          })
-        }
-
         queryClient.invalidateQueries('get-balance')
-        setShowValidationResults(hasPersistedValidationResults(epochNumber))
+        setShowValidationResults(!validationResultSeen)
       }
     }
-  }, [epoch, queryClient])
+  }, [epoch, queryClient, validationResultSeen])
 
   const [dnaUrl] = React.useState(() =>
     typeof window !== 'undefined'
@@ -277,6 +265,36 @@ export default function ProfilePage() {
                 </OnboardingPopover>
               </Box>
             )}
+
+            {state &&
+              ![
+                IdentityStatus.Undefined,
+                IdentityStatus.Invite,
+                IdentityStatus.Candidate,
+              ].includes(state) && (
+                <WideLink
+                  display={['initial', 'none']}
+                  pb={3}
+                  label="Open in blockchain explorer"
+                  href={`https://scan.idena.io/address/${address}`}
+                  isNewTab
+                >
+                  <Box
+                    boxSize={8}
+                    backgroundColor="brandBlue.10"
+                    borderRadius="10px"
+                  >
+                    <OpenExplorerIcon boxSize={5} mt="6px" ml="6px" />
+                  </Box>
+                </WideLink>
+              )}
+
+            {showValidationResults && (
+              <ValidationReportSummary
+                onClose={() => setValidationResultSeen()}
+              />
+            )}
+
             {state &&
               ![
                 IdentityStatus.Undefined,
@@ -284,22 +302,6 @@ export default function ProfilePage() {
                 IdentityStatus.Candidate,
               ].includes(state) && (
                 <>
-                  <WideLink
-                    display={['initial', 'none']}
-                    pb={3}
-                    label="Open in blockchain explorer"
-                    href={`https://scan.idena.io/address/${address}`}
-                    isNewTab
-                  >
-                    <Box
-                      boxSize={8}
-                      backgroundColor="brandBlue.10"
-                      borderRadius="10px"
-                    >
-                      <OpenExplorerIcon boxSize={5} mt="6px" ml="6px" />
-                    </Box>
-                  </WideLink>
-
                   <UserStatList title={t('Profile')}>
                     {age >= 0 && (
                       <UserStatistics label={t('Age')} value={age} />
@@ -337,6 +339,13 @@ export default function ProfilePage() {
                             }
                           )}
                         </Box>
+                        <TextLink
+                          display={['none', 'initial']}
+                          href="/validation-report"
+                          fontWeight={500}
+                        >
+                          {t('View validation report')}
+                        </TextLink>
                       </AnnotatedUserStatistics>
                     )}
 
@@ -361,6 +370,20 @@ export default function ProfilePage() {
                         value={toDna(stake * 0.75)}
                       />
                     )}
+
+                    <Button
+                      display={['initial', 'none']}
+                      onClick={() => router.push('/validation-report')}
+                      w="100%"
+                      h={10}
+                      fontSize="15px"
+                      variant="outline"
+                      color="blue.500"
+                      border="none"
+                      borderColor="transparent"
+                    >
+                      {t('View validation report')}
+                    </Button>
                   </UserStatList>
                 </>
               )}
@@ -535,10 +558,6 @@ export default function ProfilePage() {
         </Stack>
 
         <KillForm isOpen={isOpenKillForm} onClose={onCloseKillForm}></KillForm>
-
-        {showValidationResults && epoch && (
-          <ValidationResultToast epoch={epoch.epoch} />
-        )}
         <ActivateInvitationDialog {...activateInviteDisclosure} />
       </Page>
     </Layout>
