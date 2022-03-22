@@ -124,7 +124,7 @@ export function useAdRotation() {
   const [currentIndex, setCurrentIndex] = React.useState(0)
 
   useInterval(() => {
-    // setCurrentIndex((currentIndex + 1) % ads.length)
+    setCurrentIndex((currentIndex + 1) % ads.length)
   }, intervalsRef.current[currentIndex] * 1000)
 
   return {
