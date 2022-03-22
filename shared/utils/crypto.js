@@ -8,6 +8,7 @@ import crypto from 'crypto'
 import {hexToUint8Array, toHexString} from './buffers'
 import PrivateKeysPackage from '../models/privateKeysPackage'
 import PublicFlipKey from '../models/publicFlipKey'
+import {FlipGrade} from '../types'
 
 const ec = new EC('secp256k1')
 
@@ -121,9 +122,9 @@ export function serializeAnswers(hashesInOrder, answers) {
   const orderedAnswers = hashesInOrder.map(h => {
     const item = answers.find(x => x.hash === h)
     if (!item) {
-      return {answer: 0, wrongWords: false}
+      return {answer: 0, grade: FlipGrade.None}
     }
-    return {answer: item.answer, wrongWords: item.wrongWords}
+    return {answer: item.answer, grade: item.grade}
   })
 
   const res = orderedAnswers.reduce((cum, current, idx) => {
@@ -136,8 +137,9 @@ export function serializeAnswers(hashesInOrder, answers) {
       cum.setn(idx + orderedAnswers.length, true)
     }
     // wrong words
-    if (current.wrongWords) {
-      cum.setn(idx * 3 + orderedAnswers.length * 2, true)
+    if (current.grade) {
+      const g = new BN(current.grade)
+      return cum.or(g.shln(idx * 3 + orderedAnswers.length * 2))
     }
     return cum
   }, new BN(0))

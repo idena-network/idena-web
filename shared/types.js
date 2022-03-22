@@ -120,3 +120,12 @@ export const VotingStatus = {
   Terminating: 'terminating',
   Invalid: 'invalid',
 }
+
+export const FlipGrade = {
+  None: 0,
+  Reported: 1,
+  GradeD: 2,
+  GradeC: 3,
+  GradeB: 4,
+  GradeA: 5,
+}
