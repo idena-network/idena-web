@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 import {VotingStatus} from '../../shared/types'
 import {areSameCaseInsensitive, callRpc} from '../../shared/utils/utils'
 import {hexToObject} from '../oracles/utils'
@@ -74,12 +75,37 @@ export const isSameAdKey = (adKey, targetAdKey) =>
   Number(adKey.age) === Number(targetAdKey.age) &&
   Number(adKey.stake) === Number(targetAdKey.stake)
 
+export const isCompetingAd = targetAd => ad =>
+  targetAd.address === ad.address && isCompetingAdKey(ad.key, targetAd.key)
+
+const isCompetingAdKey = (
+  {language: adLanguage, os: adOS, age: adAge, stake: adStake},
+  {language: targetLanguage, os: targetOS, age: targetAge, stake: targetStake}
+) =>
+  weakCompare(adLanguage, targetLanguage, areSameCaseInsensitive) &&
+  weakCompare(adOS, targetOS, areSameCaseInsensitive) &&
+  weakCompare(
+    adAge,
+    targetAge,
+    // eslint-disable-next-line no-shadow
+    (adAge, targetAge) => Number(targetAge) >= Number(adAge)
+  ) &&
+  weakCompare(
+    adStake,
+    targetStake,
+    // eslint-disable-next-line no-shadow
+    (adStake, targetStake) => Number(targetStake) >= Number(adStake)
+  )
+
+export const weakCompare = (field, targetField, condition) =>
+  field ? condition(field, targetField) : true
+
+export const selectProfileHash = data => data.profileHash
+
 export async function fetchAdVoting(address) {
-  // eslint-disable-next-line no-use-before-define
   const readContractKey = createContractDataReader(address)
 
   return {
-    // eslint-disable-next-line no-use-before-define
     status: mapToVotingStatus(
       await readContractKey('state', 'byte').catch(e => {
         if (e.message === 'data is nil') return VotingStatus.Terminated

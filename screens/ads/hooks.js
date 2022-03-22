@@ -2,16 +2,23 @@
 import React from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQueries, useQuery} from 'react-query'
+import {useInterval} from '@chakra-ui/react'
 import {Ad} from '../../shared/models/ad'
 import {AdKey} from '../../shared/models/adKey'
 import {Profile} from '../../shared/models/profile'
 import {useIdentity} from '../../shared/providers/identity-context'
-import {areSameCaseInsensitive, callRpc} from '../../shared/utils/utils'
+import {callRpc} from '../../shared/utils/utils'
 import {AdVotingOption, AdVotingOptionId} from './types'
-import {currentOs, fetchAdVoting, isSameAdKey} from './utils'
+import {
+  currentOs,
+  fetchAdVoting,
+  isCompetingAd,
+  isSameAdKey,
+  selectProfileHash,
+} from './utils'
 import {VotingStatus} from '../../shared/types'
 
-export function useAdRotation(limit = 5) {
+export function useAdRotationList(limit = 3) {
   const {i18n} = useTranslation()
 
   const rpcFetcher = useRpcFetcher()
@@ -34,7 +41,11 @@ export function useAdRotation(limit = 5) {
   )
 
   const competingIdentities = [
-    ...new Set(competitorAds?.map(burn => burn.address) ?? []),
+    ...new Set(
+      competitorAds
+        ?.sort((a, b) => a.amount - b.amount)
+        ?.map(burn => burn.address) ?? []
+    ),
   ]
 
   const competingProfileHashQueries = useQueries(
@@ -105,6 +116,37 @@ export function useAdRotation(limit = 5) {
   return decodedProfileAds?.map(x => x.data) ?? []
 }
 
+export function useAdRotation() {
+  const ads = useAdRotationList()
+
+  const intervalsRef = React.useRef([5, 4, 3])
+
+  const [currentIndex, setCurrentIndex] = React.useState(0)
+
+  useInterval(() => {
+    // setCurrentIndex((currentIndex + 1) % ads.length)
+  }, intervalsRef.current[currentIndex] * 1000)
+
+  return {
+    currentIndex,
+    prev() {
+      setCurrentIndex((currentIndex - 1 + ads.length) % ads.length)
+    },
+    next() {
+      setCurrentIndex((currentIndex + 1) % ads.length)
+    },
+    setCurrentIndex,
+  }
+}
+
+export function useActiveAd() {
+  const ads = useAdRotationList()
+
+  const {currentIndex} = useAdRotation()
+
+  return ads[currentIndex]
+}
+
 function useAdCompetitors(target, limit) {
   const {decodeAdKey} = useProtoProfileDecoder()
 
@@ -121,33 +163,6 @@ function useAdCompetitors(target, limit) {
     ),
   })
 }
-
-const isCompetingAd = targetAd => ad =>
-  targetAd.address === ad.address && isCompetingAdKey(ad.key, targetAd.key)
-
-const isCompetingAdKey = (
-  {language: adLanguage, os: adOS, age: adAge, stake: adStake},
-  {language: targetLanguage, os: targetOS, age: targetAge, stake: targetStake}
-) =>
-  weakCompare(adLanguage, targetLanguage, areSameCaseInsensitive) &&
-  weakCompare(adOS, targetOS, areSameCaseInsensitive) &&
-  weakCompare(
-    adAge,
-    targetAge,
-    // eslint-disable-next-line no-shadow
-    (adAge, targetAge) => Number(targetAge) >= Number(adAge)
-  ) &&
-  weakCompare(
-    adStake,
-    targetStake,
-    // eslint-disable-next-line no-shadow
-    (adStake, targetStake) => Number(targetStake) >= Number(adStake)
-  )
-
-export const weakCompare = (field, targetField, condition) =>
-  field ? condition(field, targetField) : true
-
-const selectProfileHash = data => data.profileHash
 
 export function useProtoProfileEncoder() {
   return {
