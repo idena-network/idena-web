@@ -15,11 +15,15 @@ import {
   Stat,
   Textarea,
   VisuallyHiddenInput,
-  Select,
   Center,
   FormControl,
   MenuDivider,
   Button,
+  NumberInput,
+  NumberInputField,
+  NumberInputStepper,
+  NumberIncrementStepper,
+  NumberDecrementStepper,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
@@ -43,6 +47,7 @@ import {
   SuccessAlert,
   TextLink,
   VDivider,
+  Select,
 } from '../../shared/components/components'
 import {
   useActiveAd,
@@ -65,8 +70,6 @@ import {
 import {useSuccessToast, useFailToast} from '../../shared/hooks/use-toast'
 import {
   AdFormField,
-  AdInput,
-  AdNumberInput,
   AdStatLabel,
   AdStatNumber,
   FormSection,
@@ -162,11 +165,11 @@ function AdBannerSkeleton(props) {
 }
 
 export function AdCoverImage({ad, ...props}) {
-  const cover = ad?.cover
+  const thumb = ad?.thumb
 
   const src = React.useMemo(
-    () => URL.createObjectURL(new Blob([cover], {type: 'image/jpeg'})),
-    [cover]
+    () => URL.createObjectURL(new Blob([thumb], {type: 'image/jpeg'})),
+    [thumb]
   )
 
   return <PlainAdCoverImage src={src} {...props} />
@@ -377,9 +380,11 @@ export function AdStatusText({children, status = children}) {
 export function AdForm({ad, onSubmit, ...props}) {
   const {t} = useTranslation()
 
-  const [cover, setCover] = React.useState(ad?.cover)
+  const [thumb, setThumb] = React.useState(ad?.thumb)
+  const thumbRef = React.useRef()
 
-  const coverRef = React.useRef()
+  const [media, setMedia] = React.useState(ad?.media)
+  const mediaRef = React.useRef()
 
   return (
     <form
@@ -393,92 +398,203 @@ export function AdForm({ad, onSubmit, ...props}) {
       }}
       {...props}
     >
-      <Stack spacing={6} w="lg">
-        <FormSection>
-          <FormSectionTitle>{t('Parameters')}</FormSectionTitle>
-          <Stack isInline spacing={10}>
+      <Stack isInline spacing={10}>
+        <Stack spacing={6} w="lg">
+          <FormSection>
+            <FormSectionTitle>{t('Parameters')}</FormSectionTitle>
             <Stack spacing={4} shouldWrapChildren>
-              <AdFormField label="Title" align="flex-start">
-                <Textarea name="title" defaultValue={ad?.title} />
+              <AdFormField label={t('Title')} isRequired>
+                <Input name="title" defaultValue={ad?.title} maxLength={40} />
               </AdFormField>
-              <AdFormField label="Link">
-                <AdInput name="url" defaultValue={ad?.url} />
+              <AdFormField label={t('Description')} isRequired>
+                <Textarea
+                  name="desc"
+                  defaultValue={ad?.title}
+                  maxLength={70}
+                  required
+                  borderColor="gray.100"
+                  px={3}
+                  py={2}
+                  _hover={{
+                    borderColor: 'gray.100',
+                  }}
+                />
+              </AdFormField>
+              <AdFormField label="Link" isRequired>
+                <Input
+                  type="url"
+                  name="url"
+                  defaultValue={ad?.url}
+                  pattern="https?://.*"
+                />
               </AdFormField>
             </Stack>
-            <Stack spacing={4} alignItems="flex-start">
-              {cover ? (
-                <AdCoverImage ad={{cover}} w={20} />
-              ) : (
-                <FillCenter
-                  bg="gray.50"
-                  borderWidth="1px"
-                  borderColor="gray.100"
-                  h={20}
-                  w={20}
-                  rounded="lg"
-                  onClick={() => {
-                    coverRef.current.click()
+          </FormSection>
+          <FormSection>
+            <FormSectionTitle>{t('Targeting conditions')}</FormSectionTitle>
+            <Stack spacing={4} shouldWrapChildren>
+              <AdFormField label="Language">
+                <Select
+                  name="language"
+                  defaultValue={ad?.language}
+                  _hover={{
+                    borderColor: 'gray.100',
                   }}
                 >
-                  <PhotoIcon boxSize={10} color="muted" />
-                </FillCenter>
-              )}
-              <VisuallyHiddenInput
-                ref={coverRef}
-                name="cover"
-                type="file"
-                accept="image/*"
-                opacity={0}
-                onChange={async e => {
-                  const {files} = e.target
-                  if (files.length) {
-                    const [file] = files
-                    if (hasImageType(file)) {
-                      setCover(file)
-                    }
-                  }
-                }}
-              />
-              <IconButton
-                icon={<UploadIcon boxSize={4} />}
-                onClick={() => {
-                  coverRef.current.click()
-                }}
-              >
-                {t('Upload cover')}
-              </IconButton>
+                  <option></option>
+                  {AVAILABLE_LANGS.map(lang => (
+                    <option key={lang}>{lang}</option>
+                  ))}
+                </Select>
+              </AdFormField>
+              <AdFormField label="Age">
+                <NumberInput
+                  name="age"
+                  defaultValue={ad?.age}
+                  min={0}
+                  max={Number.MAX_SAFE_INTEGER}
+                  borderColor="gray.100"
+                >
+                  <NumberInputField
+                    _hover={{
+                      borderColor: 'gray.100',
+                    }}
+                  />
+                  <NumberInputStepper borderColor="gray.100">
+                    <NumberIncrementStepper color="muted" />
+                    <NumberDecrementStepper color="muted" />
+                  </NumberInputStepper>
+                </NumberInput>
+                {/* <Input name="age" defaultValue={ad?.age} /> */}
+              </AdFormField>
+              <AdFormField label="Stake">
+                <NumberInput
+                  name="stake"
+                  defaultValue={ad?.stake}
+                  min={0}
+                  max={Number.MAX_SAFE_INTEGER}
+                  borderColor="gray.100"
+                >
+                  <NumberInputField
+                    _hover={{
+                      borderColor: 'gray.100',
+                    }}
+                  />
+                  <NumberInputStepper borderColor="gray.100">
+                    <NumberIncrementStepper color="muted" />
+                    <NumberDecrementStepper color="muted" />
+                  </NumberInputStepper>
+                </NumberInput>
+                {/* <Input name="stake" defaultValue={ad?.stake} /> */}
+              </AdFormField>
+              <AdFormField label="OS">
+                <Select
+                  name="os"
+                  defaultValue={ad?.os}
+                  _hover={{
+                    borderColor: 'gray.100',
+                  }}
+                >
+                  <option></option>
+                  {Object.entries(OS).map(([k, v]) => (
+                    <option key={v} value={v}>
+                      {k}
+                    </option>
+                  ))}
+                </Select>
+              </AdFormField>
             </Stack>
+          </FormSection>
+        </Stack>
+        <Stack spacing="8" pt="12">
+          <Stack spacing={4} alignItems="flex-start">
+            {thumb ? (
+              <PlainAdCoverImage
+                src={URL.createObjectURL(
+                  new Blob([thumb], {type: 'image/jpeg'})
+                )}
+                w={20}
+              />
+            ) : (
+              <Center
+                bg="gray.50"
+                borderWidth={1}
+                borderColor="gray.100"
+                rounded="lg"
+                boxSize="20"
+                onClick={() => thumbRef.current.click()}
+              >
+                <PhotoIcon boxSize={10} color="muted" />
+              </Center>
+            )}
+            <VisuallyHiddenInput
+              ref={thumbRef}
+              name="thumb"
+              type="file"
+              accept="image/png,image/jpg,image/jpeg,image/webp"
+              opacity={0}
+              onChange={async e => {
+                const {files} = e.target
+                if (files.length) {
+                  const [file] = files
+                  if (hasImageType(file)) {
+                    setThumb(file)
+                  }
+                }
+              }}
+            />
+            <IconButton
+              icon={<UploadIcon boxSize={4} />}
+              onClick={() => thumbRef.current.click()}
+            >
+              {t('Upload preview')}
+            </IconButton>
           </Stack>
-        </FormSection>
-        <FormSection>
-          <FormSectionTitle>{t('Targeting conditions')}</FormSectionTitle>
-          <Stack spacing={4} shouldWrapChildren>
-            <AdFormField label="Language">
-              <Select name="language" defaultValue={ad?.language}>
-                <option></option>
-                {AVAILABLE_LANGS.map(lang => (
-                  <option key={lang}>{lang}</option>
-                ))}
-              </Select>
-            </AdFormField>
-            <AdFormField label="Age">
-              <AdNumberInput name="age" defaultValue={ad?.age} />
-            </AdFormField>
-            <AdFormField label="Stake">
-              <Input name="stake" defaultValue={ad?.stake} />
-            </AdFormField>
-            <AdFormField label="OS">
-              <Select name="os" defaultValue={ad?.os}>
-                <option></option>
-                {Object.entries(OS).map(([k, v]) => (
-                  <option key={v} value={v}>
-                    {k}
-                  </option>
-                ))}
-              </Select>
-            </AdFormField>
+
+          <Stack spacing={4} alignItems="flex-start">
+            {media ? (
+              <PlainAdCoverImage
+                src={URL.createObjectURL(
+                  new Blob([media], {type: 'image/jpeg'})
+                )}
+                w={20}
+              />
+            ) : (
+              <Center
+                bg="gray.50"
+                borderWidth="1px"
+                borderColor="gray.100"
+                rounded="lg"
+                boxSize="20"
+                onClick={() => mediaRef.current.click()}
+              >
+                <PhotoIcon boxSize={10} color="muted" />
+              </Center>
+            )}
+            <VisuallyHiddenInput
+              ref={mediaRef}
+              name="cover"
+              type="file"
+              accept="image/*"
+              opacity={0}
+              onChange={async e => {
+                const {files} = e.target
+                if (files.length) {
+                  const [file] = files
+                  if (hasImageType(file)) {
+                    setMedia(file)
+                  }
+                }
+              }}
+            />
+            <IconButton
+              icon={<UploadIcon boxSize={4} />}
+              onClick={() => mediaRef.current.click()}
+            >
+              {t('Upload media')}
+            </IconButton>
           </Stack>
-        </FormSection>
+        </Stack>
       </Stack>
     </form>
   )

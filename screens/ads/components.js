@@ -11,13 +11,12 @@ import {
   Tab,
   NumberInputField,
   NumberInput,
-  Textarea,
   useTab,
   Button,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {rem} from '../../shared/theme'
-import {FormLabel, Input} from '../../shared/components/components'
+import {FormLabel} from '../../shared/components/components'
 
 export function AdStatLabel(props) {
   return <StatLabel color="muted" fontSize="md" {...props} />
@@ -94,29 +93,17 @@ export function FormSectionTitle(props) {
   )
 }
 
-// eslint-disable-next-line react/prop-types
-export function AdFormField({label, id, children}) {
+export function AdFormField({label, children}) {
   return (
-    <FormControl as={Flex}>
-      <FormLabel htmlFor={id} color="muted" w={rem(120)} pt={2}>
-        {label}
-      </FormLabel>
-      <Box w={rem(360)}>
-        {React.cloneElement(children, {
-          id,
-          fontWeight: 500,
-        })}
-      </Box>
+    <FormControl>
+      <Flex>
+        <FormLabel color="muted" w="32" pt={2}>
+          {label}
+        </FormLabel>
+        <Box w="sm">{children}</Box>
+      </Flex>
     </FormControl>
   )
-}
-
-export function AdInput(props) {
-  return <Input px={3} py={2} {...props} />
-}
-
-export function AdTextarea(props) {
-  return <Textarea px={3} py={2} {...props} />
 }
 
 // eslint-disable-next-line react/prop-types

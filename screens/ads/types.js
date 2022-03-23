@@ -18,8 +18,8 @@ export const AdStatus = {
 }
 
 export const AdVotingOption = {
-  Approve: 'approve',
-  Reject: 'reject',
+  Approve: 'Approve',
+  Reject: 'Reject',
 }
 
 export const AdVotingOptionId = {

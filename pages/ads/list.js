@@ -91,7 +91,7 @@ export default function AdListPage() {
           <HStack spacing={1} align="center">
             <VDivider />
             <IconLink icon={<PlusSolidIcon boxSize={5} />} href="/ads/new">
-              {t('New banner')}
+              {t('New ad')}
             </IconLink>
           </HStack>
         </Flex>

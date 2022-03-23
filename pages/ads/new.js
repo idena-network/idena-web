@@ -1,29 +1,14 @@
 import * as React from 'react'
-import {
-  CloseButton,
-  Flex,
-  Stack,
-  Tabs,
-  TabPanel,
-  TabPanels,
-  HStack,
-  Box,
-} from '@chakra-ui/react'
+import {CloseButton, Flex, HStack, Box} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
+import NextLink from 'next/link'
 import {useTranslation} from 'react-i18next'
 import {useMutation} from 'react-query'
 import {Page, PageTitle} from '../../screens/app/components'
 import Layout from '../../shared/components/layout'
-import {
-  AdNumberInput,
-  AdFormField,
-  NewAdFormTab,
-} from '../../screens/ads/components'
-// import {useCreateAd} from '../../screens/ads/hooks'
 import {AdForm} from '../../screens/ads/containers'
 import {PrimaryButton} from '../../shared/components/button'
 import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
-import {SuccessAlert} from '../../shared/components/components'
 
 export default function NewAdPage() {
   const {t} = useTranslation()
@@ -46,72 +31,36 @@ export default function NewAdPage() {
             mb={4}
           >
             <PageTitle mb={0}>{t('New ad')}</PageTitle>
-            <CloseButton
-              onClick={() => {
-                router.push('/ads/list')
-              }}
-            />
+            <NextLink href="/ads/list">
+              <CloseButton />
+            </NextLink>
           </Flex>
 
-          <Tabs defaultIndex={0}>
-            <Stack spacing={6}>
-              <HStack>
-                <NewAdFormTab>{t('Parameters')}</NewAdFormTab>
-                <NewAdFormTab>{t('Publish options')}</NewAdFormTab>
-              </HStack>
+          <AdForm
+            id="adForm"
+            onSubmit={ad => {
+              const hasValues = Object.values(ad).some(value =>
+                value instanceof File ? value.size > 0 : Boolean(value)
+              )
 
-              <SuccessAlert>
-                {t('You must publish this banner after creating')}
-              </SuccessAlert>
-
-              <TabPanels>
-                <TabPanel>
-                  <AdForm
-                    id="adForm"
-                    onSubmit={ad => {
-                      const hasValues = Object.values(ad).some(value =>
-                        value instanceof File ? value.size > 0 : Boolean(value)
-                      )
-
-                      if (hasValues) {
-                        createMutation.mutate(
-                          {...ad, createdAt: Date.now()},
-                          {
-                            onSuccess: () => {
-                              toast(t('Ad has been saved'))
-                              router.push('/ads/list')
-                            },
-                            onError: failToast,
-                          }
-                        )
-                      } else {
-                        router.push('/ads/list')
-                      }
-                    }}
-                  />
-                </TabPanel>
-                <TabPanel>
-                  <Stack spacing={6}>
-                    <Stack spacing={4}>
-                      <AdFormField label="Max burn rate" id="maxBurnRate">
-                        <AdNumberInput />
-                      </AdFormField>
-                      <AdFormField label="Max burn rate" id="minBurnRate">
-                        <AdNumberInput />
-                      </AdFormField>
-                      <AdFormField label="Total banner budget" id="totalBudget">
-                        <AdNumberInput />
-                      </AdFormField>
-                      <AdFormField label="Total burnt" id="totalBurnt">
-                        <AdNumberInput isDisabled />
-                      </AdFormField>
-                    </Stack>
-                  </Stack>
-                </TabPanel>
-              </TabPanels>
-            </Stack>
-          </Tabs>
+              if (hasValues) {
+                createMutation.mutate(
+                  {...ad, createdAt: Date.now()},
+                  {
+                    onSuccess: () => {
+                      toast(t('Ad has been saved'))
+                      router.push('/ads/list')
+                    },
+                    onError: failToast,
+                  }
+                )
+              } else {
+                router.push('/ads/list')
+              }
+            }}
+          />
         </Box>
+
         <HStack
           spacing={2}
           justify="flex-end"

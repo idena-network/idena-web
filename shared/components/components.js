@@ -48,6 +48,7 @@ import {
   MenuList,
   Center,
   HStack,
+  useToken,
 } from '@chakra-ui/react'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
@@ -170,8 +171,12 @@ export function Input(props) {
 }
 
 export function Select(props) {
+  const iconSize = useToken('space', '5')
   return (
     <ChakraSelect
+      icon={<ChevronDownIcon />}
+      iconColor="muted"
+      iconSize={iconSize}
       borderColor="gray.100"
       fontSize="md"
       lineHeight="short"
@@ -180,7 +185,7 @@ export function Select(props) {
         color: 'muted',
       }}
       _disabled={{
-        bg: 'gray.50',
+        bg: 'gray.100',
         color: 'muted',
       }}
       {...props}
