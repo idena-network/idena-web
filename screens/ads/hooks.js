@@ -18,7 +18,7 @@ import {
 } from './utils'
 import {VotingStatus} from '../../shared/types'
 
-export function useAdRotationList(limit = 3) {
+export function useRotatingAdList(limit = 3) {
   const {i18n} = useTranslation()
 
   const rpcFetcher = useRpcFetcher()
@@ -117,7 +117,7 @@ export function useAdRotationList(limit = 3) {
 }
 
 export function useAdRotation() {
-  const ads = useAdRotationList()
+  const ads = useRotatingAdList()
 
   const intervalsRef = React.useRef([5, 4, 3])
 
@@ -140,14 +140,14 @@ export function useAdRotation() {
 }
 
 export function useActiveAd() {
-  const ads = useAdRotationList()
+  const ads = useRotatingAdList()
 
   const {currentIndex} = useAdRotation()
 
   return ads[currentIndex]
 }
 
-function useAdCompetitors(target, limit) {
+export function useAdCompetitors(target, limit) {
   const {decodeAdKey} = useProtoProfileDecoder()
 
   return useRpc('bcn_burntCoins', [], {

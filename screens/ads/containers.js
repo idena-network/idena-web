@@ -1,4 +1,5 @@
 import React from 'react'
+import NextLink from 'next/link'
 import {
   AspectRatio,
   Flex,
@@ -28,7 +29,7 @@ import {
   SuccessAlert,
 } from '../../shared/components/components'
 import {AdsIcon, PicIcon} from '../../shared/components/icons'
-import {useActiveAd, useAdRotationList, useAdRotation} from './hooks'
+import {useActiveAd, useRotatingAdList, useAdRotation} from './hooks'
 import {omit, pick} from '../../shared/utils/utils'
 import {AdStatLabel, AdStatNumber} from './components'
 
@@ -50,8 +51,8 @@ export function AdBanner() {
       maxH={14}
     >
       <AdBannerActiveAd {...activeAd} />
-      {false && (
-        <Menu>
+      <Menu>
+        {false && (
           <MenuItem
             icon={<AdsIcon boxSize={5} color="blue.500" />}
             onClick={() => {
@@ -60,11 +61,13 @@ export function AdBanner() {
           >
             {t('My Ads')}
           </MenuItem>
+        )}
+        <NextLink href="/ads/offers">
           <MenuItem icon={<PicIcon boxSize={5} color="blue.500" />}>
             {t('View all offers')}
           </MenuItem>
-        </Menu>
-      )}
+        </NextLink>
+      </Menu>
     </Flex>
   )
 }
@@ -130,7 +133,7 @@ export function PlainAdCoverImage(props) {
 }
 
 export function AdDrawer({isMining = true, children, ...props}) {
-  const ads = useAdRotationList()
+  const ads = useRotatingAdList()
 
   const hasRotatingAds = ads.length > 0
 
