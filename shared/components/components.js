@@ -458,7 +458,7 @@ export function SmallText(props) {
   return <Text color="muted" fontSize="sm" {...props} />
 }
 
-export function ExternalLink({href, children, ...props}) {
+export function ExternalLink({href, children, withArrow = true, ...props}) {
   return (
     <Button
       variant="link"
@@ -478,7 +478,7 @@ export function ExternalLink({href, children, ...props}) {
       <Text as="span" lineHeight="short" mt="-2px">
         {children || href}
       </Text>
-      <ChevronDownIcon boxSize={4} transform="rotate(-90deg)" />
+      {withArrow && <ChevronDownIcon boxSize={4} transform="rotate(-90deg)" />}
     </Button>
   )
 }

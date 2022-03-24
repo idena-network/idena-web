@@ -17,13 +17,28 @@ import {
   selectProfileHash,
 } from './utils'
 import {VotingStatus} from '../../shared/types'
+import {useAuthState} from '../../shared/providers/auth-context'
+
+export function useAdData(adCid) {
+  const {decodeAd} = useProtoProfileDecoder()
+  const rpcFetcher = useRpcFetcher()
+
+  const {data} = useQuery({
+    queryKey: ['ipfs_get', adCid],
+    queryFn: rpcFetcher,
+    enabled: Boolean(adCid),
+    select: decodeAd,
+  })
+
+  return data
+}
 
 export function useRotatingAdList(limit = 3) {
   const {i18n} = useTranslation()
 
   const rpcFetcher = useRpcFetcher()
 
-  const coinbase = useCoinbase()
+  const {coinbase} = useAuthState()
 
   const [identity] = useIdentity()
 
@@ -181,10 +196,6 @@ export function useProtoProfileDecoder() {
     decodeAdKey: React.useCallback(AdKey.fromHex, []),
     decodeProfile: React.useCallback(Profile.fromHex, []),
   }
-}
-
-export function useCoinbase() {
-  return useRpc('dna_getCoinbaseAddr', []).data
 }
 
 export function useRpcFetcher() {

@@ -15,12 +15,15 @@ import {
   Stat,
   IconButton,
   Button,
+  CloseButton,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
 import {TriangleUpIcon} from '@chakra-ui/icons'
 import {
   Avatar,
+  Dialog,
+  DialogBody,
   Drawer,
   DrawerPromotionPortal,
   ExternalLink,
@@ -29,7 +32,7 @@ import {
   SuccessAlert,
 } from '../../shared/components/components'
 import {AdsIcon, PicIcon} from '../../shared/components/icons'
-import {useActiveAd, useRotatingAdList, useAdRotation} from './hooks'
+import {useActiveAd, useRotatingAdList, useAdRotation, useAdData} from './hooks'
 import {omit, pick} from '../../shared/utils/utils'
 import {AdStatLabel, AdStatNumber} from './components'
 
@@ -75,7 +78,7 @@ export function AdBanner() {
 function AdBannerActiveAd({title, url, cover, author}) {
   return (
     <LinkBox as={HStack} spacing={2}>
-      <AdBannerSkeleton isLoaded={Boolean(cover)}>
+      <AdBannerSkeleton isLoaded={Boolean(cover)} w="auto">
         <PlainAdCoverImage src={cover} w={10} />
       </AdBannerSkeleton>
       <Stack spacing={1}>
@@ -245,6 +248,40 @@ function AdPromotion({title, url, cover, author}) {
         </Stack>
       </Stack>
     </Box>
+  )
+}
+
+export function AdPreview({adCid, adPreviewDisclosure}) {
+  const data = useAdData(adCid)
+
+  return (
+    <>
+      {adPreviewDisclosure.isOpen && (
+        <Box
+          position="fixed"
+          top={0}
+          left={0}
+          right={0}
+          zIndex={2000}
+          bg="white"
+          px={4}
+          py={2}
+        >
+          <Flex justifyContent="space-between">
+            <AdBannerActiveAd {...data} />
+            <CloseButton
+              alignSelf="center"
+              onClick={() => adPreviewDisclosure.onClose()}
+            />
+          </Flex>
+        </Box>
+      )}
+      <Dialog size="md" {...adPreviewDisclosure}>
+        <DialogBody p={0} m={0}>
+          <AdPromotion {...data} />
+        </DialogBody>
+      </Dialog>
+    </>
   )
 }
 

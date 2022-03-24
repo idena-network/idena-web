@@ -21,6 +21,7 @@ import {
   useDisclosure,
   Td,
   useBreakpointValue,
+  VStack,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
@@ -35,6 +36,7 @@ import {
   DialogHeader,
   DialogBody,
   DialogFooter,
+  ExternalLink,
 } from '../../shared/components/components'
 import {
   clampValue,
@@ -49,6 +51,8 @@ import {useFailToast} from '../../shared/hooks/use-toast'
 import useSyncing from '../../shared/hooks/use-syncing'
 import {getBlockAt} from '../../shared/api'
 import {useInterval} from '../../shared/hooks/use-interval'
+import {useAdData} from '../ads/hooks'
+import {PlainAdCoverImage} from '../ads/containers'
 
 export function OracleDrawerHeader({
   icon = <OracleIcon />,
@@ -831,5 +835,23 @@ export function DeferredVotes() {
         </Button>
       </DialogFooter>
     </Dialog>
+  )
+}
+
+export function OracleAdDescription({adCid}) {
+  const adData = useAdData(adCid)
+
+  if (!adData) return null
+
+  return (
+    <VStack alignItems="flex-start" spacing={4}>
+      <ExternalLink href={adData.url} fontWeight="semibold" withArrow={false}>
+        {adData.url}
+      </ExternalLink>
+      <VStack alignItems="flex-start">
+        <PlainAdCoverImage src={adData.cover} w={20} objectFit="cover" />
+        <Text>320x320</Text>
+      </VStack>
+    </VStack>
   )
 }

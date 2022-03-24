@@ -16,6 +16,7 @@ import {
   Thead,
   Tr,
   Tbody,
+  useDisclosure,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
@@ -23,7 +24,7 @@ import {useRouter} from 'next/router'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import duration from 'dayjs/plugin/duration'
-import {ArrowDownIcon, ArrowUpIcon} from '@chakra-ui/icons'
+import {ArrowDownIcon, ArrowUpIcon, ViewIcon} from '@chakra-ui/icons'
 import {
   Avatar,
   GoogleTranslateButton,
@@ -50,6 +51,7 @@ import {
 } from '../../shared/utils/utils'
 import {
   FillCenter,
+  OracleAdDescription,
   OraclesTxsValueTd,
   ReviewNewPendingVoteDialog,
   VotingBadge,
@@ -100,6 +102,7 @@ import {useAuthState} from '../../shared/providers/auth-context'
 import {useBalance} from '../../shared/hooks/use-balance'
 import {viewVotingMachine} from '../../screens/oracles/machines'
 import {useDeferredVotes} from '../../screens/oracles/hooks'
+import {AdPreview} from '../../screens/ads/containers'
 
 dayjs.extend(relativeTime)
 dayjs.extend(duration)
@@ -123,6 +126,8 @@ export default function ViewVotingPage() {
     data: {balance: identityBalance},
   } = useBalance()
 
+  const adPreviewDisclosure = useDisclosure()
+
   const [current, send, service] = useMachine(viewVotingMachine, {
     actions: {
       onError: (context, {data: {message}}) => {
@@ -145,6 +150,7 @@ export default function ViewVotingPage() {
   const toDna = toLocaleDna(i18n.language)
 
   const {
+    adCid,
     title,
     desc,
     contractHash,
@@ -302,16 +308,28 @@ export default function ViewVotingPage() {
                             {desc}
                           </Linkify>
                         </Text>
+                        {adCid && <OracleAdDescription adCid={adCid} />}
                       </Stack>
-                      <GoogleTranslateButton
-                        phrases={[
-                          title,
-                          encodeURIComponent(desc?.replace(/%/g, '%25')),
-                          options.map(({value}) => value).join('\n'),
-                        ]}
-                        locale={i18n.language}
-                        alignSelf="start"
-                      />
+                      <Flex>
+                        {adCid && (
+                          <IconButton
+                            icon={<ViewIcon boxSize={4} />}
+                            _hover={{background: 'transparent'}}
+                            onClick={() => adPreviewDisclosure.onOpen()}
+                          >
+                            {t('Preview')}
+                          </IconButton>
+                        )}
+                        <GoogleTranslateButton
+                          phrases={[
+                            title,
+                            encodeURIComponent(desc?.replace(/%/g, '%25')),
+                            options.map(({value}) => value).join('\n'),
+                          ]}
+                          locale={i18n.language}
+                          alignSelf="start"
+                        />
+                      </Flex>
                       <Divider orientation="horizontal" />
                       {isLoaded && <VotingPhase service={service} />}
                     </Stack>
@@ -980,6 +998,10 @@ export default function ViewVotingPage() {
           startCounting={finishDate}
           finishCounting={finishCountingDate}
         />
+      )}
+
+      {adCid && (
+        <AdPreview adCid={adCid} adPreviewDisclosure={adPreviewDisclosure} />
       )}
 
       <Dialog
