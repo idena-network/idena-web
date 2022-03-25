@@ -270,7 +270,7 @@ function CardMenuModal({
   onReceiveClick,
   ...props
 }) {
-  const {t} = useTranslation(['translation', 'error'])
+  const {t} = useTranslation()
 
   return (
     <Modal variant="mobile" {...props}>

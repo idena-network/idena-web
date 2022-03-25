@@ -29,7 +29,7 @@ import {
   useAuthDispatch,
   useAuthState,
 } from '../../shared/providers/auth-context'
-import {Section} from '../../screens/settings/components'
+import {LocaleSwitcher, Section} from '../../screens/settings/components'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {useNotificationDispatch} from '../../shared/providers/notification-context'
 import {readValidationLogs} from '../../shared/utils/logs'
@@ -105,6 +105,7 @@ function Settings() {
         />
         <PageTitleNew mt={-2}>{t('Settings')}</PageTitleNew>
       </Box>
+      <Language />
       <ExportPK
         display={['none', 'block']}
         onDialogOpen={onOpenExportPKDialog}
@@ -289,6 +290,21 @@ function ExportLogs({getLogs, ...props}) {
         </Flex>
       </Flex>
       <Divider />
+    </Section>
+  )
+}
+
+function Language(props) {
+  const {t} = useTranslation()
+
+  return (
+    <Section title={t('Interface')} w={['100%', '480px']} {...props}>
+      <Flex alignItems="center">
+        <Text color="muted" fontWeight="normal" w={32}>
+          {t('Language')}
+        </Text>
+        <LocaleSwitcher />
+      </Flex>
     </Section>
   )
 }
