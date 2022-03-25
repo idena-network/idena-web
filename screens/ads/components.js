@@ -1,4 +1,5 @@
 import React, {forwardRef} from 'react'
+import NextLink from 'next/link'
 import {
   Box,
   Flex,
@@ -13,10 +14,17 @@ import {
   NumberInput,
   useTab,
   Button,
+  CloseButton,
+  HStack,
+  AspectRatio,
+  Image,
+  InputRightElement,
+  InputGroup,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {rem} from '../../shared/theme'
 import {FormLabel} from '../../shared/components/components'
+import {omit, pick} from '../../shared/utils/utils'
 
 export function AdStatLabel(props) {
   return <StatLabel color="muted" fontSize="md" {...props} />
@@ -75,7 +83,6 @@ export const AdFormTab = forwardRef(({isSelected, ...props}, ref) => (
   />
 ))
 
-// eslint-disable-next-line react/prop-types
 export function FormSection(props) {
   return <Box {...props} />
 }
@@ -84,10 +91,12 @@ export function FormSectionTitle(props) {
   return (
     <Heading
       as="h3"
-      py="10px"
+      pt="2"
+      pb="3"
       mb={2}
-      fontSize="14px"
+      fontSize="mdx"
       fontWeight={500}
+      lineHeight="5"
       {...props}
     />
   )
@@ -106,19 +115,19 @@ export function AdFormField({label, children}) {
   )
 }
 
-// eslint-disable-next-line react/prop-types
-export function AdNumberInput(props) {
+export function AdNumberInput({addon, ...props}) {
   return (
-    <NumberInput borderColor="gray.100" w="full" {...props}>
-      <NumberInputField
-        inputMode="numeric"
-        pattern="[0-9]*"
-        px={3}
-        py={2}
-        _hover={{
-          borderColor: 'gray.100',
-        }}
-      />
+    <NumberInput {...props}>
+      {addon ? (
+        <InputGroup>
+          <NumberInputField />
+          <InputRightElement color="muted" right="3">
+            {addon}
+          </InputRightElement>
+        </InputGroup>
+      ) : (
+        <NumberInputField />
+      )}
     </NumberInput>
   )
 }
@@ -129,3 +138,67 @@ export const NewAdFormTab = React.forwardRef((props, ref) => {
 
   return <Button variant="tab" isActive={isSelected} {...tabProps} />
 })
+
+export function PageHeader(props) {
+  return (
+    <Flex
+      as="header"
+      justify="space-between"
+      align="center"
+      alignSelf="stretch"
+      mb={4}
+      {...props}
+    />
+  )
+}
+
+export function PageHeaderCloseButton({href, ...props}) {
+  return (
+    <NextLink href={href}>
+      <CloseButton {...props} />
+    </NextLink>
+  )
+}
+
+export default function PageFooter(props) {
+  return (
+    <HStack
+      as="footer"
+      spacing={2}
+      justify="flex-end"
+      bg="white"
+      borderTop="1px"
+      borderTopColor="gray.100"
+      px={4}
+      py={3}
+      h={14}
+      w="full"
+      {...props}
+    />
+  )
+}
+
+export function AdImage(props) {
+  const boxProps = pick(props, ['w', 'width', 'h', 'height', 'boxSize'])
+  const imageProps = omit(props, Object.keys(boxProps))
+
+  return (
+    <AspectRatio ratio={1} flexShrink={0} {...boxProps}>
+      <Image ignoreFallback bg="gray.50" rounded="lg" {...imageProps} />
+    </AspectRatio>
+  )
+}
+
+export function InputCharacterCount(props) {
+  return (
+    <InputRightElement
+      color="muted"
+      fontSize="sm"
+      boxSize="fit-content"
+      top="unset"
+      right="2"
+      bottom="1.5"
+      {...props}
+    />
+  )
+}

@@ -1,10 +1,8 @@
 import React from 'react'
 import NextLink from 'next/link'
 import {
-  AspectRatio,
   Flex,
   HStack,
-  Image,
   LinkBox,
   LinkOverlay,
   Stack,
@@ -19,11 +17,7 @@ import {
   FormControl,
   MenuDivider,
   Button,
-  NumberInput,
-  NumberInputField,
-  NumberInputStepper,
-  NumberIncrementStepper,
-  NumberDecrementStepper,
+  InputGroup,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
@@ -48,6 +42,7 @@ import {
   TextLink,
   VDivider,
   Select,
+  SmallText,
 } from '../../shared/components/components'
 import {
   useActiveAd,
@@ -57,15 +52,13 @@ import {
   useAdStatusText,
   useFormatDna,
 } from './hooks'
-import {omit, pick} from '../../shared/utils/utils'
 import {
   AdsIcon,
   DeleteIcon,
   EditIcon,
+  LaptopIcon,
   OracleIcon,
-  PhotoIcon,
   PicIcon,
-  UploadIcon,
 } from '../../shared/components/icons'
 import {useSuccessToast, useFailToast} from '../../shared/hooks/use-toast'
 import {
@@ -74,6 +67,9 @@ import {
   AdStatNumber,
   FormSection,
   FormSectionTitle,
+  AdImage,
+  InputCharacterCount,
+  AdNumberInput,
 } from './components'
 import {Fill} from '../../shared/components'
 import {hasImageType} from '../../shared/utils/img'
@@ -131,7 +127,7 @@ function AdBannerActiveAd({title, url, cover, author}) {
   return (
     <LinkBox as={HStack} spacing={2}>
       <AdBannerSkeleton isLoaded={Boolean(cover)}>
-        <PlainAdCoverImage src={cover} w={10} />
+        <AdImage src={cover} w={10} />
       </AdBannerSkeleton>
       <Stack spacing={1}>
         <AdBannerSkeleton isLoaded={Boolean(title)} minH={4} w="md">
@@ -162,29 +158,6 @@ function AdBannerActiveAd({title, url, cover, author}) {
 
 function AdBannerSkeleton(props) {
   return <Skeleton startColor="gray.50" endColor="gray.100" {...props} />
-}
-
-export function AdCoverImage({ad, ...props}) {
-  const thumb = ad?.thumb
-
-  const src = React.useMemo(
-    () => URL.createObjectURL(new Blob([thumb], {type: 'image/jpeg'})),
-    [thumb]
-  )
-
-  return <PlainAdCoverImage src={src} {...props} />
-}
-
-// TODO: https://github.com/chakra-ui/chakra-ui/issues/5285
-export function PlainAdCoverImage(props) {
-  const boxProps = pick(props, ['w', 'width', 'h', 'height', 'boxSize'])
-  const imageProps = omit(props, Object.keys(boxProps))
-
-  return (
-    <AspectRatio ratio={1} {...boxProps}>
-      <Image ignoreFallback bg="gray.50" rounded="lg" {...imageProps} />
-    </AspectRatio>
-  )
 }
 
 export function AdDrawer({isMining = true, children, ...props}) {
@@ -280,7 +253,7 @@ function AdPromotion({title, url, cover, author}) {
               {url}
             </ExternalLink>
           </Stack>
-          <PlainAdCoverImage src={cover} w={320} objectFit="cover" />
+          <AdImage src={cover} w={320} objectFit="cover" />
         </Stack>
         <Stack spacing="6">
           <Stat>
@@ -381,13 +354,23 @@ export function AdForm({ad, onSubmit, ...props}) {
   const {t} = useTranslation()
 
   const [thumb, setThumb] = React.useState(ad?.thumb)
-  const thumbRef = React.useRef()
-
   const [media, setMedia] = React.useState(ad?.media)
-  const mediaRef = React.useRef()
+
+  const [titleCharacterCount, setTitleCharacterCount] = React.useState(40)
+  const [descCharacterCount, setDescCharacterCount] = React.useState(70)
 
   return (
     <form
+      onChange={e => {
+        const {name, value} = e.target
+        if (name === 'title') {
+          setTitleCharacterCount(40 - value.length)
+        }
+
+        if (name === 'desc') {
+          setDescCharacterCount(70 - value.length)
+        }
+      }}
       onSubmit={e => {
         e.preventDefault()
 
@@ -398,513 +381,168 @@ export function AdForm({ad, onSubmit, ...props}) {
       }}
       {...props}
     >
-      <Stack isInline spacing={10}>
-        <Stack spacing={6} w="lg">
-          <FormSection>
-            <FormSectionTitle>{t('Parameters')}</FormSectionTitle>
-            <Stack spacing={4} shouldWrapChildren>
-              <AdFormField label={t('Title')} isRequired>
+      <Stack spacing={6} w="mdx">
+        <FormSection>
+          <FormSectionTitle>{t('Content')}</FormSectionTitle>
+          <Stack spacing={3}>
+            <AdFormField label={t('Title')} isRequired>
+              <InputGroup>
                 <Input name="title" defaultValue={ad?.title} maxLength={40} />
-              </AdFormField>
-              <AdFormField label={t('Description')} isRequired>
+                <InputCharacterCount>{titleCharacterCount}</InputCharacterCount>
+              </InputGroup>
+            </AdFormField>
+            <AdFormField label={t('Description')} isRequired>
+              <InputGroup>
                 <Textarea
                   name="desc"
                   defaultValue={ad?.title}
                   maxLength={70}
-                  required
-                  borderColor="gray.100"
-                  px={3}
-                  py={2}
-                  _hover={{
-                    borderColor: 'gray.100',
-                  }}
+                  resize="none"
                 />
-              </AdFormField>
-              <AdFormField label="Link" isRequired>
-                <Input
-                  type="url"
-                  name="url"
-                  defaultValue={ad?.url}
-                  pattern="https?://.*"
-                />
-              </AdFormField>
-            </Stack>
-          </FormSection>
-          <FormSection>
-            <FormSectionTitle>{t('Targeting conditions')}</FormSectionTitle>
-            <Stack spacing={4} shouldWrapChildren>
-              <AdFormField label="Language">
-                <Select
-                  name="language"
-                  defaultValue={ad?.language}
-                  _hover={{
-                    borderColor: 'gray.100',
-                  }}
-                >
-                  <option></option>
-                  {AVAILABLE_LANGS.map(lang => (
-                    <option key={lang}>{lang}</option>
-                  ))}
-                </Select>
-              </AdFormField>
-              <AdFormField label="Age">
-                <NumberInput
-                  name="age"
-                  defaultValue={ad?.age}
-                  min={0}
-                  max={Number.MAX_SAFE_INTEGER}
-                  borderColor="gray.100"
-                >
-                  <NumberInputField
-                    _hover={{
-                      borderColor: 'gray.100',
-                    }}
-                  />
-                  <NumberInputStepper borderColor="gray.100">
-                    <NumberIncrementStepper color="muted" />
-                    <NumberDecrementStepper color="muted" />
-                  </NumberInputStepper>
-                </NumberInput>
-                {/* <Input name="age" defaultValue={ad?.age} /> */}
-              </AdFormField>
-              <AdFormField label="Stake">
-                <NumberInput
-                  name="stake"
-                  defaultValue={ad?.stake}
-                  min={0}
-                  max={Number.MAX_SAFE_INTEGER}
-                  borderColor="gray.100"
-                >
-                  <NumberInputField
-                    _hover={{
-                      borderColor: 'gray.100',
-                    }}
-                  />
-                  <NumberInputStepper borderColor="gray.100">
-                    <NumberIncrementStepper color="muted" />
-                    <NumberDecrementStepper color="muted" />
-                  </NumberInputStepper>
-                </NumberInput>
-                {/* <Input name="stake" defaultValue={ad?.stake} /> */}
-              </AdFormField>
-              <AdFormField label="OS">
-                <Select
-                  name="os"
-                  defaultValue={ad?.os}
-                  _hover={{
-                    borderColor: 'gray.100',
-                  }}
-                >
-                  <option></option>
-                  {Object.entries(OS).map(([k, v]) => (
-                    <option key={v} value={v}>
-                      {k}
-                    </option>
-                  ))}
-                </Select>
-              </AdFormField>
-            </Stack>
-          </FormSection>
-        </Stack>
-        <Stack spacing="8" pt="12">
-          <Stack spacing={4} alignItems="flex-start">
-            {thumb ? (
-              <PlainAdCoverImage
-                src={URL.createObjectURL(
-                  new Blob([thumb], {type: 'image/jpeg'})
-                )}
-                w={20}
+                <InputCharacterCount>{descCharacterCount}</InputCharacterCount>
+              </InputGroup>
+            </AdFormField>
+            <AdFormField label="Link" isRequired>
+              <Input
+                type="url"
+                name="url"
+                defaultValue={ad?.url}
+                pattern="https?://.*"
               />
-            ) : (
-              <Center
-                bg="gray.50"
-                borderWidth={1}
-                borderColor="gray.100"
-                rounded="lg"
-                boxSize="20"
-                onClick={() => thumbRef.current.click()}
-              >
-                <PhotoIcon boxSize={10} color="muted" />
-              </Center>
-            )}
-            <VisuallyHiddenInput
-              ref={thumbRef}
+            </AdFormField>
+          </Stack>
+        </FormSection>
+        <FormSection>
+          <FormSectionTitle>{t('Media')}</FormSectionTitle>
+          <HStack spacing="10">
+            <AdMediaInput
               name="thumb"
-              type="file"
-              accept="image/png,image/jpg,image/jpeg,image/webp"
-              opacity={0}
-              onChange={async e => {
-                const {files} = e.target
-                if (files.length) {
-                  const [file] = files
-                  if (hasImageType(file)) {
-                    setThumb(file)
-                  }
-                }
-              }}
+              value={thumb}
+              label={t('Upload thumb')}
+              description={t('80x80px, no more than 2 Mb')}
+              onChange={setThumb}
             />
-            <IconButton
-              icon={<UploadIcon boxSize={4} />}
-              onClick={() => thumbRef.current.click()}
-            >
-              {t('Upload preview')}
-            </IconButton>
-          </Stack>
-
-          <Stack spacing={4} alignItems="flex-start">
-            {media ? (
-              <PlainAdCoverImage
-                src={URL.createObjectURL(
-                  new Blob([media], {type: 'image/jpeg'})
-                )}
-                w={20}
-              />
-            ) : (
-              <Center
-                bg="gray.50"
-                borderWidth="1px"
-                borderColor="gray.100"
-                rounded="lg"
-                boxSize="20"
-                onClick={() => mediaRef.current.click()}
+            <AdMediaInput
+              name="media"
+              value={media}
+              label={t('Upload media')}
+              description={t('640x640px, no more than 2 Mb')}
+              onChange={setMedia}
+            />
+          </HStack>
+        </FormSection>
+        <FormSection>
+          <FormSectionTitle>{t('Target audience')}</FormSectionTitle>
+          <Stack spacing={3} shouldWrapChildren>
+            <AdFormField label="Language">
+              <Select
+                name="language"
+                defaultValue={ad?.language}
+                _hover={{
+                  borderColor: 'gray.100',
+                }}
               >
-                <PhotoIcon boxSize={10} color="muted" />
-              </Center>
-            )}
-            <VisuallyHiddenInput
-              ref={mediaRef}
-              name="cover"
-              type="file"
-              accept="image/*"
-              opacity={0}
-              onChange={async e => {
-                const {files} = e.target
-                if (files.length) {
-                  const [file] = files
-                  if (hasImageType(file)) {
-                    setMedia(file)
-                  }
-                }
-              }}
-            />
-            <IconButton
-              icon={<UploadIcon boxSize={4} />}
-              onClick={() => mediaRef.current.click()}
-            >
-              {t('Upload media')}
-            </IconButton>
+                <option></option>
+                {AVAILABLE_LANGS.map(lang => (
+                  <option key={lang}>{lang}</option>
+                ))}
+              </Select>
+            </AdFormField>
+            <AdFormField label="Age">
+              <AdNumberInput
+                name="age"
+                defaultValue={ad?.age}
+                min={0}
+                max={Number.MAX_SAFE_INTEGER}
+              />
+            </AdFormField>
+            <AdFormField label="Stake">
+              <AdNumberInput
+                name="stake"
+                defaultValue={ad?.stake}
+                min={0}
+                max={Number.MAX_SAFE_INTEGER}
+                addon={t('iDNA')}
+              />
+            </AdFormField>
+            <AdFormField label="OS">
+              <Select
+                name="os"
+                defaultValue={ad?.os}
+                _hover={{
+                  borderColor: 'gray.100',
+                }}
+              >
+                <option></option>
+                {Object.entries(OS).map(([k, v]) => (
+                  <option key={v} value={v}>
+                    {k}
+                  </option>
+                ))}
+              </Select>
+            </AdFormField>
           </Stack>
-        </Stack>
+        </FormSection>
       </Stack>
     </form>
   )
 }
 
-export function ReviewAdDrawer({ad, ...props}) {
-  const {t} = useTranslation()
-
-  const {onClose} = props
-
-  const isMining = true
+export function AdMediaInput({value, label, description, onChange, ...props}) {
+  const inputRef = React.useRef()
 
   return (
-    <AdDrawer isMining={isMining} {...props}>
-      <DrawerHeader>
-        <Stack spacing={4}>
+    <FormLabel m={0} p={0}>
+      <VisuallyHiddenInput
+        ref={inputRef}
+        type="file"
+        accept="image/png,image/jpg,image/jpeg,image/webp"
+        onChange={async e => {
+          if (onChange) {
+            const {files} = e.target
+            if (files.length) {
+              const [file] = files
+              if (hasImageType(file)) {
+                onChange(file)
+              }
+            }
+          }
+        }}
+        {...props}
+      />
+      <HStack spacing={4} align="center">
+        {value ? (
+          <AdImage
+            src={URL.createObjectURL(new Blob([value], {type: 'image/jpeg'}))}
+            width={74}
+          />
+        ) : (
           <Center
-            alignSelf="flex-start"
-            bg="blue.012"
-            w={12}
-            minH={12}
-            rounded="xl"
+            bg="gray.50"
+            borderWidth={1}
+            borderColor="gray.016"
+            rounded="lg"
+            p="4"
           >
-            <OracleIcon boxSize={6} color="blue.500" />
+            <PicIcon boxSize="10" color="gray.200" />
           </Center>
-          <Heading color="gray.500" fontSize="lg" fontWeight={500}>
-            {t('Send to Oracle Voting')}
-          </Heading>
-        </Stack>
-      </DrawerHeader>
-      <DrawerBody overflowY="auto" mx={-6} mb={10}>
-        <Stack spacing={6} color="gray.500" fontSize="md" p={6} pt={0}>
-          <Stack spacing={3}>
-            <Text>
-              {t(`Please keep in mind that you will not be able to edit the banner
-              after it has been submitted for verification`)}
+        )}
+        <Stack>
+          <HStack>
+            <LaptopIcon boxSize="5" color="blue.500" />
+            <Text color="blue.500" fontWeight={500}>
+              {label}
             </Text>
-            {isMining && (
-              <Badge
-                display="inline-flex"
-                alignItems="center"
-                alignSelf="flex-start"
-                colorScheme="orange"
-                bg="orange.020"
-                color="orange.500"
-                fontWeight="normal"
-                rounded="xl"
-                h={8}
-                px={3}
-                textTransform="initial"
-              >
-                {t('Mining...')}
-              </Badge>
-            )}
-          </Stack>
-          <Stack spacing={6} bg="gray.50" p={6} rounded="lg">
-            <Stack isInline spacing={5}>
-              <AdCoverImage ad={ad} w="10" />
-              <Box>
-                <Text fontWeight={500}>{ad.title}</Text>
-                <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
-              </Box>
-            </Stack>
-            <Stack spacing={3}>
-              <HDivider />
-              <Stack>
-                <SmallInlineAdStat label="Language" value={ad.language} />
-                <SmallInlineAdStat label="Stake" value={ad.stake} />
-                <SmallInlineAdStat label="Age" value={ad.age} />
-                <SmallInlineAdStat label="OS" value={ad.os} />
-              </Stack>
-            </Stack>
-          </Stack>
-          <form
-            id="reviewForm"
-            onSubmit={e => {
-              e.preventDefault()
-              // onSubmit(Number(e.target.elements.amount.value))
-            }}
-          >
-            <FormControl>
-              <Stack spacing={3}>
-                <FormLabel htmlFor="amount" mb={0}>
-                  {t('Review fee, iDNA')}
-                </FormLabel>
-                <Input id="amount" />
-              </Stack>
-            </FormControl>
-          </form>
+          </HStack>
+          <SmallText>{description}</SmallText>
         </Stack>
-      </DrawerBody>
-      <DrawerFooter bg="white">
-        <HStack>
-          <SecondaryButton onClick={onClose}>{t('Not now')}</SecondaryButton>
-          <PrimaryButton
-            type="submit"
-            form="reviewForm"
-            isLoading={isMining}
-            loadingText={t('Mining...')}
-          >
-            {t('Send')}
-          </PrimaryButton>
-        </HStack>
-      </DrawerFooter>
-    </AdDrawer>
-  )
-}
-
-export function PublishAdDrawer({ad, ...props}) {
-  const {t} = useTranslation()
-
-  const dna = useFormatDna()
-
-  const isMining = true
-
-  return (
-    <AdDrawer isMining={isMining} {...props}>
-      <DrawerHeader>
-        <Stack spacing={4}>
-          <FillCenter
-            alignSelf="flex-start"
-            bg="blue.012"
-            w={12}
-            minH={12}
-            rounded="xl"
-          >
-            <AdsIcon boxSize={6} color="blue.500" />
-          </FillCenter>
-          <Heading fontSize="lg" fontWeight={500}>
-            {t('Publish')}
-          </Heading>
-        </Stack>
-      </DrawerHeader>
-      <DrawerBody overflowY="auto" mx={-6} mb={10}>
-        <Stack spacing={6} color="brandGray.500" fontSize="md" p={6} pt={0}>
-          <Text>
-            {t(`In order to make your ads visible for Idena users you need to burn
-            more coins than competitors targeting the same audience.`)}
-          </Text>
-          {isMining && (
-            <Badge
-              display="inline-flex"
-              alignItems="center"
-              alignSelf="flex-start"
-              colorScheme="orange"
-              bg="orange.020"
-              color="orange.500"
-              fontWeight="normal"
-              rounded="xl"
-              h={8}
-              px={3}
-              textTransform="initial"
-            >
-              {t('Mining...')}
-            </Badge>
-          )}
-          <Stack spacing={6} bg="gray.50" p={6} rounded="lg">
-            <Stack isInline spacing={5}>
-              <AdCoverImage ad={ad} w="10" />
-              <Box>
-                <Text fontWeight={500}>{ad.title}</Text>
-                <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
-              </Box>
-            </Stack>
-            <Stack spacing={3}>
-              <HDivider />
-              <Stack>
-                <InlineAdStat label="Competitors" value={Number(0)} />
-                <InlineAdStat label="Max price" value={dna(0)} />
-              </Stack>
-              <HDivider />
-              <Stack>
-                <SmallInlineAdStat label="Language" value={ad.language} />
-                <SmallInlineAdStat label="Stake" value={ad.stake} />
-                <SmallInlineAdStat label="Age" value={ad.age} />
-                <SmallInlineAdStat label="OS" value={ad.os} />
-              </Stack>
-            </Stack>
-          </Stack>
-        </Stack>
-      </DrawerBody>
-      <DrawerFooter
-        borderWidth={1}
-        borderColor="gray.100"
-        py={3}
-        px={4}
-        position="absolute"
-        left={0}
-        right={0}
-        bottom={0}
-      >
-        <PrimaryButton
-          isLoading={isMining}
-          loadingText={t('Mining...')}
-          onClick={() => {
-            // submit form
-          }}
-        >
-          {t('Publish')}
-        </PrimaryButton>
-      </DrawerFooter>
-    </AdDrawer>
-  )
-}
-
-export function BurnDrawer({ad, ...props}) {
-  const {t} = useTranslation()
-
-  const toast = useSuccessToast()
-  const failToast = useFailToast()
-
-  const {coinbase} = useAuthState()
-
-  const burnMutation = useMutation(async () => 0) // useBurnDna({ad, from: coinbase})
-
-  const dna = useFormatDna()
-
-  return (
-    <Drawer {...props}>
-      <DrawerHeader>
-        <Stack spacing={4}>
-          <FillCenter
-            alignSelf="flex-start"
-            bg="blue.012"
-            w={12}
-            minH={12}
-            rounded="xl"
-          >
-            <AdsIcon boxSize={6} color="blue.500" />
-          </FillCenter>
-          <Heading fontSize="lg" fontWeight={500}>
-            {t('Burn')}
-          </Heading>
-        </Stack>
-      </DrawerHeader>
-      <DrawerBody overflowY="auto" mx={-6} mb={10}>
-        <Stack spacing={6} color="brandGray.500" fontSize="md" p={6} pt={0}>
-          <Text>{t(`Burn iDNA to make your ad visible.`)}</Text>
-          <Stack spacing={6} bg="gray.50" p={6} rounded="lg">
-            <Stack isInline spacing={5}>
-              <AdCoverImage ad={ad} w="10" />
-              <Box>
-                <Text fontWeight={500}>{ad.title}</Text>
-                <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
-              </Box>
-            </Stack>
-            <Stack spacing={3}>
-              <HDivider />
-              <Stack>
-                <InlineAdStat label="Competitors" value={Number(0)} />
-                <InlineAdStat label="Max price" value={dna(0)} />
-              </Stack>
-              <HDivider />
-              <Stack>
-                <SmallInlineAdStat label="Language" value={ad.language} />
-                <SmallInlineAdStat label="Stake" value={ad.stake} />
-                <SmallInlineAdStat label="Age" value={ad.age} />
-                <SmallInlineAdStat label="OS" value={ad.os} />
-              </Stack>
-            </Stack>
-          </Stack>
-          <form
-            id="burnForm"
-            onSubmit={e => {
-              e.preventDefault()
-
-              const formData = new FormData(e.target)
-
-              const amount = Number(formData.get('amount'))
-
-              burnMutation.mutate(amount, {
-                onSuccess: () => {
-                  toast(`${amount} iDNA 🔥🔥🔥`)
-                  props.onClose()
-                },
-                onError: failToast,
-              })
-            }}
-          >
-            <FormControl>
-              <Stack spacing={3}>
-                <FormLabel htmlFor="amount" mb={0}>
-                  {t('Amount, iDNA')}
-                </FormLabel>
-                <Input id="amount" name="amount" />
-              </Stack>
-            </FormControl>
-          </form>
-        </Stack>
-      </DrawerBody>
-      <DrawerFooter
-        borderWidth={1}
-        borderColor="gray.100"
-        py={3}
-        px={4}
-        position="absolute"
-        left={0}
-        right={0}
-        bottom={0}
-      >
-        <PrimaryButton type="submit" form="burnForm">
-          {t('Burn')}
-        </PrimaryButton>
-      </DrawerFooter>
-    </Drawer>
+      </HStack>
+    </FormLabel>
   )
 }
 
 export function AdListItem({ad, onReview, onPublish, onBurn}) {
-  const {t, i18n} = useTranslation()
+  const {t} = useTranslation()
 
   const router = useRouter()
 
@@ -944,7 +582,7 @@ export function AdListItem({ad, onReview, onPublish, onBurn}) {
     <HStack key={id} spacing="5" align="flex-start">
       <Stack spacing={2} w="16" flexShrink={0}>
         <Box position="relative">
-          <AdCoverImage
+          <AdImage
             ad={ad}
             fallbackSrc={isDraft ? '/static/body-medium-pic-icn.svg' : null}
             ignoreFallback={!isDraft}
@@ -1068,5 +706,308 @@ export function AdListItem({ad, onReview, onPublish, onBurn}) {
         </HStack>
       </Box>
     </HStack>
+  )
+}
+
+export function ReviewAdDrawer({ad, ...props}) {
+  const {t} = useTranslation()
+
+  const {onClose} = props
+
+  const isMining = true
+
+  return (
+    <AdDrawer isMining={isMining} {...props}>
+      <DrawerHeader>
+        <Stack spacing={4}>
+          <Center
+            alignSelf="flex-start"
+            bg="blue.012"
+            w={12}
+            minH={12}
+            rounded="xl"
+          >
+            <OracleIcon boxSize={6} color="blue.500" />
+          </Center>
+          <Heading color="gray.500" fontSize="lg" fontWeight={500}>
+            {t('Send to Oracle Voting')}
+          </Heading>
+        </Stack>
+      </DrawerHeader>
+      <DrawerBody overflowY="auto" mx={-6} mb={10}>
+        <Stack spacing={6} color="gray.500" fontSize="md" p={6} pt={0}>
+          <Stack spacing={3}>
+            <Text>
+              {t(`Please keep in mind that you will not be able to edit the banner
+              after it has been submitted for verification`)}
+            </Text>
+            {isMining && (
+              <Badge
+                display="inline-flex"
+                alignItems="center"
+                alignSelf="flex-start"
+                colorScheme="orange"
+                bg="orange.020"
+                color="orange.500"
+                fontWeight="normal"
+                rounded="xl"
+                h={8}
+                px={3}
+                textTransform="initial"
+              >
+                {t('Mining...')}
+              </Badge>
+            )}
+          </Stack>
+          <Stack spacing={6} bg="gray.50" p={6} rounded="lg">
+            <Stack isInline spacing={5}>
+              <AdImage ad={ad} w="10" />
+              <Box>
+                <Text fontWeight={500}>{ad.title}</Text>
+                <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
+              </Box>
+            </Stack>
+            <Stack spacing={3}>
+              <HDivider />
+              <Stack>
+                <SmallInlineAdStat label="Language" value={ad.language} />
+                <SmallInlineAdStat label="Stake" value={ad.stake} />
+                <SmallInlineAdStat label="Age" value={ad.age} />
+                <SmallInlineAdStat label="OS" value={ad.os} />
+              </Stack>
+            </Stack>
+          </Stack>
+          <form
+            id="reviewForm"
+            onSubmit={e => {
+              e.preventDefault()
+              // onSubmit(Number(e.target.elements.amount.value))
+            }}
+          >
+            <FormControl>
+              <Stack spacing={3}>
+                <FormLabel htmlFor="amount" mb={0}>
+                  {t('Review fee, iDNA')}
+                </FormLabel>
+                <Input id="amount" />
+              </Stack>
+            </FormControl>
+          </form>
+        </Stack>
+      </DrawerBody>
+      <DrawerFooter bg="white">
+        <HStack>
+          <SecondaryButton onClick={onClose}>{t('Not now')}</SecondaryButton>
+          <PrimaryButton
+            type="submit"
+            form="reviewForm"
+            isLoading={isMining}
+            loadingText={t('Mining...')}
+          >
+            {t('Send')}
+          </PrimaryButton>
+        </HStack>
+      </DrawerFooter>
+    </AdDrawer>
+  )
+}
+
+export function PublishAdDrawer({ad, ...props}) {
+  const {t} = useTranslation()
+
+  const dna = useFormatDna()
+
+  const isMining = true
+
+  return (
+    <AdDrawer isMining={isMining} {...props}>
+      <DrawerHeader>
+        <Stack spacing={4}>
+          <FillCenter
+            alignSelf="flex-start"
+            bg="blue.012"
+            w={12}
+            minH={12}
+            rounded="xl"
+          >
+            <AdsIcon boxSize={6} color="blue.500" />
+          </FillCenter>
+          <Heading fontSize="lg" fontWeight={500}>
+            {t('Publish')}
+          </Heading>
+        </Stack>
+      </DrawerHeader>
+      <DrawerBody overflowY="auto" mx={-6} mb={10}>
+        <Stack spacing={6} color="brandGray.500" fontSize="md" p={6} pt={0}>
+          <Text>
+            {t(`In order to make your ads visible for Idena users you need to burn
+            more coins than competitors targeting the same audience.`)}
+          </Text>
+          {isMining && (
+            <Badge
+              display="inline-flex"
+              alignItems="center"
+              alignSelf="flex-start"
+              colorScheme="orange"
+              bg="orange.020"
+              color="orange.500"
+              fontWeight="normal"
+              rounded="xl"
+              h={8}
+              px={3}
+              textTransform="initial"
+            >
+              {t('Mining...')}
+            </Badge>
+          )}
+          <Stack spacing={6} bg="gray.50" p={6} rounded="lg">
+            <Stack isInline spacing={5}>
+              <AdImage ad={ad} w="10" />
+              <Box>
+                <Text fontWeight={500}>{ad.title}</Text>
+                <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
+              </Box>
+            </Stack>
+            <Stack spacing={3}>
+              <HDivider />
+              <Stack>
+                <InlineAdStat label="Competitors" value={Number(0)} />
+                <InlineAdStat label="Max price" value={dna(0)} />
+              </Stack>
+              <HDivider />
+              <Stack>
+                <SmallInlineAdStat label="Language" value={ad.language} />
+                <SmallInlineAdStat label="Stake" value={ad.stake} />
+                <SmallInlineAdStat label="Age" value={ad.age} />
+                <SmallInlineAdStat label="OS" value={ad.os} />
+              </Stack>
+            </Stack>
+          </Stack>
+        </Stack>
+      </DrawerBody>
+      <DrawerFooter
+        borderWidth={1}
+        borderColor="gray.100"
+        py={3}
+        px={4}
+        position="absolute"
+        left={0}
+        right={0}
+        bottom={0}
+      >
+        <PrimaryButton
+          isLoading={isMining}
+          loadingText={t('Mining...')}
+          onClick={() => {
+            // submit form
+          }}
+        >
+          {t('Publish')}
+        </PrimaryButton>
+      </DrawerFooter>
+    </AdDrawer>
+  )
+}
+
+export function BurnDrawer({ad, ...props}) {
+  const {t} = useTranslation()
+
+  const toast = useSuccessToast()
+  const failToast = useFailToast()
+
+  const {coinbase} = useAuthState()
+
+  const burnMutation = useMutation(async () => 0) // useBurnDna({ad, from: coinbase})
+
+  const dna = useFormatDna()
+
+  return (
+    <Drawer {...props}>
+      <DrawerHeader>
+        <Stack spacing={4}>
+          <FillCenter
+            alignSelf="flex-start"
+            bg="blue.012"
+            w={12}
+            minH={12}
+            rounded="xl"
+          >
+            <AdsIcon boxSize={6} color="blue.500" />
+          </FillCenter>
+          <Heading fontSize="lg" fontWeight={500}>
+            {t('Burn')}
+          </Heading>
+        </Stack>
+      </DrawerHeader>
+      <DrawerBody overflowY="auto" mx={-6} mb={10}>
+        <Stack spacing={6} color="brandGray.500" fontSize="md" p={6} pt={0}>
+          <Text>{t(`Burn iDNA to make your ad visible.`)}</Text>
+          <Stack spacing={6} bg="gray.50" p={6} rounded="lg">
+            <Stack isInline spacing={5}>
+              <AdImage ad={ad} w="10" />
+              <Box>
+                <Text fontWeight={500}>{ad.title}</Text>
+                <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
+              </Box>
+            </Stack>
+            <Stack spacing={3}>
+              <HDivider />
+              <Stack>
+                <InlineAdStat label="Competitors" value={Number(0)} />
+                <InlineAdStat label="Max price" value={dna(0)} />
+              </Stack>
+              <HDivider />
+              <Stack>
+                <SmallInlineAdStat label="Language" value={ad.language} />
+                <SmallInlineAdStat label="Stake" value={ad.stake} />
+                <SmallInlineAdStat label="Age" value={ad.age} />
+                <SmallInlineAdStat label="OS" value={ad.os} />
+              </Stack>
+            </Stack>
+          </Stack>
+          <form
+            id="burnForm"
+            onSubmit={e => {
+              e.preventDefault()
+
+              const formData = new FormData(e.target)
+
+              const amount = Number(formData.get('amount'))
+
+              burnMutation.mutate(amount, {
+                onSuccess: () => {
+                  toast(`${amount} iDNA 🔥🔥🔥`)
+                  props.onClose()
+                },
+                onError: failToast,
+              })
+            }}
+          >
+            <FormControl>
+              <Stack spacing={3}>
+                <FormLabel htmlFor="amount" mb={0}>
+                  {t('Amount, iDNA')}
+                </FormLabel>
+                <Input id="amount" name="amount" />
+              </Stack>
+            </FormControl>
+          </form>
+        </Stack>
+      </DrawerBody>
+      <DrawerFooter
+        borderWidth={1}
+        borderColor="gray.100"
+        py={3}
+        px={4}
+        position="absolute"
+        left={0}
+        right={0}
+        bottom={0}
+      >
+        <PrimaryButton type="submit" form="burnForm">
+          {t('Burn')}
+        </PrimaryButton>
+      </DrawerFooter>
+    </Drawer>
   )
 }

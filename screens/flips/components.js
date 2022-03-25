@@ -1242,14 +1242,7 @@ export function CommunityTranslations({
                       ? capitalize(keywords.words[wordIdx].desc)
                       : 'Description'
                   }
-                  borderColor="gray.100"
-                  px={3}
-                  pt={1.5}
-                  pb={2}
                   mb={6}
-                  _placeholder={{
-                    color: 'muted',
-                  }}
                   onChange={e =>
                     setDescriptionCharactersCount(150 - e.target.value.length)
                   }

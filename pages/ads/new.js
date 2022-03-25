@@ -1,7 +1,6 @@
 import * as React from 'react'
-import {CloseButton, Flex, HStack, Box} from '@chakra-ui/react'
+import {Box} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
-import NextLink from 'next/link'
 import {useTranslation} from 'react-i18next'
 import {useMutation} from 'react-query'
 import {Page, PageTitle} from '../../screens/app/components'
@@ -9,6 +8,10 @@ import Layout from '../../shared/components/layout'
 import {AdForm} from '../../screens/ads/containers'
 import {PrimaryButton} from '../../shared/components/button'
 import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
+import PageFooter, {
+  PageHeader,
+  PageHeaderCloseButton,
+} from '../../screens/ads/components'
 
 export default function NewAdPage() {
   const {t} = useTranslation()
@@ -24,17 +27,10 @@ export default function NewAdPage() {
     <Layout>
       <Page px={0} py={0} overflow="hidden">
         <Box flex={1} w="full" px={20} py={6} overflowY="auto">
-          <Flex
-            justify="space-between"
-            align="center"
-            alignSelf="stretch"
-            mb={4}
-          >
+          <PageHeader>
             <PageTitle mb={0}>{t('New ad')}</PageTitle>
-            <NextLink href="/ads/list">
-              <CloseButton />
-            </NextLink>
-          </Flex>
+            <PageHeaderCloseButton href="/ads/list" />
+          </PageHeader>
 
           <AdForm
             id="adForm"
@@ -61,21 +57,11 @@ export default function NewAdPage() {
           />
         </Box>
 
-        <HStack
-          spacing={2}
-          justify="flex-end"
-          bg="white"
-          borderTop="1px"
-          borderTopColor="gray.100"
-          px={4}
-          py={3}
-          h={14}
-          w="full"
-        >
+        <PageFooter>
           <PrimaryButton form="adForm" type="submit">
             {t('Save')}
           </PrimaryButton>
-        </HStack>
+        </PageFooter>
       </Page>
     </Layout>
   )

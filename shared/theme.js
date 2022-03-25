@@ -245,6 +245,7 @@ export const uiTheme = {
   sizes: {
     ...chakraTheme.sizes,
     sm: rem(360),
+    mdx: '30rem',
   },
   radii: {
     ...chakraTheme.radii,
@@ -610,6 +611,55 @@ export const uiTheme = {
           left: 0,
           right: 0,
           bottom: 0,
+        },
+      },
+    },
+    NumberInput: {
+      sizes: {
+        md: {
+          field: {
+            h: 8,
+            px: 3,
+          },
+        },
+      },
+      variants: {
+        outline: {
+          field: {
+            borderColor: 'gray.100',
+            _hover: {
+              borderColor: 'gray.100',
+            },
+            _placeholder: {
+              color: 'muted',
+            },
+            _disabled: {
+              bg: 'gray.50',
+              color: 'muted',
+              '-webkit-text-fill-color': '#96999E',
+              opacity: 1,
+            },
+          },
+        },
+      },
+    },
+    Textarea: {
+      sizes: {
+        md: {
+          px: 3,
+          py: 2,
+          minH: '16',
+        },
+      },
+      variants: {
+        outline: {
+          borderColor: 'gray.100',
+          _hover: {
+            borderColor: 'gray.100',
+          },
+          _placeholder: {
+            color: 'muted',
+          },
         },
       },
     },

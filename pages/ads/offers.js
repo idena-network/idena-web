@@ -2,12 +2,12 @@ import NextLink from 'next/link'
 import {HStack, Link, Stack, Table, Td, Text, Thead, Tr} from '@chakra-ui/react'
 import React from 'react'
 import {useTranslation} from 'react-i18next'
-import {PlainAdCoverImage} from '../../screens/ads/containers'
 import {useRotatingAdList, useRpc} from '../../screens/ads/hooks'
 import {Page, PageTitle} from '../../screens/app/components'
 import {Avatar, RoundedTh} from '../../shared/components/components'
 import Layout from '../../shared/components/layout'
 import {toLocaleDna} from '../../shared/utils/utils'
+import {AdImage} from '../../screens/ads/components'
 
 export default function AdOfferList() {
   const {t, i18n} = useTranslation()
@@ -35,7 +35,7 @@ export default function AdOfferList() {
             <Tr key={ad?.id} fontWeight={500}>
               <Td>
                 <HStack>
-                  <PlainAdCoverImage src={ad?.cover} boxSize="10" />
+                  <AdImage src={ad?.cover} boxSize="10" />
                   <Stack>
                     <Text lineHeight={4} isTruncated>
                       {ad?.title}
