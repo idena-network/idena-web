@@ -474,11 +474,11 @@ export default function Offline() {
             <Trans i18nKey="confirmRestrictedNodeDialog" t={t}>
               Your current API key{' '}
               <Text fontWeight="700" as="span">
-                {apiKey}
+                {{apiKey}}
               </Text>{' '}
               for the shared node{' '}
               <Text fontWeight="700" as="span">
-                {url}
+                {{url}}
               </Text>{' '}
               will be lost
             </Trans>

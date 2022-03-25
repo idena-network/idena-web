@@ -108,6 +108,7 @@ function ProviderStatus({url, fontSize, color}) {
           >
             {t('Synchronizing: {{blocksCount}} blocks left', {
               blocksCount,
+              nsSeparator: '|',
             })}
           </Text>
         </Flex>

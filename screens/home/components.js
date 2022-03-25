@@ -1223,7 +1223,7 @@ export function KillForm({isOpen, onClose}) {
         // eslint-disable-next-line react/display-name
         render: () => (
           <Toast
-            title={error?.message ?? t('error:Error while sending transaction')}
+            title={error?.message ?? t('Error while sending transaction')}
             status="error"
           />
         ),
