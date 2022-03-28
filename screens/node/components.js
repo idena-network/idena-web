@@ -39,6 +39,7 @@ export function BuySharedNodeForm({
   to,
   amount,
 }) {
+  const {t} = useTranslation()
   const [submitting, setSubmitting] = useState(false)
 
   const {coinbase, privateKey} = useAuthState()
@@ -112,7 +113,7 @@ export function BuySharedNodeForm({
             lineHeight="base"
             mt={[0, 4]}
           >
-            Send iDNA
+            {t('Send iDNA')}
           </Heading>
         </Flex>
       </DrawerHeader>
@@ -128,7 +129,7 @@ export function BuySharedNodeForm({
             />
             <Flex justify="space-between">
               <FormHelperText color="muted" fontSize="md">
-                Available
+                {t('Available')}
               </FormHelperText>
               <FormHelperText color="black" fontSize="md">
                 {(balanceResult && balanceResult.balance) || 0} iDNA
@@ -153,8 +154,9 @@ export function BuySharedNodeForm({
               variant={variant}
             />
             <FormHelperText color="muted" fontSize="md">
-              Node operator provides you the shared node for the upcoming
-              validation ceremony{' '}
+              {t(
+                'Node operator provides you the shared node for the upcoming validation ceremony'
+              )}{' '}
               {epochResult
                 ? new Date(epochResult.nextValidation).toLocaleDateString()
                 : ''}
@@ -169,9 +171,9 @@ export function BuySharedNodeForm({
           size="lg"
           onClick={transfer}
           isLoading={waiting}
-          loadingText="Mining..."
+          loadingText={t('Mining...')}
         >
-          Transfer
+          {t('Transfer')}
         </PrimaryButton>
       </DrawerBody>
       <DrawerFooter display={['none', 'flex']}>
@@ -189,14 +191,14 @@ export function BuySharedNodeForm({
               onClick={onClose}
               isDisabled={waiting}
             >
-              Not now
+              {t('Not now')}
             </SecondaryButton>
             <PrimaryButton
               onClick={transfer}
               isLoading={waiting}
-              loadingText="Mining..."
+              loadingText={t('Mining...')}
             >
-              Transfer
+              {t('Transfer')}
             </PrimaryButton>
           </Stack>
         </Box>

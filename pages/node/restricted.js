@@ -294,7 +294,7 @@ export default function Restricted() {
           justifyContent="center"
         >
           <Text color="white" fontSize="mdx" opacity="0.5" mb={1}>
-            You can run your own node at your desktop computer.
+            {t('You can run your own node at your desktop computer.')}
           </Text>
           <TextLink
             href="https://idena.io/download"
@@ -303,7 +303,7 @@ export default function Restricted() {
             textAlign="center"
           >
             <DownloadIcon boxSize={4} mx={2} />
-            Download Idena
+            {t('Download Idena')}
           </TextLink>
         </Flex>
       </Flex>

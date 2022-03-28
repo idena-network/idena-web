@@ -343,7 +343,7 @@ export default function Details() {
                                     fontSize="md"
                                     fontWeight={500}
                                   >
-                                    Answer
+                                    {t('Answer')}
                                   </Text>
                                 </Flex>
                               </FlipsValueTd>
@@ -379,7 +379,7 @@ export default function Details() {
                                     fontSize="md"
                                     fontWeight={500}
                                   >
-                                    Qualification
+                                    {t('Qualification')}
                                   </Text>
                                 </Flex>
                               </FlipsValueTd>
@@ -410,7 +410,7 @@ export default function Details() {
                                   fontSize="md"
                                   fontWeight={500}
                                 >
-                                  Reason
+                                  {t('Reason')}
                                 </Text>
                               </Flex>
                             </FlipsHiddenDescRow>

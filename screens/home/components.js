@@ -949,7 +949,7 @@ export function ActivateMiningDrawer({
                           fontSize="base"
                           fontWeight={500}
                         >
-                          Copied
+                          {t('Copied')}
                         </Text>
                       ) : (
                         <FlatButton
@@ -957,7 +957,7 @@ export function ActivateMiningDrawer({
                           onClick={onCopy}
                           fontWeight="500"
                         >
-                          Copy link
+                          {t('Copy link')}
                         </FlatButton>
                       )}
                     </Flex>

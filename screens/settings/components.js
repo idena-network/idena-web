@@ -37,12 +37,7 @@ export function LocaleSwitcher() {
 
   return (
     <>
-      <Select
-        value={lng}
-        borderColor="gray.300"
-        h={8}
-        onChange={e => setLng(e.target.value)}
-      >
+      <Select value={lng} h={8} onChange={e => setLng(e.target.value)}>
         {AVAILABLE_LANGS.map(lang => (
           <option key={lang} value={lang}>
             {isoLangs[lang].nativeName} ({lang.toUpperCase()})

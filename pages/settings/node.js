@@ -19,7 +19,6 @@ import {
 } from '../../shared/providers/settings-context'
 import {useNotificationDispatch} from '../../shared/providers/notification-context'
 import {
-  ExternalLink,
   FormLabel,
   Input,
   PasswordInput,
@@ -32,7 +31,6 @@ import {
   ChevronDownIcon,
 } from '../../shared/components/icons'
 import {PageTitleNew} from '../../screens/app/components'
-import {useIsDesktop} from '../../shared/utils/utils'
 
 const BASIC_ERROR = 'Node is unavailable.'
 
@@ -44,12 +42,8 @@ function Settings() {
   const {saveConnection} = useSettingsDispatch()
 
   const size = useBreakpointValue(['lg', 'md'])
-  const fontSize = useBreakpointValue(['16px', '13px'])
   const flexDirection = useBreakpointValue(['column', 'row'])
   const flexJustify = useBreakpointValue(['flex-start', 'space-between'])
-
-  const isDesktop = useIsDesktop()
-  const ComponentLink = isDesktop ? ExternalLink : Link
 
   const [state, setState] = useState({
     url: settingsState.url || '',

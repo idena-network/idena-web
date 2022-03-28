@@ -247,7 +247,7 @@ export function CertificateCard({
               as={`/try/details/${cardValue.id}`}
               color="green.500"
             >
-              Details
+              {t('Details')}
             </TextLink>
           </Box>
         </AlertBox>
@@ -264,7 +264,7 @@ export function CertificateCard({
               as={`/try/details/${cardValue.id}`}
               color="red.500"
             >
-              Details
+              {t('Details')}
             </TextLink>
           </Box>
         </AlertBox>
@@ -367,10 +367,10 @@ export function CertificateCard({
                 onClose()
               }}
             >
-              Yes
+              {t('Yes')}
             </SecondaryButton>
             <PrimaryButton ref={cancelRef} onClick={onClose} ml={2}>
-              No
+              {t('No')}
             </PrimaryButton>
           </AlertDialogFooter>
         </AlertDialogContent>
@@ -489,6 +489,7 @@ export function DetailsPoints({title, value, isLoading, isFailed, ...props}) {
 export function ShortFlipWithIcon({hash, onClick}) {
   const [url, setUrl] = useState()
   const isDesktop = useIsDesktop()
+  const {t} = useTranslation()
 
   const {data} = useQuery(['get-flip-cache', hash], () => getFlipCache(hash), {
     enabled: !!hash,
@@ -533,7 +534,7 @@ export function ShortFlipWithIcon({hash, onClick}) {
             fontWeight={500}
             color="muted"
           >
-            Flip
+            {t('Flip')}
           </Text>
         </Flex>
       </Flex>
@@ -936,7 +937,7 @@ export function FlipView({
           w={['100%', 'auto']}
           onClick={onClose}
         >
-          Close
+          {t('Close')}
         </Button>
       </DialogFooter>
     </Dialog>

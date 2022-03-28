@@ -3,7 +3,6 @@ import {
   Box,
   Divider,
   Flex,
-  Heading,
   Link,
   ListItem,
   Text,
@@ -11,8 +10,8 @@ import {
   useBreakpointValue,
   useClipboard,
 } from '@chakra-ui/react'
-import React, {useState} from 'react'
-import {useTranslation} from 'react-i18next'
+import React from 'react'
+import {Trans, useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
 import SettingsLayout from './layout'
 import {SubHeading} from '../../shared/components'
@@ -63,11 +62,12 @@ export default function Affiliate() {
       </PageTitleNew>
       <Flex direction="column" mt={10} w={['100%', '480px']}>
         <SubHeading fontSize={['20px', 'lg']} mb={4}>
-          Idena affiliate program
+          {t('Idena affiliate program')}
         </SubHeading>
         <Text fontSize={['mdx', 'md']}>
-          The program allows you to earn rewards for new validated identities
-          you bring to the network.
+          {t(
+            'The program allows you to earn rewards for new validated identities you bring to the network.'
+          )}
         </Text>
         <FullSizeLink
           label={detailLinkTitle}
@@ -81,11 +81,11 @@ export default function Affiliate() {
         <UnorderedList mt={9} ml={[0, 4]}>
           <UniversalListItem title="Apply for participation by submitting request form">
             <SimpleLink href="https://forms.gle/1R1AKZokEYn3aUU19">
-              Referral link request form
+              {t('Referral link request form')}
             </SimpleLink>
           </UniversalListItem>
           <UniversalListItem title="Spread the word">
-            <Text>Educate your community about Idena</Text>
+            <Text>{t('Educate your community about Idena')}</Text>
           </UniversalListItem>
           <UniversalListItem title="Share your referral link">
             <Box mt={2} mb={4} display={['block', 'none']}>
@@ -125,7 +125,9 @@ export default function Affiliate() {
               />
             </Box>
             <Text>
-              Motivate your audience to join and help them to get an invite
+              {t(
+                'Motivate your audience to join and help them to get an invite'
+              )}
             </Text>
             <Box
               display={['none', 'block']}
@@ -136,7 +138,7 @@ export default function Affiliate() {
               borderRadius="lg"
             >
               <Flex justify="space-between">
-                <Text color="muted">Your Referral link</Text>
+                <Text color="muted">{t('Your Referral link')}</Text>
                 {hasCopied ? (
                   <FormLabel color="green.500" fontSize="md" m={0}>
                     {t('Copied!')}
@@ -159,17 +161,20 @@ export default function Affiliate() {
           </UniversalListItem>
           <UniversalListItem title="Help your invitees through the onboarding process">
             <Text>
-              Remind them about the validation ceremony and help them get
-              validated
+              {t(
+                'Remind them about the validation ceremony and help them get validated'
+              )}
             </Text>
           </UniversalListItem>
           <UniversalListItem isLast title="Get rewards">
-            <Text>
-              Find the rewards you get and reward conditions on the{' '}
-              <SimpleLink href="https://docs.idena.io/docs/community/affiliate">
-                Idena affiliate program page
-              </SimpleLink>
-            </Text>
+            <Trans t={t} i18nKey="affiliateFillRewards">
+              <Text>
+                Find the rewards you get and reward conditions on the{' '}
+                <SimpleLink href="https://docs.idena.io/docs/community/affiliate">
+                  Idena affiliate program page
+                </SimpleLink>
+              </Text>
+            </Trans>
           </UniversalListItem>
         </UnorderedList>
       </Flex>

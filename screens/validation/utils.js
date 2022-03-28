@@ -1,6 +1,5 @@
 import {State} from 'xstate'
 import dayjs, {isDayjs} from 'dayjs'
-import {loadPersistentStateValue} from '../../shared/utils/persist'
 import {EpochPeriod, IdentityStatus} from '../../shared/types'
 import db from '../../shared/utils/db'
 

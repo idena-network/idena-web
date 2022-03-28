@@ -207,13 +207,15 @@ function Settings() {
               </Flex>
               <Flex display={['none', 'flex']} justify="space-between">
                 <FormLabel style={{fontSize: rem(13)}}>
-                  Your encrypted private key
+                  {t('Your encrypted private key')}
                 </FormLabel>
                 {hasCopied ? (
-                  <FormLabel style={{fontSize: rem(13)}}>Copied!</FormLabel>
+                  <FormLabel style={{fontSize: rem(13)}}>
+                    {t('Copied!')}
+                  </FormLabel>
                 ) : (
                   <FlatButton onClick={onCopy} marginBottom={rem(10)}>
-                    Copy
+                    {t('Copy')}
                   </FlatButton>
                 )}
               </Flex>
@@ -241,7 +243,7 @@ function Settings() {
                     onClick={() => {
                       onCopy()
                       successToast({
-                        title: 'Private key copied!',
+                        title: t('Private key copied!'),
                         duration: '5000',
                       })
                     }}
@@ -299,7 +301,7 @@ function Language(props) {
 
   return (
     <Section title={t('Interface')} w={['100%', '480px']} {...props}>
-      <Flex alignItems="center">
+      <Flex alignItems="center" mt={4}>
         <Text color="muted" fontWeight="normal" w={32}>
           {t('Language')}
         </Text>

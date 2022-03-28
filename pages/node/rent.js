@@ -130,6 +130,7 @@ function ProviderInfoRow({title, children, ...props}) {
 }
 
 function ProviderInfoDrawer({p, identity, onClose, onSubmit, ...props}) {
+  const {t} = useTranslation()
   return (
     <Drawer placement="right" size="full" {...props}>
       <DrawerOverlay />
@@ -210,7 +211,7 @@ function ProviderInfoDrawer({p, identity, onClose, onSubmit, ...props}) {
             w="100%"
             onClick={onSubmit}
           >
-            Continue with this node
+            {t('Continue with this node')}
           </Button>
         </DrawerBody>
       </DrawerContent>
@@ -220,6 +221,7 @@ function ProviderInfoDrawer({p, identity, onClose, onSubmit, ...props}) {
 
 export default function Rent() {
   const router = useRouter()
+  const {t} = useTranslation()
 
   const {coinbase} = useAuthState()
 
@@ -268,7 +270,7 @@ export default function Rent() {
                 router.back()
               }}
             />
-            <PageTitleNew>Rent a shared node</PageTitleNew>
+            <PageTitleNew>{t('Rent a shared node')}</PageTitleNew>
             <CloseButton
               display={['none', 'flex']}
               onClick={() => router.back()}
@@ -279,12 +281,14 @@ export default function Rent() {
               <Thead display={['none', 'table-header-group']}>
                 <Tr>
                   <RoundedTh isLeft width={rem(40)}></RoundedTh>
-                  <RoundedTh>Node URL</RoundedTh>
-                  <RoundedTh>Owner</RoundedTh>
-                  <RoundedTh>Location</RoundedTh>
-                  <RoundedTh textAlign="right">Slots available</RoundedTh>
+                  <RoundedTh>{t('Node URL')}</RoundedTh>
+                  <RoundedTh>{t('Owner')}</RoundedTh>
+                  <RoundedTh>{t('Location')}</RoundedTh>
+                  <RoundedTh textAlign="right">
+                    {t('Slots available')}
+                  </RoundedTh>
                   <RoundedTh isRight textAlign="right">
-                    Price per validation
+                    {t('Price per validation')}
                   </RoundedTh>
                 </Tr>
               </Thead>
@@ -348,7 +352,7 @@ export default function Rent() {
                               mt={4}
                               w="50%"
                             >
-                              <Text>Slots available</Text>
+                              <Text>{t('Slots available')}</Text>
                               <Flex>
                                 <Text color="gray.500" mr={1}>
                                   {p.slots}
@@ -417,7 +421,7 @@ export default function Rent() {
         >
           <SecondaryButton onClick={router.back}>Cancel</SecondaryButton>
           <PrimaryButton onClick={buySharedNodeDisclosure.onOpen}>
-            Continue
+            {t('Continue')}
           </PrimaryButton>
         </Stack>
       </Page>

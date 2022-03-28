@@ -12,6 +12,7 @@ import {
   useDisclosure,
 } from '@chakra-ui/react'
 import {useRef} from 'react'
+import {useTranslation} from 'react-i18next'
 import {MdMoreVert} from 'react-icons/md'
 import {useQuery} from 'react-query'
 import {
@@ -37,6 +38,8 @@ export default function Certificate({id, certificate}) {
     onOpen: onMenuOpen,
     onClose: onMenuClose,
   } = useDisclosure()
+
+  const {t} = useTranslation()
 
   const menuRef = useRef()
 
@@ -78,10 +81,10 @@ export default function Certificate({id, certificate}) {
         <Flex direction="column" alignItems="center" px={5}>
           <Image ignoreFallback src="/static/idena-logo-round.svg" h={16} />
           <Heading fontSize="lg" fontWeight="500" mt="45px">
-            Certificate
+            {t('Certificate')}
           </Heading>
           <Text color="muted" fontSize="md" mt={2}>
-            Training validation is passed successfully
+            {t('Training validation is passed successfully')}
           </Text>
           <Stack
             mt={7}
@@ -94,15 +97,15 @@ export default function Certificate({id, certificate}) {
             w={280}
           >
             <Flex justifyContent="space-between">
-              <Box>Short session score</Box>
+              <Box> {t('Short session score')}</Box>
               <Box>{toPercent(certificate.shortScore / 6)}</Box>
             </Flex>
             <Flex justifyContent="space-between">
-              <Box>Long session score</Box>
+              <Box> {t('Long session score')}</Box>
               <Box>{toPercent(certificate.longScore / 18)}</Box>
             </Flex>
             <Flex justifyContent="space-between">
-              <Box>Reporting score</Box>
+              <Box> {t('Reporting score')}</Box>
               <Box>{toPercent(certificate.reportScore / 6)}</Box>
             </Flex>
           </Stack>
@@ -163,7 +166,7 @@ export default function Certificate({id, certificate}) {
                       )
                     }}
                   >
-                    Send invite
+                    {t('Send invite')}
                   </IconButton>
                 </Flex>
               </Flex>

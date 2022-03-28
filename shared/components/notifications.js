@@ -2,7 +2,7 @@
 import React, {useState} from 'react'
 import {wordWrap, padding, margin, borderRadius} from 'polished'
 import {Portal, Flex, Box as ChakraBox} from '@chakra-ui/react'
-import {Absolute, Box} from '.'
+import {Box} from '.'
 import theme, {rem} from '../theme'
 import {
   useNotificationState,
