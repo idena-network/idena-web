@@ -4,29 +4,6 @@ import {initReactI18next} from 'react-i18next'
 import LanguageDetector from 'i18next-browser-languagedetector'
 import HttpApi from 'i18next-http-backend'
 
-// import en_translation from './public/locales/en/translation.json'
-// import ri_translation from './public/locales/id/translation.json'
-// import fr_translation from './public/locales/fr/translation.json'
-// import de_translation from './public/locales/de/translation.json'
-// import es_translation from './public/locales/es/translation.json'
-// import ru_translation from './public/locales/ru/translation.json'
-// import zh_translation from './public/locales/zh/translation.json'
-// import ko_translation from './public/locales/ko/translation.json'
-// import hr_translation from './public/locales/hr/translation.json'
-// import uk_translation from './public/locales/uk/translation.json'
-// import sr_translation from './public/locales/sr/translation.json'
-// import ro_translation from './public/locales/ro/translation.json'
-// import it_translation from './public/locales/it/translation.json'
-// import pt_translation from './public/locales/pt/translation.json'
-// import sl_translation from './public/locales/sl/translation.json'
-// import hi_translation from './public/locales/hi/translation.json'
-// import pl_translation from './public/locales/pl/translation.json'
-// import tr_translation from './public/locales/tr/translation.json'
-// import bg_translation from './public/locales/bg/translation.json'
-// import sv_translation from './public/locales/sv/translation.json'
-// import ja_translation from './public/locales/ja/translation.json'
-// import el_translation from './public/locales/el/translation.json'
-
 export const AVAILABLE_LANGS = [
   'en',
   'id',
@@ -796,30 +773,6 @@ i18n
         }.json`
       },
     },
-    // resources: {
-    //   en: {translation: en_translation},
-    //   id: {translation: ri_translation},
-    //   fr: {translation: fr_translation},
-    //   de: {translation: de_translation},
-    //   es: {translation: es_translation},
-    //   ru: {translation: ru_translation},
-    //   zh: {translation: zh_translation},
-    //   ko: {translation: ko_translation},
-    //   hr: {translation: hr_translation},
-    //   hi: {translation: hi_translation},
-    //   uk: {translation: uk_translation},
-    //   sr: {translation: sr_translation},
-    //   ro: {translation: ro_translation},
-    //   it: {translation: it_translation},
-    //   pt: {translation: pt_translation},
-    //   pl: {translation: pl_translation},
-    //   sl: {translation: sl_translation},
-    //   tr: {translation: tr_translation},
-    //   bg: {translation: bg_translation},
-    //   sv: {translation: sv_translation},
-    //   ja: {translation: ja_translation},
-    //   el: {translation: el_translation},
-    // },
     fallbackLng: 'en',
     keySeparator: false,
     interpolation: {
