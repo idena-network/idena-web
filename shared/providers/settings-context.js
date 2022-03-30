@@ -22,6 +22,7 @@ const RESTORE_SETTINGS = 'RESTORE_SETTINGS'
 const SET_API_KEY_STATE = 'SET_API_KEY_STATE'
 const ADD_PURCHASED_KEY = 'ADD_PURCHASED_KEY'
 const ADD_PURCHASE = 'ADD_PURCHASE'
+const SET_LANGUAGE = 'SET_LANGUAGE'
 
 const RESTRICTED_NODE_URL = process.env.NEXT_PUBLIC_RESTRICTED_NODE_URL
 const RESTRICTED_NODE_KEY = process.env.NEXT_PUBLIC_RESTRICTED_NODE_KEY
@@ -101,6 +102,12 @@ function settingsReducer(state, action) {
         apiKeyState: apiKeyStates.ONLINE,
         url: action.data.url || state.url,
         apiKeyId: null,
+      }
+    }
+    case SET_LANGUAGE: {
+      return {
+        ...state,
+        language: action.data.language,
       }
     }
     default:
@@ -263,6 +270,10 @@ function SettingsProvider({children}) {
     dispatch({type: ADD_PURCHASED_KEY, data: {url, key, epoch, provider}})
   }
 
+  const setLanguage = language => {
+    dispatch({type: SET_LANGUAGE, data: {language}})
+  }
+
   return (
     <SettingsStateContext.Provider value={state}>
       <SettingsDispatchContext.Provider
@@ -273,6 +284,7 @@ function SettingsProvider({children}) {
           saveRestrictedConnection,
           addPurchase,
           addPurchasedKey,
+          setLanguage,
         }}
       >
         {children}

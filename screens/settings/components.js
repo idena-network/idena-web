@@ -4,6 +4,8 @@ import {useTranslation} from 'react-i18next'
 import {AVAILABLE_LANGS, isoLangs} from '../../i18n'
 import {PrimaryButton} from '../../shared/components/button'
 import {Select} from '../../shared/components/components'
+import {useLanguage} from '../../shared/hooks/use-language'
+import {useSettingsDispatch} from '../../shared/providers/settings-context'
 
 // eslint-disable-next-line react/prop-types
 export function Section({title, children, ...props}) {
@@ -25,26 +27,36 @@ export function Section({title, children, ...props}) {
 
 export function LocaleSwitcher() {
   const {t, i18n} = useTranslation()
-  const [lng, setLng] = useState()
+  const {lng} = useLanguage()
+  const {setLanguage} = useSettingsDispatch()
 
-  const change = () => {
-    i18n.changeLanguage(lng)
-  }
+  const [selectValue, setSelectValue] = useState('')
 
   useEffect(() => {
-    setLng(new Intl.Locale(i18n.language).language)
-  }, [i18n])
+    setSelectValue(lng)
+  }, [lng])
+
+  const change = () => {
+    i18n.changeLanguage(selectValue)
+    setLanguage(selectValue)
+  }
 
   return (
     <>
-      <Select value={lng} h={8} onChange={e => setLng(e.target.value)}>
+      <Select
+        id="selectedLanguage"
+        value={selectValue}
+        h={8}
+        w="auto"
+        onChange={e => setSelectValue(e.target.value)}
+      >
         {AVAILABLE_LANGS.map(lang => (
           <option key={lang} value={lang}>
             {isoLangs[lang].nativeName} ({lang.toUpperCase()})
           </option>
         ))}
       </Select>
-      <PrimaryButton ml={2} onClick={change}>
+      <PrimaryButton onClick={change} ml={2}>
         {t('Save')}
       </PrimaryButton>
     </>

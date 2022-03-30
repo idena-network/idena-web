@@ -43,10 +43,13 @@ import {
 import {useSuccessToast} from '../../shared/hooks/use-toast'
 import {WideLink} from '../../screens/home/components'
 import {PageTitleNew} from '../../screens/app/components'
+import {ChangeLanguageDrawer} from '../../screens/settings/containers'
+import {useLanguage} from '../../shared/hooks/use-language'
 
 function Settings() {
   const router = useRouter()
   const {t} = useTranslation()
+  const {lng, isoLng} = useLanguage()
 
   const [password, setPassword] = useState()
   const [showQR, setShowQR] = useState()
@@ -55,6 +58,8 @@ function Settings() {
     onOpen: onOpenExportPKDialog,
     onClose: onCloseExportPKDialog,
   } = useDisclosure()
+
+  const changeLanguageDisclosure = useDisclosure()
 
   const [pk, setPk] = useState('')
   const {onCopy, hasCopied} = useClipboard(pk)
@@ -105,7 +110,7 @@ function Settings() {
         />
         <PageTitleNew mt={-2}>{t('Settings')}</PageTitleNew>
       </Box>
-      <Language />
+      <Language display={['none', 'block']} />
       <ExportPK
         display={['none', 'block']}
         onDialogOpen={onOpenExportPKDialog}
@@ -119,7 +124,12 @@ function Settings() {
         <MobileSettingsItem
           title={t('Affiliate program')}
           onClick={() => router.push('/settings/affiliate')}
+        />
+        <MobileSettingsItem
+          title={t('Language')}
+          description={`${isoLng} (${lng.toUpperCase()})`}
           mb={6}
+          onClick={() => changeLanguageDisclosure.onOpen()}
         />
         <WideLink
           label={t('Export my private key')}
@@ -268,6 +278,9 @@ function Settings() {
           )}
         </DialogBody>
       </Dialog>
+      <ChangeLanguageDrawer
+        changeLanguageDisclosure={changeLanguageDisclosure}
+      />
     </SettingsLayout>
   )
 }
@@ -301,7 +314,7 @@ function Language(props) {
 
   return (
     <Section title={t('Interface')} w={['100%', '480px']} {...props}>
-      <Flex alignItems="center" mt={4}>
+      <Flex alignItems="center" mt={4} justifyContent="space-between">
         <Text color="muted" fontWeight="normal" w={32}>
           {t('Language')}
         </Text>
@@ -335,19 +348,26 @@ function ExportPK({onDialogOpen, ...props}) {
   )
 }
 
-function MobileSettingsItem({title, ...props}) {
+function MobileSettingsItem({title, description, ...props}) {
   return (
     <Box w="100%" {...props}>
       <Flex h={12} w="100%" align="center" justify="space-between">
         <Text fontSize="base" fontWeight={500}>
           {title}
         </Text>
-        <AngleArrowBackIcon
-          stroke="#D8D8D8"
-          h={4}
-          w={4}
-          transform="rotate(180deg)"
-        />
+        <Flex align="center">
+          {description && (
+            <Text fontSize="base" color="muted" mr={2} isTruncated maxW="200px">
+              {description}
+            </Text>
+          )}
+          <AngleArrowBackIcon
+            stroke="#D8D8D8"
+            h={4}
+            w={4}
+            transform="rotate(180deg)"
+          />
+        </Flex>
       </Flex>
       <Divider />
     </Box>
