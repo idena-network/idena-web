@@ -187,7 +187,7 @@ function ProviderInfoDrawer({p, identity, onClose, onSubmit, ...props}) {
             </ProviderInfoRow>
             <ProviderInfoRow title="Price per validation" w="50%">
               <Text color="muted">
-                {GetProviderPrice(p.data, identity?.state)} iDNA
+                {GetProviderPrice(p.data, identity?.state, identity?.age)} iDNA
               </Text>
             </ProviderInfoRow>
           </Flex>
@@ -365,7 +365,11 @@ export default function Rent() {
                               <Text>Price</Text>
                               <Flex>
                                 <Text color="gray.500">
-                                  {GetProviderPrice(p.data, identity?.state)}{' '}
+                                  {GetProviderPrice(
+                                    p.data,
+                                    identity?.state,
+                                    identity?.age
+                                  )}{' '}
                                   iDNA
                                 </Text>
                               </Flex>
@@ -390,7 +394,12 @@ export default function Rent() {
                         {p.slots}
                       </Td>
                       <Td display={['none', 'table-cell']} textAlign="right">
-                        {GetProviderPrice(p.data, identity?.state)} iDNA
+                        {GetProviderPrice(
+                          p.data,
+                          identity?.state,
+                          identity?.age
+                        )}{' '}
+                        iDNA
                       </Td>
                     </Tr>
                   ))}
@@ -438,7 +447,11 @@ export default function Rent() {
         from={coinbase}
         amount={
           selectedProvider &&
-          GetProviderPrice(selectedProvider.data, identity?.state)
+          GetProviderPrice(
+            selectedProvider.data,
+            identity?.state,
+            identity?.age
+          )
         }
         to={selectedProvider && selectedProvider.data.address}
       />
