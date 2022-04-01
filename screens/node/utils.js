@@ -1,6 +1,6 @@
 import {IdentityStatus} from '../../shared/types'
 
-export function GetProviderPrice(data, state) {
+export function GetProviderPrice(data, state, age) {
   if (!data.prices) {
     return data.price
   }
@@ -15,5 +15,6 @@ export function GetProviderPrice(data, state) {
   )
     return data.prices[1]
 
+  if (state === IdentityStatus.Newbie && age === 1) return 0.01
   return data.prices[0]
 }
