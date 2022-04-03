@@ -53,7 +53,11 @@ export default function AdListPage() {
 
   const {data: profileAds, status} = {data: []} // useProfileAds()
 
-  const {data: draftAds, status: draftAdsStatus} = useDraftAds()
+  const {
+    data: draftAds,
+    status: draftAdsStatus,
+    refetch: refetchDraftAds,
+  } = useDraftAds()
 
   const ads = [...profileAds, ...draftAds].filter(ad => ad.status === filter)
 
@@ -64,12 +68,14 @@ export default function AdListPage() {
   const handlePublish = React.useCallback(async () => {
     try {
       await db.table('ads').update(selectedAd?.id, {status: AdStatus.Approved})
+
+      refetchDraftAds()
     } catch {
       console.error('Error updating persisted ads', {id: selectedAd?.id})
     } finally {
       publishDisclosure.onClose()
     }
-  }, [publishDisclosure, selectedAd])
+  }, [publishDisclosure, refetchDraftAds, selectedAd.id])
 
   const handleReview = React.useCallback(
     async ({cid, contract}) => {
@@ -79,14 +85,21 @@ export default function AdListPage() {
           cid,
           contract,
         })
+
+        refetchDraftAds()
       } catch {
         console.error('Error updating persisted ads', {id: selectedAd?.id})
       } finally {
         reviewDisclosure.onClose()
       }
     },
-    [reviewDisclosure, selectedAd]
+    [refetchDraftAds, reviewDisclosure, selectedAd.id]
   )
+
+  const handleBurn = React.useCallback(() => {
+    refetchDraftAds()
+    burnDisclosure.onClose()
+  }, [burnDisclosure, refetchDraftAds])
 
   return (
     <Layout>
@@ -173,11 +186,7 @@ export default function AdListPage() {
         )}
 
         {selectedAd && (
-          <BurnDrawer
-            ad={selectedAd}
-            onBurn={burnDisclosure.onClose}
-            {...burnDisclosure}
-          />
+          <BurnDrawer ad={selectedAd} onBurn={handleBurn} {...burnDisclosure} />
         )}
 
         <Debug>{ads}</Debug>

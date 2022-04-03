@@ -331,6 +331,12 @@ export function AdListItem({ad, onReview, onPublish, onBurn}) {
 
                   setCurrentStatus(currentStatus)
 
+                  if (currentStatus === AdStatus.Rejected) {
+                    await db
+                      .table('ads')
+                      .update(id, {status: AdStatus.Rejected})
+                  }
+
                   toast({
                     title: capitalize(currentStatus ?? 'currentStatus'),
                     onAction: () => {
