@@ -637,7 +637,7 @@ export const AdForm = React.forwardRef(function AdForm(
                 name="media"
                 value={media}
                 label={t('Upload media')}
-                description={t('640x640px, no more than 2 Mb')}
+                description={t('640x640px, no more than 1 Mb')}
                 fallbackSrc="/static/upload-cover-icn.svg"
                 onChange={setMedia}
               />
@@ -647,7 +647,7 @@ export const AdForm = React.forwardRef(function AdForm(
                 name="thumb"
                 value={thumb}
                 label={t('Upload thumb')}
-                description={t('80x80px, no more than 2 Mb')}
+                description={t('80x80px, no more than 1 Mb')}
                 fallbackSrc="/static/upload-thumbnail-icn.svg"
                 onChange={setThumb}
               />

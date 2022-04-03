@@ -14,6 +14,7 @@ import {
 } from '../../screens/ads/components'
 import db from '../../shared/utils/db'
 import {useCoinbase, useDraftAd} from '../../screens/ads/hooks'
+import {useFailToast} from '../../shared/hooks/use-toast'
 
 export default function EditAdPage() {
   const {t} = useTranslation()
@@ -29,6 +30,8 @@ export default function EditAdPage() {
   const previewAdRef = React.useRef()
 
   const previewDisclosure = useDisclosure()
+
+  const failToast = useFailToast()
 
   return (
     <Layout>
@@ -48,15 +51,26 @@ export default function EditAdPage() {
                 value instanceof File ? value.size > 0 : Boolean(value)
               )
 
-              if (hasValues) {
-                await db.table('ads').update(ad.id, {
-                  ...nextAd,
-                  thumb: nextAd.thumb.size > 0 ? nextAd.thumb : ad.thumb,
-                  media: nextAd.media.size > 0 ? nextAd.media : ad.thumb,
-                })
-              }
+              const imageLimit = 1024 * 1024
 
-              router.push('/ads/list')
+              if (hasValues) {
+                if (
+                  nextAd.thumb.size > imageLimit ||
+                  nextAd.media.size > imageLimit
+                ) {
+                  failToast(t('Ad image is too large'))
+                } else {
+                  await db.table('ads').update(ad.id, {
+                    ...nextAd,
+                    thumb: nextAd.thumb.size > 0 ? nextAd.thumb : ad.thumb,
+                    media: nextAd.media.size > 0 ? nextAd.media : ad.thumb,
+                  })
+
+                  router.push('/ads/list')
+                }
+              } else {
+                failToast(t('Nothing to submit. Please fill in the form'))
+              }
             }}
           />
         </Box>
