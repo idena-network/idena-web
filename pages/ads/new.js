@@ -22,11 +22,13 @@ export default function NewAdPage() {
 
   const router = useRouter()
 
-  const previewDisclosure = useDisclosure()
-
-  const [previewAd, setPreviewAd] = React.useState()
-
   const coinbase = useCoinbase()
+
+  const adFormRef = React.useRef()
+
+  const previewAdRef = React.useRef()
+
+  const previewDisclosure = useDisclosure()
 
   return (
     <Layout>
@@ -38,19 +40,8 @@ export default function NewAdPage() {
           </PageHeader>
 
           <AdForm
+            ref={adFormRef}
             id="adForm"
-            onBlur={e => {
-              const ad = Object.fromEntries(
-                new FormData(e.currentTarget).entries()
-              )
-
-              setPreviewAd({
-                ...ad,
-                author: coinbase,
-                thumb: URL.createObjectURL(ad.thumb),
-                media: URL.createObjectURL(ad.media),
-              })
-            }}
             onSubmit={async ad => {
               const hasValues = Object.values(ad).some(value =>
                 value instanceof File ? value.size > 0 : Boolean(value)
@@ -70,6 +61,17 @@ export default function NewAdPage() {
         <PageFooter>
           <SecondaryButton
             onClick={() => {
+              const ad = Object.fromEntries(
+                new FormData(adFormRef.current).entries()
+              )
+
+              previewAdRef.current = {
+                ...ad,
+                author: coinbase,
+                thumb: ad.thumb && URL.createObjectURL(ad.thumb),
+                media: ad.media && URL.createObjectURL(ad.media),
+              }
+
               previewDisclosure.onOpen()
             }}
           >
@@ -84,7 +86,7 @@ export default function NewAdPage() {
         </PageFooter>
       </Page>
 
-      <AdPreview ad={previewAd} {...previewDisclosure} />
+      <AdPreview ad={previewAdRef.current} {...previewDisclosure} />
     </Layout>
   )
 }

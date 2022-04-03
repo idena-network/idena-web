@@ -475,7 +475,13 @@ export function SmallText(props) {
   return <Text color="muted" fontSize="sm" {...props} />
 }
 
-export function ExternalLink({href, withArrow = true, children, ...props}) {
+export function ExternalLink({
+  href,
+  withArrow = true,
+  textProps,
+  children,
+  ...props
+}) {
   return (
     <Button
       variant="link"
@@ -492,7 +498,14 @@ export function ExternalLink({href, withArrow = true, children, ...props}) {
       }}
       {...props}
     >
-      <Text as="span" lineHeight="4" textAlign="start" maxW="full" isTruncated>
+      <Text
+        as="span"
+        lineHeight="4"
+        textAlign="start"
+        maxW="full"
+        isTruncated
+        {...textProps}
+      >
         {children || href}
         {withArrow && <ChevronRightIcon boxSize={4} />}
       </Text>

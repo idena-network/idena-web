@@ -156,8 +156,8 @@ function AdBannerContent({ad}) {
             </Text>
           </LinkOverlay>
         </AdBannerSkeleton>
-        <AdBannerSkeleton isLoaded={Boolean(ad?.desc)} minW="lg">
-          <Text fontSize="sm" color="muted" isTruncated>
+        <AdBannerSkeleton isLoaded={Boolean(ad?.desc)} minH={4} minW="lg">
+          <Text fontSize="sm" color="muted" lineHeight={4} isTruncated>
             {ad?.desc}
           </Text>
         </AdBannerSkeleton>
@@ -182,9 +182,11 @@ function AdBannerAuthor({ad, ...props}) {
             borderColor="gray.016"
             rounded="sm"
           />
-          <Text color="muted" fontSize="sm" isTruncated>
-            {ad?.author}
-          </Text>
+          <AdBannerSkeleton isLoaded={Boolean(ad?.author)} minW="2xs" h="4">
+            <Text color="muted" fontSize="sm" isTruncated>
+              {ad?.author}
+            </Text>
+          </AdBannerSkeleton>
         </HStack>
       </Stack>
     </HStack>
@@ -479,63 +481,91 @@ function AdPromotion({cid, title, desc, url, media, author}) {
   const formatDna = useFormatDna()
 
   return (
-    <Box bg="white" rounded="lg" px={10} pt={37} pb={44} w={400} h={620}>
-      <Stack spacing="10">
-        <Stack spacing="4">
-          <Stack spacing="2">
-            <Heading as="h4" fontWeight="semibold" fontSize="md" isTruncated>
+    <Stack
+      spacing="10"
+      bg="white"
+      rounded="lg"
+      px={10}
+      pt={37}
+      pb={44}
+      w={400}
+      h={660}
+    >
+      <Stack spacing="4">
+        <Stack spacing="2">
+          <AdBannerSkeleton isLoaded={Boolean(title)} minH={5} w={3 / 4}>
+            <Heading
+              as="h4"
+              fontWeight="semibold"
+              fontSize="md"
+              lineHeight="5"
+              isTruncated
+            >
               {title}
             </Heading>
+          </AdBannerSkeleton>
 
-            <Stack spacing="1.5">
-              <Text color="muted" fontSize="md">
+          <Stack spacing="1.5" minH={62}>
+            <AdBannerSkeleton isLoaded={Boolean(desc)} minH={5}>
+              <Text color="muted" fontSize="md" lineHeight="5">
                 {desc}
               </Text>
-              <ExternalLink href={url} fontWeight="semibold">
+            </AdBannerSkeleton>
+            <AdBannerSkeleton isLoaded={Boolean(url)} w={1 / 4} h={4}>
+              <ExternalLink
+                href={url}
+                fontWeight="semibold"
+                display="flex"
+                textProps={{h: '4', lineHeight: '4'}}
+              >
                 {url}
               </ExternalLink>
-            </Stack>
+            </AdBannerSkeleton>
           </Stack>
-          <AdImage src={media} w={320} objectFit="cover" />
         </Stack>
-        <Stack spacing="6">
-          <HStack spacing="10">
-            <Stat>
-              <AdStatLabel color="gray.500" fontWeight={500} lineHeight={4}>
-                {t('Sponsored by')}
-              </AdStatLabel>
-              <AdStatNumber color="muted" fontSize="sm" mt="1.5" h="4">
-                <HStack spacing="1" align="center">
-                  <Avatar address={author} boxSize={4} />
-                  <Text as="span" maxW="36" isTruncated>
-                    {author}
-                  </Text>
-                </HStack>
-              </AdStatNumber>
-            </Stat>
-            <Stat>
-              <AdStatLabel color="gray.500" fontWeight={500} lineHeight={4}>
-                {t('Burnt, {{time}}', {
-                  time: new Intl.RelativeTimeFormat(i18n.language, {
-                    style: 'short',
-                  }).format(24, 'hour'),
-                })}
-              </AdStatLabel>
-              <AdStatNumber color="muted" fontSize="sm" mt="1.5" h="4">
-                {formatDna(maybeBurn?.amount ?? 0)}
-              </AdStatNumber>
-            </Stat>
-          </HStack>
-          <SuccessAlert fontSize="md">
-            {t('Watching ads makes your coin valuable!')}
-          </SuccessAlert>
-        </Stack>
+
+        <AdImage src={media} w={320} objectFit="cover" />
       </Stack>
-    </Box>
+      <Stack spacing="6">
+        <HStack spacing="10">
+          <Stat>
+            <AdStatLabel color="gray.500" fontWeight={500} lineHeight={4}>
+              {t('Sponsored by')}
+            </AdStatLabel>
+            <AdStatNumber color="muted" fontSize="sm" mt="1.5" h="4">
+              <HStack spacing="1" align="center">
+                <Avatar address={author} boxSize={4} />
+                <Text as="span" maxW="36" isTruncated>
+                  {author}
+                </Text>
+              </HStack>
+            </AdStatNumber>
+          </Stat>
+          <Stat>
+            <AdStatLabel color="gray.500" fontWeight={500} lineHeight={4}>
+              {t('Burnt, {{time}}', {
+                time: new Intl.RelativeTimeFormat(i18n.language, {
+                  style: 'short',
+                }).format(24, 'hour'),
+              })}
+            </AdStatLabel>
+            <AdStatNumber color="muted" fontSize="sm" mt="1.5" h="4">
+              {formatDna(maybeBurn?.amount ?? 0)}
+            </AdStatNumber>
+          </Stat>
+        </HStack>
+        <SuccessAlert fontSize="md">
+          {t('Watching ads makes your coin valuable!')}
+        </SuccessAlert>
+      </Stack>
+    </Stack>
   )
 }
 
-export function AdForm({ad, onSubmit, ...props}) {
+export const AdForm = React.forwardRef(function AdForm(
+  {ad, onSubmit, ...props},
+  ref
+) {
   const {t} = useTranslation()
 
   const [thumb, setThumb] = React.useState(ad?.thumb)
@@ -546,6 +576,7 @@ export function AdForm({ad, onSubmit, ...props}) {
 
   return (
     <form
+      ref={ref}
       onChange={e => {
         const {name, value} = e.target
 
@@ -678,7 +709,7 @@ export function AdForm({ad, onSubmit, ...props}) {
       </Stack>
     </form>
   )
-}
+})
 
 export function AdMediaInput({
   value,
@@ -688,12 +719,11 @@ export function AdMediaInput({
   onChange,
   ...props
 }) {
-  const inputRef = React.useRef()
+  const src = React.useMemo(() => value && URL.createObjectURL(value), [value])
 
   return (
     <FormLabel m={0} p={0}>
       <VisuallyHiddenInput
-        ref={inputRef}
         type="file"
         accept="image/png,image/jpg,image/jpeg,image/webp"
         onChange={async e => {
@@ -712,10 +742,7 @@ export function AdMediaInput({
       <HStack spacing={4} align="center">
         <Box flexShrink={0}>
           {value ? (
-            <AdImage
-              src={URL.createObjectURL(new Blob([value], {type: 'image/jpeg'}))}
-              width={70}
-            />
+            <AdImage src={src} width={70} />
           ) : (
             <Center
               bg="gray.50"
@@ -742,7 +769,7 @@ export function AdMediaInput({
   )
 }
 
-export function ReviewAdDrawer({ad, onSendToReviewSuccess, ...props}) {
+export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
   const {t} = useTranslation()
 
   const coinbase = useCoinbase()
@@ -758,18 +785,13 @@ export function ReviewAdDrawer({ad, onSendToReviewSuccess, ...props}) {
   } = useReviewAd()
 
   React.useEffect(() => {
-    if (isDone) {
-      db.table('ads').update(ad?.id, {
-        status: AdStatus.Reviewing,
-        cid: storeToIpfsData.cid,
+    if (isDone && onSendToReview) {
+      onSendToReview({
+        cid: storeToIpfsData?.cid,
         contract: estimateDeployData?.receipt?.contract,
       })
-
-      if (onSendToReviewSuccess) {
-        onSendToReviewSuccess()
-      }
     }
-  }, [ad, storeToIpfsData, estimateDeployData, isDone, onSendToReviewSuccess])
+  }, [storeToIpfsData, estimateDeployData, isDone, onSendToReview])
 
   const {data: deployAmount} = useDeployVotingAmount()
 
@@ -895,7 +917,7 @@ export function ReviewAdDrawer({ad, onSendToReviewSuccess, ...props}) {
   )
 }
 
-export function PublishAdDrawer({ad, onPublishSuccess, ...props}) {
+export function PublishAdDrawer({ad, onPublish, ...props}) {
   const {t} = useTranslation()
 
   const formatDna = useFormatDna()
@@ -909,11 +931,10 @@ export function PublishAdDrawer({ad, onPublishSuccess, ...props}) {
   const {isPending, isDone, submit} = usePublishAd()
 
   React.useEffect(() => {
-    if (isDone) {
-      db.table('ads').update(ad.id, {status: AdStatus.Approved})
-      if (onPublishSuccess) onPublishSuccess()
+    if (isDone && onPublish) {
+      onPublish()
     }
-  }, [ad.id, isDone, onPublishSuccess])
+  }, [isDone, onPublish])
 
   const {data: competingAds} = useCompetingAdsByTarget(ad.cid, new AdTarget(ad))
 
@@ -996,7 +1017,7 @@ export function PublishAdDrawer({ad, onPublishSuccess, ...props}) {
   )
 }
 
-export function BurnDrawer({ad, onBurnSuccess, ...props}) {
+export function BurnDrawer({ad, onBurn, ...props}) {
   const {t} = useTranslation()
 
   const [{address}] = useIdentity()
@@ -1006,10 +1027,8 @@ export function BurnDrawer({ad, onBurnSuccess, ...props}) {
   const {isPending, isDone, submit} = useBurnAd()
 
   React.useEffect(() => {
-    if (isDone) {
-      if (onBurnSuccess) onBurnSuccess()
-    }
-  }, [isDone, onBurnSuccess])
+    if (isDone && onBurn) onBurn()
+  }, [isDone, onBurn])
 
   const failToast = useFailToast()
 
@@ -1198,8 +1217,6 @@ export function AdStatusText({children, status = children}) {
 }
 
 export function AdPreview({ad, ...props}) {
-  const coinbase = useCoinbase()
-
   return (
     <Modal size="full" {...props}>
       <ModalContent bg="xblack.080" fontSize="md">
@@ -1207,7 +1224,7 @@ export function AdPreview({ad, ...props}) {
           <Flex justifyContent="space-between">
             <AdBannerContent ad={ad} />
             <HStack spacing="10" align="center">
-              <AdBannerAuthor ad={{...ad, author: coinbase}} />
+              <AdBannerAuthor ad={ad} />
               <ModalCloseButton position="initial" />
             </HStack>
           </Flex>

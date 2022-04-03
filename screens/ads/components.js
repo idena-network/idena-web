@@ -187,12 +187,16 @@ export function AdImage({
   const boxProps = pick(props, ['w', 'width', 'h', 'height', 'boxSize'])
   const imageProps = omit(props, Object.keys(boxProps))
 
-  const [src, setSrc] = React.useState(initialSrc || fallbackSrc)
+  const [src, setSrc] = React.useState()
+
+  React.useEffect(() => {
+    setSrc(initialSrc)
+  }, [initialSrc])
 
   return (
     <AspectRatio ratio={1} flexShrink={0} {...boxProps}>
       <Image
-        src={src}
+        src={src || fallbackSrc}
         ignoreFallback
         bg="gray.50"
         rounded="lg"

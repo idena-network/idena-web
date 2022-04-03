@@ -13,28 +13,20 @@ import {
   PageFooter,
 } from '../../screens/ads/components'
 import db from '../../shared/utils/db'
-import {useCoinbase, useDraftAds} from '../../screens/ads/hooks'
+import {useCoinbase, useDraftAd} from '../../screens/ads/hooks'
 
 export default function EditAdPage() {
   const {t} = useTranslation()
 
   const router = useRouter()
 
-  const {id} = router.query
-
-  const {data: ads} = useDraftAds()
-
-  // eslint-disable-next-line no-shadow
-  const ad = ads.find(ad => ad.id === id)
+  const {data: ad} = useDraftAd(router.query.id)
 
   const coinbase = useCoinbase()
 
-  const [previewAd, setPreviewAd] = React.useState({
-    ...ad,
-    author: coinbase,
-    thumb: URL.createObjectURL(ad.thumb),
-    media: URL.createObjectURL(ad.media),
-  })
+  const adFormRef = React.useRef()
+
+  const previewAdRef = React.useRef()
 
   const previewDisclosure = useDisclosure()
 
@@ -48,31 +40,16 @@ export default function EditAdPage() {
           </PageHeader>
 
           <AdForm
+            ref={adFormRef}
             id="adForm"
             ad={ad}
-            onBlur={e => {
-              const nextAd = Object.fromEntries(
-                new FormData(e.currentTarget).entries()
-              )
-
-              setPreviewAd({
-                ...ad,
-                author: coinbase,
-                thumb: URL.createObjectURL(
-                  nextAd.thumb.size > 0 ? nextAd.thumb : ad.thumb
-                ),
-                media: URL.createObjectURL(
-                  nextAd.media.size > 0 ? nextAd.media : ad.media
-                ),
-              })
-            }}
             onSubmit={async nextAd => {
               const hasValues = Object.values(nextAd).some(value =>
                 value instanceof File ? value.size > 0 : Boolean(value)
               )
 
               if (hasValues) {
-                await db.table('ads').update(id, {
+                await db.table('ads').update(ad.id, {
                   ...nextAd,
                   thumb: nextAd.thumb.size > 0 ? nextAd.thumb : ad.thumb,
                   media: nextAd.media.size > 0 ? nextAd.media : ad.thumb,
@@ -87,6 +64,22 @@ export default function EditAdPage() {
         <PageFooter>
           <SecondaryButton
             onClick={() => {
+              const nextAd = Object.fromEntries(
+                new FormData(adFormRef.current).entries()
+              )
+
+              previewAdRef.current = {
+                ...ad,
+                ...nextAd,
+                author: coinbase,
+                thumb: URL.createObjectURL(
+                  nextAd.thumb.size > 0 ? nextAd.thumb : ad.thumb
+                ),
+                media: URL.createObjectURL(
+                  nextAd.media.size > 0 ? nextAd.media : ad.media
+                ),
+              }
+
               previewDisclosure.onOpen()
             }}
           >
@@ -101,7 +94,7 @@ export default function EditAdPage() {
         </PageFooter>
       </Page>
 
-      <AdPreview ad={previewAd} {...previewDisclosure} />
+      <AdPreview ad={previewAdRef.current} {...previewDisclosure} />
     </Layout>
   )
 }

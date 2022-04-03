@@ -199,9 +199,18 @@ export function useBurntCoins(options) {
   })
 }
 
-export function useDraftAds() {
+export function useDraftAds(options) {
   return useQuery('draftAds', () => db.table('ads').toArray(), {
     initialData: [],
+    notifyOnChangeProps: 'tracked',
+    ...options,
+  })
+}
+
+export function useDraftAd(id) {
+  return useDraftAds({
+    enabled: Boolean(id),
+    select: data => data.find(ad => ad.id === id),
   })
 }
 
@@ -792,7 +801,8 @@ export function useProtoProfileDecoder() {
 }
 
 export function useCoinbase() {
-  return useAuthState().coinbase
+  const {coinbase} = useAuthState()
+  return coinbase
 }
 
 export function useBalance(address) {

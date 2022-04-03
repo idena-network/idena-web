@@ -26,6 +26,7 @@ import {
 } from '../../shared/components/components'
 import IconLink from '../../shared/components/icon-link'
 import {EditIcon, PlusSolidIcon} from '../../shared/components/icons'
+import db from '../../shared/utils/db'
 
 export default function AdListPage() {
   const {t} = useTranslation()
@@ -59,6 +60,33 @@ export default function AdListPage() {
   const isLoaded = status === 'success' || draftAdsStatus === 'success'
 
   const [selectedAd, setSelectedAd] = React.useState()
+
+  const handlePublish = React.useCallback(async () => {
+    try {
+      await db.table('ads').update(selectedAd?.id, {status: AdStatus.Approved})
+    } catch {
+      console.error('Error updating persisted ads', {id: selectedAd?.id})
+    } finally {
+      publishDisclosure.onClose()
+    }
+  }, [publishDisclosure, selectedAd])
+
+  const handleReview = React.useCallback(
+    async ({cid, contract}) => {
+      try {
+        await db.table('ads').update(selectedAd.id, {
+          status: AdStatus.Reviewing,
+          cid,
+          contract,
+        })
+      } catch {
+        console.error('Error updating persisted ads', {id: selectedAd?.id})
+      } finally {
+        reviewDisclosure.onClose()
+      }
+    },
+    [reviewDisclosure, selectedAd]
+  )
 
   return (
     <Layout>
@@ -131,7 +159,7 @@ export default function AdListPage() {
         {selectedAd && (
           <ReviewAdDrawer
             ad={selectedAd}
-            onSendToReviewSuccess={reviewDisclosure.onClose}
+            onSendToReview={handleReview}
             {...reviewDisclosure}
           />
         )}
@@ -139,7 +167,7 @@ export default function AdListPage() {
         {selectedAd && (
           <PublishAdDrawer
             ad={selectedAd}
-            onPublishSuccess={publishDisclosure.onClose}
+            onPublish={handlePublish}
             {...publishDisclosure}
           />
         )}
@@ -147,7 +175,7 @@ export default function AdListPage() {
         {selectedAd && (
           <BurnDrawer
             ad={selectedAd}
-            onBurnSuccess={burnDisclosure.onClose}
+            onBurn={burnDisclosure.onClose}
             {...burnDisclosure}
           />
         )}
