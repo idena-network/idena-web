@@ -1,7 +1,7 @@
-import {stripHexPrefix, toHexString} from '../utils/buffers'
+import {stripHexPrefix} from '../utils/buffers'
 import root from './proto/models_pb'
 
-export class AdKey {
+export class AdTarget {
   constructor({language, age, os, stake}) {
     this.language = language
     this.age = age
@@ -10,15 +10,15 @@ export class AdKey {
   }
 
   static fromBytes = bytes => {
-    const protoAdKey = root.ProtoAdKey.deserializeBinary(bytes)
-    return new AdKey(protoAdKey.toObject())
+    const protoAdKey = root.ProtoAdTarget.deserializeBinary(bytes)
+    return new AdTarget(protoAdKey.toObject())
   }
 
   static fromHex = hex =>
-    AdKey.fromBytes(Buffer.from(stripHexPrefix(hex), 'hex'))
+    AdTarget.fromBytes(Buffer.from(stripHexPrefix(hex), 'hex'))
 
   toBytes() {
-    const data = new root.ProtoAdKey()
+    const data = new root.ProtoAdTarget()
 
     data.setLanguage(this.language)
     data.setAge(this.age)
@@ -29,6 +29,6 @@ export class AdKey {
   }
 
   toHex() {
-    return toHexString(this.toBytes(), true)
+    return Buffer.from(this.toBytes()).toString('hex')
   }
 }

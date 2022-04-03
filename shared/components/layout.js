@@ -16,7 +16,7 @@ import {useTestValidationState} from '../providers/test-validation-context'
 import {EpochPeriod} from '../types'
 import {useInterval} from '../hooks/use-interval'
 import {DeferredVotes} from '../../screens/oracles/components'
-import {useRotatingAdList} from '../../screens/ads/hooks'
+import {useRotatingAds} from '../../screens/ads/hooks'
 import {AdBanner} from '../../screens/ads/containers'
 
 export default function Layout({
@@ -74,7 +74,7 @@ function NormalApp({children, canRedirect = true, skipBanner}) {
       router.push('/try/validation')
   }, [canRedirect, currentTrainingValidation, router, settings.apiKeyState])
 
-  const ads = useRotatingAdList()
+  const ads = useRotatingAds()
 
   const hasRotatingAds = ads.length > 0
 

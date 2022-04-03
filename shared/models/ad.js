@@ -1,21 +1,23 @@
-import {stripHexPrefix, toHexString} from '../utils/buffers'
+import {stripHexPrefix} from '../utils/buffers'
 import root from './proto/models_pb'
 
 export class Ad {
-  constructor({id, title, url, cover, author}) {
-    this.id = id
-    this.title = title
-    this.url = url
-    this.cover = cover
-    this.author = author
+  constructor({title, desc, url, thumb, media}) {
+    Object.assign(this, {title, desc, url, thumb, media})
   }
 
   static fromBytes = bytes => {
     const protoAd = root.ProtoAd.deserializeBinary(bytes)
+
     return new Ad({
-      ...protoAd.toObject(),
-      cover: URL.createObjectURL(
-        new Blob([protoAd.getCover()], {type: 'image/png'})
+      title: protoAd.getTitle(),
+      desc: protoAd.getDesc(),
+      url: protoAd.getUrl(),
+      thumb: URL.createObjectURL(
+        new Blob([protoAd.getThumb()], {type: 'image/jpeg'})
+      ),
+      media: URL.createObjectURL(
+        new Blob([protoAd.getMedia()], {type: 'image/png'})
       ),
     })
   }
@@ -25,16 +27,16 @@ export class Ad {
   toBytes() {
     const data = new root.ProtoAd()
 
-    data.setId(this.id)
     data.setTitle(this.title)
+    data.setDesc(this.desc)
     data.setUrl(this.url)
-    data.setCover(this.cover)
-    data.setAuthor(this.author)
+    data.setThumb(this.thumb)
+    data.setMedia(this.media)
 
     return data.serializeBinary()
   }
 
   toHex() {
-    return toHexString(this.toBytes(), true)
+    return Buffer.from(this.toBytes()).toString('hex')
   }
 }

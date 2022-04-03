@@ -2,125 +2,137 @@
 import {useToken, useInterval} from '@chakra-ui/react'
 import React from 'react'
 import {useTranslation} from 'react-i18next'
-import {useQueries, useQuery} from 'react-query'
+import {useMutation, useQueries, useQuery} from 'react-query'
+import {CID, bytes} from 'multiformats'
 import {Ad} from '../../shared/models/ad'
-import {AdKey} from '../../shared/models/adKey'
+import {AdTarget} from '../../shared/models/adKey'
 import {Profile} from '../../shared/models/profile'
 import {useIdentity} from '../../shared/providers/identity-context'
-import {callRpc, toLocaleDna} from '../../shared/utils/utils'
-import {AdStatus, AdVotingOption, AdVotingOptionId} from './types'
 import {
+  callRpc,
+  toLocaleDna,
+  prependHex,
+  HASH_IN_MEMPOOL,
+  roundToPrecision,
+} from '../../shared/utils/utils'
+import {AdRotationStatus, AdVotingOption, AdVotingOptionId} from './types'
+import {
+  AD_VOTING_COMMITTEE_SIZE,
+  areCompetingAds,
+  buildAdReviewVoting,
   currentOs,
   fetchAdVoting,
-  isCompetingAd,
-  isSameAdKey,
+  fetchProfileAds,
+  minOracleReward,
   selectProfileHash,
 } from './utils'
-import {VotingStatus} from '../../shared/types'
+import {TxType, VotingStatus} from '../../shared/types'
 import {capitalize} from '../../shared/utils/string'
+import {useAuthState} from '../../shared/providers/auth-context'
+import {stripHexPrefix} from '../../shared/utils/buffers'
+import {Transaction} from '../../shared/models/transaction'
+import {
+  argsToSlice,
+  BLOCK_TIME,
+  buildContractDeploymentArgs,
+  votingMinStake,
+} from '../oracles/utils'
+import {DeployContractAttachment} from '../../shared/models/deployContractAttachment'
+import {CallContractAttachment} from '../../shared/models/callContractAttachment'
+import db from '../../shared/utils/db'
+import {StoreToIpfsAttachment} from '../../shared/models/storeToIpfsAttachment'
+import {ChangeProfileAttachment} from '../../shared/models/changeProfileAttachment'
+import {BurnAttachment} from '../../shared/models/burnAttachment'
+import {AdBurnKey} from '../../shared/models/adBurnKey'
 
-export function useRotatingAdList(limit = 3) {
-  const {i18n} = useTranslation()
-
+export function useRotatingAds(limit = 3) {
   const rpcFetcher = useRpcFetcher()
 
-  const coinbase = useCoinbase()
+  const {data: burntCoins} = useBurntCoins()
 
-  const [identity] = useIdentity()
+  const addresses = [...new Set(burntCoins?.map(({address}) => address))]
 
-  const {data: competitorAds} = useAdCompetitors(
-    {
-      address: String(coinbase),
-      key: new AdKey({
-        language: i18n.language,
-        os: typeof window !== 'undefined' ? currentOs() : '',
-        age: identity.age,
-        stake: identity.stake,
-      }),
-    },
-    limit
-  )
-
-  const competingIdentities = [
-    ...new Set(
-      competitorAds
-        ?.sort((a, b) => a.amount - b.amount)
-        ?.map(burn => burn.address) ?? []
-    ),
-  ]
-
-  const competingProfileHashQueries = useQueries(
-    competingIdentities.map(address => ({
-      queryKey: ['dna_identity', address],
+  const profileHashes = useQueries(
+    addresses.map(address => ({
+      queryKey: ['dna_identity', [address]],
       queryFn: rpcFetcher,
+      notifyOnChangeProps: ['data', 'error'],
       select: selectProfileHash,
-    })) ?? []
+    }))
   )
 
-  const {decodeProfile, decodeAd, decodeAdKey} = useProtoProfileDecoder()
+  const {decodeAd, decodeProfile} = useProtoProfileDecoder()
 
-  const competingProfileHashes =
-    competingProfileHashQueries?.filter(query => Boolean(query.data)) ?? []
-
-  const decodedProfiles = useQueries(
-    competingProfileHashes.map(({data}) => ({
-      queryKey: ['ipfs_get', data],
+  const profiles = useQueries(
+    profileHashes.map(({data: cid}) => ({
+      queryKey: ['ipfs_get', [cid]],
       queryFn: rpcFetcher,
-      enabled: Boolean(data),
+      enabled: Boolean(cid),
       select: decodeProfile,
       staleTime: Infinity,
+      notifyOnChangeProps: ['data'],
     }))
   )
 
-  const competingProfileAds = decodedProfiles
-    .map(({data}) => data?.ads)
-    .flat()
-    .filter(profileAd =>
-      (competitorAds ?? []).some(burningAd =>
-        isSameAdKey(decodeAdKey(burningAd.key), profileAd?.key ?? {})
-      )
-    )
+  const profileAdVotings = useQueries(
+    profiles
+      .map(({data}) => data?.ads)
+      .flat()
+      .map(ad => ({
+        queryKey: ['profileAdVoting', ad?.contract],
+        queryFn: () => fetchAdVoting(ad?.contract),
+        enabled: Boolean(ad?.contract),
+        select: data => ({...data, cid: ad?.cid}),
+      }))
+  )
 
-  const approvedProfileAds = useQueries(
-    competingProfileAds.map(profileAd => ({
-      queryKey: ['profileAd', profileAd?.votingAddress],
-      queryFn: async ({queryKey: [, votingAddress]}) => {
-        if (votingAddress) {
-          const voting = await fetchAdVoting(votingAddress)
-          return {
-            ...profileAd,
-            voting,
-          }
-        }
-      },
-      enabled: Boolean(profileAd?.votingAddress),
-    }))
-  ).filter(({data}) => {
-    const voting = data?.voting
-    return (
-      voting?.adCid === data?.cid &&
-      voting?.status === VotingStatus.Archived &&
-      voting?.result === AdVotingOptionId[AdVotingOption.Approve]
-    )
-  })
+  const approvedProfileAdVotings = profileAdVotings?.filter(
+    ({data}) =>
+      // voting?.adCid === ad?.cid &&
+      data?.status === VotingStatus.Archived &&
+      data?.result === AdVotingOptionId[AdVotingOption.Approve]
+  )
 
   const decodedProfileAds = useQueries(
-    approvedProfileAds.map(({data: ad}) => ({
-      queryKey: ['ipfs_get', ad.cid],
-      queryFn: rpcFetcher,
-      enabled: Boolean(ad.cid),
-      select: decodeAd,
-      staleTime: Infinity,
-    }))
+    burntCoins
+      ?.filter(({key}) =>
+        approvedProfileAdVotings.some(
+          ({data}) => data?.cid === AdBurnKey.fromHex(key).cid
+        )
+      )
+      .slice(0, limit)
+      .map(({key, address, amount}) => {
+        const {cid} = AdBurnKey.fromHex(key)
+        return {
+          queryKey: ['decodedProfileAd', [cid]],
+          queryFn: async () => ({
+            ...decodeAd(await callRpc('ipfs_get', cid)),
+            cid,
+            author: address,
+            amount: Number(amount),
+          }),
+          enabled: Boolean(cid),
+          staleTime: Infinity,
+          notifyOnChangeProps: ['tracked'],
+        }
+      }) ?? []
   )
 
   return decodedProfileAds?.map(x => x.data) ?? []
 }
 
-export function useAdRotation() {
-  const ads = useRotatingAdList()
+export function useActiveAd() {
+  const ads = useRotatingAds()
 
-  const intervalsRef = React.useRef([5, 4, 3])
+  const {currentIndex} = useRotateAd()
+
+  return ads[currentIndex]
+}
+
+export function useRotateAd() {
+  const ads = useRotatingAds()
+
+  const intervalsRef = React.useRef([10, 7, 5])
 
   const [currentIndex, setCurrentIndex] = React.useState(0)
 
@@ -140,35 +152,630 @@ export function useAdRotation() {
   }
 }
 
-export function useActiveAd() {
-  const ads = useRotatingAdList()
+export function useCompetingAds() {
+  const [{address, age, stake}] = useIdentity()
 
-  const {currentIndex} = useAdRotation()
+  const currentTarget = React.useMemo(
+    () =>
+      new AdTarget({
+        language:
+          typeof window !== 'undefined'
+            ? new Intl.Locale(navigator.language).language
+            : '',
+        os: typeof window !== 'undefined' ? currentOs() : '',
+        age: age + 1,
+        stake,
+      }),
+    [age, stake]
+  )
 
-  return ads[currentIndex]
+  return useCompetingAdsByTarget(address, currentTarget)
 }
 
-export function useAdCompetitors(target, limit) {
-  const {decodeAdKey} = useProtoProfileDecoder()
+export function useCompetingAdsByTarget(cid, target) {
+  const {decodeAdTarget} = useProtoProfileDecoder()
 
-  return useRpc('bcn_burntCoins', [], {
-    enabled: Boolean(target.address),
+  return useBurntCoins({
+    enabled: Boolean(cid) && Boolean(target),
     select: React.useCallback(
       data =>
-        data
-          ?.filter(burn =>
-            isCompetingAd(target)({...burn, key: decodeAdKey(burn.key)})
+        data?.filter(burn => {
+          const key = AdBurnKey.fromHex(burn.key)
+          return (
+            cid !== key.cid &&
+            areCompetingAds(decodeAdTarget(key.target), target)
           )
-          .slice(0, limit) ?? [],
-      [limit, target, decodeAdKey]
+        }) ?? [],
+      [cid, decodeAdTarget, target]
     ),
   })
+}
+
+export function useBurntCoins(options) {
+  return useRpc('bcn_burntCoins', [], {
+    staleTime: 10 * 1000,
+    notifyOnChangeProps: ['data'],
+    ...options,
+  })
+}
+
+export function useDraftAds() {
+  return useQuery('draftAds', () => db.table('ads').toArray(), {
+    initialData: [],
+  })
+}
+
+export function useReviewAd() {
+  const [status, setStatus] = React.useState('idle')
+
+  const [ad, setAd] = React.useState()
+
+  const {data: storeToIpfsData, submit: storeToIpfs} = useStoreToIpfs()
+
+  React.useEffect(() => {
+    if (status === 'pending' && ad) {
+      storeToIpfs(new Ad(ad).toHex())
+    }
+  }, [ad, status, storeToIpfs])
+
+  const {
+    data: deployData,
+    estimateData: estimateDeployData,
+    txData: deployTxData,
+    submit: deployVoting,
+  } = useDeployVoting()
+
+  React.useEffect(() => {
+    if (status === 'pending' && storeToIpfsData) {
+      console.log({storeToIpfsData})
+      deployVoting(
+        buildAdReviewVoting({
+          title: ad?.title,
+          adCid: storeToIpfsData.cid,
+        })
+      )
+    }
+  }, [ad, deployVoting, status, storeToIpfsData])
+
+  const {
+    data: startVotingData,
+    txData: startVotingTxData,
+    submit: startVoting,
+  } = useStartVoting()
+
+  React.useEffect(() => {
+    if (
+      status === 'pending' &&
+      deployData &&
+      deployTxData &&
+      deployTxData?.blockHash !== HASH_IN_MEMPOOL
+    ) {
+      console.log({deployData, deployTxData})
+      startVoting({
+        ...buildAdReviewVoting({
+          title: ad?.title,
+          adCid: storeToIpfsData?.cid,
+        }),
+        address: estimateDeployData?.receipt?.contract,
+      })
+    }
+  }, [
+    deployData,
+    deployTxData,
+    startVoting,
+    ad,
+    storeToIpfsData,
+    estimateDeployData,
+    status,
+  ])
+
+  React.useEffect(() => {
+    if (
+      status === 'pending' &&
+      startVotingData &&
+      startVotingTxData &&
+      startVotingTxData?.blockHash !== HASH_IN_MEMPOOL
+    ) {
+      console.log({startVotingData, startVotingTxData})
+      setStatus('done')
+    }
+  }, [startVotingData, startVotingTxData, status])
+
+  return {
+    storeToIpfsData,
+    estimateDeployData,
+    deployData,
+    startVotingData,
+    startVotingTxData,
+    isPending: status === 'pending',
+    isDone: status === 'done',
+    status,
+    // eslint-disable-next-line no-shadow
+    submit: React.useCallback(ad => {
+      setAd(ad)
+      setStatus('pending')
+    }, []),
+  }
+}
+
+function useDeployVoting() {
+  const coinbase = useCoinbase()
+
+  const privateKey = usePrivateKey()
+
+  const {data: deployAmount} = useDeployVotingAmount()
+
+  const [payload, setPayload] = React.useState()
+
+  const {data, estimateData, send, estimate} = useRawTx()
+
+  React.useEffect(() => {
+    if (payload && deployAmount) {
+      estimate({
+        type: 0xf,
+        from: String(coinbase),
+        amount: deployAmount,
+        payload,
+        privateKey,
+      })
+    }
+  }, [coinbase, deployAmount, estimate, payload, privateKey])
+
+  React.useEffect(() => {
+    if (estimateData) {
+      console.log({estimateData})
+
+      const {txFee} = estimateData
+
+      send({
+        type: 0xf,
+        from: String(coinbase),
+        amount: deployAmount,
+        payload: String(payload),
+        maxFee: Number(txFee) * 1.1,
+        privateKey,
+      })
+    }
+  }, [coinbase, deployAmount, estimateData, payload, privateKey, send])
+
+  const txData = useTx(data)
+
+  return {
+    data,
+    estimateData,
+    txData,
+    submit: React.useCallback(voting => {
+      setPayload(
+        prependHex(
+          bytes.toHex(
+            new DeployContractAttachment(
+              bytes.fromHex('0x02'),
+              argsToSlice(buildContractDeploymentArgs(voting)),
+              3
+            ).toBytes()
+          )
+        )
+      )
+    }, []),
+  }
+}
+
+function useStartVoting() {
+  const coinbase = useCoinbase()
+
+  const privateKey = usePrivateKey()
+
+  const [voting, setVoting] = React.useState()
+
+  const [payload, setPayload] = React.useState()
+
+  React.useEffect(() => {
+    if (voting) {
+      setPayload(
+        prependHex(
+          bytes.toHex(
+            new CallContractAttachment(
+              'startVoting',
+              argsToSlice(buildContractDeploymentArgs(voting)),
+              3
+            ).toBytes()
+          )
+        )
+      )
+    }
+  }, [voting])
+
+  const {data, estimateData, send, estimate} = useRawTx()
+
+  const {data: startAmount} = useStartAdVotingAmount()
+
+  React.useEffect(() => {
+    if (payload && startAmount) {
+      console.log({voting})
+      estimate({
+        type: 0x10,
+        from: String(coinbase),
+        to: voting?.address,
+        amount: startAmount,
+        payload,
+        privateKey,
+      })
+    }
+  }, [coinbase, estimate, payload, privateKey, startAmount, voting])
+
+  React.useEffect(() => {
+    if (estimateData && estimateData?.receipt?.success && startAmount) {
+      console.log({estimateData, voting})
+
+      const {txFee} = estimateData
+
+      send({
+        type: 0x10,
+        from: String(coinbase),
+        to: voting?.address,
+        amount: 5000,
+        payload: String(payload),
+        maxFee: Number(txFee) * 1.1,
+        privateKey,
+      })
+    } else if (estimateData?.receipt?.error) {
+      console.log({error: estimateData?.receipt?.error})
+    }
+  }, [coinbase, estimateData, payload, privateKey, send, startAmount, voting])
+
+  const txData = useTx(data)
+
+  return {
+    data,
+    txData,
+    submit: setVoting,
+  }
+}
+
+export function usePublishAd() {
+  const [status, setStatus] = React.useState('idle')
+
+  const [ad, setAd] = React.useState()
+
+  const coinbase = useCoinbase()
+
+  const {encodeAdTarget, encodeProfile} = useProtoProfileEncoder()
+
+  const {data: storeToIpfsData, submit: storeToIpfs} = useStoreToIpfs()
+
+  React.useEffect(() => {
+    if (status === 'pending' && ad) {
+      const target = encodeAdTarget(ad)
+
+      const {cid, contract} = ad
+
+      fetchProfileAds(coinbase).then(ads =>
+        storeToIpfs(
+          encodeProfile({
+            ads: [
+              ...ads,
+              {
+                target,
+                cid,
+                contract,
+                author: coinbase,
+              },
+            ],
+          })
+        )
+      )
+    }
+  }, [ad, coinbase, encodeAdTarget, encodeProfile, status, storeToIpfs])
+
+  const {
+    data: changeProfileData,
+    txData: changeProfileTxData,
+    submit,
+  } = useChangeProfile()
+
+  React.useEffect(() => {
+    if (status === 'pending' && storeToIpfsData) {
+      submit(storeToIpfsData.cid)
+    }
+  }, [status, storeToIpfsData, submit])
+
+  React.useEffect(() => {
+    if (
+      status === 'pending' &&
+      storeToIpfsData &&
+      changeProfileData &&
+      changeProfileTxData &&
+      changeProfileTxData?.blockHash !== HASH_IN_MEMPOOL
+    ) {
+      setStatus('done')
+    }
+  }, [changeProfileData, changeProfileTxData, status, storeToIpfsData])
+
+  return {
+    storeToIpfsData,
+    changeProfileData,
+    isPending: status === 'pending',
+    isDone: status === 'done',
+    status,
+    // eslint-disable-next-line no-shadow
+    submit: React.useCallback(ad => {
+      setAd(ad)
+      setStatus('pending')
+    }, []),
+  }
+}
+
+function useChangeProfile() {
+  const coinbase = useCoinbase()
+
+  const privateKey = usePrivateKey()
+
+  const [cid, setCid] = React.useState()
+
+  const [payload, setPayload] = React.useState()
+
+  React.useEffect(() => {
+    if (cid) {
+      setPayload(
+        prependHex(
+          new ChangeProfileAttachment({
+            cid: CID.parse(cid).bytes,
+          }).toHex()
+        )
+      )
+    }
+  }, [cid])
+
+  const {data, send} = useRawTx()
+
+  React.useEffect(() => {
+    if (payload) {
+      send({
+        type: TxType.ChangeProfileTx,
+        from: String(coinbase),
+        payload: String(payload),
+        privateKey,
+      })
+    }
+  }, [cid, coinbase, payload, privateKey, send])
+
+  const txData = useTx(data)
+
+  return {
+    data,
+    txData,
+    submit: setCid,
+  }
+}
+
+export function useBurnAd() {
+  const {encodeAdTarget} = useProtoProfileEncoder()
+
+  const [state, dispatch] = React.useReducer(
+    (prevState, action) => {
+      switch (action.type) {
+        case 'submit': {
+          const {
+            ad: {cid, ...ad},
+            amount,
+          } = action
+
+          return {
+            ...prevState,
+            amount,
+            payload: prependHex(
+              new BurnAttachment({
+                key: new AdBurnKey({
+                  cid,
+                  target: encodeAdTarget(ad),
+                }).toHex(),
+              }).toHex()
+            ),
+            status: 'pending',
+          }
+        }
+        case 'done':
+          return {...prevState, status: 'done'}
+
+        default:
+          return prevState
+      }
+    },
+    {
+      status: 'idle',
+    }
+  )
+
+  const coinbase = useCoinbase()
+
+  const privateKey = usePrivateKey()
+
+  const {data, send} = useRawTx()
+
+  React.useEffect(() => {
+    if (state.status === 'pending') {
+      send({
+        type: TxType.BurnTx,
+        from: String(coinbase),
+        amount: state.amount,
+        payload: String(state.payload),
+        privateKey,
+      })
+    }
+  }, [coinbase, privateKey, send, state])
+
+  const txData = useTx(data)
+
+  React.useEffect(() => {
+    if (
+      state.status === 'pending' &&
+      data &&
+      (txData?.blockHash ?? HASH_IN_MEMPOOL) !== HASH_IN_MEMPOOL
+    ) {
+      dispatch({type: 'done'})
+    }
+  }, [data, state, txData])
+
+  const submit = React.useCallback(({ad, amount}) => {
+    dispatch({type: 'submit', ad, amount})
+  }, [])
+
+  return {
+    data,
+    txData,
+    isPending: state.status === 'pending',
+    isDone: state.status === 'done',
+    status: state.status,
+    submit,
+  }
+}
+
+export function useDeployVotingAmount() {
+  return useRpc('bcn_feePerGas', [], {
+    select: votingMinStake,
+  })
+}
+
+export function useStartVotingAmount(committeeSize) {
+  return useQuery(
+    ['useStartVotingAmount', committeeSize],
+    // eslint-disable-next-line no-shadow
+    async ({queryKey: [, committeeSize]}) =>
+      roundToPrecision(4, Number(await minOracleReward()) * committeeSize)
+  )
+}
+
+export function useStartAdVotingAmount() {
+  return useStartVotingAmount(AD_VOTING_COMMITTEE_SIZE)
+}
+
+function useStoreToIpfs() {
+  const coinbase = useCoinbase()
+
+  const privateKey = usePrivateKey()
+
+  const storeToIpfsMutation = useMutation(async hex => {
+    const contentBytes = bytes.fromHex(hex)
+
+    const cid = await callRpc('ipfs_cid', prependHex(hex))
+
+    const rawTx = await callRpc('bcn_getRawTx', {
+      type: 0x15,
+      from: coinbase,
+      payload: prependHex(
+        new StoreToIpfsAttachment({
+          size: contentBytes.byteLength,
+          cid: CID.parse(cid).bytes,
+        }).toHex()
+      ),
+      useProto: true,
+    })
+
+    const sendToIpfsTx = new Transaction().fromHex(rawTx)
+
+    sendToIpfsTx.sign(privateKey)
+
+    const hash = await callRpc('dna_sendToIpfs', {
+      tx: prependHex(sendToIpfsTx.toHex()),
+      data: prependHex(hex),
+    })
+
+    return {
+      cid,
+      hash,
+    }
+  })
+
+  return {
+    data: storeToIpfsMutation.data,
+    error: storeToIpfsMutation.error,
+    submit: storeToIpfsMutation.mutate,
+  }
+}
+
+function useRawTx(initialTxParams) {
+  const {data: signedEstimateTx, setParams: setEstimateParams} = useSignedTx(
+    initialTxParams
+  )
+
+  const {data: estimateData, mutate: estimateRawTx} = useMutation(tx =>
+    callRpc('bcn_estimateRawTx', prependHex(tx))
+  )
+
+  React.useEffect(() => {
+    if (signedEstimateTx) {
+      estimateRawTx(signedEstimateTx)
+    }
+  }, [estimateRawTx, signedEstimateTx])
+
+  const {data: signedTx, setParams} = useSignedTx(initialTxParams)
+
+  const {data, mutate: sendRawTx} = useMutation(tx =>
+    callRpc('bcn_sendRawTx', prependHex(tx))
+  )
+
+  React.useEffect(() => {
+    if (signedTx) {
+      sendRawTx(signedTx)
+    }
+  }, [sendRawTx, signedTx])
+
+  return {
+    data,
+    estimateData,
+    estimate: setEstimateParams,
+    send: setParams,
+  }
+}
+
+function useSignedTx(initialParams) {
+  const [params, setParams] = React.useState()
+
+  const {data: rawTxData} = useRpc(
+    'bcn_getRawTx',
+    [
+      {
+        ...params,
+        payload: prependHex(params?.payload),
+        useProto: true,
+      },
+    ],
+    {
+      staleTime: Infinity,
+      enabled: Boolean(params),
+    }
+  )
+
+  const [signedTx, setSignedTx] = React.useState()
+
+  React.useEffect(() => {
+    if (rawTxData) {
+      setSignedTx(
+        prependHex(
+          new Transaction()
+            .fromHex(stripHexPrefix(rawTxData))
+            .sign(params?.privateKey)
+            .toHex()
+        )
+      )
+    }
+  }, [params, rawTxData])
+
+  return {
+    data: signedTx,
+    setParams: React.useCallback(
+      callParams => {
+        setParams({...initialParams, ...callParams})
+      },
+      [initialParams]
+    ),
+  }
 }
 
 export function useProtoProfileEncoder() {
   return {
     encodeAd: React.useCallback(ad => new Ad(ad).toHex(), []),
-    encodeAdKey: React.useCallback(adKey => new AdKey(adKey).toHex(), []),
+    encodeAdTarget: React.useCallback(adKey => new AdTarget(adKey).toHex(), []),
     encodeProfile: React.useCallback(
       profile => new Profile(profile).toHex(),
       []
@@ -179,36 +786,87 @@ export function useProtoProfileEncoder() {
 export function useProtoProfileDecoder() {
   return {
     decodeAd: React.useCallback(Ad.fromHex, []),
-    decodeAdKey: React.useCallback(AdKey.fromHex, []),
+    decodeAdTarget: React.useCallback(AdTarget.fromHex, []),
     decodeProfile: React.useCallback(Profile.fromHex, []),
   }
 }
 
 export function useCoinbase() {
-  return useRpc('dna_getCoinbaseAddr', []).data
+  return useAuthState().coinbase
+}
+
+export function useBalance(address) {
+  const {data} = useRpc('dna_getBalance', [address], {
+    enabled: Boolean(address),
+  })
+
+  return data?.balance
+}
+
+function usePrivateKey() {
+  const {privateKey} = useAuthState()
+  return privateKey
+}
+
+function useLastBlock() {
+  return useRpc('bcn_lastBlock', [], {
+    refetchInterval: (BLOCK_TIME / 2) * 1000,
+    notifyOnChangeProps: ['data', 'error'],
+  }).data
+}
+
+export function useRpc(method, params, options) {
+  const rpcFetcher = useRpcFetcher()
+
+  return useQuery([method, params], rpcFetcher, {
+    notifyOnChangeProps: 'tracked',
+    ...options,
+  })
+}
+
+function useLiveRpc(method, params, options) {
+  const rpcFetcher = useRpcFetcher()
+
+  const lastBlock = useLastBlock()
+
+  return useQuery([method, params, lastBlock?.hash], rpcFetcher, {
+    staleTime: Infinity,
+    keepPreviousData: true,
+    notifyOnChangeProps: ['data', 'error'],
+    ...options,
+  })
 }
 
 export function useRpcFetcher() {
   const fetcher = React.useMemo(
-    () => ({queryKey: [method, params]}) => callRpc(method, params),
+    () => ({queryKey: [method, params]}) => callRpc(method, ...params),
     []
   )
 
   return fetcher
 }
 
-export function useRpc(method, params, options) {
-  const rpcFetcher = useRpcFetcher()
+export function useTx(hash, options) {
+  const isMiningRef = React.useRef(true)
 
-  return useQuery([method, params], rpcFetcher, options)
+  const {data} = useLiveRpc('bcn_transaction', [hash], {
+    enabled: Boolean(hash) && isMiningRef.current,
+    ...options,
+  })
+
+  React.useEffect(() => {
+    if (data && isMiningRef.current)
+      isMiningRef.current = data?.blockHash === HASH_IN_MEMPOOL
+  }, [data])
+
+  return data
 }
 
 export function useAdStatusColor(status, fallbackColor = 'muted') {
   const statusColor = {
-    [AdStatus.Showing]: 'green',
-    [AdStatus.NotShowing]: 'red',
-    [AdStatus.PartiallyShowing]: 'orange',
-    [AdStatus.Rejected]: 'red',
+    [AdRotationStatus.Showing]: 'green',
+    [AdRotationStatus.NotShowing]: 'red',
+    [AdRotationStatus.PartiallyShowing]: 'orange',
   }
 
   const color = useToken('colors', `${statusColor[status]}.500`, fallbackColor)
@@ -220,9 +878,9 @@ export function useAdStatusText(status) {
   const {t} = useTranslation()
 
   const statusText = {
-    [AdStatus.Showing]: t('Showing'),
-    [AdStatus.NotShowing]: t('Not showing'),
-    [AdStatus.PartiallyShowing]: t('Partially showing'),
+    [AdRotationStatus.Showing]: t('Showing'),
+    [AdRotationStatus.NotShowing]: t('Not showing'),
+    [AdRotationStatus.PartiallyShowing]: t('Partially showing'),
   }
 
   return statusText[status] ?? capitalize(status)
@@ -236,10 +894,13 @@ export function useFormatDna() {
   return React.useCallback(value => toLocaleDna(language)(value), [language])
 }
 
-export function useBalance(coinbase) {
-  const {data} = useRpc('dna_getBalance', coinbase, {
-    enabled: Boolean(coinbase),
-  })
+export function useIpfsAd(cid) {
+  const {decodeAd} = useProtoProfileDecoder()
 
-  return data?.balance
+  return useRpc('ipfs_get', [cid], {
+    enabled: Boolean(cid),
+    select: decodeAd,
+    staleTime: Infinity,
+    notifyOnChangeProps: ['data'],
+  })
 }

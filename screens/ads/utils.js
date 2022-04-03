@@ -1,8 +1,9 @@
 /* eslint-disable no-use-before-define */
+import {Profile} from '../../shared/models/profile'
 import {VotingStatus} from '../../shared/types'
 import {areSameCaseInsensitive, callRpc} from '../../shared/utils/utils'
-import {hexToObject} from '../oracles/utils'
-import {AdStatus} from './types'
+import {fetchNetworkSize, hexToObject} from '../oracles/utils'
+import {AdStatus, AdVotingOption, AdVotingOptionId} from './types'
 
 export const OS = {
   Windows: 'windows',
@@ -29,75 +30,21 @@ export function currentOs() {
   }
 }
 
-const eitherStatus = (...statuses) => status =>
-  statuses.some(s => s.toUpperCase() === status.toUpperCase())
-
-export const isReviewingAd = ({status}) =>
-  eitherStatus(
-    AdStatus.Reviewing,
-    VotingStatus.Pending,
-    VotingStatus.Open,
-    VotingStatus.Voted,
-    VotingStatus.Counting
-  )(status)
-
-export const isActiveAd = ({status}) =>
-  eitherStatus(
-    AdStatus.Reviewing,
-    VotingStatus.Pending,
-    VotingStatus.Open,
-    VotingStatus.Voted,
-    VotingStatus.Counting
-  )(status)
-
-export const isApprovedAd = ({status}) =>
-  eitherStatus(
-    AdStatus.Showing,
-    AdStatus.NotShowing,
-    AdStatus.PartiallyShowing
-  )(status)
-
-export function filterAdsByStatus(ads, filter) {
-  return ads.filter(ad => {
-    const status = ad?.status ?? ''
-    // eslint-disable-next-line no-nested-ternary
-    return filter === AdStatus.Reviewing
-      ? isReviewingAd({status})
-      : filter === AdStatus.Active
-      ? isApprovedAd({status})
-      : areSameCaseInsensitive(status, filter)
-  })
-}
-
-export const isSameAdKey = (adKey, targetAdKey) =>
-  areSameCaseInsensitive(adKey.language, targetAdKey.language) &&
-  areSameCaseInsensitive(adKey.os, targetAdKey.os) &&
-  Number(adKey.age) === Number(targetAdKey.age) &&
-  Number(adKey.stake) === Number(targetAdKey.stake)
-
-export const isCompetingAd = targetAd => ad =>
-  targetAd.address === ad.address && isCompetingAdKey(ad.key, targetAd.key)
-
-const isCompetingAdKey = (
-  {language: adLanguage, os: adOS, age: adAge, stake: adStake},
-  {language: targetLanguage, os: targetOS, age: targetAge, stake: targetStake}
-) =>
-  weakCompare(adLanguage, targetLanguage, areSameCaseInsensitive) &&
-  weakCompare(adOS, targetOS, areSameCaseInsensitive) &&
-  weakCompare(
-    adAge,
-    targetAge,
-    // eslint-disable-next-line no-shadow
-    (adAge, targetAge) => Number(targetAge) >= Number(adAge)
+export const areCompetingAds = (targetA, targetB) =>
+  compareNullish(targetA.language, targetB.language, areSameCaseInsensitive) &&
+  compareNullish(targetA.os, targetB.os, areSameCaseInsensitive) &&
+  compareNullish(
+    targetA.age,
+    targetB.age,
+    (ageA, ageB) => Number(ageB) >= Number(ageA)
   ) &&
-  weakCompare(
-    adStake,
-    targetStake,
-    // eslint-disable-next-line no-shadow
-    (adStake, targetStake) => Number(targetStake) >= Number(adStake)
+  compareNullish(
+    targetA.stake,
+    targetB.stake,
+    (stakeA, stakeB) => Number(stakeB) >= Number(stakeA)
   )
 
-export const weakCompare = (field, targetField, condition) =>
+export const compareNullish = (field, targetField, condition) =>
   field ? condition(field, targetField) : true
 
 export const selectProfileHash = data => data.profileHash
@@ -109,7 +56,6 @@ export async function fetchAdVoting(address) {
     status: mapToVotingStatus(
       await readContractKey('state', 'byte').catch(e => {
         if (e.message === 'data is nil') return VotingStatus.Terminated
-        return VotingStatus.Invalid
       })
     ),
     ...hexToObject(await readContractKey('fact', 'hex').catch(() => null)),
@@ -130,5 +76,60 @@ const mapToVotingStatus = status => {
       return VotingStatus.Archived
     default:
       return status
+  }
+}
+
+export const AD_VOTING_COMMITTEE_SIZE = 4
+
+export const buildAdReviewVoting = ({title, adCid}) => ({
+  desc: title,
+  title: 'Is this ad apropriate?',
+  adCid,
+  // votingDuration: 4320 * 3,
+  // publicVotingDuration: 2160,
+  votingDuration: 3 * 3,
+  publicVotingDuration: 3 * 3,
+  winnerThreshold: 66,
+  quorum: 1,
+  committeeSize: AD_VOTING_COMMITTEE_SIZE,
+  options: [
+    buildAdReviewVotingOption(AdVotingOption.Approve),
+    buildAdReviewVotingOption(AdVotingOption.Reject),
+  ],
+  ownerFee: 100,
+  shouldStartImmediately: true,
+  isFreeVoting: true,
+})
+
+const buildAdReviewVotingOption = option => ({
+  id: AdVotingOptionId[option],
+  value: option,
+})
+
+export const minOracleReward = async () => 5000 / (await fetchNetworkSize())
+
+export async function fetchProfileAds(address) {
+  try {
+    const {profileHash} = await callRpc('dna_identity', address)
+
+    return profileHash
+      ? Profile.fromHex(await callRpc('ipfs_get', profileHash)).ads ?? []
+      : []
+  } catch {
+    console.error('Error fetching ads for identity', address)
+    return []
+  }
+}
+
+export const mapVotingToAdStatus = voting => {
+  if (voting.status) {
+    // eslint-disable-next-line no-nested-ternary
+    return [VotingStatus.Archived, VotingStatus.Terminated].includes(
+      voting.status
+    )
+      ? voting.result === AdVotingOptionId[AdVotingOption.Approve]
+        ? AdStatus.Approved
+        : AdStatus.Rejected
+      : AdStatus.Reviewing
   }
 }

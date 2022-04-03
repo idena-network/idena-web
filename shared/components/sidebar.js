@@ -65,6 +65,7 @@ import {
   WalletIcon,
   TimerIcon,
   OracleIcon,
+  AdsIcon,
 } from './icons'
 import {TodoVotingCountBadge} from '../../screens/oracles/components'
 import useUnreadOraclesCount from '../hooks/use-unread-oracles-count'
@@ -271,7 +272,12 @@ function Nav({onClose}) {
               </TodoVotingCountBadge>
             ) : null
           }
-        ></NavItem>
+        />
+        <NavItem
+          href="/ads/list"
+          icon={<AdsIcon boxSize={[8, 5]} />}
+          text={t('Ads')}
+        />
         <NavItem
           href="/settings"
           icon={<SettingsIcon boxSize={[8, 5]} />}

@@ -1,20 +1,16 @@
-import {stripHexPrefix, toHexString} from '../utils/buffers'
+import {stripHexPrefix} from '../utils/buffers'
 import root from './proto/models_pb'
 
 export class Profile {
   constructor(profile) {
-    this.ads = profile?.ads
+    this.ads = profile?.ads ?? []
   }
 
   static fromBytes = bytes =>
     new Profile({
       ads: root.ProtoProfile.deserializeBinary(bytes)
         .getAdsList()
-        .map(ad => ({
-          cid: ad.getCid(),
-          votingAddress: ad.getVotingaddress(),
-          key: ad.getKey().toObject(),
-        })),
+        .map(ad => ad.toObject()),
     })
 
   static fromHex = hex =>
@@ -26,16 +22,11 @@ export class Profile {
     protoProfile.setAdsList(
       this.ads.map(ad => {
         const profileAd = new root.ProtoProfile.ProtoProfileAd()
+
         profileAd.setCid(ad.cid)
-        profileAd.setVotingaddress(ad.votingAddress)
-
-        const adKey = new root.ProtoAdKey()
-        adKey.setLanguage(ad.key.language)
-        adKey.setOs(ad.key.os)
-        adKey.setAge(ad.key.age)
-        adKey.setStake(ad.key.stake)
-
-        profileAd.setKey(adKey)
+        profileAd.setTarget(ad.target)
+        profileAd.setContract(ad.contract)
+        profileAd.setAuthor(ad.author)
 
         return profileAd
       })
@@ -45,6 +36,6 @@ export class Profile {
   }
 
   toHex() {
-    return toHexString(this.toBytes(), true)
+    return Buffer.from(this.toBytes()).toString('hex')
   }
 }

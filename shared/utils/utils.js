@@ -195,3 +195,5 @@ export function omit(obj, keys) {
     Object.entries(obj).filter(([k]) => !keys.includes(k))
   )
 }
+
+export const prependHex = hex => (hex?.startsWith('0x') ? hex : `0x${hex}`)

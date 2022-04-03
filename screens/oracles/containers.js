@@ -31,6 +31,7 @@ import {
   FormControl,
   RadioGroup,
   Radio,
+  HStack,
 } from '@chakra-ui/react'
 import dayjs from 'dayjs'
 import {
@@ -49,6 +50,7 @@ import {
   DrawerBody,
   DrawerFooter,
   DrawerHeader,
+  ExternalLink,
   FormLabel,
   Input,
   Tooltip,
@@ -101,6 +103,7 @@ import {
   UserTickIcon,
 } from '../../shared/components/icons'
 import {AdDrawer} from '../ads/containers'
+import {AdImage} from '../ads/components'
 
 export function VotingCard({votingRef, ...props}) {
   const router = useRouter()
@@ -1640,5 +1643,45 @@ export function NewOraclePresetDialog({onChoosePreset, onCancel, ...props}) {
         </PrimaryButton>
       </DialogFooter>
     </Dialog>
+  )
+}
+
+export function OracleAdDescription({ad}) {
+  const {t} = useTranslation()
+
+  return (
+    <Stack spacing="7" bg="white" rounded="lg" p="6" pt="4">
+      <Stack spacing="2">
+        <Stack spacing="1">
+          <Text fontWeight={500}>{ad.title}</Text>
+          <Text color="muted">{ad.desc}</Text>
+        </Stack>
+        <Stack alignItems="flex-start" spacing={4}>
+          <ExternalLink href={ad.url} fontWeight={500} withArrow={false}>
+            {ad.url}
+          </ExternalLink>
+        </Stack>
+      </Stack>
+      <HStack spacing="6">
+        <HStack spacing="4">
+          <AdImage src={ad.media} w="10" objectFit="cover" />
+          <Box>
+            <Text>{t('Media')}</Text>
+            <Text fontSize="sm" color="muted">
+              320x320 px
+            </Text>
+          </Box>
+        </HStack>
+        <HStack spacing="4">
+          <AdImage src={ad.thumb} w="10" objectFit="cover" />
+          <Box>
+            <Text>{t('Thumbnail')}</Text>
+            <Text fontSize="sm" color="muted">
+              80x80 px
+            </Text>
+          </Box>
+        </HStack>
+      </HStack>
+    </Stack>
   )
 }

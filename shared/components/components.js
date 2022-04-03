@@ -55,7 +55,13 @@ import {FiEye, FiEyeOff} from 'react-icons/fi'
 import NextLink from 'next/link'
 import dynamic from 'next/dynamic'
 import {rem} from '../theme'
-import {ChevronRightIcon, GtranslateIcon, InfoIcon, MoreIcon} from './icons'
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+  GtranslateIcon,
+  InfoIcon,
+  MoreIcon,
+} from './icons'
 import {openExternalUrl} from '../utils/utils'
 import {Heading} from './typo'
 import {FlatButton, IconButton} from './button'
@@ -234,7 +240,12 @@ export function PasswordInput({width, ...props}) {
   )
 }
 
-export function Avatar({address, size = ['88px', '80px'], ...props}) {
+export function Avatar({
+  address,
+  boxSize,
+  size = boxSize || ['88px', '80px'],
+  ...props
+}) {
   return address ? (
     <ChakraAvatar
       boxSize={size}
@@ -244,7 +255,7 @@ export function Avatar({address, size = ['88px', '80px'], ...props}) {
       {...props}
     />
   ) : (
-    <Box w={size} h={size} bg="gray.50" rounded={['mobile', 'lg']}></Box>
+    <Box boxSize={size} bg="gray.50" rounded={['mobile', 'lg']}></Box>
   )
 }
 
@@ -464,7 +475,7 @@ export function SmallText(props) {
   return <Text color="muted" fontSize="sm" {...props} />
 }
 
-export function ExternalLink({href, children, ...props}) {
+export function ExternalLink({href, withArrow = true, children, ...props}) {
   return (
     <Button
       variant="link"
@@ -481,10 +492,10 @@ export function ExternalLink({href, children, ...props}) {
       }}
       {...props}
     >
-      <Text as="span" lineHeight="4">
+      <Text as="span" lineHeight="4" textAlign="start" maxW="full" isTruncated>
         {children || href}
+        {withArrow && <ChevronRightIcon boxSize={4} />}
       </Text>
-      <ChevronRightIcon boxSize={4} />
     </Button>
   )
 }
@@ -694,7 +705,7 @@ export function Menu({children, ...props}) {
 }
 
 export const HDivider = React.forwardRef(function HDivider(props, ref) {
-  return <Divider ref={ref} borderColor="gray.300" my={0} {...props} />
+  return <Divider ref={ref} borderColor="gray.100" my={0} {...props} />
 })
 
 const FilterContext = React.createContext()

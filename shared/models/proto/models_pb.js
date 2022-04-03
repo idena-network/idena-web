@@ -12,8 +12,11 @@ var goog = jspb;
 var global = Function('return this')();
 
 goog.exportSymbol('proto.models.ProtoAd', null, global);
-goog.exportSymbol('proto.models.ProtoAdKey', null, global);
+goog.exportSymbol('proto.models.ProtoAdBurnKey', null, global);
+goog.exportSymbol('proto.models.ProtoAdTarget', null, global);
+goog.exportSymbol('proto.models.ProtoBurnAttachment', null, global);
 goog.exportSymbol('proto.models.ProtoCallContractAttachment', null, global);
+goog.exportSymbol('proto.models.ProtoChangeProfileAttachment', null, global);
 goog.exportSymbol('proto.models.ProtoDeleteFlipAttachment', null, global);
 goog.exportSymbol('proto.models.ProtoDeployContractAttachment', null, global);
 goog.exportSymbol('proto.models.ProtoFlipKey', null, global);
@@ -28,6 +31,7 @@ goog.exportSymbol('proto.models.ProtoPrivateFlipKeysPackage.Data', null, global)
 goog.exportSymbol('proto.models.ProtoProfile', null, global);
 goog.exportSymbol('proto.models.ProtoProfile.ProtoProfileAd', null, global);
 goog.exportSymbol('proto.models.ProtoShortAnswerAttachment', null, global);
+goog.exportSymbol('proto.models.ProtoStoreToIpfsAttachment', null, global);
 goog.exportSymbol('proto.models.ProtoTerminateContractAttachment', null, global);
 goog.exportSymbol('proto.models.ProtoTransaction', null, global);
 goog.exportSymbol('proto.models.ProtoTransaction.Data', null, global);
@@ -3928,9 +3932,10 @@ proto.models.ProtoProfile.ProtoProfileAd.prototype.toObject = function(opt_inclu
  */
 proto.models.ProtoProfile.ProtoProfileAd.toObject = function(includeInstance, msg) {
   var f, obj = {
-    key: (f = msg.getKey()) && proto.models.ProtoAdKey.toObject(includeInstance, f),
-    cid: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    votingaddress: jspb.Message.getFieldWithDefault(msg, 3, "")
+    cid: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    target: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    contract: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    author: jspb.Message.getFieldWithDefault(msg, 4, "")
   };
 
   if (includeInstance) {
@@ -3968,17 +3973,20 @@ proto.models.ProtoProfile.ProtoProfileAd.deserializeBinaryFromReader = function(
     var field = reader.getFieldNumber();
     switch (field) {
     case 1:
-      var value = new proto.models.ProtoAdKey;
-      reader.readMessage(value,proto.models.ProtoAdKey.deserializeBinaryFromReader);
-      msg.setKey(value);
-      break;
-    case 2:
       var value = /** @type {string} */ (reader.readString());
       msg.setCid(value);
       break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTarget(value);
+      break;
     case 3:
       var value = /** @type {string} */ (reader.readString());
-      msg.setVotingaddress(value);
+      msg.setContract(value);
+      break;
+    case 4:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setAuthor(value);
       break;
     default:
       reader.skipField();
@@ -4009,25 +4017,31 @@ proto.models.ProtoProfile.ProtoProfileAd.prototype.serializeBinary = function() 
  */
 proto.models.ProtoProfile.ProtoProfileAd.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getKey();
-  if (f != null) {
-    writer.writeMessage(
+  f = message.getCid();
+  if (f.length > 0) {
+    writer.writeString(
       1,
-      f,
-      proto.models.ProtoAdKey.serializeBinaryToWriter
+      f
     );
   }
-  f = message.getCid();
+  f = message.getTarget();
   if (f.length > 0) {
     writer.writeString(
       2,
       f
     );
   }
-  f = message.getVotingaddress();
+  f = message.getContract();
   if (f.length > 0) {
     writer.writeString(
       3,
+      f
+    );
+  }
+  f = message.getAuthor();
+  if (f.length > 0) {
+    writer.writeString(
+      4,
       f
     );
   }
@@ -4035,62 +4049,62 @@ proto.models.ProtoProfile.ProtoProfileAd.serializeBinaryToWriter = function(mess
 
 
 /**
- * optional ProtoAdKey key = 1;
- * @return {?proto.models.ProtoAdKey}
- */
-proto.models.ProtoProfile.ProtoProfileAd.prototype.getKey = function() {
-  return /** @type{?proto.models.ProtoAdKey} */ (
-    jspb.Message.getWrapperField(this, proto.models.ProtoAdKey, 1));
-};
-
-
-/** @param {?proto.models.ProtoAdKey|undefined} value */
-proto.models.ProtoProfile.ProtoProfileAd.prototype.setKey = function(value) {
-  jspb.Message.setWrapperField(this, 1, value);
-};
-
-
-proto.models.ProtoProfile.ProtoProfileAd.prototype.clearKey = function() {
-  this.setKey(undefined);
-};
-
-
-/**
- * Returns whether this field is set.
- * @return {!boolean}
- */
-proto.models.ProtoProfile.ProtoProfileAd.prototype.hasKey = function() {
-  return jspb.Message.getField(this, 1) != null;
-};
-
-
-/**
- * optional string cid = 2;
+ * optional string cid = 1;
  * @return {string}
  */
 proto.models.ProtoProfile.ProtoProfileAd.prototype.getCid = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
 
 /** @param {string} value */
 proto.models.ProtoProfile.ProtoProfileAd.prototype.setCid = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string target = 2;
+ * @return {string}
+ */
+proto.models.ProtoProfile.ProtoProfileAd.prototype.getTarget = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/** @param {string} value */
+proto.models.ProtoProfile.ProtoProfileAd.prototype.setTarget = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
 /**
- * optional string votingAddress = 3;
+ * optional string contract = 3;
  * @return {string}
  */
-proto.models.ProtoProfile.ProtoProfileAd.prototype.getVotingaddress = function() {
+proto.models.ProtoProfile.ProtoProfileAd.prototype.getContract = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
 };
 
 
 /** @param {string} value */
-proto.models.ProtoProfile.ProtoProfileAd.prototype.setVotingaddress = function(value) {
+proto.models.ProtoProfile.ProtoProfileAd.prototype.setContract = function(value) {
   jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional string author = 4;
+ * @return {string}
+ */
+proto.models.ProtoProfile.ProtoProfileAd.prototype.getAuthor = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+};
+
+
+/** @param {string} value */
+proto.models.ProtoProfile.ProtoProfileAd.prototype.setAuthor = function(value) {
+  jspb.Message.setProto3StringField(this, 4, value);
 };
 
 
@@ -4172,11 +4186,11 @@ proto.models.ProtoAd.prototype.toObject = function(opt_includeInstance) {
  */
 proto.models.ProtoAd.toObject = function(includeInstance, msg) {
   var f, obj = {
-    id: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    title: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    title: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    desc: jspb.Message.getFieldWithDefault(msg, 2, ""),
     url: jspb.Message.getFieldWithDefault(msg, 3, ""),
-    cover: msg.getCover_asB64(),
-    author: jspb.Message.getFieldWithDefault(msg, 5, "")
+    thumb: msg.getThumb_asB64(),
+    media: msg.getMedia_asB64()
   };
 
   if (includeInstance) {
@@ -4215,11 +4229,11 @@ proto.models.ProtoAd.deserializeBinaryFromReader = function(msg, reader) {
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setId(value);
+      msg.setTitle(value);
       break;
     case 2:
       var value = /** @type {string} */ (reader.readString());
-      msg.setTitle(value);
+      msg.setDesc(value);
       break;
     case 3:
       var value = /** @type {string} */ (reader.readString());
@@ -4227,11 +4241,11 @@ proto.models.ProtoAd.deserializeBinaryFromReader = function(msg, reader) {
       break;
     case 4:
       var value = /** @type {!Uint8Array} */ (reader.readBytes());
-      msg.setCover(value);
+      msg.setThumb(value);
       break;
     case 5:
-      var value = /** @type {string} */ (reader.readString());
-      msg.setAuthor(value);
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setMedia(value);
       break;
     default:
       reader.skipField();
@@ -4262,14 +4276,14 @@ proto.models.ProtoAd.prototype.serializeBinary = function() {
  */
 proto.models.ProtoAd.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getId();
+  f = message.getTitle();
   if (f.length > 0) {
     writer.writeString(
       1,
       f
     );
   }
-  f = message.getTitle();
+  f = message.getDesc();
   if (f.length > 0) {
     writer.writeString(
       2,
@@ -4283,16 +4297,16 @@ proto.models.ProtoAd.serializeBinaryToWriter = function(message, writer) {
       f
     );
   }
-  f = message.getCover_asU8();
+  f = message.getThumb_asU8();
   if (f.length > 0) {
     writer.writeBytes(
       4,
       f
     );
   }
-  f = message.getAuthor();
+  f = message.getMedia_asU8();
   if (f.length > 0) {
-    writer.writeString(
+    writer.writeBytes(
       5,
       f
     );
@@ -4301,31 +4315,31 @@ proto.models.ProtoAd.serializeBinaryToWriter = function(message, writer) {
 
 
 /**
- * optional string id = 1;
+ * optional string title = 1;
  * @return {string}
  */
-proto.models.ProtoAd.prototype.getId = function() {
+proto.models.ProtoAd.prototype.getTitle = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
 
 /** @param {string} value */
-proto.models.ProtoAd.prototype.setId = function(value) {
+proto.models.ProtoAd.prototype.setTitle = function(value) {
   jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * optional string title = 2;
+ * optional string desc = 2;
  * @return {string}
  */
-proto.models.ProtoAd.prototype.getTitle = function() {
+proto.models.ProtoAd.prototype.getDesc = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
 
 /** @param {string} value */
-proto.models.ProtoAd.prototype.setTitle = function(value) {
+proto.models.ProtoAd.prototype.setDesc = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
 };
 
@@ -4346,56 +4360,80 @@ proto.models.ProtoAd.prototype.setUrl = function(value) {
 
 
 /**
- * optional bytes cover = 4;
+ * optional bytes thumb = 4;
  * @return {!(string|Uint8Array)}
  */
-proto.models.ProtoAd.prototype.getCover = function() {
+proto.models.ProtoAd.prototype.getThumb = function() {
   return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
 };
 
 
 /**
- * optional bytes cover = 4;
- * This is a type-conversion wrapper around `getCover()`
+ * optional bytes thumb = 4;
+ * This is a type-conversion wrapper around `getThumb()`
  * @return {string}
  */
-proto.models.ProtoAd.prototype.getCover_asB64 = function() {
+proto.models.ProtoAd.prototype.getThumb_asB64 = function() {
   return /** @type {string} */ (jspb.Message.bytesAsB64(
-      this.getCover()));
+      this.getThumb()));
 };
 
 
 /**
- * optional bytes cover = 4;
+ * optional bytes thumb = 4;
  * Note that Uint8Array is not supported on all browsers.
  * @see http://caniuse.com/Uint8Array
- * This is a type-conversion wrapper around `getCover()`
+ * This is a type-conversion wrapper around `getThumb()`
  * @return {!Uint8Array}
  */
-proto.models.ProtoAd.prototype.getCover_asU8 = function() {
+proto.models.ProtoAd.prototype.getThumb_asU8 = function() {
   return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
-      this.getCover()));
+      this.getThumb()));
 };
 
 
 /** @param {!(string|Uint8Array)} value */
-proto.models.ProtoAd.prototype.setCover = function(value) {
+proto.models.ProtoAd.prototype.setThumb = function(value) {
   jspb.Message.setProto3BytesField(this, 4, value);
 };
 
 
 /**
- * optional string author = 5;
- * @return {string}
+ * optional bytes media = 5;
+ * @return {!(string|Uint8Array)}
  */
-proto.models.ProtoAd.prototype.getAuthor = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
+proto.models.ProtoAd.prototype.getMedia = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 5, ""));
 };
 
 
-/** @param {string} value */
-proto.models.ProtoAd.prototype.setAuthor = function(value) {
-  jspb.Message.setProto3StringField(this, 5, value);
+/**
+ * optional bytes media = 5;
+ * This is a type-conversion wrapper around `getMedia()`
+ * @return {string}
+ */
+proto.models.ProtoAd.prototype.getMedia_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getMedia()));
+};
+
+
+/**
+ * optional bytes media = 5;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getMedia()`
+ * @return {!Uint8Array}
+ */
+proto.models.ProtoAd.prototype.getMedia_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getMedia()));
+};
+
+
+/** @param {!(string|Uint8Array)} value */
+proto.models.ProtoAd.prototype.setMedia = function(value) {
+  jspb.Message.setProto3BytesField(this, 5, value);
 };
 
 
@@ -4410,12 +4448,12 @@ proto.models.ProtoAd.prototype.setAuthor = function(value) {
  * @extends {jspb.Message}
  * @constructor
  */
-proto.models.ProtoAdKey = function(opt_data) {
+proto.models.ProtoAdTarget = function(opt_data) {
   jspb.Message.initialize(this, opt_data, 0, -1, null, null);
 };
-goog.inherits(proto.models.ProtoAdKey, jspb.Message);
+goog.inherits(proto.models.ProtoAdTarget, jspb.Message);
 if (goog.DEBUG && !COMPILED) {
-  proto.models.ProtoAdKey.displayName = 'proto.models.ProtoAdKey';
+  proto.models.ProtoAdTarget.displayName = 'proto.models.ProtoAdTarget';
 }
 
 
@@ -4430,8 +4468,8 @@ if (jspb.Message.GENERATE_TO_OBJECT) {
  *     for transitional soy proto support: http://goto/soy-param-migration
  * @return {!Object}
  */
-proto.models.ProtoAdKey.prototype.toObject = function(opt_includeInstance) {
-  return proto.models.ProtoAdKey.toObject(opt_includeInstance, this);
+proto.models.ProtoAdTarget.prototype.toObject = function(opt_includeInstance) {
+  return proto.models.ProtoAdTarget.toObject(opt_includeInstance, this);
 };
 
 
@@ -4440,17 +4478,16 @@ proto.models.ProtoAdKey.prototype.toObject = function(opt_includeInstance) {
  * @param {boolean|undefined} includeInstance Whether to include the JSPB
  *     instance for transitional soy proto support:
  *     http://goto/soy-param-migration
- * @param {!proto.models.ProtoAdKey} msg The msg instance to transform.
+ * @param {!proto.models.ProtoAdTarget} msg The msg instance to transform.
  * @return {!Object}
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.models.ProtoAdKey.toObject = function(includeInstance, msg) {
+proto.models.ProtoAdTarget.toObject = function(includeInstance, msg) {
   var f, obj = {
-    location: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    language: jspb.Message.getFieldWithDefault(msg, 2, ""),
-    age: jspb.Message.getFieldWithDefault(msg, 3, 0),
-    os: jspb.Message.getFieldWithDefault(msg, 4, ""),
-    stake: jspb.Message.getFieldWithDefault(msg, 5, 0)
+    language: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    age: jspb.Message.getFieldWithDefault(msg, 2, 0),
+    os: jspb.Message.getFieldWithDefault(msg, 3, ""),
+    stake: jspb.Message.getFieldWithDefault(msg, 4, 0)
   };
 
   if (includeInstance) {
@@ -4464,23 +4501,23 @@ proto.models.ProtoAdKey.toObject = function(includeInstance, msg) {
 /**
  * Deserializes binary data (in protobuf wire format).
  * @param {jspb.ByteSource} bytes The bytes to deserialize.
- * @return {!proto.models.ProtoAdKey}
+ * @return {!proto.models.ProtoAdTarget}
  */
-proto.models.ProtoAdKey.deserializeBinary = function(bytes) {
+proto.models.ProtoAdTarget.deserializeBinary = function(bytes) {
   var reader = new jspb.BinaryReader(bytes);
-  var msg = new proto.models.ProtoAdKey;
-  return proto.models.ProtoAdKey.deserializeBinaryFromReader(msg, reader);
+  var msg = new proto.models.ProtoAdTarget;
+  return proto.models.ProtoAdTarget.deserializeBinaryFromReader(msg, reader);
 };
 
 
 /**
  * Deserializes binary data (in protobuf wire format) from the
  * given reader into the given message object.
- * @param {!proto.models.ProtoAdKey} msg The message object to deserialize into.
+ * @param {!proto.models.ProtoAdTarget} msg The message object to deserialize into.
  * @param {!jspb.BinaryReader} reader The BinaryReader to use.
- * @return {!proto.models.ProtoAdKey}
+ * @return {!proto.models.ProtoAdTarget}
  */
-proto.models.ProtoAdKey.deserializeBinaryFromReader = function(msg, reader) {
+proto.models.ProtoAdTarget.deserializeBinaryFromReader = function(msg, reader) {
   while (reader.nextField()) {
     if (reader.isEndGroup()) {
       break;
@@ -4489,21 +4526,17 @@ proto.models.ProtoAdKey.deserializeBinaryFromReader = function(msg, reader) {
     switch (field) {
     case 1:
       var value = /** @type {string} */ (reader.readString());
-      msg.setLocation(value);
-      break;
-    case 2:
-      var value = /** @type {string} */ (reader.readString());
       msg.setLanguage(value);
       break;
-    case 3:
+    case 2:
       var value = /** @type {number} */ (reader.readInt32());
       msg.setAge(value);
       break;
-    case 4:
+    case 3:
       var value = /** @type {string} */ (reader.readString());
       msg.setOs(value);
       break;
-    case 5:
+    case 4:
       var value = /** @type {number} */ (reader.readInt32());
       msg.setStake(value);
       break;
@@ -4520,9 +4553,9 @@ proto.models.ProtoAdKey.deserializeBinaryFromReader = function(msg, reader) {
  * Serializes the message to binary data (in protobuf wire format).
  * @return {!Uint8Array}
  */
-proto.models.ProtoAdKey.prototype.serializeBinary = function() {
+proto.models.ProtoAdTarget.prototype.serializeBinary = function() {
   var writer = new jspb.BinaryWriter();
-  proto.models.ProtoAdKey.serializeBinaryToWriter(this, writer);
+  proto.models.ProtoAdTarget.serializeBinaryToWriter(this, writer);
   return writer.getResultBuffer();
 };
 
@@ -4530,44 +4563,37 @@ proto.models.ProtoAdKey.prototype.serializeBinary = function() {
 /**
  * Serializes the given message to binary data (in protobuf wire
  * format), writing to the given BinaryWriter.
- * @param {!proto.models.ProtoAdKey} message
+ * @param {!proto.models.ProtoAdTarget} message
  * @param {!jspb.BinaryWriter} writer
  * @suppress {unusedLocalVariables} f is only used for nested messages
  */
-proto.models.ProtoAdKey.serializeBinaryToWriter = function(message, writer) {
+proto.models.ProtoAdTarget.serializeBinaryToWriter = function(message, writer) {
   var f = undefined;
-  f = message.getLocation();
+  f = message.getLanguage();
   if (f.length > 0) {
     writer.writeString(
       1,
       f
     );
   }
-  f = message.getLanguage();
-  if (f.length > 0) {
-    writer.writeString(
-      2,
-      f
-    );
-  }
   f = message.getAge();
   if (f !== 0) {
     writer.writeInt32(
-      3,
+      2,
       f
     );
   }
   f = message.getOs();
   if (f.length > 0) {
     writer.writeString(
-      4,
+      3,
       f
     );
   }
   f = message.getStake();
   if (f !== 0) {
     writer.writeInt32(
-      5,
+      4,
       f
     );
   }
@@ -4575,77 +4601,732 @@ proto.models.ProtoAdKey.serializeBinaryToWriter = function(message, writer) {
 
 
 /**
- * optional string location = 1;
+ * optional string language = 1;
  * @return {string}
  */
-proto.models.ProtoAdKey.prototype.getLocation = function() {
+proto.models.ProtoAdTarget.prototype.getLanguage = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
 
 /** @param {string} value */
-proto.models.ProtoAdKey.prototype.setLocation = function(value) {
+proto.models.ProtoAdTarget.prototype.setLanguage = function(value) {
   jspb.Message.setProto3StringField(this, 1, value);
 };
 
 
 /**
- * optional string language = 2;
+ * optional int32 age = 2;
+ * @return {number}
+ */
+proto.models.ProtoAdTarget.prototype.getAge = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
+};
+
+
+/** @param {number} value */
+proto.models.ProtoAdTarget.prototype.setAge = function(value) {
+  jspb.Message.setProto3IntField(this, 2, value);
+};
+
+
+/**
+ * optional string os = 3;
  * @return {string}
  */
-proto.models.ProtoAdKey.prototype.getLanguage = function() {
+proto.models.ProtoAdTarget.prototype.getOs = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/** @param {string} value */
+proto.models.ProtoAdTarget.prototype.setOs = function(value) {
+  jspb.Message.setProto3StringField(this, 3, value);
+};
+
+
+/**
+ * optional int32 stake = 4;
+ * @return {number}
+ */
+proto.models.ProtoAdTarget.prototype.getStake = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 4, 0));
+};
+
+
+/** @param {number} value */
+proto.models.ProtoAdTarget.prototype.setStake = function(value) {
+  jspb.Message.setProto3IntField(this, 4, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.models.ProtoAdBurnKey = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.models.ProtoAdBurnKey, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.models.ProtoAdBurnKey.displayName = 'proto.models.ProtoAdBurnKey';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.models.ProtoAdBurnKey.prototype.toObject = function(opt_includeInstance) {
+  return proto.models.ProtoAdBurnKey.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.models.ProtoAdBurnKey} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.models.ProtoAdBurnKey.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    cid: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    target: jspb.Message.getFieldWithDefault(msg, 2, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.models.ProtoAdBurnKey}
+ */
+proto.models.ProtoAdBurnKey.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.models.ProtoAdBurnKey;
+  return proto.models.ProtoAdBurnKey.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.models.ProtoAdBurnKey} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.models.ProtoAdBurnKey}
+ */
+proto.models.ProtoAdBurnKey.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setCid(value);
+      break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setTarget(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.models.ProtoAdBurnKey.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.models.ProtoAdBurnKey.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.models.ProtoAdBurnKey} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.models.ProtoAdBurnKey.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getCid();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+  f = message.getTarget();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string cid = 1;
+ * @return {string}
+ */
+proto.models.ProtoAdBurnKey.prototype.getCid = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/** @param {string} value */
+proto.models.ProtoAdBurnKey.prototype.setCid = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string target = 2;
+ * @return {string}
+ */
+proto.models.ProtoAdBurnKey.prototype.getTarget = function() {
   return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
 };
 
 
 /** @param {string} value */
-proto.models.ProtoAdKey.prototype.setLanguage = function(value) {
+proto.models.ProtoAdBurnKey.prototype.setTarget = function(value) {
   jspb.Message.setProto3StringField(this, 2, value);
 };
 
 
+
 /**
- * optional int32 age = 3;
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.models.ProtoStoreToIpfsAttachment = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.models.ProtoStoreToIpfsAttachment, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.models.ProtoStoreToIpfsAttachment.displayName = 'proto.models.ProtoStoreToIpfsAttachment';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.models.ProtoStoreToIpfsAttachment.prototype.toObject = function(opt_includeInstance) {
+  return proto.models.ProtoStoreToIpfsAttachment.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.models.ProtoStoreToIpfsAttachment} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.models.ProtoStoreToIpfsAttachment.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    cid: msg.getCid_asB64(),
+    size: jspb.Message.getFieldWithDefault(msg, 2, 0)
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.models.ProtoStoreToIpfsAttachment}
+ */
+proto.models.ProtoStoreToIpfsAttachment.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.models.ProtoStoreToIpfsAttachment;
+  return proto.models.ProtoStoreToIpfsAttachment.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.models.ProtoStoreToIpfsAttachment} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.models.ProtoStoreToIpfsAttachment}
+ */
+proto.models.ProtoStoreToIpfsAttachment.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setCid(value);
+      break;
+    case 2:
+      var value = /** @type {number} */ (reader.readUint32());
+      msg.setSize(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.models.ProtoStoreToIpfsAttachment.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.models.ProtoStoreToIpfsAttachment.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.models.ProtoStoreToIpfsAttachment} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.models.ProtoStoreToIpfsAttachment.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getCid_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      1,
+      f
+    );
+  }
+  f = message.getSize();
+  if (f !== 0) {
+    writer.writeUint32(
+      2,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional bytes cid = 1;
+ * @return {!(string|Uint8Array)}
+ */
+proto.models.ProtoStoreToIpfsAttachment.prototype.getCid = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * optional bytes cid = 1;
+ * This is a type-conversion wrapper around `getCid()`
+ * @return {string}
+ */
+proto.models.ProtoStoreToIpfsAttachment.prototype.getCid_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getCid()));
+};
+
+
+/**
+ * optional bytes cid = 1;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getCid()`
+ * @return {!Uint8Array}
+ */
+proto.models.ProtoStoreToIpfsAttachment.prototype.getCid_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getCid()));
+};
+
+
+/** @param {!(string|Uint8Array)} value */
+proto.models.ProtoStoreToIpfsAttachment.prototype.setCid = function(value) {
+  jspb.Message.setProto3BytesField(this, 1, value);
+};
+
+
+/**
+ * optional uint32 size = 2;
  * @return {number}
  */
-proto.models.ProtoAdKey.prototype.getAge = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 3, 0));
+proto.models.ProtoStoreToIpfsAttachment.prototype.getSize = function() {
+  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 2, 0));
 };
 
 
 /** @param {number} value */
-proto.models.ProtoAdKey.prototype.setAge = function(value) {
-  jspb.Message.setProto3IntField(this, 3, value);
+proto.models.ProtoStoreToIpfsAttachment.prototype.setSize = function(value) {
+  jspb.Message.setProto3IntField(this, 2, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.models.ProtoChangeProfileAttachment = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.models.ProtoChangeProfileAttachment, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.models.ProtoChangeProfileAttachment.displayName = 'proto.models.ProtoChangeProfileAttachment';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.models.ProtoChangeProfileAttachment.prototype.toObject = function(opt_includeInstance) {
+  return proto.models.ProtoChangeProfileAttachment.toObject(opt_includeInstance, this);
 };
 
 
 /**
- * optional string os = 4;
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.models.ProtoChangeProfileAttachment} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.models.ProtoChangeProfileAttachment.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    cid: msg.getCid_asB64()
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.models.ProtoChangeProfileAttachment}
+ */
+proto.models.ProtoChangeProfileAttachment.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.models.ProtoChangeProfileAttachment;
+  return proto.models.ProtoChangeProfileAttachment.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.models.ProtoChangeProfileAttachment} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.models.ProtoChangeProfileAttachment}
+ */
+proto.models.ProtoChangeProfileAttachment.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {!Uint8Array} */ (reader.readBytes());
+      msg.setCid(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.models.ProtoChangeProfileAttachment.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.models.ProtoChangeProfileAttachment.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.models.ProtoChangeProfileAttachment} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.models.ProtoChangeProfileAttachment.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getCid_asU8();
+  if (f.length > 0) {
+    writer.writeBytes(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional bytes cid = 1;
+ * @return {!(string|Uint8Array)}
+ */
+proto.models.ProtoChangeProfileAttachment.prototype.getCid = function() {
+  return /** @type {!(string|Uint8Array)} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
+};
+
+
+/**
+ * optional bytes cid = 1;
+ * This is a type-conversion wrapper around `getCid()`
  * @return {string}
  */
-proto.models.ProtoAdKey.prototype.getOs = function() {
-  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 4, ""));
+proto.models.ProtoChangeProfileAttachment.prototype.getCid_asB64 = function() {
+  return /** @type {string} */ (jspb.Message.bytesAsB64(
+      this.getCid()));
+};
+
+
+/**
+ * optional bytes cid = 1;
+ * Note that Uint8Array is not supported on all browsers.
+ * @see http://caniuse.com/Uint8Array
+ * This is a type-conversion wrapper around `getCid()`
+ * @return {!Uint8Array}
+ */
+proto.models.ProtoChangeProfileAttachment.prototype.getCid_asU8 = function() {
+  return /** @type {!Uint8Array} */ (jspb.Message.bytesAsU8(
+      this.getCid()));
+};
+
+
+/** @param {!(string|Uint8Array)} value */
+proto.models.ProtoChangeProfileAttachment.prototype.setCid = function(value) {
+  jspb.Message.setProto3BytesField(this, 1, value);
+};
+
+
+
+/**
+ * Generated by JsPbCodeGenerator.
+ * @param {Array=} opt_data Optional initial data array, typically from a
+ * server response, or constructed directly in Javascript. The array is used
+ * in place and becomes part of the constructed object. It is not cloned.
+ * If no data is provided, the constructed object will be empty, but still
+ * valid.
+ * @extends {jspb.Message}
+ * @constructor
+ */
+proto.models.ProtoBurnAttachment = function(opt_data) {
+  jspb.Message.initialize(this, opt_data, 0, -1, null, null);
+};
+goog.inherits(proto.models.ProtoBurnAttachment, jspb.Message);
+if (goog.DEBUG && !COMPILED) {
+  proto.models.ProtoBurnAttachment.displayName = 'proto.models.ProtoBurnAttachment';
+}
+
+
+if (jspb.Message.GENERATE_TO_OBJECT) {
+/**
+ * Creates an object representation of this proto suitable for use in Soy templates.
+ * Field names that are reserved in JavaScript and will be renamed to pb_name.
+ * To access a reserved field use, foo.pb_<name>, eg, foo.pb_default.
+ * For the list of reserved names please see:
+ *     com.google.apps.jspb.JsClassTemplate.JS_RESERVED_WORDS.
+ * @param {boolean=} opt_includeInstance Whether to include the JSPB instance
+ *     for transitional soy proto support: http://goto/soy-param-migration
+ * @return {!Object}
+ */
+proto.models.ProtoBurnAttachment.prototype.toObject = function(opt_includeInstance) {
+  return proto.models.ProtoBurnAttachment.toObject(opt_includeInstance, this);
+};
+
+
+/**
+ * Static version of the {@see toObject} method.
+ * @param {boolean|undefined} includeInstance Whether to include the JSPB
+ *     instance for transitional soy proto support:
+ *     http://goto/soy-param-migration
+ * @param {!proto.models.ProtoBurnAttachment} msg The msg instance to transform.
+ * @return {!Object}
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.models.ProtoBurnAttachment.toObject = function(includeInstance, msg) {
+  var f, obj = {
+    key: jspb.Message.getFieldWithDefault(msg, 1, "")
+  };
+
+  if (includeInstance) {
+    obj.$jspbMessageInstance = msg;
+  }
+  return obj;
+};
+}
+
+
+/**
+ * Deserializes binary data (in protobuf wire format).
+ * @param {jspb.ByteSource} bytes The bytes to deserialize.
+ * @return {!proto.models.ProtoBurnAttachment}
+ */
+proto.models.ProtoBurnAttachment.deserializeBinary = function(bytes) {
+  var reader = new jspb.BinaryReader(bytes);
+  var msg = new proto.models.ProtoBurnAttachment;
+  return proto.models.ProtoBurnAttachment.deserializeBinaryFromReader(msg, reader);
+};
+
+
+/**
+ * Deserializes binary data (in protobuf wire format) from the
+ * given reader into the given message object.
+ * @param {!proto.models.ProtoBurnAttachment} msg The message object to deserialize into.
+ * @param {!jspb.BinaryReader} reader The BinaryReader to use.
+ * @return {!proto.models.ProtoBurnAttachment}
+ */
+proto.models.ProtoBurnAttachment.deserializeBinaryFromReader = function(msg, reader) {
+  while (reader.nextField()) {
+    if (reader.isEndGroup()) {
+      break;
+    }
+    var field = reader.getFieldNumber();
+    switch (field) {
+    case 1:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setKey(value);
+      break;
+    default:
+      reader.skipField();
+      break;
+    }
+  }
+  return msg;
+};
+
+
+/**
+ * Serializes the message to binary data (in protobuf wire format).
+ * @return {!Uint8Array}
+ */
+proto.models.ProtoBurnAttachment.prototype.serializeBinary = function() {
+  var writer = new jspb.BinaryWriter();
+  proto.models.ProtoBurnAttachment.serializeBinaryToWriter(this, writer);
+  return writer.getResultBuffer();
+};
+
+
+/**
+ * Serializes the given message to binary data (in protobuf wire
+ * format), writing to the given BinaryWriter.
+ * @param {!proto.models.ProtoBurnAttachment} message
+ * @param {!jspb.BinaryWriter} writer
+ * @suppress {unusedLocalVariables} f is only used for nested messages
+ */
+proto.models.ProtoBurnAttachment.serializeBinaryToWriter = function(message, writer) {
+  var f = undefined;
+  f = message.getKey();
+  if (f.length > 0) {
+    writer.writeString(
+      1,
+      f
+    );
+  }
+};
+
+
+/**
+ * optional string key = 1;
+ * @return {string}
+ */
+proto.models.ProtoBurnAttachment.prototype.getKey = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 1, ""));
 };
 
 
 /** @param {string} value */
-proto.models.ProtoAdKey.prototype.setOs = function(value) {
-  jspb.Message.setProto3StringField(this, 4, value);
-};
-
-
-/**
- * optional int32 stake = 5;
- * @return {number}
- */
-proto.models.ProtoAdKey.prototype.getStake = function() {
-  return /** @type {number} */ (jspb.Message.getFieldWithDefault(this, 5, 0));
-};
-
-
-/** @param {number} value */
-proto.models.ProtoAdKey.prototype.setStake = function(value) {
-  jspb.Message.setProto3IntField(this, 5, value);
+proto.models.ProtoBurnAttachment.prototype.setKey = function(value) {
+  jspb.Message.setProto3StringField(this, 1, value);
 };
 
 

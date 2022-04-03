@@ -20,6 +20,7 @@ import {
   Image,
   InputRightElement,
   InputGroup,
+  Badge,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {rem} from '../../shared/theme'
@@ -152,7 +153,7 @@ export function PageHeader(props) {
   )
 }
 
-export function PageHeaderCloseButton({href, ...props}) {
+export function PageCloseButton({href, ...props}) {
   return (
     <NextLink href={href}>
       <CloseButton {...props} />
@@ -160,7 +161,7 @@ export function PageHeaderCloseButton({href, ...props}) {
   )
 }
 
-export default function PageFooter(props) {
+export function PageFooter(props) {
   return (
     <HStack
       as="footer"
@@ -178,13 +179,28 @@ export default function PageFooter(props) {
   )
 }
 
-export function AdImage(props) {
+export function AdImage({
+  src: initialSrc,
+  fallbackSrc = '/static/body-medium-pic-icn.svg',
+  ...props
+}) {
   const boxProps = pick(props, ['w', 'width', 'h', 'height', 'boxSize'])
   const imageProps = omit(props, Object.keys(boxProps))
 
+  const [src, setSrc] = React.useState(initialSrc || fallbackSrc)
+
   return (
     <AspectRatio ratio={1} flexShrink={0} {...boxProps}>
-      <Image ignoreFallback bg="gray.50" rounded="lg" {...imageProps} />
+      <Image
+        src={src}
+        ignoreFallback
+        bg="gray.50"
+        rounded="lg"
+        onError={() => {
+          setSrc(fallbackSrc)
+        }}
+        {...imageProps}
+      />
     </AspectRatio>
   )
 }
@@ -198,6 +214,26 @@ export function InputCharacterCount(props) {
       top="unset"
       right="2"
       bottom="1.5"
+      {...props}
+    />
+  )
+}
+
+export function MiningBadge(props) {
+  return (
+    <Badge
+      display="inline-flex"
+      alignItems="center"
+      alignSelf="flex-start"
+      colorScheme="orange"
+      bg="orange.020"
+      color="orange.500"
+      fontWeight="normal"
+      fontSize="md"
+      rounded="xl"
+      h="6"
+      px={3}
+      textTransform="initial"
       {...props}
     />
   )

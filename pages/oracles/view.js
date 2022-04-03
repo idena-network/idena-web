@@ -16,6 +16,7 @@ import {
   Thead,
   Tr,
   Tbody,
+  useDisclosure,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
@@ -23,7 +24,7 @@ import {useRouter} from 'next/router'
 import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import duration from 'dayjs/plugin/duration'
-import {ArrowDownIcon, ArrowUpIcon} from '@chakra-ui/icons'
+import {ArrowDownIcon, ArrowUpIcon, ViewIcon} from '@chakra-ui/icons'
 import {
   Avatar,
   GoogleTranslateButton,
@@ -68,6 +69,7 @@ import {
   TerminateDrawer,
   FinishDrawer,
   Linkify,
+  OracleAdDescription,
 } from '../../screens/oracles/containers'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {VotingStatus} from '../../shared/types'
@@ -98,6 +100,8 @@ import {useAuthState} from '../../shared/providers/auth-context'
 import {useBalance} from '../../shared/hooks/use-balance'
 import {viewVotingMachine} from '../../screens/oracles/machines'
 import {useDeferredVotes, useOracleActions} from '../../screens/oracles/hooks'
+import {AdPreview} from '../../screens/ads/containers'
+import {useIpfsAd} from '../../screens/ads/hooks'
 
 dayjs.extend(relativeTime)
 dayjs.extend(duration)
@@ -169,6 +173,7 @@ export default function ViewVotingPage() {
     minOracleReward,
     estimatedTotalReward,
     pendingVote,
+    adCid,
   } = current.context
 
   const [
@@ -202,6 +207,10 @@ export default function ViewVotingPage() {
 
   const accountableVoteCount =
     votes?.reduce((agg, curr) => agg + curr?.count, 0) ?? 0
+
+  const {data: ad} = useIpfsAd(adCid)
+
+  const adPreviewDisclosure = useDisclosure()
 
   return (
     <>
@@ -271,29 +280,45 @@ export default function ViewVotingPage() {
                         >
                           {title}
                         </Heading>
-                        <Text
-                          isTruncated
-                          lineHeight="tall"
-                          whiteSpace="pre-wrap"
-                        >
-                          <Linkify
-                            onClick={url => {
-                              send('FOLLOW_LINK', {url})
-                            }}
+                        {ad ? (
+                          <OracleAdDescription ad={ad} />
+                        ) : (
+                          <Text
+                            isTruncated
+                            lineHeight="tall"
+                            whiteSpace="pre-wrap"
                           >
-                            {desc}
-                          </Linkify>
-                        </Text>
+                            <Linkify
+                              onClick={url => {
+                                send('FOLLOW_LINK', {url})
+                              }}
+                            >
+                              {desc}
+                            </Linkify>
+                          </Text>
+                        )}
                       </Stack>
-                      <GoogleTranslateButton
-                        phrases={[
-                          title,
-                          encodeURIComponent(desc?.replace(/%/g, '%25')),
-                          options.map(({value}) => value).join('\n'),
-                        ]}
-                        locale={i18n.language}
-                        alignSelf="start"
-                      />
+                      <Flex>
+                        {adCid && (
+                          <IconButton
+                            icon={<ViewIcon boxSize={4} />}
+                            _hover={{background: 'transparent'}}
+                            onClick={adPreviewDisclosure.onOpen}
+                          >
+                            {t('Preview')}
+                          </IconButton>
+                        )}
+                        <GoogleTranslateButton
+                          phrases={[
+                            title,
+                            desc &&
+                              encodeURIComponent(desc?.replace(/%/g, '%25')),
+                            options.map(({value}) => value).join('\n'),
+                          ]}
+                          locale={i18n.language}
+                          alignSelf="start"
+                        />
+                      </Flex>
                       <Divider orientation="horizontal" />
                       {isLoaded && <VotingPhase service={service} />}
                     </Stack>
@@ -954,6 +979,8 @@ export default function ViewVotingPage() {
           finishCounting={finishCountingDate}
         />
       )}
+
+      {adCid && <AdPreview ad={ad} {...adPreviewDisclosure} />}
 
       <Dialog
         isOpen={eitherIdleState('redirecting')}

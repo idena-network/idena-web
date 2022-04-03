@@ -514,6 +514,11 @@ export const uiTheme = {
       },
     },
     Modal: {
+      baseStyle: {
+        overlay: {
+          bg: 'xblack.080',
+        },
+      },
       variants: {
         mobile: {
           dialogContainer: {alignItems: 'flex-end'},
@@ -659,6 +664,15 @@ export const uiTheme = {
           },
           _placeholder: {
             color: 'muted',
+          },
+        },
+      },
+    },
+    Select: {
+      sizes: {
+        md: {
+          field: {
+            px: '2',
           },
         },
       },

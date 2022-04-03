@@ -1,10 +1,9 @@
 import React from 'react'
-import {Box, Flex, Stack, HStack, useDisclosure} from '@chakra-ui/react'
+import {Flex, Stack, HStack, useDisclosure} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {AdList, EmptyAdList, AdStatNumber} from '../../screens/ads/components'
 import Layout from '../../shared/components/layout'
 import {Page, PageTitle} from '../../screens/app/components'
-import {byId} from '../../shared/utils/utils'
 import {
   BlockAdStat,
   AdListItem,
@@ -13,10 +12,10 @@ import {
   BurnDrawer,
 } from '../../screens/ads/containers'
 import {
-  useAds,
   useBalance,
+  useCoinbase,
+  useDraftAds,
   useFormatDna,
-  usePersistedAds,
 } from '../../screens/ads/hooks'
 import {AdStatus} from '../../screens/ads/types'
 import {
@@ -26,43 +25,40 @@ import {
   VDivider,
 } from '../../shared/components/components'
 import IconLink from '../../shared/components/icon-link'
-import {PlusSolidIcon} from '../../shared/components/icons'
-import {filterAdsByStatus} from '../../screens/ads/utils'
-import {useAuthState} from '../../shared/providers/auth-context'
+import {EditIcon, PlusSolidIcon} from '../../shared/components/icons'
 
 export default function AdListPage() {
   const {t} = useTranslation()
 
-  const dna = useFormatDna()
+  const formatDna = useFormatDna()
 
   const reviewDisclosure = useDisclosure()
   const publishDisclosure = useDisclosure()
   const burnDisclosure = useDisclosure()
 
-  const {coinbase} = useAuthState()
+  const coinbase = useCoinbase()
 
   const balance = useBalance(coinbase)
 
   const [filter, setFilter] = React.useState(() =>
     typeof window === 'undefined'
-      ? AdStatus.Active
-      : localStorage?.getItem('adListFilter') ?? AdStatus.Active
+      ? AdStatus.Approved
+      : localStorage?.getItem('adListFilter') ?? AdStatus.Approved
   )
 
   React.useEffect(() => {
     localStorage.setItem('adListFilter', filter)
   }, [filter])
 
-  const {data: knownAds, status} = {data: []} // useAds()
+  const {data: profileAds, status} = {data: []} // useProfileAds()
 
-  const {data: persistedAds} = {data: []} // usePersistedAds()
+  const {data: draftAds, status: draftAdsStatus} = useDraftAds()
 
-  const drafts =
-    persistedAds?.filter(ad => !knownAds.some(byId({id: ad?.id}))) ?? []
+  const ads = [...profileAds, ...draftAds].filter(ad => ad.status === filter)
 
-  const ads = filterAdsByStatus([...knownAds, ...drafts], filter)
+  const isLoaded = status === 'success' || draftAdsStatus === 'success'
 
-  const [selectedAd, setSelectedAd] = React.useState({})
+  const [selectedAd, setSelectedAd] = React.useState()
 
   return (
     <Layout>
@@ -72,31 +68,42 @@ export default function AdListPage() {
         <Stack isInline spacing={20}>
           <BlockAdStat label="My balance" w="2xs">
             <AdStatNumber fontSize="lg" isTruncated>
-              {dna(balance)}
+              {formatDna(balance)}
             </AdStatNumber>
           </BlockAdStat>
         </Stack>
 
-        <Flex align="center" justify="space-between" w="full">
-          <FilterButtonList value={filter} onChange={setFilter}>
-            <FilterButton value={AdStatus.Active}>{t('Active')}</FilterButton>
-            <FilterButton value={AdStatus.Draft}>{t('Drafts')}</FilterButton>
-            <FilterButton value={AdStatus.Reviewing}>
-              {t('On review')}
-            </FilterButton>
-            <FilterButton value={AdStatus.Rejected}>
-              {t('Rejected')}
-            </FilterButton>
-          </FilterButtonList>
-          <HStack spacing={1} align="center">
-            <VDivider />
-            <IconLink icon={<PlusSolidIcon boxSize={5} />} href="/ads/new">
-              {t('New ad')}
-            </IconLink>
-          </HStack>
-        </Flex>
+        <FilterButtonList value={filter} onChange={setFilter} w="full">
+          <Flex align="center" justify="space-between" w="full">
+            <HStack>
+              <FilterButton value={AdStatus.Approved}>
+                {t('Approved')}
+              </FilterButton>
+              <FilterButton value={AdStatus.Reviewing}>
+                {t('On review')}
+              </FilterButton>
+              <FilterButton value={AdStatus.Rejected}>
+                {t('Rejected')}
+              </FilterButton>
+              <VDivider />
+              <FilterButton value={AdStatus.Draft}>
+                <HStack>
+                  <EditIcon boxSize="5" />
+                  <span>{t('Drafts')}</span>
+                </HStack>
+              </FilterButton>
+            </HStack>
 
-        {status === 'ready' && ads.length > 0 ? (
+            <HStack spacing={1} align="center">
+              {/* <VDivider /> */}
+              <IconLink icon={<PlusSolidIcon boxSize={5} />} href="/ads/new">
+                {t('New ad')}
+              </IconLink>
+            </HStack>
+          </Flex>
+        </FilterButtonList>
+
+        {isLoaded && ads.length > 0 ? (
           <AdList py={4} spacing={4} alignSelf="stretch">
             {ads.map(ad => (
               <AdListItem
@@ -121,13 +128,31 @@ export default function AdListPage() {
           <EmptyAdList />
         )}
 
-        <ReviewAdDrawer ad={selectedAd} {...reviewDisclosure} />
-        <PublishAdDrawer ad={selectedAd} {...publishDisclosure} />
-        <BurnDrawer ad={selectedAd} {...burnDisclosure} />
+        {selectedAd && (
+          <ReviewAdDrawer
+            ad={selectedAd}
+            onSendToReviewSuccess={reviewDisclosure.onClose}
+            {...reviewDisclosure}
+          />
+        )}
 
-        <Box>
-          <Debug>{ads}</Debug>
-        </Box>
+        {selectedAd && (
+          <PublishAdDrawer
+            ad={selectedAd}
+            onPublishSuccess={publishDisclosure.onClose}
+            {...publishDisclosure}
+          />
+        )}
+
+        {selectedAd && (
+          <BurnDrawer
+            ad={selectedAd}
+            onBurnSuccess={burnDisclosure.onClose}
+            {...burnDisclosure}
+          />
+        )}
+
+        <Debug>{ads}</Debug>
       </Page>
     </Layout>
   )

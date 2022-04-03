@@ -26,3 +26,9 @@ export const AdVotingOptionId = {
   [AdVotingOption.Approve]: 0,
   [AdVotingOption.Reject]: 1,
 }
+
+export const AdRotationStatus = {
+  Showing: 'showing',
+  PartiallyShowing: 'partiallyShowing',
+  NotShowing: 'notShowing',
+}

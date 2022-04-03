@@ -2,26 +2,33 @@ import NextLink from 'next/link'
 import {HStack, Link, Stack, Table, Td, Text, Thead, Tr} from '@chakra-ui/react'
 import React from 'react'
 import {useTranslation} from 'react-i18next'
-import {useRotatingAdList, useRpc} from '../../screens/ads/hooks'
+import {useFormatDna, useRotatingAds} from '../../screens/ads/hooks'
 import {Page, PageTitle} from '../../screens/app/components'
 import {Avatar, RoundedTh} from '../../shared/components/components'
 import Layout from '../../shared/components/layout'
-import {toLocaleDna} from '../../shared/utils/utils'
-import {AdImage} from '../../screens/ads/components'
+import {
+  AdImage,
+  PageHeader,
+  PageCloseButton,
+} from '../../screens/ads/components'
 
 export default function AdOfferList() {
-  const {t, i18n} = useTranslation()
+  const {t} = useTranslation()
 
-  const ads = useRotatingAdList()
+  const ads = useRotatingAds()
 
-  const {data: burningAds} = useRpc('bcn_burntCoins', [])
+  // TODO: check for all offerings
+  // const burntCoins = useBurntCoins()
 
-  const dna = toLocaleDna(i18n.language)
+  const formatDna = useFormatDna()
 
   return (
     <Layout skipBanner>
       <Page>
-        <PageTitle mb={4}>{t('All offers')}</PageTitle>
+        <PageHeader>
+          <PageTitle mb={4}>{t('All offers')}</PageTitle>
+          <PageCloseButton href="/ads/list" />
+        </PageHeader>
         <Table>
           <Thead>
             <Tr>
@@ -31,39 +38,39 @@ export default function AdOfferList() {
               <RoundedTh>{t('Burn')}</RoundedTh>
             </Tr>
           </Thead>
-          {ads.map((ad, idx) => (
-            <Tr key={ad?.id} fontWeight={500}>
+          {ads.filter(Boolean).map(ad => (
+            <Tr key={ad.id} fontWeight={500}>
               <Td>
                 <HStack>
-                  <AdImage src={ad?.cover} boxSize="10" />
+                  <AdImage src={ad.thumb} boxSize="10" />
                   <Stack>
                     <Text lineHeight={4} isTruncated>
-                      {ad?.title}
+                      {ad.title}
                     </Text>
                     <HStack spacing={1}>
                       <Avatar
-                        address={ad?.author}
+                        address={ad.author}
                         size={4}
                         borderWidth={1}
                         borderColor="brandGray.016"
                         rounded="sm"
                       />
                       <Text color="muted" fontSize="sm" fontWeight={500}>
-                        {ad?.author}
+                        {ad.author}
                       </Text>
                     </HStack>
                   </Stack>
                 </HStack>
               </Td>
               <Td>
-                <NextLink href={String(ad?.url)} passHref>
+                <NextLink href={String(ad.url)} passHref>
                   <Link target="_blank" color="blue.500">
-                    {ad?.url}
+                    {ad.url}
                   </Link>
                 </NextLink>
               </Td>
               <Td>{t('Showing')}</Td>
-              <Td>{dna(burningAds[idx]?.amount ?? 0)}</Td>
+              <Td>{formatDna(ad.amount ?? 0)}</Td>
             </Tr>
           ))}
         </Table>

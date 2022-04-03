@@ -371,6 +371,7 @@ export function hexToObject(hex) {
 export function buildContractDeploymentArgs({
   title,
   desc,
+  adCid,
   startDate,
   votingDuration,
   publicVotingDuration,
@@ -389,6 +390,7 @@ export function buildContractDeploymentArgs({
         title,
         desc,
         options: stripOptions(options),
+        adCid,
       })}`,
     },
     {
