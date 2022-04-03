@@ -980,7 +980,12 @@ export default function ViewVotingPage() {
         />
       )}
 
-      {adCid && <AdPreview ad={ad} {...adPreviewDisclosure} />}
+      {adCid && (
+        <AdPreview
+          ad={{...ad, author: ad?.author ?? coinbase}}
+          {...adPreviewDisclosure}
+        />
+      )}
 
       <Dialog
         isOpen={eitherIdleState('redirecting')}
