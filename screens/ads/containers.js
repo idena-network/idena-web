@@ -197,7 +197,7 @@ function AdBannerSkeleton(props) {
   return <Skeleton startColor="gray.50" endColor="gray.100" {...props} />
 }
 
-export function AdListItem({ad, onReview, onPublish, onBurn}) {
+export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
   const {id, cid, title, language, age, os, stake, status, contract} = ad
 
   const {t, i18n} = useTranslation()
@@ -298,6 +298,7 @@ export function AdListItem({ad, onReview, onPublish, onBurn}) {
                   color="red.500"
                   onClick={async () => {
                     await db.table('ads').delete(id)
+                    if (onRemove) onRemove()
                   }}
                 >
                   {t('Delete')}

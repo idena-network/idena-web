@@ -67,7 +67,7 @@ export default function AdListPage() {
 
   const handlePublish = React.useCallback(async () => {
     try {
-      await db.table('ads').update(selectedAd?.id, {status: AdStatus.Approved})
+      await db.table('ads').update(selectedAd.id, {status: AdStatus.Approved})
 
       refetchDraftAds()
     } catch {
@@ -75,7 +75,7 @@ export default function AdListPage() {
     } finally {
       publishDisclosure.onClose()
     }
-  }, [publishDisclosure, refetchDraftAds, selectedAd.id])
+  }, [publishDisclosure, refetchDraftAds, selectedAd])
 
   const handleReview = React.useCallback(
     async ({cid, contract}) => {
@@ -93,7 +93,7 @@ export default function AdListPage() {
         reviewDisclosure.onClose()
       }
     },
-    [refetchDraftAds, reviewDisclosure, selectedAd.id]
+    [refetchDraftAds, reviewDisclosure, selectedAd]
   )
 
   const handleBurn = React.useCallback(() => {
@@ -162,6 +162,7 @@ export default function AdListPage() {
                   setSelectedAd(ad)
                   burnDisclosure.onOpen()
                 }}
+                onRemove={refetchDraftAds}
               />
             ))}
           </AdList>
