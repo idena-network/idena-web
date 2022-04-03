@@ -196,7 +196,7 @@ export function AdImage({
   return (
     <AspectRatio ratio={1} flexShrink={0} {...boxProps}>
       <Image
-        src={src || fallbackSrc}
+        src={src}
         ignoreFallback
         bg="gray.50"
         rounded="lg"

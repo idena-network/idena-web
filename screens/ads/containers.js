@@ -182,8 +182,8 @@ function AdBannerAuthor({ad, ...props}) {
             borderColor="gray.016"
             rounded="sm"
           />
-          <AdBannerSkeleton isLoaded={Boolean(ad?.author)} minW="2xs" h="4">
-            <Text color="muted" fontSize="sm" isTruncated>
+          <AdBannerSkeleton isLoaded={Boolean(ad?.author)}>
+            <Text color="muted" fontSize="sm" w="24" lineHeight="4" isTruncated>
               {ad?.author}
             </Text>
           </AdBannerSkeleton>
@@ -297,7 +297,7 @@ export function AdListItem({ad, onReview, onPublish, onBurn}) {
                   icon={<DeleteIcon boxSize={5} />}
                   color="red.500"
                   onClick={async () => {
-                    await db.table('ads').delete(ad.id)
+                    await db.table('ads').delete(id)
                   }}
                 >
                   {t('Delete')}

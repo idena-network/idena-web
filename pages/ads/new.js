@@ -16,6 +16,7 @@ import {
 import db from '../../shared/utils/db'
 import {AdStatus} from '../../screens/ads/types'
 import {useCoinbase} from '../../screens/ads/hooks'
+import {useSuccessToast} from '../../shared/hooks/use-toast'
 
 export default function NewAdPage() {
   const {t} = useTranslation()
@@ -30,13 +31,33 @@ export default function NewAdPage() {
 
   const previewDisclosure = useDisclosure()
 
+  const toast = useSuccessToast()
+
   return (
     <Layout>
       <Page px={0} py={0} overflow="hidden">
         <Box flex={1} w="full" px={20} py={6} overflowY="auto">
           <PageHeader>
             <PageTitle mb={0}>{t('New ad')}</PageTitle>
-            <PageCloseButton href="/ads/list" />
+            <PageCloseButton
+              href="/ads/list"
+              onClick={async () => {
+                const formData = new FormData(adFormRef.current)
+                const draftAd = Object.fromEntries(formData.entries())
+
+                const hasValues = Object.values(draftAd).some(value =>
+                  value instanceof File ? value.size > 0 : Boolean(value)
+                )
+
+                if (hasValues) {
+                  await db
+                    .table('ads')
+                    .add({...draftAd, id: nanoid(), status: AdStatus.Draft})
+
+                  toast(t('Ad has been saved to drafts'))
+                }
+              }}
+            />
           </PageHeader>
 
           <AdForm
