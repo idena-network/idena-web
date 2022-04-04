@@ -26,7 +26,7 @@ import {
 } from '@chakra-ui/react'
 import {useMachine} from '@xstate/react'
 import dayjs from 'dayjs'
-import {useEffect, useMemo, useRef, useState} from 'react'
+import React, {useEffect, useMemo, useRef, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
 import {getFlip, getFlipCache} from '../../shared/api/self'
@@ -146,6 +146,12 @@ export function CertificateCard({
   const epochState = useEpoch()
 
   const {
+    isOpen: isOpenReSchedule,
+    onOpen: onOpenReSchedule,
+    onClose: onCloseReSchedule,
+  } = useDisclosure()
+
+  const {
     validations: {[type]: cardValue},
     current,
   } = testValidationState
@@ -174,6 +180,14 @@ export function CertificateCard({
       console.error(e)
     } finally {
       setWaiting(false)
+    }
+  }
+
+  const onScheduleClick = () => {
+    if (cardValue.actionType === CertificateActionType.Passed) {
+      onOpenReSchedule()
+    } else {
+      schedule()
     }
   }
 
@@ -320,7 +334,7 @@ export function CertificateCard({
             size={size}
             w={['100%', 'auto']}
             isDisabled={isStarted}
-            onClick={() => schedule()}
+            onClick={() => onScheduleClick()}
             isLoading={waiting}
             loadingText={t('Scheduling...')}
           >
@@ -375,6 +389,12 @@ export function CertificateCard({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <ReScheduleAlert
+        isOpen={isOpenReSchedule}
+        onConfirm={schedule}
+        onClose={onCloseReSchedule}
+      />
     </Flex>
   )
 }
@@ -938,6 +958,41 @@ export function FlipView({
           onClick={onClose}
         >
           {t('Close')}
+        </Button>
+      </DialogFooter>
+    </Dialog>
+  )
+}
+
+function ReScheduleAlert({isOpen, onConfirm, onClose}) {
+  const size = useBreakpointValue(['lg', 'md'])
+  const buttonBg = useBreakpointValue(['transparent', 'red.090'])
+  const buttonBgHover = useBreakpointValue(['transparent', 'red.500'])
+  const variantConfirm = useBreakpointValue(['secondaryFlat', 'primary'])
+  const variantCancel = useBreakpointValue(['primaryFlat', 'secondary'])
+  return (
+    <Dialog isOpen={isOpen} onClose={onClose}>
+      <DialogHeader>Revoke certificate</DialogHeader>
+      <DialogBody>
+        Do you want to revoke your existing training validation certificate?
+      </DialogBody>
+      <DialogFooter>
+        <Button size={size} variant={variantCancel} onClick={onClose}>
+          Cancel
+        </Button>
+        <Button
+          size={size}
+          variant={variantConfirm}
+          onClick={() => {
+            onConfirm()
+            onClose()
+          }}
+          backgroundColor={buttonBg}
+          _hover={{
+            bg: {buttonBgHover},
+          }}
+        >
+          Revoke
         </Button>
       </DialogFooter>
     </Dialog>
