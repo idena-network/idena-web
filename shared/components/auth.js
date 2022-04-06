@@ -39,6 +39,8 @@ function RestoreKey() {
 
   const router = useRouter()
 
+  const {t} = useTranslation()
+
   return (
     <AuthLayout>
       <AuthLayout.Normal>
@@ -56,7 +58,7 @@ function RestoreKey() {
             m={['20px 0 0 0', '0 0 0 20px']}
           >
             <SubHeading color="white" css={{lineHeight: '21px'}}>
-              Enter password to unlock your account
+              {t('Enter password to unlock your account')}
             </SubHeading>
 
             <Flex justify={['center', 'space-between']}>
@@ -75,7 +77,7 @@ function RestoreKey() {
                 fontSize={['15px', '13px']}
                 m={['21px 0 0 0', '0']}
               >
-                <span>Remove private key from this device</span>
+                <span>{t('Remove private key from this device')}</span>
 
                 <Box display={['none', 'initial']}>
                   <FiChevronRight
@@ -98,7 +100,7 @@ function RestoreKey() {
                 setError(null)
                 login(password)
               } catch (err) {
-                setError('Password is invalid. Try again.')
+                setError(t('Password is invalid. Try again.'))
               }
             }}
           >
@@ -110,7 +112,7 @@ function RestoreKey() {
                 color: 'white',
               }}
             >
-              Password
+              {t('Password')}
             </FormLabel>
 
             <Flex width="100%" direction={['column', 'initial']}>
@@ -121,7 +123,7 @@ function RestoreKey() {
                 borderColor="xblack.008"
                 backgroundColor="xblack.016"
                 onChange={e => setPassword(e.target.value)}
-                placeholder="Enter your password"
+                placeholder={t('Enter your password')}
               />
               <PrimaryButton
                 size={size}
@@ -129,7 +131,7 @@ function RestoreKey() {
                 isDisabled={!password}
                 m={['16px 0 0 0', '0 0 0 10px']}
               >
-                Proceed
+                {t('Proceed')}
               </PrimaryButton>
             </Flex>
             {error && (
@@ -161,14 +163,15 @@ function RestoreKey() {
       )}
 
       <Dialog key="warning" isOpen={warning} onClose={() => showWarning(false)}>
-        <DialogHeader>Remove private key?</DialogHeader>
+        <DialogHeader>{t('Remove private key?')}</DialogHeader>
         <DialogBody>
-          Make sure you have the private key backup. Otherwise you will lose
-          access to your account.
+          {t(
+            'Make sure you have the private key backup. Otherwise you will lose access to your account.'
+          )}
         </DialogBody>
         <DialogFooter>
           <SecondaryButton onClick={() => showWarning(false)}>
-            Cancel
+            {t('Cancel')}
           </SecondaryButton>
           <PrimaryButton
             onClick={removeKey}
@@ -177,7 +180,7 @@ function RestoreKey() {
               bg: 'red.500',
             }}
           >
-            Remove
+            {t('Remove')}
           </PrimaryButton>
         </DialogFooter>
       </Dialog>
@@ -190,6 +193,8 @@ function Init() {
   const router = useRouter()
 
   const size = useBreakpointValue(['lg', 'md'])
+
+  const {t} = useTranslation()
 
   return (
     <AuthLayout>
@@ -213,11 +218,11 @@ function Init() {
             textAlign="center"
             marginBottom="45px"
           >
-            Join the mining of the first human-centric cryptocurrency
+            {t('Join the mining of the first human-centric cryptocurrency')}
           </Text>
 
           <PrimaryButton size={size} onClick={() => Router.push('/key/create')}>
-            Create an account
+            {t('Create an account')}
           </PrimaryButton>
 
           <Flex justifyContent="center">
@@ -229,7 +234,7 @@ function Init() {
                 textAlign: 'center',
               }}
             >
-              Sign In
+              {t('Sign In')}
             </FlatButton>
           </Flex>
         </Flex>

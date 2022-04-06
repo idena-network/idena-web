@@ -949,7 +949,7 @@ export function ActivateMiningDrawer({
                           fontSize="base"
                           fontWeight={500}
                         >
-                          Copied
+                          {t('Copied')}
                         </Text>
                       ) : (
                         <FlatButton
@@ -957,7 +957,7 @@ export function ActivateMiningDrawer({
                           onClick={onCopy}
                           fontWeight="500"
                         >
-                          Copy link
+                          {t('Copy link')}
                         </FlatButton>
                       )}
                     </Flex>
@@ -1223,7 +1223,7 @@ export function KillForm({isOpen, onClose}) {
         // eslint-disable-next-line react/display-name
         render: () => (
           <Toast
-            title={error?.message ?? t('error:Error while sending transaction')}
+            title={error?.message ?? t('Error while sending transaction')}
             status="error"
           />
         ),

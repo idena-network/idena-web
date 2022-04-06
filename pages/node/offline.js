@@ -11,7 +11,6 @@ import {
   Button,
   Flex,
   RadioGroup,
-  Radio,
   Stack,
   Text,
   useBreakpointValue,
@@ -40,8 +39,7 @@ import {
   checkProvider,
 } from '../../shared/api'
 
-import {SubHeading} from '../../shared/components'
-import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
+import {PrimaryButton} from '../../shared/components/button'
 import {Avatar, TextLink} from '../../shared/components/components'
 import Layout from '../../shared/components/layout'
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
@@ -107,7 +105,6 @@ export default function Offline() {
   const variantRadio = useBreakpointValue(['mobileDark', 'dark'])
   const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
   const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
-  const titleColor = useBreakpointValue(['muted', 'white'])
 
   const {data: identity} = useQuery(
     ['fetch-identity', coinbase],
@@ -386,9 +383,11 @@ export default function Offline() {
                               lineHeight={['16px', 'initial']}
                               color="white"
                             >
-                              {`Get restricted access${
+                              {`${t('Get restricted access')}${
                                 isDesktop
-                                  ? ' (can not be used for validation)'
+                                  ? ` (${t(
+                                      'Can not be used for validation'
+                                    ).toLocaleLowerCase()})`
                                   : ''
                               }`}
                             </Text>
@@ -397,7 +396,7 @@ export default function Offline() {
                               color="xwhite.050"
                               fontSize="sm"
                             >
-                              Can not be used for validation
+                              {t('Can not be used for validation')}
                             </Text>
                           </ChooseItemRadio>
                         )}
@@ -442,7 +441,7 @@ export default function Offline() {
           justifyContent="center"
         >
           <Text color="white" fontSize="mdx" opacity="0.5" mb={1}>
-            You can run your own node at your desktop computer.
+            {t('You can run your own node at your desktop computer.')}
           </Text>
           <TextLink
             href="https://idena.io/download"
@@ -474,11 +473,11 @@ export default function Offline() {
             <Trans i18nKey="confirmRestrictedNodeDialog" t={t}>
               Your current API key{' '}
               <Text fontWeight="700" as="span">
-                {apiKey}
+                {{apiKey}}
               </Text>{' '}
               for the shared node{' '}
               <Text fontWeight="700" as="span">
-                {url}
+                {{url}}
               </Text>{' '}
               will be lost
             </Trans>

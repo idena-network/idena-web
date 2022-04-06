@@ -9,6 +9,7 @@ import {
   dnaSign,
 } from './crypto'
 import {toHexString} from './buffers'
+import {FlipGrade} from '../types'
 
 describe('generate keys', () => {
   const key = 'c6fccb1b926e774d7e3a1716eddeba55ae7d40db4fb7c22d2705835f48d5be1b'
@@ -125,11 +126,11 @@ describe('create answers attachment', () => {
   it('answer reports', () => {
     const hashes = ['a', 'b', 'c', 'd', 'e']
     const answers = [
-      {hash: 'a', answer: 1, wrongWords: true},
+      {hash: 'a', answer: 1, grade: FlipGrade.Reported},
       {hash: 'd', answer: 2},
       {hash: 'b', answer: 0},
       {hash: 'e', answer: 1},
-      {hash: 'c', answer: 2, wrongWords: true},
+      {hash: 'c', answer: 2, grade: FlipGrade.Reported},
     ]
 
     const result = serializeAnswers(hashes, answers)

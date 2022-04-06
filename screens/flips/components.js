@@ -1426,7 +1426,7 @@ export function DeleteFlipDrawer({hash, cover, onDelete, ...props}) {
           }}
           onClick={onDelete}
         >
-          Delete
+          {t('Delete')}
         </PrimaryButton>
       </DrawerBody>
     </Drawer>

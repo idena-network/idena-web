@@ -431,7 +431,7 @@ export default function ProfilePage() {
                 border="none"
                 borderColor="transparent"
               >
-                Send iDNA
+                {t('Send iDNA')}
               </Button>
             </UserStatList>
           </Stack>

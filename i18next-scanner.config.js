@@ -8,6 +8,7 @@ const AVAILABLE_LANGS = [
   'zh',
   'ko',
   'hr',
+  'hi',
   'uk',
   'sr',
   'ro',
@@ -15,37 +16,47 @@ const AVAILABLE_LANGS = [
   'pt',
   'pl',
   'sl',
-  'hi',
   'tr',
   'bg',
   'sv',
+  'ja',
+  'el',
 ]
 
 module.exports = {
   input: [
-    'renderer/**/*.{js,jsx}',
-    '!**/renderer/out/**',
-    '!**/renderer/.next/**',
+    '**/*.{js,jsx}',
+    '!**/out/**',
+    '!**/.next/**',
     '!**/node_modules/**',
     '!**/dist/**',
   ],
   output: './',
   options: {
     debug: true,
-    trans: false,
+    sort: true,
     func: {
       list: ['t'],
       extensions: ['.js', '.jsx'],
     },
-    lngs: AVAILABLE_LANGS,
-    defaultValue(_lng, _ns, key) {
-      return key
+    trans: {
+      component: 'Trans',
+      i18nKey: 'i18nKey',
+      extensions: ['.js', '.jsx'],
+      fallbackKey(ns, value) {
+        return value
+      },
     },
-    ns: ['error'],
+    lngs: AVAILABLE_LANGS,
+    defaultNs: 'translation',
+    defaultValue(_lng, _ns, key, options) {
+      return options.defaultValue || key
+    },
     resource: {
-      loadPath: 'locales/{{lng}}/{{ns}}.json',
-      savePath: 'locales/{{lng}}/{{ns}}.json',
+      loadPath: 'public/locales/{{lng}}/{{ns}}.json',
+      savePath: 'public/locales/{{lng}}/{{ns}}.json',
       jsonIndent: 2,
+      lineEnding: '\n',
     },
     keySeparator: false,
   },

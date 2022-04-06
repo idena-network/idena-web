@@ -29,7 +29,7 @@ import {
   useAuthDispatch,
   useAuthState,
 } from '../../shared/providers/auth-context'
-import {Section} from '../../screens/settings/components'
+import {LocaleSwitcher, Section} from '../../screens/settings/components'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {useNotificationDispatch} from '../../shared/providers/notification-context'
 import {readValidationLogs} from '../../shared/utils/logs'
@@ -43,10 +43,13 @@ import {
 import {useSuccessToast} from '../../shared/hooks/use-toast'
 import {WideLink} from '../../screens/home/components'
 import {PageTitleNew} from '../../screens/app/components'
+import {ChangeLanguageDrawer} from '../../screens/settings/containers'
+import {useLanguage} from '../../shared/hooks/use-language'
 
 function Settings() {
   const router = useRouter()
   const {t} = useTranslation()
+  const {lng, isoLng} = useLanguage()
 
   const [password, setPassword] = useState()
   const [showQR, setShowQR] = useState()
@@ -55,6 +58,8 @@ function Settings() {
     onOpen: onOpenExportPKDialog,
     onClose: onCloseExportPKDialog,
   } = useDisclosure()
+
+  const changeLanguageDisclosure = useDisclosure()
 
   const [pk, setPk] = useState('')
   const {onCopy, hasCopied} = useClipboard(pk)
@@ -105,6 +110,7 @@ function Settings() {
         />
         <PageTitleNew mt={-2}>{t('Settings')}</PageTitleNew>
       </Box>
+      <Language display={['none', 'block']} />
       <ExportPK
         display={['none', 'block']}
         onDialogOpen={onOpenExportPKDialog}
@@ -118,7 +124,12 @@ function Settings() {
         <MobileSettingsItem
           title={t('Affiliate program')}
           onClick={() => router.push('/settings/affiliate')}
+        />
+        <MobileSettingsItem
+          title={t('Language')}
+          description={`${isoLng} (${lng.toUpperCase()})`}
           mb={6}
+          onClick={() => changeLanguageDisclosure.onOpen()}
         />
         <WideLink
           label={t('Export my private key')}
@@ -206,13 +217,15 @@ function Settings() {
               </Flex>
               <Flex display={['none', 'flex']} justify="space-between">
                 <FormLabel style={{fontSize: rem(13)}}>
-                  Your encrypted private key
+                  {t('Your encrypted private key')}
                 </FormLabel>
                 {hasCopied ? (
-                  <FormLabel style={{fontSize: rem(13)}}>Copied!</FormLabel>
+                  <FormLabel style={{fontSize: rem(13)}}>
+                    {t('Copied!')}
+                  </FormLabel>
                 ) : (
                   <FlatButton onClick={onCopy} marginBottom={rem(10)}>
-                    Copy
+                    {t('Copy')}
                   </FlatButton>
                 )}
               </Flex>
@@ -240,7 +253,7 @@ function Settings() {
                     onClick={() => {
                       onCopy()
                       successToast({
-                        title: 'Private key copied!',
+                        title: t('Private key copied!'),
                         duration: '5000',
                       })
                     }}
@@ -265,6 +278,9 @@ function Settings() {
           )}
         </DialogBody>
       </Dialog>
+      <ChangeLanguageDrawer
+        changeLanguageDisclosure={changeLanguageDisclosure}
+      />
     </SettingsLayout>
   )
 }
@@ -293,6 +309,21 @@ function ExportLogs({getLogs, ...props}) {
   )
 }
 
+function Language(props) {
+  const {t} = useTranslation()
+
+  return (
+    <Section title={t('Interface')} w={['100%', '480px']} {...props}>
+      <Flex alignItems="center" mt={4} justifyContent="space-between">
+        <Text color="muted" fontWeight="normal" w={32}>
+          {t('Language')}
+        </Text>
+        <LocaleSwitcher />
+      </Flex>
+    </Section>
+  )
+}
+
 function ExportPK({onDialogOpen, ...props}) {
   const {t} = useTranslation()
 
@@ -317,19 +348,26 @@ function ExportPK({onDialogOpen, ...props}) {
   )
 }
 
-function MobileSettingsItem({title, ...props}) {
+function MobileSettingsItem({title, description, ...props}) {
   return (
     <Box w="100%" {...props}>
       <Flex h={12} w="100%" align="center" justify="space-between">
         <Text fontSize="base" fontWeight={500}>
           {title}
         </Text>
-        <AngleArrowBackIcon
-          stroke="#D8D8D8"
-          h={4}
-          w={4}
-          transform="rotate(180deg)"
-        />
+        <Flex align="center">
+          {description && (
+            <Text fontSize="base" color="muted" mr={2} isTruncated maxW="200px">
+              {description}
+            </Text>
+          )}
+          <AngleArrowBackIcon
+            stroke="#D8D8D8"
+            h={4}
+            w={4}
+            transform="rotate(180deg)"
+          />
+        </Flex>
       </Flex>
       <Divider />
     </Box>

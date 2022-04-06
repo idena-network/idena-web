@@ -8,7 +8,10 @@
     "start": "next start",
     "build": "next build",
     "test": "jest",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "i18n:init": "npm run i18n:clean && npm run i18n:scan",
+    "i18n:scan": "i18next-scanner",
+    "i18n:clean": "rm -rf public/locales/**"
   },
   "author": "",
   "license": "ISC",
@@ -30,7 +33,7 @@
     "eslint-plugin-react": "^7.12.4",
     "eslint-plugin-react-hooks": "^1.6.0",
     "eslint-plugin-testcafe": "^0.2.1",
-    "i18next-scanner": "^2.10.3",
+    "i18next-scanner": "^3.1.0",
     "jest": "^24.9.0",
     "prettier": "^1.16.4",
     "react-dom": "^17.0.2"
@@ -66,6 +69,8 @@
     "google-protobuf": "^3.13.0",
     "http-proxy-middleware": "^1.0.5",
     "i18next": "^19.0.1",
+    "i18next-browser-languagedetector": "^6.1.4",
+    "i18next-http-backend": "^1.4.0",
     "idena-eciesjs": "^1.0.0",
     "jimp": "^0.9.6",
     "js-sha3": "^0.8.0",

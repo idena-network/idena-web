@@ -482,6 +482,7 @@ export function ValidationReportCategoryLabel({
   ...props
 }) {
   const disclosure = useDisclosure()
+  const {t} = useTranslation()
   return (
     <Box fontWeight={500} {...props}>
       <Text
@@ -509,7 +510,7 @@ export function ValidationReportCategoryLabel({
                     color="blue.500"
                     onClick={() => disclosure.onClose()}
                   >
-                    Close
+                    {t('Close')}
                   </Button>
                 </Flex>
               </DialogFooter>
