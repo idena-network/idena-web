@@ -44,6 +44,7 @@ import {StoreToIpfsAttachment} from '../../shared/models/storeToIpfsAttachment'
 import {ChangeProfileAttachment} from '../../shared/models/changeProfileAttachment'
 import {BurnAttachment} from '../../shared/models/burnAttachment'
 import {AdBurnKey} from '../../shared/models/adBurnKey'
+import {useFailToast} from '../../shared/hooks/use-toast'
 
 export function useRotatingAds(limit = 3) {
   const rpcFetcher = useRpcFetcher()
@@ -219,7 +220,11 @@ export function useReviewAd() {
 
   const [ad, setAd] = React.useState()
 
-  const {data: storeToIpfsData, submit: storeToIpfs} = useStoreToIpfs()
+  const {
+    data: storeToIpfsData,
+    error: storeToIpfsError,
+    submit: storeToIpfs,
+  } = useStoreToIpfs()
 
   React.useEffect(() => {
     if (status === 'pending' && ad) {
@@ -229,7 +234,9 @@ export function useReviewAd() {
 
   const {
     data: deployData,
+    error: deployError,
     estimateData: estimateDeployData,
+    estimateError: estimateDeployError,
     txData: deployTxData,
     submit: deployVoting,
   } = useDeployVoting()
@@ -248,6 +255,8 @@ export function useReviewAd() {
 
   const {
     data: startVotingData,
+    error: startVotingError,
+    estimateError: estimateStartVotingError,
     txData: startVotingTxData,
     submit: startVoting,
   } = useStartVoting()
@@ -290,11 +299,38 @@ export function useReviewAd() {
     }
   }, [startVotingData, startVotingTxData, status])
 
+  React.useEffect(() => {
+    if (
+      status === 'pending' &&
+      [
+        storeToIpfsError,
+        estimateDeployError,
+        deployError,
+        estimateStartVotingError,
+        startVotingError,
+      ].some(Boolean)
+    ) {
+      setStatus('error')
+    }
+  }, [
+    storeToIpfsError,
+    estimateDeployError,
+    deployError,
+    estimateStartVotingError,
+    startVotingError,
+    status,
+  ])
+
   return {
     storeToIpfsData,
+    storeToIpfsError,
     estimateDeployData,
+    estimateDeployError,
     deployData,
+    deployError,
+    estimateStartVotingError,
     startVotingData,
+    startVotingError,
     startVotingTxData,
     isPending: status === 'pending',
     isDone: status === 'done',
@@ -316,7 +352,7 @@ function useDeployVoting() {
 
   const [payload, setPayload] = React.useState()
 
-  const {data, estimateData, send, estimate} = useRawTx()
+  const {data, error, estimateData, estimateError, send, estimate} = useRawTx()
 
   React.useEffect(() => {
     if (payload && deployAmount) {
@@ -351,7 +387,9 @@ function useDeployVoting() {
 
   return {
     data,
+    error,
     estimateData,
+    estimateError,
     txData,
     submit: React.useCallback(voting => {
       setPayload(
@@ -394,7 +432,7 @@ function useStartVoting() {
     }
   }, [voting])
 
-  const {data, estimateData, send, estimate} = useRawTx()
+  const {data, error, estimateData, estimateError, send, estimate} = useRawTx()
 
   const {data: startAmount} = useStartAdVotingAmount()
 
@@ -436,6 +474,8 @@ function useStartVoting() {
 
   return {
     data,
+    error,
+    estimateError,
     txData,
     submit: setVoting,
   }
@@ -450,7 +490,11 @@ export function usePublishAd() {
 
   const {encodeAdTarget, encodeProfile} = useProtoProfileEncoder()
 
-  const {data: storeToIpfsData, submit: storeToIpfs} = useStoreToIpfs()
+  const {
+    data: storeToIpfsData,
+    error: storeToIpfsError,
+    submit: storeToIpfs,
+  } = useStoreToIpfs()
 
   React.useEffect(() => {
     if (status === 'pending' && ad) {
@@ -478,6 +522,7 @@ export function usePublishAd() {
 
   const {
     data: changeProfileData,
+    error: changeProfileError,
     txData: changeProfileTxData,
     submit,
   } = useChangeProfile()
@@ -502,7 +547,9 @@ export function usePublishAd() {
 
   return {
     storeToIpfsData,
+    storeToIpfsError,
     changeProfileData,
+    changeProfileError,
     isPending: status === 'pending',
     isDone: status === 'done',
     status,
@@ -535,7 +582,7 @@ function useChangeProfile() {
     }
   }, [cid])
 
-  const {data, send} = useRawTx()
+  const {data, error, send} = useRawTx()
 
   React.useEffect(() => {
     if (payload) {
@@ -552,6 +599,7 @@ function useChangeProfile() {
 
   return {
     data,
+    error,
     txData,
     submit: setCid,
   }
@@ -599,7 +647,7 @@ export function useBurnAd() {
 
   const privateKey = usePrivateKey()
 
-  const {data, send} = useRawTx()
+  const {data, error, send} = useRawTx()
 
   React.useEffect(() => {
     if (state.status === 'pending') {
@@ -631,6 +679,7 @@ export function useBurnAd() {
 
   return {
     data,
+    error,
     txData,
     isPending: state.status === 'pending',
     isDone: state.status === 'done',
@@ -663,7 +712,7 @@ function useStoreToIpfs() {
 
   const privateKey = usePrivateKey()
 
-  const storeToIpfsMutation = useMutation(async hex => {
+  const {data, error, mutate} = useMutation(async hex => {
     const contentBytes = bytes.fromHex(hex)
 
     const cid = await callRpc('ipfs_cid', prependHex(hex))
@@ -696,9 +745,9 @@ function useStoreToIpfs() {
   })
 
   return {
-    data: storeToIpfsMutation.data,
-    error: storeToIpfsMutation.error,
-    submit: storeToIpfsMutation.mutate,
+    data,
+    error,
+    submit: mutate,
   }
 }
 
@@ -707,9 +756,17 @@ function useRawTx(initialTxParams) {
     initialTxParams
   )
 
-  const {data: estimateData, mutate: estimateRawTx} = useMutation(tx =>
-    callRpc('bcn_estimateRawTx', prependHex(tx))
-  )
+  const {
+    data: estimateData,
+    error: estimateError,
+    mutate: estimateRawTx,
+  } = useMutation(async tx => {
+    const result = await callRpc('bcn_estimateRawTx', prependHex(tx))
+
+    if (result?.receipt?.error) throw new Error(result.receipt.error)
+
+    return result
+  })
 
   React.useEffect(() => {
     if (signedEstimateTx) {
@@ -719,7 +776,7 @@ function useRawTx(initialTxParams) {
 
   const {data: signedTx, setParams} = useSignedTx(initialTxParams)
 
-  const {data, mutate: sendRawTx} = useMutation(tx =>
+  const {data, error, mutate: sendRawTx} = useMutation(tx =>
     callRpc('bcn_sendRawTx', prependHex(tx))
   )
 
@@ -731,7 +788,9 @@ function useRawTx(initialTxParams) {
 
   return {
     data,
+    error,
     estimateData,
+    estimateError,
     estimate: setEstimateParams,
     send: setParams,
   }
@@ -913,4 +972,14 @@ export function useIpfsAd(cid) {
     staleTime: Infinity,
     notifyOnChangeProps: ['data'],
   })
+}
+
+export function useAdErrorToast(maybeError) {
+  const failToast = useFailToast()
+
+  React.useEffect(() => {
+    if (maybeError) {
+      failToast(maybeError.message)
+    }
+  }, [failToast, maybeError])
 }

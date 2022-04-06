@@ -62,6 +62,7 @@ import {
   useBurnAd,
   useCompetingAdsByTarget,
   useBurntCoins,
+  useAdErrorToast,
 } from './hooks'
 import {
   AdsIcon,
@@ -785,7 +786,12 @@ export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
 
   const {
     storeToIpfsData,
+    storeToIpfsError,
     estimateDeployData,
+    estimateDeployError,
+    deployError,
+    estimateStartVotingError,
+    startVotingError,
     isPending,
     isDone,
     submit,
@@ -799,6 +805,24 @@ export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
       })
     }
   }, [storeToIpfsData, estimateDeployData, isDone, onSendToReview])
+
+  const reviewError = React.useMemo(
+    () =>
+      storeToIpfsError ??
+      estimateDeployError ??
+      deployError ??
+      estimateStartVotingError ??
+      startVotingError,
+    [
+      deployError,
+      estimateDeployError,
+      estimateStartVotingError,
+      startVotingError,
+      storeToIpfsError,
+    ]
+  )
+
+  useAdErrorToast(reviewError)
 
   const {data: deployAmount} = useDeployVotingAmount()
 
@@ -935,13 +959,26 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
 
   const balance = useBalance(address)
 
-  const {isPending, isDone, submit} = usePublishAd()
+  const {
+    storeToIpfsError,
+    changeProfileError,
+    isPending,
+    isDone,
+    submit,
+  } = usePublishAd()
 
   React.useEffect(() => {
     if (isDone && onPublish) {
       onPublish()
     }
   }, [isDone, onPublish])
+
+  const publishError = React.useMemo(
+    () => storeToIpfsError ?? changeProfileError,
+    [changeProfileError, storeToIpfsError]
+  )
+
+  useAdErrorToast(publishError)
 
   const {data: competingAds} = useCompetingAdsByTarget(ad.cid, new AdTarget(ad))
 
@@ -1031,11 +1068,13 @@ export function BurnDrawer({ad, onBurn, ...props}) {
 
   const balance = useBalance(address)
 
-  const {isPending, isDone, submit} = useBurnAd()
+  const {error, isPending, isDone, submit} = useBurnAd()
 
   React.useEffect(() => {
     if (isDone && onBurn) onBurn()
   }, [isDone, onBurn])
+
+  useAdErrorToast(error)
 
   const failToast = useFailToast()
 
