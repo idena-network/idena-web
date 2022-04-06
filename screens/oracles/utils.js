@@ -143,13 +143,8 @@ export async function fetchContractBalanceUpdates({
 }
 
 export async function fetchNetworkSize() {
-  const {result, error} = await (
-    await fetch(apiUrl('onlineidentities/count'))
-  ).json()
-
-  if (error) throw new Error(error.message)
-
-  return result
+  const {networkSize} = await callRpc('dna_globalState')
+  return networkSize
 }
 
 export async function fetchVoting({id, contractHash = id, address}) {
