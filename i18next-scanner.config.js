@@ -1,28 +1,3 @@
-const AVAILABLE_LANGS = [
-  'en',
-  'id',
-  'fr',
-  'de',
-  'es',
-  'ru',
-  'zh',
-  'ko',
-  'hr',
-  'hi',
-  'uk',
-  'sr',
-  'ro',
-  'it',
-  'pt',
-  'pl',
-  'sl',
-  'tr',
-  'bg',
-  'sv',
-  'ja',
-  'el',
-]
-
 module.exports = {
   input: [
     '**/*.{js,jsx}',
@@ -47,15 +22,15 @@ module.exports = {
         return value
       },
     },
-    lngs: AVAILABLE_LANGS,
-    defaultNs: 'translation',
     defaultValue(_lng, _ns, key, options) {
       return options.defaultValue || key
     },
+    lngs: ['en'],
+    defaultNs: 'translation',
     resource: {
       loadPath: 'public/locales/{{lng}}/{{ns}}.json',
       savePath: 'public/locales/{{lng}}/{{ns}}.json',
-      jsonIndent: 2,
+      jsonIndent: 4,
       lineEnding: '\n',
     },
     keySeparator: false,
