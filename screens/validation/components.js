@@ -24,6 +24,8 @@ import {
   useDisclosure,
   useBreakpointValue,
   useMediaQuery,
+  ModalHeader,
+  ModalBody,
 } from '@chakra-ui/react'
 import {useSwipeable} from 'react-swipeable'
 import {useMachine} from '@xstate/react'
@@ -59,6 +61,7 @@ import {NotificationType} from '../../shared/providers/notification-context'
 import {AnswerType, EpochPeriod, RelevanceType} from '../../shared/types'
 import {createTimerMachine} from '../../shared/machines'
 import {
+  EmptyFlipImage,
   FlipKeywordPanelNew,
   FlipKeywordTranslationSwitchNew,
 } from '../flips/components'
@@ -179,6 +182,11 @@ export function Flip({
 }) {
   const radius = useBreakpointValue(['12px', '8px'])
   const windowHeight = use100vh()
+  const {
+    isOpen: isOpenFlipZoom,
+    onOpen: onOpenFlipZoom,
+    onClose: onCloseFlipZoom,
+  } = useDisclosure()
 
   if ((fetched && !decoded) || failed) return <FailedFlip />
   if (!fetched) return <LoadingFlip />
@@ -220,6 +228,18 @@ export function Flip({
           }}
           onClick={() => onChoose(hash)}
         >
+          {idx === 0 && (
+            <ChakraBox
+              position="absolute"
+              top={4}
+              right={4}
+              h={6}
+              w={6}
+              backgroundColor="red"
+              onClick={onOpenFlipZoom}
+              zIndex={10}
+            />
+          )}
           <FlipBlur src={src} />
           <FlipImage
             src={src}
@@ -239,6 +259,33 @@ export function Flip({
           />
         </ChakraBox>
       ))}
+
+      <Modal size="full" isOpen={isOpenFlipZoom} onClose={onCloseFlipZoom}>
+        <ModalOverlay />
+        <ModalContent bg="transparent">
+          <ModalBody mt={20}>
+            <ChakraFlex h="100%" w="100%" direction="column" align="center">
+              <ChakraBox w="60%">
+                {reorderList(images, orders[variant - 1]).map((src, idx) => (
+                  <AspectRatio
+                    ratio={4 / 3}
+                    bg="gray.50"
+                  >
+                    {src ? (
+                      <Image
+                        src={src}
+                        fallbackSrc="/static/flips-cant-icn.svg"
+                      />
+                    ) : (
+                      <EmptyFlipImage />
+                    )}
+                  </AspectRatio>
+                ))}
+              </ChakraBox>
+            </ChakraFlex>
+          </ModalBody>
+        </ModalContent>
+      </Modal>
     </FlipHolder>
   )
 }
@@ -2429,3 +2476,5 @@ function getFlipBorderRadius(index, size, radius) {
   }
   return 0
 }
+
+function ZoomFlipSlider() {}
