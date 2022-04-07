@@ -2476,5 +2476,3 @@ function getFlipBorderRadius(index, size, radius) {
   }
   return 0
 }
-
-function ZoomFlipSlider() {}
