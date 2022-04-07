@@ -542,6 +542,15 @@ export function usePublishAd() {
     }
   }, [changeProfileData, changeProfileTxData, status, storeToIpfsData])
 
+  React.useEffect(() => {
+    if (
+      status === 'pending' &&
+      [storeToIpfsError, changeProfileError].some(Boolean)
+    ) {
+      setStatus('error')
+    }
+  }, [changeProfileError, status, storeToIpfsError])
+
   return {
     storeToIpfsData,
     storeToIpfsError,
@@ -630,6 +639,8 @@ export function useBurnAd() {
         }
         case 'done':
           return {...prevState, status: 'done'}
+        case 'error':
+          return {...prevState, status: 'error'}
 
         default:
           return prevState
@@ -668,7 +679,13 @@ export function useBurnAd() {
     ) {
       dispatch({type: 'done'})
     }
-  }, [data, state, txData])
+  }, [data, state.status, txData])
+
+  React.useEffect(() => {
+    if (state.status === 'pending' && Boolean(error)) {
+      dispatch({type: 'error'})
+    }
+  }, [error, state.status])
 
   const submit = React.useCallback(({ad, amount}) => {
     dispatch({type: 'submit', ad, amount})
