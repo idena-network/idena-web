@@ -856,6 +856,7 @@ export function useProtoProfileDecoder() {
     decodeAd: React.useCallback(Ad.fromHex, []),
     decodeAdTarget: React.useCallback(AdTarget.fromHex, []),
     decodeProfile: React.useCallback(Profile.fromHex, []),
+    decodeAdBurnKey: React.useCallback(AdBurnKey.fromHex, []),
   }
 }
 
