@@ -1,4 +1,4 @@
-import React, {useState} from 'react'
+import React from 'react'
 import {FiChevronRight} from 'react-icons/fi'
 import {useTranslation} from 'react-i18next'
 
@@ -8,12 +8,12 @@ import {
   Box,
   Link,
   Icon,
-  Divider,
-  Stack,
   TabList,
   TabPanels,
   Tabs,
   TabPanel,
+  useDisclosure,
+  HStack,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 
@@ -21,7 +21,7 @@ import {Page, PageTitleNew} from '../screens/app/components'
 import Layout from '../shared/components/layout'
 import {useAuthState} from '../shared/providers/auth-context'
 import {IconButton} from '../shared/components/button'
-import {Avatar, Badge} from '../shared/components/components'
+import {Avatar, Badge, VDivider} from '../shared/components/components'
 import {
   AngleArrowBackIcon,
   OpenExplorerIcon,
@@ -29,10 +29,10 @@ import {
   SendOutIcon,
 } from '../shared/components/icons'
 import {
-  ReceiveForm,
+  ReceiveDrawer,
   TotalAmount,
   TransactionsTab,
-  TransferForm,
+  SendDrawer,
   WalletCard,
   WalletPendingTransactions,
   WalletTransactions,
@@ -53,8 +53,11 @@ export default function Index() {
     isLoading,
   } = useBalance()
 
-  const [isReceiveFormOpen, setIsReceiveFormOpen] = useState(false)
-  const [isTransferFormOpen, setIsTransferFormOpen] = useState(false)
+  // const [isReceiveFormOpen, setIsReceiveFormOpen] = useState(false)
+  const receiveDrawerDisclosure = useDisclosure()
+
+  // const [isTransferFormOpen, setIsTransferFormOpen] = useState(false)
+  const sendDrawerDisclosure = useDisclosure()
 
   return (
     <Layout>
@@ -87,14 +90,13 @@ export default function Index() {
             />
           </Flex>
           <Flex flexBasis={['100%', '50%']} order={[4, 2]} mt={1}>
-            <Stack
+            <HStack
               justifyContent={['space-around', 'flex-end']}
-              isInline
               h={6}
               alignItems="center"
               flexBasis="100%"
             >
-              <Divider orientation="vertical" display={['none', 'initial']} />
+              <VDivider display={['none', 'initial']} />
               <IconButton
                 mx={[3, 0]}
                 fontSize={['mobile', 'md']}
@@ -102,24 +104,20 @@ export default function Index() {
                 icon={
                   <SendOutIcon boxSize={5} color={['red.500', 'blue.500']} />
                 }
-                onClick={() => {
-                  setIsTransferFormOpen(!isTransferFormOpen)
-                }}
+                onClick={sendDrawerDisclosure.onOpen}
               >
                 {t('Send')}
               </IconButton>
-              <Divider orientation="vertical" />
+              <VDivider />
               <IconButton
                 mx={[3, 0]}
                 fontSize={['mobile', 'md']}
                 icon={<ReceiveIcon boxSize={5} color="blue.500" />}
-                onClick={() => {
-                  setIsReceiveFormOpen(!isReceiveFormOpen)
-                }}
+                onClick={receiveDrawerDisclosure.onOpen}
               >
                 {t('Receive')}
               </IconButton>
-            </Stack>
+            </HStack>
           </Flex>
           <Flex flexBasis="100%" order={[2, 3]} mt={[8, 2]}>
             <Link
@@ -171,8 +169,8 @@ export default function Index() {
               address={coinbase}
               wallet={{name: 'Main', balance, isStake: false}}
               isSelected
-              onSend={() => setIsTransferFormOpen(true)}
-              onReceive={() => setIsReceiveFormOpen(true)}
+              onSend={sendDrawerDisclosure.onOpen}
+              onReceive={receiveDrawerDisclosure.onOpen}
               isLoading={isLoading}
             />
             <WalletCard
@@ -226,16 +224,9 @@ export default function Index() {
           </Flex>
         )}
 
-        <TransferForm
-          isOpen={isTransferFormOpen}
-          onClose={() => setIsTransferFormOpen(false)}
-        />
+        <SendDrawer {...sendDrawerDisclosure} />
 
-        <ReceiveForm
-          address={coinbase}
-          isOpen={isReceiveFormOpen}
-          onClose={() => setIsReceiveFormOpen(false)}
-        />
+        <ReceiveDrawer address={coinbase} {...receiveDrawerDisclosure} />
       </Page>
     </Layout>
   )

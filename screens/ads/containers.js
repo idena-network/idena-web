@@ -47,7 +47,7 @@ import {
   SmallText,
 } from '../../shared/components/components'
 import {
-  useActiveAd,
+  useCurrentRotatingAd,
   useRotatingAds,
   useRotateAd,
   useAdStatusColor,
@@ -106,7 +106,7 @@ export function AdBanner() {
 
   const router = useRouter()
 
-  const activeAd = useActiveAd()
+  const activeAd = useCurrentRotatingAd()
 
   return (
     <Flex
@@ -146,22 +146,22 @@ export function AdBanner() {
 function AdBannerContent({ad}) {
   return (
     <LinkBox as={HStack} spacing={2}>
-      <AdBannerSkeleton isLoaded={Boolean(ad?.thumb)}>
+      <Skeleton isLoaded={Boolean(ad?.thumb)}>
         <AdImage src={ad?.thumb} w={10} />
-      </AdBannerSkeleton>
+      </Skeleton>
       <Stack spacing="0.5" fontWeight={500}>
-        <AdBannerSkeleton isLoaded={Boolean(ad?.title)} minH={4} w="md">
+        <Skeleton isLoaded={Boolean(ad?.title)} minH={4} w="md">
           <LinkOverlay href={ad?.url} target="_blank">
             <Text lineHeight={4} isTruncated>
               {ad?.title}
             </Text>
           </LinkOverlay>
-        </AdBannerSkeleton>
-        <AdBannerSkeleton isLoaded={Boolean(ad?.desc)} minH={4} minW="lg">
+        </Skeleton>
+        <Skeleton isLoaded={Boolean(ad?.desc)} minH={4} minW="lg">
           <Text fontSize="sm" color="muted" lineHeight={4} isTruncated>
             {ad?.desc}
           </Text>
-        </AdBannerSkeleton>
+        </Skeleton>
       </Stack>
     </LinkBox>
   )
@@ -183,19 +183,15 @@ function AdBannerAuthor({ad, ...props}) {
             borderColor="gray.016"
             rounded="sm"
           />
-          <AdBannerSkeleton isLoaded={Boolean(ad?.author)}>
+          <Skeleton isLoaded={Boolean(ad?.author)}>
             <Text color="muted" fontSize="sm" w="24" lineHeight="4" isTruncated>
               {ad?.author}
             </Text>
-          </AdBannerSkeleton>
+          </Skeleton>
         </HStack>
       </Stack>
     </HStack>
   )
-}
-
-function AdBannerSkeleton(props) {
-  return <Skeleton startColor="gray.50" endColor="gray.100" {...props} />
 }
 
 export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
@@ -501,7 +497,7 @@ function AdPromotion({cid, title, desc, url, media, author}) {
     >
       <Stack spacing="4">
         <Stack spacing="2">
-          <AdBannerSkeleton isLoaded={Boolean(title)} minH={5} w={3 / 4}>
+          <Skeleton isLoaded={Boolean(title)} minH={5} w={3 / 4}>
             <Heading
               as="h4"
               fontWeight="semibold"
@@ -511,15 +507,15 @@ function AdPromotion({cid, title, desc, url, media, author}) {
             >
               {title}
             </Heading>
-          </AdBannerSkeleton>
+          </Skeleton>
 
           <Stack spacing="1.5" minH={62}>
-            <AdBannerSkeleton isLoaded={Boolean(desc)} minH={5}>
+            <Skeleton isLoaded={Boolean(desc)} minH={5}>
               <Text color="muted" fontSize="md" lineHeight="5">
                 {desc}
               </Text>
-            </AdBannerSkeleton>
-            <AdBannerSkeleton isLoaded={Boolean(url)} w={1 / 4} h={4}>
+            </Skeleton>
+            <Skeleton isLoaded={Boolean(url)} w={1 / 4} h={4}>
               <ExternalLink
                 href={url}
                 fontWeight="semibold"
@@ -528,7 +524,7 @@ function AdPromotion({cid, title, desc, url, media, author}) {
               >
                 {url}
               </ExternalLink>
-            </AdBannerSkeleton>
+            </Skeleton>
           </Stack>
         </Stack>
 
@@ -1071,7 +1067,9 @@ export function BurnDrawer({ad, onBurn, ...props}) {
   const {error, isPending, isDone, submit} = useBurnAd()
 
   React.useEffect(() => {
-    if (isDone && onBurn) onBurn()
+    if (isDone && onBurn) {
+      onBurn()
+    }
   }, [isDone, onBurn])
 
   useAdErrorToast(error)

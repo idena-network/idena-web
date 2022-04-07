@@ -66,6 +66,7 @@ import {
 import useClickOutside from '../../shared/hooks/use-click-outside'
 import {
   getDateFromBlocks,
+  HASH_IN_MEMPOOL,
   lowerCase,
   openExternalUrl,
   toLocaleDna,
@@ -78,6 +79,8 @@ import {transactionType} from './utils'
 import useSyncing from '../../shared/hooks/use-syncing'
 import {WideLink} from '../home/components'
 import {useDeferredVotes} from '../oracles/hooks'
+import {AdDrawer} from '../ads/containers'
+import {useTx} from '../ads/hooks'
 
 export function TransactionsTab(props) {
   return (
@@ -343,7 +346,7 @@ function CardMenuModal({
   )
 }
 
-export function ReceiveForm({isOpen, onClose, address}) {
+export function ReceiveDrawer({isOpen, onClose, address}) {
   const {t} = useTranslation()
   const {onCopy, hasCopied} = useClipboard(address)
 
@@ -404,13 +407,14 @@ export function ReceiveForm({isOpen, onClose, address}) {
   )
 }
 
-export function TransferForm({isOpen, onClose}) {
+export function SendDrawer(props) {
   const {coinbase, privateKey} = useAuthState()
 
   const [to, setTo] = useState()
   const [amount, setAmount] = useState()
 
-  const [submitting, setSubmitting] = useState(false)
+  const [isPending, setIsPending] = useState(false)
+
   const size = useBreakpointValue(['lg', 'md'])
   const variant = useBreakpointValue(['outlineMobile', 'outline'])
   const labelFontSize = useBreakpointValue(['base', 'md'])
@@ -420,13 +424,15 @@ export function TransferForm({isOpen, onClose}) {
   const successToast = useSuccessToast()
   const failToast = useFailToast()
 
+  const [hash, setHash] = React.useState()
+
   const send = async () => {
     function isAddress(address) {
       return address.length === 42 && address.substr(0, 2) === '0x'
     }
 
     try {
-      setSubmitting(true)
+      setIsPending(true)
 
       if (!isAddress(to)) {
         throw new Error(`Incorrect 'To' address: ${to}`)
@@ -439,25 +445,38 @@ export function TransferForm({isOpen, onClose}) {
 
       setAmount(null)
       setTo(null)
+      setHash(result)
 
       successToast({
         title: t('Transaction sent'),
         description: result,
       })
-      if (onClose) onClose()
     } catch (error) {
+      setIsPending(false)
       failToast({
         title: t('Error while sending transaction'),
         description: error.message,
         status: 'error',
       })
-    } finally {
-      setSubmitting(false)
     }
   }
 
+  const txData = useTx(hash)
+
+  const {onClose} = props
+
+  React.useEffect(() => {
+    if (
+      isPending &&
+      (txData?.blockHash ?? HASH_IN_MEMPOOL) !== HASH_IN_MEMPOOL
+    ) {
+      setIsPending(false)
+      onClose()
+    }
+  }, [isPending, onClose, txData])
+
   return (
-    <Drawer isOpen={isOpen} onClose={onClose}>
+    <AdDrawer isMining={isPending} {...props}>
       <DrawerHeader mb={8}>
         <Flex direction="column" textAlign={['center', 'start']}>
           <Flex
@@ -480,7 +499,7 @@ export function TransferForm({isOpen, onClose}) {
             lineHeight="base"
             mt={[0, 4]}
           >
-            Send iDNA
+            {t('Send iDNA')}
           </Heading>
         </Flex>
       </DrawerHeader>
@@ -521,7 +540,7 @@ export function TransferForm({isOpen, onClose}) {
             fontSize="mobile"
             size="lg"
             onClick={send}
-            isLoading={submitting}
+            isLoading={isPending}
             loadingText={t('Mining...')}
           >
             {t('Send')}
@@ -529,26 +548,15 @@ export function TransferForm({isOpen, onClose}) {
         </Stack>
       </DrawerBody>
       <DrawerFooter display={['none', 'flex']}>
-        <Box
-          alignSelf="stretch"
-          borderTop="1px"
-          borderTopColor="gray.100"
-          mt="auto"
-          pt={5}
-          width="100%"
+        <PrimaryButton
+          onClick={send}
+          isLoading={isPending}
+          loadingText={t('Mining...')}
         >
-          <Stack isInline spacing={2} justify="flex-end">
-            <PrimaryButton
-              onClick={send}
-              isLoading={submitting}
-              loadingText={t('Mining...')}
-            >
-              {t('Transfer')}
-            </PrimaryButton>
-          </Stack>
-        </Box>
+          {t('Transfer')}
+        </PrimaryButton>
       </DrawerFooter>
-    </Drawer>
+    </AdDrawer>
   )
 }
 

@@ -33,7 +33,6 @@ import {
   Box,
   Button,
   FormControl,
-  useTheme,
   Divider,
   Text,
   Link,
@@ -435,11 +434,10 @@ export function QrScanner({isOpen, onScan, onClose}) {
 }
 
 export function Skeleton(props) {
-  const {colors} = useTheme()
   return (
     <ChakraSkeleton
-      startColor={colors.gray[100]}
-      endColor={colors.gray[300]}
+      startColor="gray.50"
+      endColor="gray.100"
       w="full"
       {...props}
     />

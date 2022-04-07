@@ -49,7 +49,7 @@ import {useFailToast} from '../../shared/hooks/use-toast'
 export function useRotatingAds(limit = 3) {
   const rpcFetcher = useRpcFetcher()
 
-  const {data: burntCoins} = useBurntCoins()
+  const {data: burntCoins} = useCompetingAds()
 
   const addresses = [...new Set(burntCoins?.map(({address}) => address))]
 
@@ -89,7 +89,6 @@ export function useRotatingAds(limit = 3) {
 
   const approvedProfileAdVotings = profileAdVotings?.filter(
     ({data}) =>
-      // voting?.adCid === ad?.cid &&
       data?.status === VotingStatus.Archived &&
       data?.result === AdVotingOptionId[AdVotingOption.Approve]
   )
@@ -114,7 +113,6 @@ export function useRotatingAds(limit = 3) {
           }),
           enabled: Boolean(cid),
           staleTime: Infinity,
-          notifyOnChangeProps: ['tracked'],
         }
       }) ?? []
   )
@@ -122,7 +120,7 @@ export function useRotatingAds(limit = 3) {
   return decodedProfileAds?.map(x => x.data) ?? []
 }
 
-export function useActiveAd() {
+export function useCurrentRotatingAd() {
   const ads = useRotatingAds()
 
   const {currentIndex} = useRotateAd()
@@ -154,20 +152,19 @@ export function useRotateAd() {
 }
 
 export function useCompetingAds() {
+  const {i18n} = useTranslation()
+
   const [{address, age, stake}] = useIdentity()
 
   const currentTarget = React.useMemo(
     () =>
       new AdTarget({
-        language:
-          typeof window !== 'undefined'
-            ? new Intl.Locale(navigator.language).language
-            : '',
+        language: i18n.language,
         os: typeof window !== 'undefined' ? currentOs() : '',
         age: age + 1,
         stake,
       }),
-    [age, stake]
+    [age, i18n.language, stake]
   )
 
   return useCompetingAdsByTarget(address, currentTarget)
