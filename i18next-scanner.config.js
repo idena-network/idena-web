@@ -30,7 +30,7 @@ module.exports = {
     resource: {
       loadPath: 'public/locales/{{lng}}/{{ns}}.json',
       savePath: 'public/locales/{{lng}}/{{ns}}.json',
-      jsonIndent: 2,
+      jsonIndent: 4,
       lineEnding: '\n',
     },
     keySeparator: false,
