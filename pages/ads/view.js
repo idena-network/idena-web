@@ -19,17 +19,25 @@ export default function ViewAdPage() {
 
   const router = useRouter()
 
-  const {data} = useIpfsAd()
+  const {data} = useIpfsAd(router.query?.cid)
 
   return (
     <Layout>
       <Page px={0} py={0} overflow="hidden">
-        <Box flex={1} w="full" px={20} py={6} overflowY="auto">
+        <Flex
+          direction="column"
+          flex={1}
+          w="full"
+          px={20}
+          py={6}
+          overflowY="auto"
+        >
           <PageHeader>
             <PageTitle mb={0}>{t('View ad')}</PageTitle>
             <PageCloseButton href="/ads/list" />
           </PageHeader>
-          <Flex align="center" h="full">
+
+          <Flex align="center" flex={1}>
             {data ? (
               <HStack spacing="10" w="4xl">
                 <Stack
@@ -53,7 +61,7 @@ export default function ViewAdPage() {
               </HStack>
             ) : null}
           </Flex>
-        </Box>
+        </Flex>
 
         <PageFooter>
           <PrimaryButton

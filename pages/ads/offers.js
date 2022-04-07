@@ -1,5 +1,6 @@
 import NextLink from 'next/link'
 import {
+  Button,
   Center,
   HStack,
   Link,
@@ -14,6 +15,7 @@ import {
 import React from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQueries} from 'react-query'
+import {ChevronRightIcon} from '@chakra-ui/icons'
 import {
   useBurntCoins,
   useFormatDna,
@@ -21,22 +23,32 @@ import {
   useRpcFetcher,
 } from '../../screens/ads/hooks'
 import {Page, PageTitle} from '../../screens/app/components'
-import {Avatar, RoundedTh} from '../../shared/components/components'
+import {
+  Avatar,
+  RoundedTh,
+  Skeleton,
+  Tooltip,
+} from '../../shared/components/components'
 import Layout from '../../shared/components/layout'
 import {
   AdImage,
   PageHeader,
   PageCloseButton,
 } from '../../screens/ads/components'
+import {
+  InlineAdStatGroup,
+  SmallInlineAdStat,
+} from '../../screens/ads/containers'
+import {pick} from '../../shared/utils/utils'
 
 export default function AdOfferList() {
   const {t} = useTranslation()
 
   const rpcFetcher = useRpcFetcher()
 
-  const {decodeAdBurnKey, decodeAd} = useProtoProfileDecoder()
+  const {decodeAdBurnKey, decodeAd, decodeAdTarget} = useProtoProfileDecoder()
 
-  const {data: burntCoins, isFetched: isBurntCoinsFetched} = useBurntCoins({
+  const {data: burntCoins, status: burntCoinsStatus} = useBurntCoins({
     select: data =>
       data?.map(({address, key, amount}) => ({
         address,
@@ -44,16 +56,19 @@ export default function AdOfferList() {
         amount,
       })) ?? [],
     initialData: [],
+    staleTime: 0,
+    notifyOnChangeProps: 'tracked',
   })
 
   const adQueries = useQueries(
-    burntCoins.map(({cid, address, ...burnRecord}) => ({
+    burntCoins.map(({cid, target, address, ...burnRecord}) => ({
       queryKey: ['ipfs_get', [cid]],
       queryFn: rpcFetcher,
       enabled: Boolean(cid),
       staleTime: Infinity,
       select: data => ({
         ...decodeAd(data),
+        ...decodeAdTarget(target),
         cid,
         author: address,
         ...burnRecord,
@@ -66,9 +81,14 @@ export default function AdOfferList() {
   const ads = adQueries.map(({data}) => data)
 
   const isFetched =
-    isBurntCoinsFetched && adQueries.every(adQuery => adQuery.isFetched)
+    burntCoinsStatus === 'success' &&
+    adQueries.every(adQuery => adQuery.isFetched)
 
   const isEmpty = isFetched && ads.length === 0
+
+  const isLoading =
+    burntCoinsStatus === 'loading' ||
+    adQueries.some(adQuery => adQuery.status === 'loading')
 
   return (
     <Layout skipBanner>
@@ -82,7 +102,7 @@ export default function AdOfferList() {
             <Tr>
               <RoundedTh>{t('Banner/author')}</RoundedTh>
               <RoundedTh>{t('Website')}</RoundedTh>
-              <RoundedTh>{t('Status')}</RoundedTh>
+              <RoundedTh>{t('Target')}</RoundedTh>
               <RoundedTh>{t('Burn')}</RoundedTh>
             </Tr>
           </Thead>
@@ -93,19 +113,24 @@ export default function AdOfferList() {
                   <Td>
                     <HStack>
                       <AdImage src={ad.thumb} boxSize="10" />
-                      <Stack>
+                      <Stack spacing="1.5">
                         <Text lineHeight={4} isTruncated>
                           {ad.title}
                         </Text>
                         <HStack spacing={1}>
                           <Avatar
                             address={ad.author}
-                            size={4}
+                            boxSize="4"
                             borderWidth={1}
                             borderColor="brandGray.016"
-                            rounded="sm"
+                            borderRadius={['mobile', 'sm']}
                           />
-                          <Text color="muted" fontSize="sm" fontWeight={500}>
+                          <Text
+                            color="muted"
+                            fontSize="sm"
+                            fontWeight={500}
+                            lineHeight="shorter"
+                          >
                             {ad.author}
                           </Text>
                         </HStack>
@@ -119,12 +144,73 @@ export default function AdOfferList() {
                       </Link>
                     </NextLink>
                   </Td>
-                  <Td>{t('Showing')}</Td>
-                  <Td>{formatDna(ad.amount ?? 0)}</Td>
+                  <Td>
+                    {Object.values(
+                      pick(ad, ['language', 'os', 'age', 'stake'])
+                    ).some(Boolean) ? (
+                      <>
+                        {t('Set')}{' '}
+                        <Tooltip
+                          label={
+                            <InlineAdStatGroup labelWidth="16">
+                              <SmallInlineAdStat
+                                label={t('Language')}
+                                value={ad.language || 'Any'}
+                              />
+                              <SmallInlineAdStat
+                                label={t('OS')}
+                                value={ad.os || 'Any'}
+                              />
+                              <SmallInlineAdStat
+                                label={t('Age')}
+                                value={ad.age ?? 'Any'}
+                              />
+                              <SmallInlineAdStat
+                                label={t('Stake')}
+                                value={ad.stake ?? 'Any'}
+                              />
+                            </InlineAdStatGroup>
+                          }
+                          placement="right-start"
+                          arrowSize={8}
+                          offset={[-8, 6]}
+                        >
+                          <Button
+                            variant="link"
+                            rightIcon={<ChevronRightIcon />}
+                            iconSpacing="0"
+                            color="blue.500"
+                            cursor="pointer"
+                            _hover={{
+                              textDecoration: 'none',
+                            }}
+                          >
+                            {t('{{count}} targets', {
+                              count: Object.values(
+                                pick(ad, ['language', 'os', 'age', 'stake'])
+                              ).filter(Boolean).length,
+                            })}
+                          </Button>
+                        </Tooltip>
+                      </>
+                    ) : (
+                      t('Not set')
+                    )}
+                  </Td>
+                  <Td>{formatDna(ad.amount)}</Td>
                 </Tr>
               ))}
           </Tbody>
         </Table>
+
+        {isLoading && (
+          <Stack spacing="4" w="full" mt="4">
+            {[...Array(3)].map((_, idx) => (
+              <Skeleton key={idx} h="10" />
+            ))}
+          </Stack>
+        )}
+
         {isEmpty && (
           <Center color="muted" mt="4" w="full">
             {t('No active offers')}

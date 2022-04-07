@@ -197,7 +197,7 @@ export function useBurntCoins(options) {
   })
 }
 
-export function useDraftAds(options) {
+export function usePersistedAds(options) {
   return useQuery('draftAds', () => db.table('ads').toArray(), {
     initialData: [],
     notifyOnChangeProps: 'tracked',
@@ -205,8 +205,8 @@ export function useDraftAds(options) {
   })
 }
 
-export function useDraftAd(id) {
-  return useDraftAds({
+export function usePersistedAd(id) {
+  return usePersistedAds({
     enabled: Boolean(id),
     select: data => data.find(ad => ad.id === id),
   })

@@ -14,8 +14,8 @@ import {
 import {
   useBalance,
   useCoinbase,
-  useDraftAds,
   useFormatDna,
+  usePersistedAds,
 } from '../../screens/ads/hooks'
 import {AdStatus} from '../../screens/ads/types'
 import {
@@ -54,14 +54,16 @@ export default function AdListPage() {
   const {data: profileAds, status} = {data: []} // useProfileAds()
 
   const {
-    data: draftAds,
-    status: draftAdsStatus,
-    refetch: refetchDraftAds,
-  } = useDraftAds()
+    data: persistedAds,
+    status: persistedAdsStatus,
+    refetch: refetchPersistedAds,
+  } = usePersistedAds()
 
-  const ads = [...profileAds, ...draftAds].filter(ad => ad.status === filter)
+  const ads = [...profileAds, ...persistedAds].filter(
+    ad => ad.status === filter
+  )
 
-  const isLoaded = status === 'success' || draftAdsStatus === 'success'
+  const isLoaded = status === 'success' || persistedAdsStatus === 'success'
 
   const [selectedAd, setSelectedAd] = React.useState()
 
@@ -69,13 +71,13 @@ export default function AdListPage() {
     try {
       await db.table('ads').update(selectedAd.id, {status: AdStatus.Approved})
 
-      refetchDraftAds()
+      refetchPersistedAds()
     } catch {
       console.error('Error updating persisted ads', {id: selectedAd?.id})
     } finally {
       publishDisclosure.onClose()
     }
-  }, [publishDisclosure, refetchDraftAds, selectedAd])
+  }, [publishDisclosure, refetchPersistedAds, selectedAd])
 
   const handleReview = React.useCallback(
     async ({cid, contract}) => {
@@ -86,20 +88,20 @@ export default function AdListPage() {
           contract,
         })
 
-        refetchDraftAds()
+        refetchPersistedAds()
       } catch {
         console.error('Error updating persisted ads', {id: selectedAd?.id})
       } finally {
         reviewDisclosure.onClose()
       }
     },
-    [refetchDraftAds, reviewDisclosure, selectedAd]
+    [refetchPersistedAds, reviewDisclosure, selectedAd]
   )
 
   const handleBurn = React.useCallback(() => {
-    refetchDraftAds()
+    refetchPersistedAds()
     burnDisclosure.onClose()
-  }, [burnDisclosure, refetchDraftAds])
+  }, [burnDisclosure, refetchPersistedAds])
 
   return (
     <Layout>
@@ -162,7 +164,7 @@ export default function AdListPage() {
                   setSelectedAd(ad)
                   burnDisclosure.onOpen()
                 }}
-                onRemove={refetchDraftAds}
+                onRemove={refetchPersistedAds}
               />
             ))}
           </AdList>

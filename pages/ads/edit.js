@@ -13,7 +13,7 @@ import {
   PageFooter,
 } from '../../screens/ads/components'
 import db from '../../shared/utils/db'
-import {useCoinbase, useDraftAd} from '../../screens/ads/hooks'
+import {useCoinbase, usePersistedAd} from '../../screens/ads/hooks'
 import {useFailToast} from '../../shared/hooks/use-toast'
 
 export default function EditAdPage() {
@@ -21,7 +21,7 @@ export default function EditAdPage() {
 
   const router = useRouter()
 
-  const {data: ad} = useDraftAd(router.query.id)
+  const {data: ad} = usePersistedAd(router.query.id)
 
   const coinbase = useCoinbase()
 
