@@ -239,7 +239,13 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
     <HStack key={id} spacing="5" align="flex-start">
       <Stack spacing="2" w="60px" flexShrink={0}>
         <Box position="relative">
-          <AdImage src={ad.thumb && URL.createObjectURL(ad.thumb)} />
+          <AdImage
+            src={
+              typeof ad.thumb === 'string'
+                ? ad.thumb
+                : ad.thumb && URL.createObjectURL(ad.thumb)
+            }
+          />
           {status === AdStatus.Approved && (
             <AdOverlayStatus status={rotationStatus} />
           )}

@@ -16,6 +16,7 @@ import {
   useCoinbase,
   useFormatDna,
   usePersistedAds,
+  useProfileAds,
 } from '../../screens/ads/hooks'
 import {AdStatus} from '../../screens/ads/types'
 import {
@@ -51,7 +52,7 @@ export default function AdListPage() {
     localStorage.setItem('adListFilter', filter)
   }, [filter])
 
-  const {data: profileAds, status} = {data: []} // useProfileAds()
+  const {data: profileAds, status: profileAdsStatus} = useProfileAds()
 
   const {
     data: persistedAds,
@@ -59,17 +60,23 @@ export default function AdListPage() {
     refetch: refetchPersistedAds,
   } = usePersistedAds()
 
-  const ads = [...profileAds, ...persistedAds].filter(
-    ad => ad.status === filter
-  )
+  const ads = [
+    ...profileAds,
+    ...persistedAds?.filter(
+      a => profileAds.findIndex(b => a?.cid === b?.cid) === -1
+    ),
+  ].filter(ad => ad?.status === filter)
 
-  const isLoaded = status === 'success' || persistedAdsStatus === 'success'
+  const isLoaded =
+    profileAdsStatus === 'success' || persistedAdsStatus === 'success'
 
   const [selectedAd, setSelectedAd] = React.useState()
 
   const handlePublish = React.useCallback(async () => {
     try {
-      await db.table('ads').update(selectedAd.id, {status: AdStatus.Approved})
+      await db.table('ads').update(selectedAd.id, {
+        status: AdStatus.Approved,
+      })
 
       refetchPersistedAds()
     } catch {
@@ -99,9 +106,8 @@ export default function AdListPage() {
   )
 
   const handleBurn = React.useCallback(() => {
-    refetchPersistedAds()
     burnDisclosure.onClose()
-  }, [burnDisclosure, refetchPersistedAds])
+  }, [burnDisclosure])
 
   return (
     <Layout>

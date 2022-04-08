@@ -15,7 +15,7 @@ import {
   HASH_IN_MEMPOOL,
   roundToPrecision,
 } from '../../shared/utils/utils'
-import {AdRotationStatus, AdVotingOption, AdVotingOptionId} from './types'
+import {AdRotationStatus, AdStatus} from './types'
 import {
   AD_VOTING_COMMITTEE_SIZE,
   areCompetingAds,
@@ -23,10 +23,11 @@ import {
   currentOs,
   fetchAdVoting,
   fetchProfileAds,
+  isApprovedVoting,
   minOracleReward,
   selectProfileHash,
 } from './utils'
-import {TxType, VotingStatus} from '../../shared/types'
+import {TxType} from '../../shared/types'
 import {capitalize} from '../../shared/utils/string'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {stripHexPrefix} from '../../shared/utils/buffers'
@@ -87,10 +88,8 @@ export function useRotatingAds(limit = 3) {
       }))
   )
 
-  const approvedProfileAdVotings = profileAdVotings?.filter(
-    ({data}) =>
-      data?.status === VotingStatus.Archived &&
-      data?.result === AdVotingOptionId[AdVotingOption.Approve]
+  const approvedProfileAdVotings = profileAdVotings?.filter(({data}) =>
+    isApprovedVoting(data)
   )
 
   const decodedProfileAds = useQueries(
@@ -195,6 +194,62 @@ export function useBurntCoins(options) {
     notifyOnChangeProps: ['data'],
     ...options,
   })
+}
+
+export function useProfileAds() {
+  const rpcFetcher = useRpcFetcher()
+
+  const [{profileHash}] = useIdentity()
+
+  const {decodeProfile, decodeAd, decodeAdTarget} = useProtoProfileDecoder()
+
+  const {data: profile} = useQuery({
+    queryKey: ['ipfs_get', [profileHash]],
+    queryFn: rpcFetcher,
+    enabled: Boolean(profileHash),
+    select: decodeProfile,
+    staleTime: Infinity,
+    notifyOnChangeProps: 'tracked',
+  })
+
+  const decodedProfileAds = useQueries(
+    profile?.ads?.map(({cid, target, ...ad}) => ({
+      queryKey: ['decodedProfileAd', [cid]],
+      queryFn: async () => ({
+        ...decodeAd(await callRpc('ipfs_get', cid)),
+        ...decodeAdTarget(target),
+        cid,
+        ...ad,
+      }),
+      enabled: Boolean(cid),
+      staleTime: Infinity,
+    })) ?? []
+  )
+
+  const profileAds = useQueries(
+    decodedProfileAds
+      .filter(({data}) => Boolean(data?.contract))
+      .map(({data}) => {
+        const {cid, contract, ...ad} = data
+        return {
+          queryKey: ['profileAd', cid, contract],
+          queryFn: async () => ({
+            ...ad,
+            cid,
+            status: isApprovedVoting(await fetchAdVoting(contract))
+              ? AdStatus.Approved
+              : AdStatus.Rejected,
+          }),
+        }
+      })
+  )
+
+  return {
+    data: profileAds.map(({data}) => data) ?? [],
+    status: profileAds.some(({status}) => status === 'loading')
+      ? 'loading'
+      : 'done',
+  }
 }
 
 export function usePersistedAds(options) {

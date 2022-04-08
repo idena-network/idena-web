@@ -133,3 +133,7 @@ export const mapVotingToAdStatus = voting => {
       : AdStatus.Reviewing
   }
 }
+
+export const isApprovedVoting = voting =>
+  voting?.status === VotingStatus.Archived &&
+  voting?.result === AdVotingOptionId[AdVotingOption.Approve]
