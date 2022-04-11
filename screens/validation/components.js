@@ -1,6 +1,6 @@
 /* eslint-disable no-shadow */
 /* eslint-disable react/prop-types */
-import React, {useEffect, useMemo, useState} from 'react'
+import React, {useEffect, useMemo, useRef, useState} from 'react'
 import {margin, borderRadius, cover, transparentize, rgba} from 'polished'
 import {FiCheck, FiXCircle, FiChevronLeft, FiChevronRight} from 'react-icons/fi'
 import {
@@ -81,6 +81,7 @@ import {
   InfoIcon,
   OkIcon,
   ArrowBackIcon,
+  ZoomFlipIcon,
 } from '../../shared/components/icons'
 import {TEST_SHORT_SESSION_INTERVAL_SEC} from '../../shared/providers/test-validation-context'
 import {use100vh} from '../../shared/hooks/use-100vh'
@@ -182,6 +183,7 @@ export function Flip({
 }) {
   const radius = useBreakpointValue(['12px', '8px'])
   const windowHeight = use100vh()
+  const [hoverRef, isHovered] = useHover()
   const {
     isOpen: isOpenFlipZoom,
     onOpen: onOpenFlipZoom,
@@ -192,101 +194,107 @@ export function Flip({
   if (!fetched) return <LoadingFlip />
 
   return (
-    <FlipHolder
-      css={
-        // eslint-disable-next-line no-nested-ternary
-        option
-          ? option === variant
-            ? {
-                border: `solid ${rem(2)} ${theme.colors.primary}`,
-                boxShadow: `0 0 ${rem(2)} ${rem(3)} ${transparentize(
-                  0.75,
-                  theme.colors.primary
-                )}`,
-                transition: 'all .3s cubic-bezier(.5, 0, .5, 1)',
-              }
-            : {
-                opacity: 0.3,
-                transform: 'scale(0.98)',
-                transition: 'all .3s cubic-bezier(.5, 0, .5, 1)',
-              }
-          : {}
-      }
-    >
-      {reorderList(images, orders[variant - 1]).map((src, idx) => (
-        <ChakraBox
-          key={idx}
-          h={[
-            `calc((${windowHeight}px - 290px) / 4)`,
-            'calc((100vh - 260px) / 4)',
-          ]}
-          borderRadius={getFlipBorderRadius(idx, images.length - 1, radius)}
-          css={{
-            // height: 'calc((100vh - 260px) / 4)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-          onClick={() => onChoose(hash)}
-        >
-          {idx === 0 && (
-            <ChakraBox
-              position="absolute"
-              top={4}
-              right={4}
-              h={6}
-              w={6}
-              backgroundColor="red"
-              onClick={onOpenFlipZoom}
-              zIndex={10}
-            />
-          )}
-          <FlipBlur src={src} />
-          <FlipImage
-            src={src}
-            alt="current-flip"
-            height="100%"
-            width="100%"
-            style={{
-              ...borderRadius('top', idx === 0 ? rem(8) : 'none'),
-              ...borderRadius(
-                'bottom',
-                idx === images.length - 1 ? rem(8) : 'none'
-              ),
+    <div ref={hoverRef}>
+      <FlipHolder
+        css={
+          // eslint-disable-next-line no-nested-ternary
+          option
+            ? option === variant
+              ? {
+                  border: `solid ${rem(2)} ${theme.colors.primary}`,
+                  boxShadow: `0 0 ${rem(2)} ${rem(3)} ${transparentize(
+                    0.75,
+                    theme.colors.primary
+                  )}`,
+                  transition: 'all .3s cubic-bezier(.5, 0, .5, 1)',
+                }
+              : {
+                  opacity: 0.3,
+                  transform: 'scale(0.98)',
+                  transition: 'all .3s cubic-bezier(.5, 0, .5, 1)',
+                }
+            : {}
+        }
+      >
+        {reorderList(images, orders[variant - 1]).map((src, idx) => (
+          <ChakraBox
+            key={idx}
+            h={[
+              `calc((${windowHeight}px - 290px) / 4)`,
+              'calc((100vh - 260px) / 4)',
+            ]}
+            borderRadius={getFlipBorderRadius(idx, images.length - 1, radius)}
+            css={{
+              // height: 'calc((100vh - 260px) / 4)',
               position: 'relative',
-              zIndex: 1,
+              overflow: 'hidden',
             }}
-            onError={onImageFail}
-          />
-        </ChakraBox>
-      ))}
+            onClick={() => onChoose(hash)}
+          >
+            {idx === 0 && (
+              <ChakraFlex
+                display={isHovered ? 'flex' : 'none'}
+                align="center"
+                justify="center"
+                borderRadius="8px"
+                backgroundColor="rgba(83, 86, 92, 0.5)"
+                position="absolute"
+                top={1}
+                right={1}
+                h={7}
+                w={7}
+                opacity={0.5}
+                _hover={{opacity: 1}}
+                zIndex={2}
+              >
+                <ZoomFlipIcon h={5} w={5} onClick={onOpenFlipZoom} />
+              </ChakraFlex>
+            )}
+            <FlipBlur src={src} />
+            <FlipImage
+              src={src}
+              alt="current-flip"
+              height="100%"
+              width="100%"
+              style={{
+                ...borderRadius('top', idx === 0 ? rem(8) : 'none'),
+                ...borderRadius(
+                  'bottom',
+                  idx === images.length - 1 ? rem(8) : 'none'
+                ),
+                position: 'relative',
+                zIndex: 1,
+              }}
+              onError={onImageFail}
+            />
+          </ChakraBox>
+        ))}
 
-      <Modal size="full" isOpen={isOpenFlipZoom} onClose={onCloseFlipZoom}>
-        <ModalOverlay />
-        <ModalContent bg="transparent">
-          <ModalBody mt={20}>
-            <ChakraFlex h="100%" w="100%" direction="column" align="center">
-              <ChakraBox w="60%">
-                {reorderList(images, orders[variant - 1]).map((src, idx) => (
-                  <AspectRatio
-                    ratio={4 / 3}
-                    bg="gray.50"
-                  >
-                    {src ? (
-                      <Image
-                        src={src}
-                        fallbackSrc="/static/flips-cant-icn.svg"
-                      />
-                    ) : (
-                      <EmptyFlipImage />
-                    )}
-                  </AspectRatio>
-                ))}
-              </ChakraBox>
-            </ChakraFlex>
-          </ModalBody>
-        </ModalContent>
-      </Modal>
-    </FlipHolder>
+        <Modal size="full" isOpen={isOpenFlipZoom} onClose={onCloseFlipZoom}>
+          <ModalOverlay />
+          <ModalContent bg="transparent">
+            <ModalBody mt={20}>
+              <ChakraFlex h="100%" w="100%" direction="column" align="center">
+                <ChakraBox w="60%">
+                  {reorderList(images, orders[variant - 1]).map((src, idx) => (
+                    <AspectRatio ratio={4 / 3} bg="gray.50">
+                      {src ? (
+                        <Image
+                          src={src}
+                          fallbackSrc="/static/flips-cant-icn.svg"
+                        />
+                      ) : (
+                        <EmptyFlipImage />
+                      )}
+                    </AspectRatio>
+                  ))}
+                </ChakraBox>
+              </ChakraFlex>
+            </ModalBody>
+          </ModalContent>
+        </Modal>
+      </FlipHolder>
+    </div>
   )
 }
 
@@ -2475,4 +2483,26 @@ function getFlipBorderRadius(index, size, radius) {
     return `0 0 ${radius} ${radius}`
   }
   return 0
+}
+
+function useHover() {
+  const [value, setValue] = useState(false)
+  const ref = useRef(null)
+  const handleMouseOver = () => setValue(true)
+  const handleMouseOut = () => setValue(false)
+  useEffect(
+    () => {
+      const node = ref.current
+      if (node) {
+        node.addEventListener('mouseover', handleMouseOver)
+        node.addEventListener('mouseout', handleMouseOut)
+        return () => {
+          node.removeEventListener('mouseover', handleMouseOver)
+          node.removeEventListener('mouseout', handleMouseOut)
+        }
+      }
+    },
+    [] // Recall only if ref changes
+  )
+  return [ref, value]
 }
