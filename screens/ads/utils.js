@@ -137,3 +137,8 @@ export const mapVotingToAdStatus = voting => {
 export const isApprovedVoting = voting =>
   voting?.status === VotingStatus.Archived &&
   voting?.result === AdVotingOptionId[AdVotingOption.Approve]
+
+export const adImageThumbSrc = ad =>
+  typeof ad.thumb === 'string'
+    ? ad.thumb
+    : ad.thumb && URL.createObjectURL(ad.thumb)

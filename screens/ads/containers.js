@@ -92,7 +92,7 @@ import {
   SecondaryButton,
 } from '../../shared/components/button'
 import {AVAILABLE_LANGS} from '../../i18n'
-import {fetchAdVoting, mapVotingToAdStatus, OS} from './utils'
+import {adImageThumbSrc, fetchAdVoting, mapVotingToAdStatus, OS} from './utils'
 import {AdRotationStatus, AdStatus} from './types'
 import {viewVotingHref} from '../oracles/utils'
 import db from '../../shared/utils/db'
@@ -239,13 +239,7 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
     <HStack key={id} spacing="5" align="flex-start">
       <Stack spacing="2" w="60px" flexShrink={0}>
         <Box position="relative">
-          <AdImage
-            src={
-              typeof ad.thumb === 'string'
-                ? ad.thumb
-                : ad.thumb && URL.createObjectURL(ad.thumb)
-            }
-          />
+          <AdImage src={adImageThumbSrc(ad)} />
           {status === AdStatus.Approved && (
             <AdOverlayStatus status={rotationStatus} />
           )}
@@ -438,7 +432,7 @@ export function AdDrawer({isMining = true, children, ...props}) {
               />
             </HStack>
             <HStack spacing="2.5" justify="center" align="center" h="2">
-              {ads.map((_, idx) => {
+              {ads.map((ad, idx) => {
                 const isCurrrent = currentIndex === idx
 
                 const isSibling = Math.abs(currentIndex - idx) === 1
@@ -448,6 +442,7 @@ export function AdDrawer({isMining = true, children, ...props}) {
 
                 return (
                   <Button
+                    key={ad.cid}
                     variant="unstyled"
                     bg={
                       // eslint-disable-next-line no-nested-ternary
@@ -864,14 +859,7 @@ export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
           </Stack>
           <Stack spacing={6} bg="gray.50" p={6} rounded="lg">
             <Stack isInline spacing={5}>
-              <AdImage
-                src={
-                  typeof ad.thumb === 'string'
-                    ? ad.thumb
-                    : ad.thumb && URL.createObjectURL(ad.thumb)
-                }
-                w="10"
-              />
+              <AdImage src={adImageThumbSrc(ad)} w="10" />
               <Box>
                 <Text fontWeight={500}>{ad.title}</Text>
                 <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
@@ -1022,14 +1010,7 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
 
           <Stack spacing="6" bg="gray.50" p={6} rounded="lg">
             <Stack isInline spacing={5}>
-              <AdImage
-                src={
-                  typeof ad.thumb === 'string'
-                    ? ad.thumb
-                    : URL.createObjectURL(ad.thumb)
-                }
-                w="10"
-              />
+              <AdImage src={adImageThumbSrc(ad)} w="10" />
               <Box>
                 <Text fontWeight={500}>{ad.title}</Text>
                 <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
@@ -1130,14 +1111,7 @@ export function BurnDrawer({ad, onBurn, ...props}) {
 
           <Stack spacing="6" bg="gray.50" p={6} rounded="lg">
             <Stack isInline spacing={5}>
-              <AdImage
-                src={
-                  typeof ad.thumb === 'string'
-                    ? ad.thumb
-                    : URL.createObjectURL(ad.thumb)
-                }
-                w="10"
-              />
+              <AdImage src={adImageThumbSrc(ad)} w="10" />
               <Box>
                 <Text fontWeight={500}>{ad.title}</Text>
                 <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
