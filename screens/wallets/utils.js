@@ -13,3 +13,6 @@ export function transactionType(tx) {
     return `Mining status ${data && data.becomeOnline ? 'On' : 'Off'}`
   return type
 }
+
+export const isAddress = address =>
+  address.length === 42 && address.substr(0, 2) === '0x'

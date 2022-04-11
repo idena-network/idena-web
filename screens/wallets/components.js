@@ -71,11 +71,11 @@ import {
   openExternalUrl,
   toLocaleDna,
 } from '../../shared/utils/utils'
-import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
+import {useFailToast} from '../../shared/hooks/use-toast'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {sendDna} from '../../shared/api/utils'
 import {getTxs} from '../../shared/api/indexer'
-import {transactionType} from './utils'
+import {isAddress, transactionType} from './utils'
 import useSyncing from '../../shared/hooks/use-syncing'
 import {WideLink} from '../home/components'
 import {useDeferredVotes} from '../oracles/hooks'
@@ -408,72 +408,71 @@ export function ReceiveDrawer({isOpen, onClose, address}) {
 }
 
 export function SendDrawer(props) {
-  const {coinbase, privateKey} = useAuthState()
-
-  const [to, setTo] = useState()
-  const [amount, setAmount] = useState()
-
-  const [isPending, setIsPending] = useState(false)
+  const {t} = useTranslation()
 
   const size = useBreakpointValue(['lg', 'md'])
   const variant = useBreakpointValue(['outlineMobile', 'outline'])
   const labelFontSize = useBreakpointValue(['base', 'md'])
 
-  const {t} = useTranslation()
-
-  const successToast = useSuccessToast()
   const failToast = useFailToast()
 
-  const [hash, setHash] = React.useState()
+  const {coinbase, privateKey} = useAuthState()
 
-  const send = async () => {
-    function isAddress(address) {
-      return address.length === 42 && address.substr(0, 2) === '0x'
-    }
+  const [state, dispatch] = React.useReducer(
+    (prevState, action) => {
+      const {type = typeof action === 'string' && action} = action
 
-    try {
-      setIsPending(true)
+      switch (type) {
+        case 'submit': {
+          const {from, to, amount, hash} = action
 
-      if (!isAddress(to)) {
-        throw new Error(`Incorrect 'To' address: ${to}`)
+          return {
+            ...prevState,
+            from,
+            to,
+            amount,
+            hash,
+            status: 'pending',
+          }
+        }
+        case 'done':
+          return {...prevState, hash: null, status: 'done'}
+        case 'error':
+          return {...prevState, error: action.error, status: 'error'}
+
+        default:
+          return prevState
       }
-      if (amount <= 0) {
-        throw new Error(`Incorrect Amount: ${amount}`)
-      }
-
-      const result = await sendDna(privateKey, to, amount)
-
-      setAmount(null)
-      setTo(null)
-      setHash(result)
-
-      successToast({
-        title: t('Transaction sent'),
-        description: result,
-      })
-    } catch (error) {
-      setIsPending(false)
-      failToast({
-        title: t('Error while sending transaction'),
-        description: error.message,
-        status: 'error',
-      })
+    },
+    {
+      status: 'idle',
     }
-  }
-
-  const txData = useTx(hash)
+  )
 
   const {onClose} = props
+
+  const txData = useTx(state.hash)
+
+  const isPending = state.status === 'pending'
 
   React.useEffect(() => {
     if (
       isPending &&
       (txData?.blockHash ?? HASH_IN_MEMPOOL) !== HASH_IN_MEMPOOL
     ) {
-      setIsPending(false)
+      dispatch('done')
       onClose()
     }
   }, [isPending, onClose, txData])
+
+  React.useEffect(() => {
+    if (state.status === 'error') {
+      failToast({
+        title: t('Error while sending transaction'),
+        description: state.error,
+      })
+    }
+  }, [failToast, state, t])
 
   return (
     <AdDrawer isMining={isPending} {...props}>
@@ -493,7 +492,7 @@ export function SendDrawer(props) {
           </Flex>
           <Heading
             order={[1, 2]}
-            color="brandGray.500"
+            color="gray.500"
             fontSize={['base', 'lg']}
             fontWeight={[['bold', 500]]}
             lineHeight="base"
@@ -504,52 +503,84 @@ export function SendDrawer(props) {
         </Flex>
       </DrawerHeader>
       <DrawerBody>
-        <Stack spacing={[4, 5]}>
-          <FormControlWithLabel label={t('From')} labelFontSize={labelFontSize}>
-            <Input
-              value={coinbase}
-              backgroundColor={['gray.50', 'gray.100']}
-              size={size}
-              variant={variant}
-              isDisabled
-            />
-          </FormControlWithLabel>
-          <FormControlWithLabel label={t('To')} labelFontSize={labelFontSize}>
-            <Input
-              value={to}
-              variant={variant}
-              borderColor="gray.100"
-              size={size}
-              onChange={e => setTo(e.target.value)}
-            />
-          </FormControlWithLabel>
-          <FormControlWithLabel
-            label={t('Amount')}
-            labelFontSize={labelFontSize}
-          >
-            <Input
-              value={amount}
-              variant={variant}
-              type="number"
-              size={size}
-              onChange={e => setAmount(e.target.value)}
-            />
-          </FormControlWithLabel>
-          <PrimaryButton
-            display={['flex', 'none']}
-            fontSize="mobile"
-            size="lg"
-            onClick={send}
-            isLoading={isPending}
-            loadingText={t('Mining...')}
-          >
-            {t('Send')}
-          </PrimaryButton>
-        </Stack>
+        <form
+          id="send"
+          onSubmit={async e => {
+            e.preventDefault()
+
+            try {
+              const {to, amount} = Object.fromEntries(
+                new FormData(e.target).entries()
+              )
+
+              if (!isAddress(to)) {
+                throw new Error(`Incorrect 'To' address: ${to}`)
+              }
+
+              if (amount <= 0) {
+                throw new Error(`Incorrect Amount: ${amount}`)
+              }
+
+              const result = await sendDna(privateKey, to, amount)
+
+              dispatch({type: 'submit', to, amount, hash: result})
+            } catch (error) {
+              dispatch({type: 'error', error: error.message})
+            }
+          }}
+        >
+          <Stack spacing={[4, 5]}>
+            <FormControlWithLabel
+              label={t('From')}
+              labelFontSize={labelFontSize}
+            >
+              <Input
+                defaultValue={coinbase}
+                backgroundColor={['gray.50', 'gray.100']}
+                size={size}
+                variant={variant}
+                isDisabled
+              />
+            </FormControlWithLabel>
+            <FormControlWithLabel label={t('To')} labelFontSize={labelFontSize}>
+              <Input
+                name="to"
+                defaultValue={state.to}
+                variant={variant}
+                borderColor="gray.100"
+                size={size}
+              />
+            </FormControlWithLabel>
+            <FormControlWithLabel
+              label={t('Amount')}
+              labelFontSize={labelFontSize}
+            >
+              <Input
+                type="number"
+                name="amount"
+                defaultValue={state.amount}
+                min={0}
+                variant={variant}
+                size={size}
+              />
+            </FormControlWithLabel>
+            <PrimaryButton
+              type="submit"
+              display={['flex', 'none']}
+              fontSize="mobile"
+              size="lg"
+              isLoading={state.status === 'pending'}
+              loadingText={t('Mining...')}
+            >
+              {t('Send')}
+            </PrimaryButton>
+          </Stack>
+        </form>
       </DrawerBody>
       <DrawerFooter display={['none', 'flex']}>
         <PrimaryButton
-          onClick={send}
+          form="send"
+          type="submit"
           isLoading={isPending}
           loadingText={t('Mining...')}
         >

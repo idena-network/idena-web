@@ -970,8 +970,7 @@ function useLiveRpc(method, params, options) {
 
   return useQuery([method, params, lastBlock?.hash], rpcFetcher, {
     staleTime: Infinity,
-    keepPreviousData: true,
-    notifyOnChangeProps: ['data', 'error'],
+    notifyOnChangeProps: 'tracked',
     ...options,
   })
 }
@@ -987,6 +986,10 @@ export function useRpcFetcher() {
 
 export function useTx(hash, options) {
   const isMiningRef = React.useRef(true)
+
+  React.useEffect(() => {
+    isMiningRef.current = true
+  }, [hash])
 
   const {data} = useLiveRpc('bcn_transaction', [hash], {
     enabled: Boolean(hash) && isMiningRef.current,
