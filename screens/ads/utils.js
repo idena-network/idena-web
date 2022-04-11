@@ -1,4 +1,5 @@
 /* eslint-disable no-use-before-define */
+import Jimp from 'jimp'
 import {Profile} from '../../shared/models/profile'
 import {VotingStatus} from '../../shared/types'
 import {areSameCaseInsensitive, callRpc} from '../../shared/utils/utils'
@@ -142,3 +143,13 @@ export const adImageThumbSrc = ad =>
   typeof ad.thumb === 'string'
     ? ad.thumb
     : ad.thumb && URL.createObjectURL(ad.thumb)
+
+export async function compressAdImage(
+  bytes,
+  {width, height} = {width: 80, height: 80}
+) {
+  return (await Jimp.read(bytes))
+    .resize(width, height)
+    .quality(60)
+    .getBufferAsync('image/jpeg')
+}

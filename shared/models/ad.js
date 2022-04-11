@@ -17,7 +17,7 @@ export class Ad {
         new Blob([protoAd.getThumb()], {type: 'image/jpeg'})
       ),
       media: URL.createObjectURL(
-        new Blob([protoAd.getMedia()], {type: 'image/png'})
+        new Blob([protoAd.getMedia()], {type: 'image/jpeg'})
       ),
     })
   }

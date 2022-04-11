@@ -92,7 +92,13 @@ import {
   SecondaryButton,
 } from '../../shared/components/button'
 import {AVAILABLE_LANGS} from '../../i18n'
-import {adImageThumbSrc, fetchAdVoting, mapVotingToAdStatus, OS} from './utils'
+import {
+  adImageThumbSrc,
+  compressAdImage,
+  fetchAdVoting,
+  mapVotingToAdStatus,
+  OS,
+} from './utils'
 import {AdRotationStatus, AdStatus} from './types'
 import {viewVotingHref} from '../oracles/utils'
 import db from '../../shared/utils/db'
@@ -886,8 +892,17 @@ export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
                 if (balance > requiredAmount) {
                   submit({
                     ...ad,
-                    thumb: new Uint8Array(await ad.thumb.arrayBuffer()),
-                    media: new Uint8Array(await ad.media.arrayBuffer()),
+                    // new Uint8Array(await ad.thumb.arrayBuffer()),
+                    thumb: new Uint8Array(
+                      await compressAdImage(await ad.thumb.arrayBuffer())
+                    ),
+                    // new Uint8Array(await ad.media.arrayBuffer()),
+                    media: new Uint8Array(
+                      await compressAdImage(await ad.thumb.arrayBuffer(), {
+                        width: 640,
+                        height: 640,
+                      })
+                    ),
                   })
                 } else {
                   failToast(

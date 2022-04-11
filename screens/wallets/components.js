@@ -423,15 +423,11 @@ export function SendDrawer(props) {
       const {type = typeof action === 'string' && action} = action
 
       switch (type) {
-        case 'submit': {
-          const {from, to, amount, hash} = action
-
+        case 'submit':
+        case 'mine': {
           return {
             ...prevState,
-            from,
-            to,
-            amount,
-            hash,
+            ...action,
             status: 'pending',
           }
         }
@@ -508,11 +504,13 @@ export function SendDrawer(props) {
           onSubmit={async e => {
             e.preventDefault()
 
-            try {
-              const {to, amount} = Object.fromEntries(
-                new FormData(e.target).entries()
-              )
+            dispatch('submit')
 
+            const {to, amount} = Object.fromEntries(
+              new FormData(e.target).entries()
+            )
+
+            try {
               if (!isAddress(to)) {
                 throw new Error(`Incorrect 'To' address: ${to}`)
               }

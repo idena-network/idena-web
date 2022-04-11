@@ -156,7 +156,7 @@ export default function AdListPage() {
           <AdList py={4} spacing={4} alignSelf="stretch">
             {ads.map(ad => (
               <AdListItem
-                key={ad.id}
+                key={`${ad.cid}!!${ad.id}`}
                 ad={ad}
                 onReview={() => {
                   setSelectedAd(ad)
