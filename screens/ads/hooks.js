@@ -105,7 +105,7 @@ export function useRotatingAds(limit = 3) {
         return {
           queryKey: ['decodedProfileAd', [cid]],
           queryFn: async () => ({
-            ...decodeAd(await callRpc('ipfs_get', cid)),
+            ...decodeAd(await callRpc('ipfs_get', cid).catch(() => '')),
             cid,
             author: address,
             amount: Number(amount),
@@ -216,7 +216,7 @@ export function useProfileAds() {
     profile?.ads?.map(({cid, target, ...ad}) => ({
       queryKey: ['decodedProfileAd', [cid]],
       queryFn: async () => ({
-        ...decodeAd(await callRpc('ipfs_get', cid)),
+        ...decodeAd(await callRpc('ipfs_get', cid).catch(() => '')),
         ...decodeAdTarget(target),
         cid,
         ...ad,

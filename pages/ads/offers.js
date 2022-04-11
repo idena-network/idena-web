@@ -40,6 +40,7 @@ import {
   SmallInlineAdStat,
 } from '../../screens/ads/containers'
 import {pick} from '../../shared/utils/utils'
+import {adImageThumbSrc} from '../../screens/ads/utils'
 
 export default function AdOfferList() {
   const {t} = useTranslation()
@@ -63,7 +64,7 @@ export default function AdOfferList() {
   const adQueries = useQueries(
     burntCoins.map(({cid, target, address, ...burnRecord}) => ({
       queryKey: ['ipfs_get', [cid]],
-      queryFn: rpcFetcher,
+      queryFn: params => rpcFetcher(params).catch(() => ''),
       enabled: Boolean(cid),
       staleTime: Infinity,
       select: data => ({
@@ -112,7 +113,7 @@ export default function AdOfferList() {
                 <Tr key={ad.cid} fontWeight={500}>
                   <Td>
                     <HStack>
-                      <AdImage src={ad.thumb} boxSize="10" />
+                      <AdImage src={adImageThumbSrc(ad)} boxSize="10" />
                       <Stack spacing="1.5">
                         <Text lineHeight={4} isTruncated>
                           {ad.title}
