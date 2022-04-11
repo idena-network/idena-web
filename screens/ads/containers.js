@@ -864,7 +864,14 @@ export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
           </Stack>
           <Stack spacing={6} bg="gray.50" p={6} rounded="lg">
             <Stack isInline spacing={5}>
-              <AdImage src={ad.thumb && URL.createObjectURL(ad.thumb)} w="10" />
+              <AdImage
+                src={
+                  typeof ad.thumb === 'string'
+                    ? ad.thumb
+                    : ad.thumb && URL.createObjectURL(ad.thumb)
+                }
+                w="10"
+              />
               <Box>
                 <Text fontWeight={500}>{ad.title}</Text>
                 <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
@@ -1015,7 +1022,14 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
 
           <Stack spacing="6" bg="gray.50" p={6} rounded="lg">
             <Stack isInline spacing={5}>
-              <AdImage src={URL.createObjectURL(ad.thumb)} w="10" />
+              <AdImage
+                src={
+                  typeof ad.thumb === 'string'
+                    ? ad.thumb
+                    : URL.createObjectURL(ad.thumb)
+                }
+                w="10"
+              />
               <Box>
                 <Text fontWeight={500}>{ad.title}</Text>
                 <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
@@ -1116,7 +1130,14 @@ export function BurnDrawer({ad, onBurn, ...props}) {
 
           <Stack spacing="6" bg="gray.50" p={6} rounded="lg">
             <Stack isInline spacing={5}>
-              <AdImage src={URL.createObjectURL(ad.thumb)} w="10" />
+              <AdImage
+                src={
+                  typeof ad.thumb === 'string'
+                    ? ad.thumb
+                    : URL.createObjectURL(ad.thumb)
+                }
+                w="10"
+              />
               <Box>
                 <Text fontWeight={500}>{ad.title}</Text>
                 <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
