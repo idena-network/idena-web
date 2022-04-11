@@ -84,6 +84,7 @@ export function AppProvider({tabId, ...props}) {
 
   // time checking
   const toast = useToast()
+  const toastId = 'check-time-toast'
   const [wrongClientTime, setWrongClientTime] = useState()
 
   useInterval(
@@ -109,8 +110,9 @@ export function AppProvider({tabId, ...props}) {
   )
 
   useEffect(() => {
-    if (wrongClientTime)
+    if (wrongClientTime && !toast.isActive(toastId))
       toast({
+        id: toastId,
         duration: null,
         // eslint-disable-next-line react/display-name
         render: toastProps => (
