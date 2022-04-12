@@ -973,10 +973,10 @@ function ReScheduleAlert({isOpen, onConfirm, onClose}) {
   const variantCancel = useBreakpointValue(['primaryFlat', 'secondary'])
   return (
     <Dialog isOpen={isOpen} onClose={onClose}>
-      <DialogHeader>{t('Revoke certificate')}</DialogHeader>
+      <DialogHeader>{t('Already passed successfully')}</DialogHeader>
       <DialogBody>
         {t(
-          'Do you want to revoke your existing training validation certificate?'
+          'Starting a new training verification will reset the existing training validation certificate.'
         )}
       </DialogBody>
       <DialogFooter>
@@ -995,7 +995,7 @@ function ReScheduleAlert({isOpen, onConfirm, onClose}) {
             bg: {buttonBgHover},
           }}
         >
-          {t('Revoke')}
+          {t('Start anyway')}
         </Button>
       </DialogFooter>
     </Dialog>
