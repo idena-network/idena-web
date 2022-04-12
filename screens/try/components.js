@@ -976,7 +976,7 @@ function ReScheduleAlert({isOpen, onConfirm, onClose}) {
       <DialogHeader>{t('Already passed successfully')}</DialogHeader>
       <DialogBody>
         {t(
-          'Starting a new training verification will reset the existing training validation certificate.'
+          'Starting a new training validation will reset the existing training validation certificate'
         )}
       </DialogBody>
       <DialogFooter>
