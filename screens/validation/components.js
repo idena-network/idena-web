@@ -271,9 +271,15 @@ export function Flip({
           </ChakraBox>
         ))}
 
-        <Modal size="full" isOpen={isOpenFlipZoom} onClose={onCloseFlipZoom}>
+        <Modal size="6xl" isOpen={isOpenFlipZoom} onClose={onCloseFlipZoom}>
           <ModalOverlay />
-          <ModalCloseButton size="lg" onClick={onCloseFlipZoom} mt={3} mr={3} zIndex={1401}>
+          <ModalCloseButton
+            size="lg"
+            onClick={onCloseFlipZoom}
+            mt={3}
+            mr={3}
+            zIndex={1401}
+          >
             <ChakraFlex
               align="center"
               justify="center"
@@ -288,7 +294,7 @@ export function Flip({
           <ModalContent bg="transparent">
             <ModalBody mt={20}>
               <ChakraFlex h="100%" w="100%" direction="column" align="center">
-                <ChakraBox w="60%">
+                <ChakraBox w="100%">
                   {reorderList(images, orders[variant - 1]).map((src, idx) => (
                     <AspectRatio ratio={4 / 3} bg="gray.50">
                       {src ? (
