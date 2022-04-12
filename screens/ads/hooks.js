@@ -24,6 +24,7 @@ import {
   fetchAdVoting,
   fetchProfileAds,
   isApprovedVoting,
+  isRejectedVoting,
   minOracleReward,
   selectProfileHash,
 } from './utils'
@@ -253,11 +254,36 @@ export function useProfileAds() {
 }
 
 export function usePersistedAds(options) {
-  return useQuery('draftAds', () => db.table('ads').toArray(), {
-    initialData: [],
-    notifyOnChangeProps: 'tracked',
-    ...options,
-  })
+  return useQuery(
+    'draftAds',
+    async () =>
+      Promise.all(
+        (await db.table('ads').toArray()).map(
+          async ({status, contract, ...ad}) => {
+            const voting = await fetchAdVoting(contract)
+            return {
+              ...ad,
+              contract,
+              status:
+                // eslint-disable-next-line no-nested-ternary
+                status === AdStatus.Reviewing
+                  ? // eslint-disable-next-line no-nested-ternary
+                    isApprovedVoting(voting)
+                    ? AdStatus.Approved
+                    : isRejectedVoting(voting)
+                    ? AdStatus.Rejected
+                    : AdStatus.Reviewing
+                  : status,
+            }
+          }
+        )
+      ),
+    {
+      initialData: [],
+      notifyOnChangeProps: 'tracked',
+      ...options,
+    }
+  )
 }
 
 export function usePersistedAd(id) {

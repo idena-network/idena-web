@@ -139,6 +139,10 @@ export const isApprovedVoting = voting =>
   voting?.status === VotingStatus.Archived &&
   voting?.result === AdVotingOptionId[AdVotingOption.Approve]
 
+export const isRejectedVoting = voting =>
+  voting?.status === VotingStatus.Archived &&
+  voting?.result === AdVotingOptionId[AdVotingOption.Reject]
+
 export const adImageThumbSrc = ad =>
   typeof ad.thumb === 'string'
     ? ad.thumb
