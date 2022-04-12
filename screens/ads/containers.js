@@ -259,7 +259,11 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
           <Stack spacing="1">
             <TextLink
               href={
-                status === AdStatus.Approved
+                eitherStatus(
+                  AdStatus.Reviewing,
+                  AdStatus.Approved,
+                  AdStatus.Rejected
+                )
                   ? `/ads/view?cid=${cid}`
                   : `/ads/edit?id=${id}`
               }
