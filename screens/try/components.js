@@ -26,7 +26,7 @@ import {
 } from '@chakra-ui/react'
 import {useMachine} from '@xstate/react'
 import dayjs from 'dayjs'
-import {useEffect, useMemo, useRef, useState} from 'react'
+import React, {useEffect, useMemo, useRef, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
 import {getFlip, getFlipCache} from '../../shared/api/self'
@@ -980,12 +980,24 @@ function ReScheduleAlert({isOpen, onConfirm, onClose}) {
         )}
       </DialogBody>
       <DialogFooter>
-        <Button size={size} variant={variantCancel} onClick={onClose}>
+        <Button
+          size={size}
+          variant={variantCancel}
+          w={['100%', 'auto']}
+          onClick={onClose}
+        >
           {t('Cancel')}
         </Button>
+        <Divider
+          display={['block', 'none']}
+          h={10}
+          orientation="vertical"
+          color="gray.100"
+        />
         <Button
           size={size}
           variant={variantConfirm}
+          w={['100%', 'auto']}
           onClick={() => {
             onConfirm()
             onClose()
