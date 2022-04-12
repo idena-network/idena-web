@@ -24,8 +24,8 @@ import {
   useDisclosure,
   useBreakpointValue,
   useMediaQuery,
-  ModalHeader,
   ModalBody,
+  ModalCloseButton,
 } from '@chakra-ui/react'
 import {useSwipeable} from 'react-swipeable'
 import {useMachine} from '@xstate/react'
@@ -82,6 +82,7 @@ import {
   OkIcon,
   ArrowBackIcon,
   ZoomFlipIcon,
+  CrossSmallIcon,
 } from '../../shared/components/icons'
 import {TEST_SHORT_SESSION_INTERVAL_SEC} from '../../shared/providers/test-validation-context'
 import {use100vh} from '../../shared/hooks/use-100vh'
@@ -237,12 +238,12 @@ export function Flip({
                 align="center"
                 justify="center"
                 borderRadius="8px"
-                backgroundColor="rgba(83, 86, 92, 0.5)"
+                backgroundColor="rgba(17, 17, 17, 0.5)"
                 position="absolute"
                 top={1}
                 right={1}
-                h={7}
-                w={7}
+                h={8}
+                w={8}
                 opacity={0.5}
                 _hover={{opacity: 1}}
                 zIndex={2}
@@ -272,6 +273,18 @@ export function Flip({
 
         <Modal size="full" isOpen={isOpenFlipZoom} onClose={onCloseFlipZoom}>
           <ModalOverlay />
+          <ModalCloseButton size="lg" onClick={onCloseFlipZoom} mt={3} mr={3} zIndex={1401}>
+            <ChakraFlex
+              align="center"
+              justify="center"
+              borderRadius="12px"
+              backgroundColor="gray.500"
+              w={10}
+              h={10}
+            >
+              <CrossSmallIcon color="white" boxSize={8} />
+            </ChakraFlex>
+          </ModalCloseButton>
           <ModalContent bg="transparent">
             <ModalBody mt={20}>
               <ChakraFlex h="100%" w="100%" direction="column" align="center">
@@ -2490,19 +2503,16 @@ function useHover() {
   const ref = useRef(null)
   const handleMouseOver = () => setValue(true)
   const handleMouseOut = () => setValue(false)
-  useEffect(
-    () => {
-      const node = ref.current
-      if (node) {
-        node.addEventListener('mouseover', handleMouseOver)
-        node.addEventListener('mouseout', handleMouseOut)
-        return () => {
-          node.removeEventListener('mouseover', handleMouseOver)
-          node.removeEventListener('mouseout', handleMouseOut)
-        }
+  useEffect(() => {
+    const node = ref.current
+    if (node) {
+      node.addEventListener('mouseover', handleMouseOver)
+      node.addEventListener('mouseout', handleMouseOut)
+      return () => {
+        node.removeEventListener('mouseover', handleMouseOver)
+        node.removeEventListener('mouseout', handleMouseOut)
       }
-    },
-    [] // Recall only if ref changes
-  )
+    }
+  })
   return [ref, value]
 }
