@@ -86,6 +86,7 @@ import {
 } from '../../shared/components/icons'
 import {TEST_SHORT_SESSION_INTERVAL_SEC} from '../../shared/providers/test-validation-context'
 import {use100vh} from '../../shared/hooks/use-100vh'
+import {useIsDesktop} from '../../shared/utils/utils'
 
 const Scroll = require('react-scroll')
 
@@ -184,6 +185,7 @@ export function Flip({
 }) {
   const radius = useBreakpointValue(['12px', '8px'])
   const windowHeight = use100vh()
+  const isDesktop = useIsDesktop()
   const [hoverRef, isHovered] = useHover()
   const {
     isOpen: isOpenFlipZoom,
@@ -232,7 +234,7 @@ export function Flip({
             }}
             onClick={() => onChoose(hash)}
           >
-            {idx === 0 && (
+            {isDesktop && idx === 0 && (
               <ChakraFlex
                 display={isHovered ? 'flex' : 'none'}
                 align="center"
