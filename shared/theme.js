@@ -537,7 +537,7 @@ export const uiTheme = {
         },
         xl: {
           dialog: {
-            maxW: '60%',
+            maxW: '30%',
           },
         },
       },

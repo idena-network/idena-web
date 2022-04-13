@@ -319,7 +319,7 @@ export function Flip({
             </ChakraFlex>
           </ModalCloseButton>
           <ModalContent bg="transparent">
-            <ModalBody mt={20}>
+            <ModalBody>
               <ChakraFlex h="100%" w="100%" direction="column" align="center">
                 <ChakraBox w="100%">
                   {reorderList(images, orders[variant - 1]).map((src, idx) => (
