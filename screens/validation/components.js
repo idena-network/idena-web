@@ -268,7 +268,14 @@ export function Flip({
                 _hover={{opacity: 1}}
                 zIndex={2}
               >
-                <ZoomFlipIcon h={5} w={5} onClick={onOpenFlipZoom} />
+                <ZoomFlipIcon
+                  h={5}
+                  w={5}
+                  onClick={e => {
+                    e.stopPropagation()
+                    onOpenFlipZoom()
+                  }}
+                />
               </ChakraFlex>
             )}
             <FlipBlur src={src} />
@@ -291,7 +298,7 @@ export function Flip({
           </ChakraBox>
         ))}
 
-        <Modal size="6xl" isOpen={isOpenFlipZoom} onClose={onCloseFlipZoom}>
+        <Modal size="xl" isOpen={isOpenFlipZoom} onClose={onCloseFlipZoom}>
           <ModalOverlay />
           <ModalCloseButton
             size="lg"

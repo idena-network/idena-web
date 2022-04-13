@@ -535,6 +535,11 @@ export const uiTheme = {
             maxW: '480px',
           },
         },
+        xl: {
+          dialog: {
+            maxW: '60%',
+          },
+        },
       },
     },
     Table: {
