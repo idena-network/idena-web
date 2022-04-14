@@ -159,9 +159,9 @@ export function useCompetingAds() {
   const currentTarget = React.useMemo(
     () =>
       new AdTarget({
-        language: i18n.language,
+        language: new Intl.Locale(i18n.language).language,
         os: typeof window !== 'undefined' ? currentOs() : '',
-        age: age + 1,
+        age,
         stake,
       }),
     [age, i18n.language, stake]
