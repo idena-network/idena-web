@@ -121,8 +121,8 @@ export default function AdListPage() {
         refetchAds()
 
         toast({
-          title: t('Ad has been sent to review successfully'),
-          actionContent: t('View reviewing ads'),
+          title: t('Ad has been sent to oracles review'),
+          actionContent: t(`Open 'On review'`),
           onAction: () => {
             setFilter(AdStatus.Reviewing)
           },
