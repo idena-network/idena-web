@@ -34,7 +34,7 @@ export default function ViewAdPage() {
         >
           <PageHeader>
             <PageTitle mb={0}>{t('View ad')}</PageTitle>
-            <PageCloseButton href="/ads/list" />
+            <PageCloseButton href="/adn/list" />
           </PageHeader>
 
           <Flex align="center" flex={1}>
@@ -66,7 +66,7 @@ export default function ViewAdPage() {
         <PageFooter>
           <PrimaryButton
             onClick={() => {
-              router.push('/ads/list')
+              router.push('/adn/list')
             }}
           >
             {t('Close')}

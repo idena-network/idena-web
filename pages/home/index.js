@@ -588,7 +588,7 @@ export default function ProfilePage() {
               </WideLink>
               <WideLink
                 label={t('New ad')}
-                onClick={() => router.push('/ads/new')}
+                onClick={() => router.push('/adn/new')}
               >
                 <Box
                   boxSize={[8, 5]}

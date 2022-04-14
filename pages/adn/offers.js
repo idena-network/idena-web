@@ -96,7 +96,7 @@ export default function AdOfferList() {
       <Page>
         <PageHeader>
           <PageTitle mb={4}>{t('All offers')}</PageTitle>
-          <PageCloseButton href="/ads/list" />
+          <PageCloseButton href="/adn/list" />
         </PageHeader>
         <Table>
           <Thead>

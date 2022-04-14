@@ -61,7 +61,7 @@ export function EmptyAdList() {
     <Center color="muted" flex={1} w="full">
       <Stack spacing="4">
         <Text as="span">{t(`You haven't created any ads yet`)}</Text>
-        <NextLink href="/ads/new">
+        <NextLink href="/adn/new">
           <Button variant="outline">{t('Create new ad')}</Button>
         </NextLink>
       </Stack>

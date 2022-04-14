@@ -127,13 +127,13 @@ export function AdBanner() {
             <MenuItem
               icon={<AdsIcon boxSize={5} color="blue.500" />}
               onClick={() => {
-                router.push(`/ads/list`)
+                router.push(`/adn/list`)
               }}
             >
               {t('My Ads')}
             </MenuItem>
           )}
-          <NextLink href="/ads/offers">
+          <NextLink href="/adn/offers">
             <MenuItem icon={<PicIcon boxSize={5} color="blue.500" />}>
               {t('View all offers')}
             </MenuItem>
@@ -253,8 +253,8 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
                   AdStatus.Approved,
                   AdStatus.Published
                 )
-                  ? `/ads/view?cid=${cid}`
-                  : `/ads/edit?id=${id}`
+                  ? `/adn/view?cid=${cid}`
+                  : `/adn/edit?id=${id}`
               }
               color="gray.500"
               fontSize="mdx"
@@ -275,14 +275,14 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
                   AdStatus.Approved,
                   AdStatus.Published
                 ) && (
-                  <NextLink href={`/ads/view?cid=${cid}`} passHref>
+                  <NextLink href={`/adn/view?cid=${cid}`} passHref>
                     <MenuItem icon={<ViewIcon boxSize={5} color="blue.500" />}>
                       {t('View')}
                     </MenuItem>
                   </NextLink>
                 )}
                 {eitherStatus(AdStatus.Draft, AdStatus.Rejected) && (
-                  <NextLink href={`/ads/edit?id=${id}`} passHref>
+                  <NextLink href={`/adn/edit?id=${id}`} passHref>
                     <MenuItem icon={<EditIcon boxSize={5} color="blue.500" />}>
                       {t('Edit')}
                     </MenuItem>

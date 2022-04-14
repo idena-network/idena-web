@@ -274,7 +274,7 @@ function Nav({onClose}) {
           }
         />
         <NavItem
-          href="/ads/list"
+          href="/adn/list"
           icon={<AdsIcon boxSize={[8, 5]} />}
           text={t('Ads')}
         />

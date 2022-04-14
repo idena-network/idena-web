@@ -2,6 +2,7 @@ import * as React from 'react'
 import {Box, HStack, Text, useDisclosure} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
+import nanoid from 'nanoid'
 import {TriangleUpIcon} from '@chakra-ui/icons'
 import {Page, PageTitle} from '../../screens/app/components'
 import Layout from '../../shared/components/layout'
@@ -13,15 +14,14 @@ import {
   PageFooter,
 } from '../../screens/ads/components'
 import db from '../../shared/utils/db'
-import {useCoinbase, usePersistedAd} from '../../screens/ads/hooks'
-import {useFailToast} from '../../shared/hooks/use-toast'
+import {AdStatus} from '../../screens/ads/types'
+import {useCoinbase} from '../../screens/ads/hooks'
+import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
 
-export default function EditAdPage() {
+export default function NewAdPage() {
   const {t} = useTranslation()
 
   const router = useRouter()
-
-  const {data: ad} = usePersistedAd(router.query.id)
 
   const coinbase = useCoinbase()
 
@@ -31,6 +31,8 @@ export default function EditAdPage() {
 
   const previewDisclosure = useDisclosure()
 
+  const toast = useSuccessToast()
+
   const failToast = useFailToast()
 
   return (
@@ -38,35 +40,47 @@ export default function EditAdPage() {
       <Page px={0} py={0} overflow="hidden">
         <Box flex={1} w="full" px={20} py={6} overflowY="auto">
           <PageHeader>
-            <PageTitle mb={0}>{t('Edit ad')}</PageTitle>
-            <PageCloseButton href="/ads/list" />
+            <PageTitle mb={0}>{t('New ad')}</PageTitle>
+            <PageCloseButton
+              href="/adn/list"
+              onClick={async () => {
+                const formData = new FormData(adFormRef.current)
+                const draftAd = Object.fromEntries(formData.entries())
+
+                const hasValues = Object.values(draftAd).some(value =>
+                  value instanceof File ? value.size > 0 : Boolean(value)
+                )
+
+                if (hasValues) {
+                  await db
+                    .table('ads')
+                    .add({...draftAd, id: nanoid(), status: AdStatus.Draft})
+
+                  toast(t('Ad has been saved to drafts'))
+                }
+              }}
+            />
           </PageHeader>
 
           <AdForm
             ref={adFormRef}
             id="adForm"
-            ad={ad}
-            onSubmit={async nextAd => {
-              const hasValues = Object.values(nextAd).some(value =>
+            onSubmit={async ad => {
+              const hasValues = Object.values(ad).some(value =>
                 value instanceof File ? value.size > 0 : Boolean(value)
               )
 
               const imageLimit = 1024 * 1024
 
               if (hasValues) {
-                if (
-                  nextAd.thumb.size > imageLimit ||
-                  nextAd.media.size > imageLimit
-                ) {
-                  failToast(t('Ad image is too large'))
-                } else {
-                  await db.table('ads').update(ad.id, {
-                    ...nextAd,
-                    thumb: nextAd.thumb.size > 0 ? nextAd.thumb : ad.thumb,
-                    media: nextAd.media.size > 0 ? nextAd.media : ad.thumb,
-                  })
+                if (ad.thumb.size < imageLimit && ad.media.size < imageLimit) {
+                  await db
+                    .table('ads')
+                    .add({...ad, id: nanoid(), status: AdStatus.Draft})
 
-                  router.push('/ads/list')
+                  router.push('/adn/list?from=new&save=true')
+                } else {
+                  failToast(t('Ad image is too large'))
                 }
               } else {
                 failToast(t('Nothing to submit. Please fill in the form'))
@@ -78,20 +92,15 @@ export default function EditAdPage() {
         <PageFooter>
           <SecondaryButton
             onClick={() => {
-              const nextAd = Object.fromEntries(
+              const ad = Object.fromEntries(
                 new FormData(adFormRef.current).entries()
               )
 
               previewAdRef.current = {
                 ...ad,
-                ...nextAd,
                 author: coinbase,
-                thumb: URL.createObjectURL(
-                  nextAd.thumb.size > 0 ? nextAd.thumb : ad.thumb
-                ),
-                media: URL.createObjectURL(
-                  nextAd.media.size > 0 ? nextAd.media : ad.media
-                ),
+                thumb: ad.thumb && URL.createObjectURL(ad.thumb),
+                media: ad.media && URL.createObjectURL(ad.media),
               }
 
               previewDisclosure.onOpen()

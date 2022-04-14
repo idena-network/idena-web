@@ -150,7 +150,7 @@ export default function AdListPage() {
         actionContent: t('View drafts'),
         onAction: () => {
           setFilter(AdStatus.Draft)
-          replace('/ads/list')
+          replace('/adn/list')
         },
       })
     }
@@ -198,7 +198,7 @@ export default function AdListPage() {
                 {t('Refresh')}
               </IconButton>
               <VDivider />
-              <IconLink icon={<PlusSolidIcon boxSize={5} />} href="/ads/new">
+              <IconLink icon={<PlusSolidIcon boxSize={5} />} href="/adn/new">
                 {t('New ad')}
               </IconLink>
             </HStack>
