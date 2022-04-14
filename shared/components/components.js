@@ -522,7 +522,7 @@ export const TextLink = React.forwardRef(
   )
 )
 
-export function SuccessAlert({children, ...props}) {
+export function SuccessAlert({icon, children, ...props}) {
   return (
     <Alert
       status="success"
@@ -535,7 +535,7 @@ export function SuccessAlert({children, ...props}) {
       py={2}
       {...props}
     >
-      <AlertIcon name="info" color="green.500" size={5} mr={3} />
+      {icon || <AlertIcon color="green.500" boxSize={5} mr={3} />}
       {children}
     </Alert>
   )

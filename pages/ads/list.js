@@ -1,6 +1,7 @@
 import React from 'react'
 import {Flex, Stack, HStack, useDisclosure} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
+import {useRouter} from 'next/router'
 import {AdList, EmptyAdList, AdStatNumber} from '../../screens/ads/components'
 import Layout from '../../shared/components/layout'
 import {Page, PageTitle} from '../../screens/app/components'
@@ -23,11 +24,14 @@ import {
   Debug,
   FilterButton,
   FilterButtonList,
+  Skeleton,
   VDivider,
 } from '../../shared/components/components'
 import IconLink from '../../shared/components/icon-link'
-import {EditIcon, PlusSolidIcon} from '../../shared/components/icons'
+import {PlusSolidIcon, RefreshIcon} from '../../shared/components/icons'
 import db from '../../shared/utils/db'
+import {IconButton} from '../../shared/components/button'
+import {useSuccessToast} from '../../shared/hooks/use-toast'
 
 export default function AdListPage() {
   const {t} = useTranslation()
@@ -52,7 +56,11 @@ export default function AdListPage() {
     localStorage.setItem('adListFilter', filter)
   }, [filter])
 
-  const {data: profileAds, status: profileAdsStatus} = useProfileAds()
+  const {
+    data: profileAds,
+    status: profileAdsStatus,
+    refetch: refetchProfileAds,
+  } = useProfileAds()
 
   const {
     data: persistedAds,
@@ -72,19 +80,34 @@ export default function AdListPage() {
 
   const [selectedAd, setSelectedAd] = React.useState()
 
+  const refetchAds = React.useCallback(() => {
+    refetchProfileAds()
+    refetchPersistedAds()
+  }, [refetchPersistedAds, refetchProfileAds])
+
+  const toast = useSuccessToast()
+
   const handlePublish = React.useCallback(async () => {
     try {
       await db.table('ads').update(selectedAd.id, {
         status: AdStatus.Approved,
       })
 
-      refetchPersistedAds()
+      refetchAds()
+
+      toast({
+        title: t('Ad has been published successfully'),
+        actionContent: t('View published ads'),
+        onAction: () => {
+          setFilter(AdStatus.Published)
+        },
+      })
     } catch {
       console.error('Error updating persisted ads', {id: selectedAd?.id})
     } finally {
       publishDisclosure.onClose()
     }
-  }, [publishDisclosure, refetchPersistedAds, selectedAd])
+  }, [publishDisclosure, refetchAds, selectedAd, t, toast])
 
   const handleReview = React.useCallback(
     async ({cid, contract}) => {
@@ -95,19 +118,43 @@ export default function AdListPage() {
           contract,
         })
 
-        refetchPersistedAds()
+        refetchAds()
+
+        toast({
+          title: t('Ad has been sent to review successfully'),
+          actionContent: t('View reviewing ads'),
+          onAction: () => {
+            setFilter(AdStatus.Reviewing)
+          },
+        })
       } catch {
         console.error('Error updating persisted ads', {id: selectedAd?.id})
       } finally {
         reviewDisclosure.onClose()
       }
     },
-    [refetchPersistedAds, reviewDisclosure, selectedAd]
+    [refetchAds, reviewDisclosure, selectedAd, t, toast]
   )
 
   const handleBurn = React.useCallback(() => {
     burnDisclosure.onClose()
-  }, [burnDisclosure])
+    refetchAds()
+  }, [burnDisclosure, refetchAds])
+
+  const {query, replace} = useRouter()
+
+  React.useEffect(() => {
+    if (query.from === 'new' && query.save) {
+      toast({
+        title: t('Ad has been saved to drafts'),
+        actionContent: t('View drafts'),
+        onAction: () => {
+          setFilter(AdStatus.Draft)
+          replace('/ads/list')
+        },
+      })
+    }
+  }, [query, replace, t, toast])
 
   return (
     <Layout>
@@ -116,35 +163,41 @@ export default function AdListPage() {
 
         <Stack isInline spacing={20}>
           <BlockAdStat label="My balance" w="2xs">
-            <AdStatNumber fontSize="lg" isTruncated>
-              {formatDna(balance)}
-            </AdStatNumber>
+            <Skeleton isLoaded={Boolean(balance)}>
+              <AdStatNumber fontSize="lg" isTruncated>
+                {formatDna(balance)}
+              </AdStatNumber>
+            </Skeleton>
           </BlockAdStat>
         </Stack>
 
         <FilterButtonList value={filter} onChange={setFilter} w="full">
           <Flex align="center" justify="space-between" w="full">
             <HStack>
-              <FilterButton value={AdStatus.Approved}>
-                {t('Approved')}
+              <FilterButton value={AdStatus.Published}>
+                {t('Published')}
               </FilterButton>
+              <VDivider />
+              <FilterButton value={AdStatus.Draft}>{t('Drafts')}</FilterButton>
               <FilterButton value={AdStatus.Reviewing}>
                 {t('On review')}
+              </FilterButton>
+              <FilterButton value={AdStatus.Approved}>
+                {t('Approved')}
               </FilterButton>
               <FilterButton value={AdStatus.Rejected}>
                 {t('Rejected')}
               </FilterButton>
-              <VDivider />
-              <FilterButton value={AdStatus.Draft}>
-                <HStack>
-                  <EditIcon boxSize="5" />
-                  <span>{t('Drafts')}</span>
-                </HStack>
-              </FilterButton>
             </HStack>
 
             <HStack spacing={1} align="center">
-              {/* <VDivider /> */}
+              <IconButton
+                icon={<RefreshIcon boxSize={5} />}
+                onClick={refetchAds}
+              >
+                {t('Refresh')}
+              </IconButton>
+              <VDivider />
               <IconLink icon={<PlusSolidIcon boxSize={5} />} href="/ads/new">
                 {t('New ad')}
               </IconLink>

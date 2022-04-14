@@ -21,6 +21,8 @@ import {
   InputRightElement,
   InputGroup,
   Badge,
+  Center,
+  Text,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {rem} from '../../shared/theme'
@@ -56,16 +58,14 @@ export function AdList(props) {
 export function EmptyAdList() {
   const {t} = useTranslation()
   return (
-    <Flex
-      flexDirection="column"
-      align="center"
-      alignSelf="stretch"
-      justify="center"
-      color="muted"
-      my="auto"
-    >
-      {t(`You haven't created any ads yet`)}
-    </Flex>
+    <Center color="muted" flex={1} w="full">
+      <Stack spacing="4">
+        <Text as="span">{t(`You haven't created any ads yet`)}</Text>
+        <NextLink href="/ads/new">
+          <Button variant="outline">{t('Create new ad')}</Button>
+        </NextLink>
+      </Stack>
+    </Center>
   )
 }
 

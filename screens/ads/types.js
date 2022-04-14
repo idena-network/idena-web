@@ -9,6 +9,7 @@ export const AdStatus = {
   Reviewing: 'reviewing',
   Approved: 'approved',
   Rejected: 'rejected',
+  Published: 'published',
 }
 
 export const AdVotingOption = {

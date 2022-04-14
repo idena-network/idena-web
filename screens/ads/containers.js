@@ -68,11 +68,12 @@ import {
   AdsIcon,
   DeleteIcon,
   EditIcon,
+  InfoIcon,
   LaptopIcon,
   OracleIcon,
   PicIcon,
 } from '../../shared/components/icons'
-import {useSuccessToast, useFailToast} from '../../shared/hooks/use-toast'
+import {useFailToast} from '../../shared/hooks/use-toast'
 import {
   AdFormField,
   AdStatLabel,
@@ -92,19 +93,12 @@ import {
   SecondaryButton,
 } from '../../shared/components/button'
 import {AVAILABLE_LANGS} from '../../i18n'
-import {
-  adImageThumbSrc,
-  compressAdImage,
-  fetchAdVoting,
-  mapVotingToAdStatus,
-  OS,
-} from './utils'
+import {adImageThumbSrc, compressAdImage, OS} from './utils'
 import {AdRotationStatus, AdStatus} from './types'
 import {viewVotingHref} from '../oracles/utils'
 import db from '../../shared/utils/db'
 import {AdTarget} from '../../shared/models/adKey'
 import {AdBurnKey} from '../../shared/models/adBurnKey'
-import {capitalize} from '../../shared/utils/string'
 import {useIdentity} from '../../shared/providers/identity-context'
 
 export function AdBanner() {
@@ -205,10 +199,6 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
 
   const {t, i18n} = useTranslation()
 
-  const router = useRouter()
-
-  const toast = useSuccessToast()
-
   const formatDna = useFormatDna()
 
   const {data: competingAds} = useCompetingAdsByTarget(
@@ -237,8 +227,6 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
         : AdRotationStatus.Showing
       : AdRotationStatus.NotShowing
 
-  const [currentStatus, setCurrentStatus] = React.useState()
-
   const eitherStatus = (...statuses) => statuses.includes(status)
 
   return (
@@ -262,7 +250,7 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
                 eitherStatus(
                   AdStatus.Reviewing,
                   AdStatus.Approved,
-                  AdStatus.Rejected
+                  AdStatus.Published
                 )
                   ? `/ads/view?cid=${cid}`
                   : `/ads/edit?id=${id}`
@@ -284,7 +272,7 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
                 {eitherStatus(
                   AdStatus.Reviewing,
                   AdStatus.Approved,
-                  AdStatus.Rejected
+                  AdStatus.Published
                 ) && (
                   <NextLink href={`/ads/view?cid=${cid}`} passHref>
                     <MenuItem icon={<ViewIcon boxSize={5} color="blue.500" />}>
@@ -292,7 +280,7 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
                     </MenuItem>
                   </NextLink>
                 )}
-                {eitherStatus(AdStatus.Draft) && (
+                {eitherStatus(AdStatus.Draft, AdStatus.Rejected) && (
                   <NextLink href={`/ads/edit?id=${id}`} passHref>
                     <MenuItem icon={<EditIcon boxSize={5} color="blue.500" />}>
                       {t('Edit')}
@@ -305,7 +293,9 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
                   color="red.500"
                   onClick={async () => {
                     await db.table('ads').delete(id)
-                    if (onRemove) onRemove()
+                    if (onRemove) {
+                      onRemove()
+                    }
                   }}
                 >
                   {t('Delete')}
@@ -313,11 +303,11 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
               </Menu>
             </Box>
 
-            {status === AdStatus.Approved && (
+            {status === AdStatus.Published && (
               <SecondaryButton onClick={onBurn}>{t('Burn')}</SecondaryButton>
             )}
 
-            {currentStatus === AdStatus.Approved && (
+            {status === AdStatus.Approved && (
               <SecondaryButton onClick={onPublish}>
                 {t('Publish')}
               </SecondaryButton>
@@ -330,32 +320,9 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
             )}
 
             {status === AdStatus.Reviewing && (
-              <SecondaryButton
-                onClick={async () => {
-                  const voting = await fetchAdVoting(contract)
-
-                  // eslint-disable-next-line no-shadow
-                  const currentStatus = mapVotingToAdStatus(voting) ?? status
-
-                  setCurrentStatus(currentStatus)
-
-                  if (currentStatus === AdStatus.Rejected) {
-                    await db
-                      .table('ads')
-                      .update(id, {status: AdStatus.Rejected})
-                  }
-
-                  toast({
-                    title: capitalize(currentStatus ?? 'currentStatus'),
-                    onAction: () => {
-                      router.push(viewVotingHref(contract))
-                    },
-                    actionContent: t('View details'),
-                  })
-                }}
-              >
-                {t('Check status')}
-              </SecondaryButton>
+              <NextLink href={viewVotingHref(contract)}>
+                <SecondaryButton>{t('Check voting')}</SecondaryButton>
+              </NextLink>
             )}
           </Stack>
         </Flex>
@@ -569,7 +536,10 @@ function AdPromotion({cid, title, desc, url, media, author}) {
             </AdStatNumber>
           </Stat>
         </HStack>
-        <SuccessAlert fontSize="md">
+        <SuccessAlert
+          icon={<InfoIcon color="green.500" boxSize={5} mr={3} />}
+          fontSize="md"
+        >
           {t('Watching ads makes your coin valuable!')}
         </SuccessAlert>
       </Stack>

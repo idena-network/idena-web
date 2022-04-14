@@ -73,14 +73,14 @@ export default function NewAdPage() {
               const imageLimit = 1024 * 1024
 
               if (hasValues) {
-                if (ad.thumb.size > imageLimit || ad.media.size > imageLimit) {
-                  failToast(t('Ad image is too large'))
-                } else {
+                if (ad.thumb.size < imageLimit && ad.media.size < imageLimit) {
                   await db
                     .table('ads')
                     .add({...ad, id: nanoid(), status: AdStatus.Draft})
 
-                  router.push('/ads/list')
+                  router.push('/ads/list?from=new&save=true')
+                } else {
+                  failToast(t('Ad image is too large'))
                 }
               } else {
                 failToast(t('Nothing to submit. Please fill in the form'))

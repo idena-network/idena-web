@@ -200,7 +200,7 @@ export function useBurntCoins(options) {
 export function useProfileAds() {
   const rpcFetcher = useRpcFetcher()
 
-  const [{profileHash}] = useIdentity()
+  const [{profileHash}, {forceUpdate: forceIdentityUpdate}] = useIdentity()
 
   const {decodeProfile, decodeAd, decodeAdTarget} = useProtoProfileDecoder()
 
@@ -237,9 +237,7 @@ export function useProfileAds() {
           queryFn: async () => ({
             ...ad,
             cid,
-            status: isApprovedVoting(await fetchAdVoting(contract))
-              ? AdStatus.Approved
-              : AdStatus.Rejected,
+            status: AdStatus.Published,
           }),
         }
       })
@@ -250,6 +248,7 @@ export function useProfileAds() {
     status: profileAds.some(({status}) => status === 'loading')
       ? 'loading'
       : 'done',
+    refetch: forceIdentityUpdate,
   }
 }
 
