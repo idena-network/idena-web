@@ -417,6 +417,9 @@ export function useReviewAd() {
       setAd(ad)
       setStatus('pending')
     }, []),
+    reset: React.useCallback(() => {
+      setStatus('idle')
+    }, []),
   }
 }
 
@@ -644,6 +647,9 @@ export function usePublishAd() {
       setAd(ad)
       setStatus('pending')
     }, []),
+    reset: React.useCallback(() => {
+      setStatus('idle')
+    }, []),
   }
 }
 
@@ -722,6 +728,11 @@ export function useBurnAd() {
         case 'error':
           return {...prevState, status: 'error'}
 
+        case 'reset':
+          return {
+            status: 'idle',
+          }
+
         default:
           return prevState
       }
@@ -779,6 +790,9 @@ export function useBurnAd() {
     isDone: state.status === 'done',
     status: state.status,
     submit,
+    reset: React.useCallback(() => {
+      dispatch({type: 'reset'})
+    }, []),
   }
 }
 

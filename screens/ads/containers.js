@@ -772,6 +772,7 @@ export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
     isPending,
     isDone,
     submit,
+    reset,
   } = useReviewAd()
 
   React.useEffect(() => {
@@ -780,8 +781,9 @@ export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
         cid: storeToIpfsData?.cid,
         contract: estimateDeployData?.receipt?.contract,
       })
+      reset()
     }
-  }, [storeToIpfsData, estimateDeployData, isDone, onSendToReview])
+  }, [storeToIpfsData, estimateDeployData, isDone, onSendToReview, reset])
 
   const reviewError = React.useMemo(
     () =>
@@ -951,13 +953,15 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
     isPending,
     isDone,
     submit,
+    reset,
   } = usePublishAd()
 
   React.useEffect(() => {
     if (isDone && onPublish) {
       onPublish()
+      reset()
     }
-  }, [isDone, onPublish])
+  }, [isDone, onPublish, reset])
 
   const publishError = React.useMemo(
     () => storeToIpfsError ?? changeProfileError,
@@ -1054,13 +1058,14 @@ export function BurnDrawer({ad, onBurn, ...props}) {
 
   const balance = useBalance(address)
 
-  const {error, isPending, isDone, submit} = useBurnAd()
+  const {error, isPending, isDone, submit, reset} = useBurnAd()
 
   React.useEffect(() => {
     if (isDone && onBurn) {
       onBurn()
+      reset()
     }
-  }, [isDone, onBurn])
+  }, [isDone, onBurn, reset])
 
   useAdErrorToast(error)
 
