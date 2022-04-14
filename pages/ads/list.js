@@ -90,7 +90,7 @@ export default function AdListPage() {
   const handlePublish = React.useCallback(async () => {
     try {
       await db.table('ads').update(selectedAd.id, {
-        status: AdStatus.Approved,
+        status: AdStatus.Published,
       })
 
       refetchAds()
