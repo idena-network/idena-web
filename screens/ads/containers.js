@@ -506,7 +506,11 @@ function AdPromotion({cid, title, desc, url, media, author}) {
           </Stack>
         </Stack>
 
-        <AdImage src={media} w={320} objectFit="cover" />
+        <LinkBox>
+          <LinkOverlay href={url} isExternal>
+            <AdImage src={media} w={320} objectFit="cover" />
+          </LinkOverlay>
+        </LinkBox>
       </Stack>
       <Stack spacing="6">
         <HStack spacing="10">

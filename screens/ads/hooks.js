@@ -748,7 +748,7 @@ export function useBurnAd() {
 
   const privateKey = usePrivateKey()
 
-  const {data, error, send} = useRawTx()
+  const {data: txHash, error, send, reset} = useRawTx()
 
   React.useEffect(() => {
     if (state.status === 'pending') {
@@ -762,17 +762,18 @@ export function useBurnAd() {
     }
   }, [coinbase, privateKey, send, state])
 
-  const txData = useTx(data)
+  const txData = useTx(txHash)
 
   React.useEffect(() => {
     if (
       state.status === 'pending' &&
-      data &&
+      txHash &&
+      txData?.hash === txHash &&
       (txData?.blockHash ?? HASH_IN_MEMPOOL) !== HASH_IN_MEMPOOL
     ) {
       dispatch({type: 'done'})
     }
-  }, [data, state.status, txData])
+  }, [txHash, state.status, txData])
 
   React.useEffect(() => {
     if (state.status === 'pending' && Boolean(error)) {
@@ -780,12 +781,18 @@ export function useBurnAd() {
     }
   }, [error, state.status])
 
+  React.useEffect(() => {
+    if (state.status === 'done') {
+      reset()
+    }
+  }, [reset, state.status])
+
   const submit = React.useCallback(({ad, amount}) => {
     dispatch({type: 'submit', ad, amount})
   }, [])
 
   return {
-    data,
+    data: txHash,
     error,
     txData,
     isPending: state.status === 'pending',
@@ -870,6 +877,7 @@ function useRawTx(initialTxParams) {
     data: estimateData,
     error: estimateError,
     mutate: estimateRawTx,
+    reset: resetEstimate,
   } = useMutation(async tx => {
     const result = await callRpc('bcn_estimateRawTx', prependHex(tx))
 
@@ -886,7 +894,7 @@ function useRawTx(initialTxParams) {
 
   const {data: signedTx, setParams} = useSignedTx(initialTxParams)
 
-  const {data, error, mutate: sendRawTx} = useMutation(tx =>
+  const {data, error, mutate: sendRawTx, reset} = useMutation(tx =>
     callRpc('bcn_sendRawTx', prependHex(tx))
   )
 
@@ -903,6 +911,8 @@ function useRawTx(initialTxParams) {
     estimateError,
     estimate: setEstimateParams,
     send: setParams,
+    reset,
+    resetEstimate,
   }
 }
 
@@ -919,7 +929,6 @@ function useSignedTx(initialParams) {
       },
     ],
     {
-      staleTime: Infinity,
       enabled: Boolean(params),
     }
   )
@@ -1032,15 +1041,22 @@ export function useTx(hash, options) {
     isMiningRef.current = true
   }, [hash])
 
-  const {data} = useLiveRpc('bcn_transaction', [hash], {
+  const {data, remove} = useLiveRpc('bcn_transaction', [hash], {
     enabled: Boolean(hash) && isMiningRef.current,
     ...options,
   })
 
   React.useEffect(() => {
-    if (data && isMiningRef.current)
-      isMiningRef.current = data?.blockHash === HASH_IN_MEMPOOL
-  }, [data])
+    if (data && isMiningRef.current) {
+      const isMining = data?.blockHash === HASH_IN_MEMPOOL
+
+      isMiningRef.current = isMining
+
+      if (!isMining) {
+        remove()
+      }
+    }
+  }, [data, remove])
 
   return data
 }
