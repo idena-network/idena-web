@@ -1,18 +1,20 @@
 import * as React from 'react'
-import {Box, Flex, HStack, Stack, Text} from '@chakra-ui/react'
+import {Box, Flex, HStack, Stack, Text, useDisclosure} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
+import {TriangleUpIcon} from '@chakra-ui/icons'
 import {Page, PageTitle} from '../../screens/app/components'
 import Layout from '../../shared/components/layout'
-import {PrimaryButton} from '../../shared/components/button'
+import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {
   PageHeader,
   PageCloseButton,
   PageFooter,
   AdImage,
 } from '../../screens/ads/components'
-import {useIpfsAd} from '../../screens/ads/hooks'
+import {useCoinbase, useIpfsAd} from '../../screens/ads/hooks'
 import {ExternalLink} from '../../shared/components/components'
+import {AdPreview} from '../../screens/ads/containers'
 
 export default function ViewAdPage() {
   const {t} = useTranslation()
@@ -20,6 +22,10 @@ export default function ViewAdPage() {
   const router = useRouter()
 
   const {data} = useIpfsAd(router.query?.cid)
+
+  const coinbase = useCoinbase()
+
+  const adPreviewDisclosure = useDisclosure()
 
   return (
     <Layout>
@@ -64,15 +70,26 @@ export default function ViewAdPage() {
         </Flex>
 
         <PageFooter>
-          <PrimaryButton
+          <SecondaryButton
             onClick={() => {
               router.push('/adn/list')
             }}
           >
             {t('Close')}
+          </SecondaryButton>
+          <PrimaryButton onClick={adPreviewDisclosure.onOpen}>
+            <HStack>
+              <TriangleUpIcon boxSize="3" transform="rotate(90deg)" />
+              <Text>{t('Show preview')}</Text>
+            </HStack>
           </PrimaryButton>
         </PageFooter>
       </Page>
+
+      <AdPreview
+        ad={{...data, author: data?.author ?? coinbase}}
+        {...adPreviewDisclosure}
+      />
     </Layout>
   )
 }
