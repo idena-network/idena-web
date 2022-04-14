@@ -885,7 +885,7 @@ export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
                     ),
                     // new Uint8Array(await ad.media.arrayBuffer()),
                     media: new Uint8Array(
-                      await compressAdImage(await ad.thumb.arrayBuffer(), {
+                      await compressAdImage(await ad.media.arrayBuffer(), {
                         width: 640,
                         height: 640,
                       })
