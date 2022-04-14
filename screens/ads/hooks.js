@@ -245,9 +245,11 @@ export function useProfileAds() {
 
   return {
     data: profileAds.map(({data}) => data) ?? [],
-    status: profileAds.some(({status}) => status === 'loading')
-      ? 'loading'
-      : 'done',
+    status:
+      profileAds.length > 0 &&
+      profileAds.every(({status}) => status === 'success' || status === 'error')
+        ? 'done'
+        : 'loading',
     refetch: forceIdentityUpdate,
   }
 }

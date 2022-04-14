@@ -234,11 +234,11 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
       <Stack spacing="2" w="60px" flexShrink={0}>
         <Box position="relative">
           <AdImage src={adImageThumbSrc(ad)} />
-          {status === AdStatus.Approved && (
+          {status === AdStatus.Published && (
             <AdOverlayStatus status={rotationStatus} />
           )}
         </Box>
-        {status === AdStatus.Approved && (
+        {status === AdStatus.Published && (
           <AdStatusText status={rotationStatus} />
         )}
       </Stack>

@@ -76,7 +76,7 @@ export default function AdListPage() {
   ].filter(ad => ad?.status === filter)
 
   const isLoaded =
-    profileAdsStatus === 'success' || persistedAdsStatus === 'success'
+    profileAdsStatus === 'done' && persistedAdsStatus === 'success'
 
   const [selectedAd, setSelectedAd] = React.useState()
 
@@ -205,7 +205,7 @@ export default function AdListPage() {
           </Flex>
         </FilterButtonList>
 
-        {isLoaded && ads.length > 0 ? (
+        {isLoaded && ads.length > 0 && (
           <AdList py={4} spacing={4} alignSelf="stretch">
             {ads.map(ad => (
               <AdListItem
@@ -227,9 +227,9 @@ export default function AdListPage() {
               />
             ))}
           </AdList>
-        ) : (
-          <EmptyAdList />
         )}
+
+        {isLoaded && ads.length === 0 && <EmptyAdList />}
 
         {selectedAd && (
           <ReviewAdDrawer
