@@ -22,6 +22,7 @@ import {
   Modal,
   ModalContent,
   ModalCloseButton,
+  FormHelperText,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
@@ -667,6 +668,9 @@ export const AdForm = React.forwardRef(function AdForm(
                 min={0}
                 max={Number.MAX_SAFE_INTEGER}
               />
+              <FormHelperText color="muted" fontSize="sm" mt="1">
+                {t('Min age to see the ad')}
+              </FormHelperText>
             </AdFormField>
             <AdFormField label="Stake">
               <AdNumberInput
@@ -676,6 +680,9 @@ export const AdForm = React.forwardRef(function AdForm(
                 max={Number.MAX_SAFE_INTEGER}
                 addon={t('iDNA')}
               />
+              <FormHelperText color="muted" fontSize="sm" mt="1">
+                {t('Least amount of iDNA at stake to see the ad')}
+              </FormHelperText>
             </AdFormField>
             <AdFormField label="OS">
               <Select
