@@ -363,7 +363,11 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
               />
               <InlineAdStat
                 label="Max price"
-                value={maxCompetitor ? formatDna(maxCompetitor.amount) : '--'}
+                value={
+                  status === AdStatus.Published && maxCompetitor
+                    ? formatDna(maxCompetitor.amount)
+                    : '--'
+                }
               />
             </InlineAdStatGroup>
           </Stack>
