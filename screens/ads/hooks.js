@@ -542,7 +542,7 @@ function useStartVoting() {
         type: 0x10,
         from: String(coinbase),
         to: voting?.address,
-        amount: 5000,
+        amount: startAmount,
         payload: String(payload),
         maxFee: Number(txFee) * 1.1,
         privateKey,

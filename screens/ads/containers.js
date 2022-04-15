@@ -221,12 +221,7 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
   const burnAmount = orderedBurntCoins[burnIndex]
 
   const rotationStatus =
-    // eslint-disable-next-line no-nested-ternary
-    burnIndex > -1
-      ? burnIndex > 3
-        ? AdRotationStatus.PartiallyShowing
-        : AdRotationStatus.Showing
-      : AdRotationStatus.NotShowing
+    burnIndex > -1 ? AdRotationStatus.Showing : AdRotationStatus.NotShowing
 
   const eitherStatus = (...statuses) => statuses.includes(status)
 
@@ -328,17 +323,25 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
           </Stack>
         </Flex>
 
-        <HStack spacing={4} bg="gray.50" p={2} mt="5" rounded="md">
-          <Stack flex={1} isInline px={2} pt={1}>
-            <InlineAdStatGroup spacing="1.5" labelWidth={14} flex={1}>
+        <HStack
+          align="flex-start"
+          spacing={4}
+          bg="gray.50"
+          px="4"
+          py="3"
+          mt="5"
+          rounded="md"
+        >
+          <HStack flex={1}>
+            <InlineAdStatGroup spacing="1.5" labelWidth="14" flex={1}>
               <SmallInlineAdStat label="Language" value={language} />
               <SmallInlineAdStat label="Stake" value={stake} />
             </InlineAdStatGroup>
-            <InlineAdStatGroup spacing="1.5" labelWidth={6} flex={1}>
+            <InlineAdStatGroup spacing="1.5" labelWidth="8" flex={1}>
               <SmallInlineAdStat label="Age" value={age} />
-              <SmallInlineAdStat label="OS" value={os || 'Any'} />
+              <SmallInlineAdStat label="OS" value={os} />
             </InlineAdStatGroup>
-          </Stack>
+          </HStack>
 
           <VDivider minH={68} h="full" />
 
@@ -1216,22 +1219,27 @@ export function InlineAdStatGroup({labelWidth, children, ...props}) {
   )
 }
 
-export function InlineAdStat({label, value, children, ...props}) {
+export function InlineAdStat({label, value: maybeValue, children, ...props}) {
   const {labelWidth} = React.useContext(InlineAdGroupContext)
 
+  const value =
+    typeof maybeValue === 'string' ? maybeValue || 'Any' : maybeValue ?? 'Any'
+
   return (
-    <Stat flex={0} lineHeight="4" sx={{'& > dl': {display: 'flex'}}} {...props}>
-      {label && <AdStatLabel width={labelWidth}>{label}</AdStatLabel>}
-      {(value || Number.isFinite(value)) && (
-        <AdStatNumber>{value}</AdStatNumber>
-      )}
-      {children}
+    <Stat flex={0} lineHeight="4" {...props}>
+      <HStack>
+        {label && <AdStatLabel width={labelWidth}>{label}</AdStatLabel>}
+        {children || <AdStatNumber>{value}</AdStatNumber>}
+      </HStack>
     </Stat>
   )
 }
 
-export function SmallInlineAdStat({label, value, ...props}) {
+export function SmallInlineAdStat({label, value: maybeValue, ...props}) {
   const {labelWidth} = React.useContext(InlineAdGroupContext)
+
+  const value =
+    typeof maybeValue === 'string' ? maybeValue || 'Any' : maybeValue ?? 'Any'
 
   return (
     <InlineAdStat lineHeight="normal" {...props}>
