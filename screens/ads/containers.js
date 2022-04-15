@@ -358,7 +358,7 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
               />
               <InlineAdStat
                 label="Competitors"
-                value={status === AdStatus.Approved ? competitorCount : '--'}
+                value={status === AdStatus.Published ? competitorCount : '--'}
                 flex={0}
               />
               <InlineAdStat
