@@ -1223,34 +1223,28 @@ export function InlineAdStatGroup({labelWidth, children, ...props}) {
   )
 }
 
-export function InlineAdStat({label, value: maybeValue, children, ...props}) {
+export function InlineAdStat({label, value, children, ...props}) {
   const {labelWidth} = React.useContext(InlineAdGroupContext)
-
-  const value =
-    typeof maybeValue === 'string' ? maybeValue || 'Any' : maybeValue ?? 'Any'
 
   return (
     <Stat flex={0} lineHeight="4" {...props}>
       <HStack>
         {label && <AdStatLabel width={labelWidth}>{label}</AdStatLabel>}
-        {children || <AdStatNumber>{value}</AdStatNumber>}
+        {children || <AdStatNumber>{value || 'Any'}</AdStatNumber>}
       </HStack>
     </Stat>
   )
 }
 
-export function SmallInlineAdStat({label, value: maybeValue, ...props}) {
+export function SmallInlineAdStat({label, value, ...props}) {
   const {labelWidth} = React.useContext(InlineAdGroupContext)
-
-  const value =
-    typeof maybeValue === 'string' ? maybeValue || 'Any' : maybeValue ?? 'Any'
 
   return (
     <InlineAdStat lineHeight="normal" {...props}>
       <AdStatLabel fontSize="sm" width={labelWidth}>
         {label}
       </AdStatLabel>
-      <AdStatNumber fontSize="sm">{value}</AdStatNumber>
+      <AdStatNumber fontSize="sm">{value || 'Any'}</AdStatNumber>
     </InlineAdStat>
   )
 }
