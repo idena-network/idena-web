@@ -198,6 +198,7 @@ export function AdImage({
       <Image
         src={src}
         ignoreFallback
+        objectFit="contain"
         bg="gray.50"
         rounded="lg"
         onError={() => {

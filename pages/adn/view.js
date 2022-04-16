@@ -55,11 +55,16 @@ export default function ViewAdPage() {
                   py="8"
                   maxH="md"
                 >
-                  <Text fontSize="lg" fontWeight={500}>
-                    {data.title}
-                  </Text>
-                  <Text fontWeight={500}>{data.desc}</Text>
-                  <ExternalLink href={data.url}>{data.url}</ExternalLink>
+                  <HStack spacing="4">
+                    <AdImage src={data.thumb} width="20" />
+                    <Box>
+                      <Text fontSize="lg" fontWeight={500}>
+                        {data.title}
+                      </Text>
+                      <Text fontWeight={500}>{data.desc}</Text>
+                      <ExternalLink href={data.url}>{data.url}</ExternalLink>
+                    </Box>
+                  </HStack>
                 </Stack>
                 <Box flex={1}>
                   <AdImage src={data.media} />

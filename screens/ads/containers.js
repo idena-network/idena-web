@@ -516,7 +516,7 @@ function AdPromotion({cid, title, desc, url, media, author}) {
 
         <LinkBox>
           <LinkOverlay href={url} isExternal>
-            <AdImage src={media} w={320} objectFit="cover" />
+            <AdImage src={media} w={320} />
           </LinkOverlay>
         </LinkBox>
       </Stack>
