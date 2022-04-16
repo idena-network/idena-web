@@ -182,6 +182,7 @@ export function PageFooter(props) {
 export function AdImage({
   src: initialSrc,
   fallbackSrc = '/static/body-medium-pic-icn.svg',
+  objectFit = 'contain',
   ...props
 }) {
   const boxProps = pick(props, ['w', 'width', 'h', 'height', 'boxSize'])
@@ -194,18 +195,48 @@ export function AdImage({
   }, [initialSrc])
 
   return (
-    <AspectRatio ratio={1} flexShrink={0} {...boxProps}>
-      <Image
-        src={src}
-        ignoreFallback
-        objectFit="contain"
-        bg="gray.50"
-        rounded="lg"
-        onError={() => {
-          setSrc(fallbackSrc)
-        }}
-        {...imageProps}
-      />
+    <AspectRatio
+      ratio={1}
+      flexShrink={0}
+      objectFit={objectFit}
+      sx={{
+        '& > img': {
+          objectFit,
+        },
+      }}
+      position="relative"
+      rounded="lg"
+      // borderWidth={1}
+      // borderColor="gray.016"
+      overflow="hidden"
+      {...boxProps}
+    >
+      <>
+        <Box position="relative" filter="blur(24px)">
+          <Image
+            src={src}
+            ignoreFallback
+            objectFit="cover"
+            onError={() => {
+              setSrc(fallbackSrc)
+            }}
+            h="full"
+            w="full"
+            position="absolute"
+            inset={0}
+            zIndex="hide"
+          />
+        </Box>
+        <Image
+          src={src}
+          ignoreFallback
+          objectFit={objectFit}
+          onError={() => {
+            setSrc(fallbackSrc)
+          }}
+          {...imageProps}
+        />
+      </>
     </AspectRatio>
   )
 }
