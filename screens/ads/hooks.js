@@ -426,30 +426,31 @@ export function useReviewAd() {
 }
 
 function useDeployVoting() {
-  const coinbase = useCoinbase()
+  const [status, setStatus] = React.useState('idle')
 
-  const privateKey = usePrivateKey()
+  const coinbase = useCoinbase()
 
   const {data: deployAmount} = useDeployVotingAmount()
 
   const [payload, setPayload] = React.useState()
 
-  const {data, error, estimateData, estimateError, send, estimate} = useRawTx()
+  const {data, error, estimateData, estimateError, estimate, send} = useRawTx()
 
   React.useEffect(() => {
-    if (payload && deployAmount) {
+    if (status === 'pending' && payload && deployAmount) {
+      console.log({payload, deployAmount})
+
       estimate({
         type: 0xf,
         from: String(coinbase),
         amount: deployAmount,
         payload,
-        privateKey,
       })
     }
-  }, [coinbase, deployAmount, estimate, payload, privateKey])
+  }, [coinbase, deployAmount, estimate, payload, status])
 
   React.useEffect(() => {
-    if (estimateData) {
+    if (status === 'pending' && estimateData) {
       console.log({estimateData})
 
       const {txFee} = estimateData
@@ -460,10 +461,21 @@ function useDeployVoting() {
         amount: deployAmount,
         payload: String(payload),
         maxFee: Number(txFee) * 1.1,
-        privateKey,
       })
     }
-  }, [coinbase, deployAmount, estimateData, payload, privateKey, send])
+  }, [coinbase, deployAmount, estimateData, payload, send, status])
+
+  React.useEffect(() => {
+    if (error || estimateError) {
+      setStatus('error')
+    }
+  }, [error, estimateError])
+
+  React.useEffect(() => {
+    if (data) {
+      setStatus('done')
+    }
+  }, [data])
 
   const txData = useTx(data)
 
@@ -485,14 +497,15 @@ function useDeployVoting() {
           )
         )
       )
+      setStatus('pending')
     }, []),
   }
 }
 
 function useStartVoting() {
-  const coinbase = useCoinbase()
+  const [status, setStatus] = React.useState('idle')
 
-  const privateKey = usePrivateKey()
+  const coinbase = useCoinbase()
 
   const [voting, setVoting] = React.useState()
 
@@ -519,7 +532,7 @@ function useStartVoting() {
   const {data: startAmount} = useStartAdVotingAmount()
 
   React.useEffect(() => {
-    if (payload && startAmount) {
+    if (status === 'pending' && payload && startAmount) {
       console.log({voting})
       estimate({
         type: 0x10,
@@ -527,13 +540,17 @@ function useStartVoting() {
         to: voting?.address,
         amount: startAmount,
         payload,
-        privateKey,
       })
     }
-  }, [coinbase, estimate, payload, privateKey, startAmount, voting])
+  }, [coinbase, estimate, payload, startAmount, status, voting])
 
   React.useEffect(() => {
-    if (estimateData && estimateData?.receipt?.success && startAmount) {
+    if (
+      status === 'pending' &&
+      estimateData &&
+      estimateData?.receipt?.success &&
+      startAmount
+    ) {
       console.log({estimateData, voting})
 
       const {txFee} = estimateData
@@ -545,12 +562,23 @@ function useStartVoting() {
         amount: startAmount,
         payload: String(payload),
         maxFee: Number(txFee) * 1.1,
-        privateKey,
       })
     } else if (estimateData?.receipt?.error) {
       console.log({error: estimateData?.receipt?.error})
     }
-  }, [coinbase, estimateData, payload, privateKey, send, startAmount, voting])
+  }, [coinbase, estimateData, payload, send, startAmount, status, voting])
+
+  React.useEffect(() => {
+    if (error || estimateError) {
+      setStatus('error')
+    }
+  }, [error, estimateError])
+
+  React.useEffect(() => {
+    if (data) {
+      setStatus('done')
+    }
+  }, [data])
 
   const txData = useTx(data)
 
@@ -559,7 +587,11 @@ function useStartVoting() {
     error,
     estimateError,
     txData,
-    submit: setVoting,
+    // eslint-disable-next-line no-shadow
+    submit: React.useCallback(voting => {
+      setVoting(voting)
+      setStatus('pending')
+    }, []),
   }
 }
 
@@ -658,8 +690,6 @@ export function usePublishAd() {
 function useChangeProfile() {
   const coinbase = useCoinbase()
 
-  const privateKey = usePrivateKey()
-
   const [cid, setCid] = React.useState()
 
   const [payload, setPayload] = React.useState()
@@ -684,10 +714,9 @@ function useChangeProfile() {
         type: TxType.ChangeProfileTx,
         from: String(coinbase),
         payload: String(payload),
-        privateKey,
       })
     }
-  }, [cid, coinbase, payload, privateKey, send])
+  }, [cid, coinbase, payload, send])
 
   const txData = useTx(data)
 
@@ -746,8 +775,6 @@ export function useBurnAd() {
 
   const coinbase = useCoinbase()
 
-  const privateKey = usePrivateKey()
-
   const {data: txHash, error, send, reset} = useRawTx()
 
   React.useEffect(() => {
@@ -757,10 +784,9 @@ export function useBurnAd() {
         from: String(coinbase),
         amount: state.amount,
         payload: String(state.payload),
-        privateKey,
       })
     }
-  }, [coinbase, privateKey, send, state])
+  }, [coinbase, send, state])
 
   const txData = useTx(txHash)
 
@@ -846,12 +872,13 @@ function useStoreToIpfs() {
       useProto: true,
     })
 
-    const sendToIpfsTx = new Transaction().fromHex(rawTx)
-
-    sendToIpfsTx.sign(privateKey)
-
     const hash = await callRpc('dna_sendToIpfs', {
-      tx: prependHex(sendToIpfsTx.toHex()),
+      tx: prependHex(
+        new Transaction()
+          .fromHex(rawTx)
+          .sign(privateKey)
+          .toHex()
+      ),
       data: prependHex(hex),
     })
 
@@ -868,10 +895,8 @@ function useStoreToIpfs() {
   }
 }
 
-function useRawTx(initialTxParams) {
-  const {data: signedEstimateTx, setParams: setEstimateParams} = useSignedTx(
-    initialTxParams
-  )
+function useRawTx() {
+  const {data: signedEstimateTx, build: buildSignedEstimateTx} = useSignedTx()
 
   const {
     data: estimateData,
@@ -892,7 +917,7 @@ function useRawTx(initialTxParams) {
     }
   }, [estimateRawTx, signedEstimateTx])
 
-  const {data: signedTx, setParams} = useSignedTx(initialTxParams)
+  const {data: signedTx, build: buildSignedTx} = useSignedTx()
 
   const {data, error, mutate: sendRawTx, reset} = useMutation(tx =>
     callRpc('bcn_sendRawTx', prependHex(tx))
@@ -909,53 +934,34 @@ function useRawTx(initialTxParams) {
     error,
     estimateData,
     estimateError,
-    estimate: setEstimateParams,
-    send: setParams,
+    estimate: buildSignedEstimateTx,
+    send: buildSignedTx,
     reset,
     resetEstimate,
   }
 }
 
-function useSignedTx(initialParams) {
-  const [params, setParams] = React.useState()
+function useSignedTx() {
+  const privateKey = usePrivateKey()
 
-  const {data: rawTxData} = useRpc(
-    'bcn_getRawTx',
-    [
-      {
-        ...params,
-        payload: prependHex(params?.payload),
-        useProto: true,
-      },
-    ],
-    {
-      enabled: Boolean(params),
-    }
-  )
+  const {data, mutate} = useMutation(async params => {
+    const rawTx = await callRpc('bcn_getRawTx', {
+      ...params,
+      payload: prependHex(params?.payload),
+      useProto: true,
+    })
 
-  const [signedTx, setSignedTx] = React.useState()
-
-  React.useEffect(() => {
-    if (rawTxData) {
-      setSignedTx(
-        prependHex(
-          new Transaction()
-            .fromHex(stripHexPrefix(rawTxData))
-            .sign(params?.privateKey)
-            .toHex()
-        )
-      )
-    }
-  }, [params, rawTxData])
+    return prependHex(
+      new Transaction()
+        .fromHex(stripHexPrefix(rawTx))
+        .sign(privateKey)
+        .toHex()
+    )
+  })
 
   return {
-    data: signedTx,
-    setParams: React.useCallback(
-      callParams => {
-        setParams({...initialParams, ...callParams})
-      },
-      [initialParams]
-    ),
+    data,
+    build: mutate,
   }
 }
 

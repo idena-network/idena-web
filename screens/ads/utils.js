@@ -152,8 +152,15 @@ export async function compressAdImage(
   bytes,
   {width, height} = {width: 80, height: 80}
 ) {
-  return (await Jimp.read(bytes))
-    .resize(width, height)
-    .quality(60)
-    .getBufferAsync('image/jpeg')
+  const image = await Jimp.read(bytes)
+
+  const imageWidth = image.getWidth()
+  const imageHeight = image.getHeight()
+
+  const resizedImage =
+    imageWidth > imageHeight
+      ? image.resize(width, Jimp.AUTO)
+      : image.resize(Jimp.AUTO, height)
+
+  return resizedImage.quality(60).getBufferAsync('image/jpeg')
 }
