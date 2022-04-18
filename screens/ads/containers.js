@@ -85,6 +85,7 @@ import {
   InputCharacterCount,
   AdNumberInput,
   MiningBadge,
+  AdFormError,
 } from './components'
 import {Fill} from '../../shared/components'
 import {hasImageType} from '../../shared/utils/img'
@@ -94,7 +95,7 @@ import {
   SecondaryButton,
 } from '../../shared/components/button'
 import {AVAILABLE_LANGS} from '../../i18n'
-import {adImageThumbSrc, compressAdImage, OS} from './utils'
+import {adImageThumbSrc, compressAdImage, OS, validateAd} from './utils'
 import {AdRotationStatus, AdStatus} from './types'
 import {viewVotingHref} from '../oracles/utils'
 import db from '../../shared/utils/db'
@@ -317,7 +318,7 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
 
             {status === AdStatus.Reviewing && (
               <NextLink href={viewVotingHref(contract)}>
-                <SecondaryButton>{t('Check voting')}</SecondaryButton>
+                <SecondaryButton>{t('View voting')}</SecondaryButton>
               </NextLink>
             )}
           </Stack>
@@ -571,6 +572,8 @@ export const AdForm = React.forwardRef(function AdForm(
   const [titleCharacterCount, setTitleCharacterCount] = React.useState(40)
   const [descCharacterCount, setDescCharacterCount] = React.useState(70)
 
+  const [fieldErrors, setFieldErrors] = React.useState({})
+
   return (
     <form
       ref={ref}
@@ -588,9 +591,14 @@ export const AdForm = React.forwardRef(function AdForm(
       onSubmit={e => {
         e.preventDefault()
 
-        if (onSubmit) {
-          const formData = new FormData(e.target)
-          onSubmit(Object.fromEntries(formData.entries()))
+        const nextAd = Object.fromEntries(new FormData(e.target).entries())
+
+        const errors = validateAd(nextAd)
+
+        if (Object.values(errors).some(Boolean)) {
+          setFieldErrors(errors)
+        } else {
+          onSubmit(nextAd)
         }
       }}
       {...props}
@@ -599,13 +607,13 @@ export const AdForm = React.forwardRef(function AdForm(
         <FormSection>
           <FormSectionTitle>{t('Content')}</FormSectionTitle>
           <Stack spacing={3}>
-            <AdFormField label={t('Title')} isRequired>
+            <AdFormField label={t('Title')} maybeError={fieldErrors.title}>
               <InputGroup>
                 <Input name="title" defaultValue={ad?.title} maxLength={40} />
                 <InputCharacterCount>{titleCharacterCount}</InputCharacterCount>
               </InputGroup>
             </AdFormField>
-            <AdFormField label={t('Description')} isRequired>
+            <AdFormField label={t('Description')} maybeError={fieldErrors.desc}>
               <InputGroup>
                 <Textarea
                   name="desc"
@@ -616,13 +624,8 @@ export const AdForm = React.forwardRef(function AdForm(
                 <InputCharacterCount>{descCharacterCount}</InputCharacterCount>
               </InputGroup>
             </AdFormField>
-            <AdFormField label="Link" isRequired>
-              <Input
-                type="url"
-                name="url"
-                defaultValue={ad?.url}
-                pattern="https?://.*"
-              />
+            <AdFormField label="Link" maybeError={fieldErrors.url}>
+              <Input type="url" name="url" defaultValue={ad?.url} />
             </AdFormField>
           </Stack>
         </FormSection>
@@ -636,6 +639,7 @@ export const AdForm = React.forwardRef(function AdForm(
                 label={t('Upload media')}
                 description={t('640x640px, no more than 1 Mb')}
                 fallbackSrc="/static/upload-cover-icn.svg"
+                maybeError={fieldErrors.thumb}
                 onChange={setMedia}
               />
             </Box>
@@ -646,6 +650,7 @@ export const AdForm = React.forwardRef(function AdForm(
                 label={t('Upload thumb')}
                 description={t('80x80px, no more than 1 Mb')}
                 fallbackSrc="/static/upload-thumbnail-icn.svg"
+                maybeError={fieldErrors.media}
                 onChange={setThumb}
               />
             </Box>
@@ -715,60 +720,67 @@ export const AdForm = React.forwardRef(function AdForm(
 })
 
 export function AdMediaInput({
+  name,
   value,
   label,
   description,
   fallbackSrc,
+  maybeError,
   onChange,
   ...props
 }) {
   const src = React.useMemo(() => value && URL.createObjectURL(value), [value])
 
   return (
-    <FormLabel m={0} p={0}>
-      <VisuallyHiddenInput
-        type="file"
-        accept="image/png,image/jpg,image/jpeg,image/webp"
-        onChange={async e => {
-          if (onChange) {
-            const {files} = e.target
-            if (files.length) {
-              const [file] = files
-              if (hasImageType(file)) {
-                onChange(file)
+    <FormControl isInvalid={Boolean(maybeError)}>
+      <FormLabel htmlFor={name} m={0} p={0}>
+        <VisuallyHiddenInput
+          id={name}
+          name={name}
+          type="file"
+          accept="image/png,image/jpg,image/jpeg,image/webp"
+          onChange={async e => {
+            if (onChange) {
+              const {files} = e.target
+              if (files.length) {
+                const [file] = files
+                if (hasImageType(file)) {
+                  onChange(file)
+                }
               }
             }
-          }
-        }}
-        {...props}
-      />
-      <HStack spacing={4} align="center">
-        <Box flexShrink={0}>
-          {value ? (
-            <AdImage src={src} width={70} />
-          ) : (
-            <Center
-              bg="gray.50"
-              borderWidth={1}
-              borderColor="gray.016"
-              rounded="lg"
-              p="3"
-            >
-              <Image src={fallbackSrc} ignoreFallback boxSize="44px" />
-            </Center>
-          )}
-        </Box>
-        <Stack>
-          <HStack>
-            <LaptopIcon boxSize="5" color="blue.500" />
-            <Text color="blue.500" fontWeight={500}>
-              {label}
-            </Text>
-          </HStack>
-          <SmallText>{description}</SmallText>
-        </Stack>
-      </HStack>
-    </FormLabel>
+          }}
+          {...props}
+        />
+        <HStack spacing={4} align="center">
+          <Box flexShrink={0}>
+            {value ? (
+              <AdImage src={src} width={70} />
+            ) : (
+              <Center
+                bg="gray.50"
+                borderWidth={1}
+                borderColor="gray.016"
+                rounded="lg"
+                p="3"
+              >
+                <Image src={fallbackSrc} ignoreFallback boxSize="44px" />
+              </Center>
+            )}
+          </Box>
+          <Stack>
+            <HStack>
+              <LaptopIcon boxSize="5" color="blue.500" />
+              <Text color="blue.500" fontWeight={500}>
+                {label}
+              </Text>
+            </HStack>
+            <SmallText>{description}</SmallText>
+          </Stack>
+        </HStack>
+        <AdFormError>{maybeError}</AdFormError>
+      </FormLabel>
+    </FormControl>
   )
 }
 
@@ -879,6 +891,21 @@ export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
             id="reviewForm"
             onSubmit={async e => {
               e.preventDefault()
+
+              const errors = validateAd(ad)
+
+              if (Object.values(errors).some(Boolean)) {
+                failToast({
+                  title: t('Unable to send invalid ad'),
+                  description: t(`Please check {{fields}}`, {
+                    fields: Object.entries(errors)
+                      .filter(([, v]) => Boolean(v))
+                      .map(([k]) => k)
+                      .join(', '),
+                  }),
+                })
+                return
+              }
 
               if (deployAmount && startAmount) {
                 const requiredAmount = deployAmount + startAmount

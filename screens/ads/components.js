@@ -23,6 +23,8 @@ import {
   Badge,
   Center,
   Text,
+  FormErrorMessage,
+  FormErrorIcon,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {rem} from '../../shared/theme'
@@ -103,16 +105,28 @@ export function FormSectionTitle(props) {
   )
 }
 
-export function AdFormField({label, children}) {
+export function AdFormField({label, children, maybeError, ...props}) {
   return (
-    <FormControl>
+    <FormControl isInvalid={Boolean(maybeError)} {...props}>
       <Flex>
         <FormLabel color="muted" w="32" pt={2}>
           {label}
         </FormLabel>
-        <Box w="sm">{children}</Box>
+        <Box w="sm">
+          {children}
+          <AdFormError>{maybeError}</AdFormError>
+        </Box>
       </Flex>
     </FormControl>
+  )
+}
+
+export function AdFormError({children, ...props}) {
+  return (
+    <FormErrorMessage {...props}>
+      <FormErrorIcon />
+      {children}
+    </FormErrorMessage>
   )
 }
 

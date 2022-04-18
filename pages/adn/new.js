@@ -16,7 +16,7 @@ import {
 import db from '../../shared/utils/db'
 import {AdStatus} from '../../screens/ads/types'
 import {useCoinbase} from '../../screens/ads/hooks'
-import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
+import {useSuccessToast} from '../../shared/hooks/use-toast'
 
 export default function NewAdPage() {
   const {t} = useTranslation()
@@ -32,8 +32,6 @@ export default function NewAdPage() {
   const previewDisclosure = useDisclosure()
 
   const toast = useSuccessToast()
-
-  const failToast = useFailToast()
 
   return (
     <Layout>
@@ -66,25 +64,11 @@ export default function NewAdPage() {
             ref={adFormRef}
             id="adForm"
             onSubmit={async ad => {
-              const hasValues = Object.values(ad).some(value =>
-                value instanceof File ? value.size > 0 : Boolean(value)
-              )
+              await db
+                .table('ads')
+                .add({...ad, id: nanoid(), status: AdStatus.Draft})
 
-              const imageLimit = 1024 * 1024
-
-              if (hasValues) {
-                if (ad.thumb.size < imageLimit && ad.media.size < imageLimit) {
-                  await db
-                    .table('ads')
-                    .add({...ad, id: nanoid(), status: AdStatus.Draft})
-
-                  router.push('/adn/list?from=new&save=true')
-                } else {
-                  failToast(t('Ad image is too large'))
-                }
-              } else {
-                failToast(t('Nothing to submit. Please fill in the form'))
-              }
+              router.push('/adn/list?from=new&save=true')
             }}
           />
         </Box>

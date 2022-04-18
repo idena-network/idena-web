@@ -677,5 +677,17 @@ export const uiTheme = {
         },
       },
     },
+    FormError: {
+      baseStyle: {
+        text: {
+          fontSize: 'md',
+          lineHeight: '4',
+        },
+        icon: {
+          boxSize: '3',
+          marginEnd: '1',
+        },
+      },
+    },
   },
 }

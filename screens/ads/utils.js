@@ -1,8 +1,10 @@
 /* eslint-disable no-use-before-define */
 import Jimp from 'jimp'
+import i18n from '../../i18n'
 import {Profile} from '../../shared/models/profile'
 import {VotingStatus} from '../../shared/types'
 import {areSameCaseInsensitive, callRpc} from '../../shared/utils/utils'
+import {isValidUrl} from '../dna/utils'
 import {fetchNetworkSize, hexToObject} from '../oracles/utils'
 import {AdStatus, AdVotingOption, AdVotingOptionId} from './types'
 
@@ -163,4 +165,68 @@ export async function compressAdImage(
       : image.resize(Jimp.AUTO, height)
 
   return resizedImage.quality(60).getBufferAsync('image/jpeg')
+}
+
+export function validateAd(ad) {
+  return {
+    title: validateAdTitle(ad.title),
+    desc: validateAdDesc(ad.desc),
+    url: validateAdUrl(ad.url),
+    thumb: validateAdThumb(ad.thumb),
+    media: validateAdMedia(ad.media),
+  }
+}
+
+function validateAdTitle(title) {
+  if (typeof title !== 'string' || title.trim().length < 1) {
+    return i18n.t('Title cannot be empty')
+  }
+
+  if (title.trim() > 40) {
+    return i18n.t('Title should be less than 40 characters long')
+  }
+}
+
+function validateAdDesc(desc) {
+  if (typeof desc !== 'string' || desc.trim().length < 1) {
+    return i18n.t('Description cannot be empty')
+  }
+
+  if (desc.trim().length > 70) {
+    return i18n.t('Description should be less than 70 characters long')
+  }
+}
+
+function validateAdUrl(url) {
+  if (typeof url !== 'string' || !isValidUrl(url)) {
+    return i18n.t('URL must start with http, https or dna')
+  }
+}
+
+function validateAdThumb(thumb) {
+  if (!isValidImage(thumb)) {
+    return i18n.t('Ad thumbnail cannot be empty')
+  }
+
+  if (isExceededImageSize(thumb)) {
+    return i18n.t('Ad thumbnail should be less than 1MB')
+  }
+}
+
+function validateAdMedia(media) {
+  if (!isValidImage(media)) {
+    return i18n.t('Ad media cannot be empty')
+  }
+
+  if (isExceededImageSize(media)) {
+    return i18n.t('Ad media should be less than 1MB')
+  }
+}
+
+function isValidImage(image) {
+  return image instanceof File && image.size > 0
+}
+
+function isExceededImageSize(image) {
+  return image.size > 1024 * 1024
 }
