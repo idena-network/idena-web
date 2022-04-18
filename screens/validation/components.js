@@ -24,6 +24,7 @@ import {
   useDisclosure,
   useBreakpointValue,
   useMediaQuery,
+  ModalHeader,
   ModalBody,
   ModalCloseButton,
 } from '@chakra-ui/react'
@@ -93,6 +94,7 @@ const Scroll = require('react-scroll')
 const {ScrollElement} = Scroll
 const {scroller} = Scroll
 const ElementThumbnail = ScrollElement(Thumbnail)
+const ElementFlipImage = ScrollElement(AspectRatio)
 
 export function ValidationScene(props) {
   return (
@@ -180,6 +182,7 @@ export function Flip({
   decoded,
   option,
   variant,
+  timerDetails,
   onChoose,
   onImageFail,
 }) {
@@ -210,6 +213,19 @@ export function Flip({
     onOpen: onOpenFlipZoom,
     onClose: onCloseFlipZoom,
   } = useDisclosure()
+
+  const scrollToZoomedFlip = flipId => {
+    scroller.scrollTo(`flipId-${flipId}`, {
+      duration: 250,
+      smooth: true,
+      containerId: 'zoomedFlips',
+      horizontal: false,
+    })
+  }
+  const onFLipClick = useSingleAndDoubleClick(
+    () => onChoose(hash),
+    onOpenFlipZoom
+  )
 
   if ((fetched && !decoded) || failed) return <FailedFlip />
   if (!fetched) return <LoadingFlip />
@@ -250,7 +266,10 @@ export function Flip({
               position: 'relative',
               overflow: 'hidden',
             }}
-            onClick={() => onChoose(hash)}
+            onClick={() => {
+              onFLipClick()
+              scrollToZoomedFlip(idx)
+            }}
           >
             {isDesktop && idx === 0 && (
               <ChakraFlex
@@ -267,15 +286,12 @@ export function Flip({
                 opacity={0.5}
                 _hover={{opacity: 1}}
                 zIndex={2}
+                onClick={e => {
+                  e.stopPropagation()
+                  onOpenFlipZoom()
+                }}
               >
-                <ZoomFlipIcon
-                  h={5}
-                  w={5}
-                  onClick={e => {
-                    e.stopPropagation()
-                    onOpenFlipZoom()
-                  }}
-                />
+                <ZoomFlipIcon h={5} w={5} />
               </ChakraFlex>
             )}
             <FlipBlur src={src} />
@@ -300,30 +316,55 @@ export function Flip({
 
         <Modal size="xl" isOpen={isOpenFlipZoom} onClose={onCloseFlipZoom}>
           <ModalOverlay />
-          <ModalCloseButton
-            size="lg"
-            onClick={onCloseFlipZoom}
-            mt={3}
-            mr={3}
-            zIndex={1401}
-          >
-            <ChakraFlex
-              align="center"
-              justify="center"
-              borderRadius="12px"
-              backgroundColor="gray.500"
-              w={10}
-              h={10}
-            >
-              <CrossSmallIcon color="white" boxSize={8} />
-            </ChakraFlex>
-          </ModalCloseButton>
-          <ModalContent bg="transparent">
+          <ModalContent bg="transparent" border="none">
+            <ModalHeader>
+              <ChakraFlex
+                zIndex={1401}
+                position="fixed"
+                top={0}
+                left={0}
+                right={0}
+                h={20}
+                justify="space-between"
+                align="center"
+                backgroundColor="gray.980"
+              >
+                <ChakraBox />
+                <ChakraFlex zIndex={2} justify="center">
+                  <ValidationTimer
+                    key={
+                      isShortSession(timerDetails.state)
+                        ? 'short-timer'
+                        : 'long-timer'
+                    }
+                    validationStart={timerDetails.validationStart}
+                    duration={
+                      timerDetails.shortSessionDuration -
+                      10 +
+                      (isShortSession(timerDetails.state)
+                        ? 0
+                        : timerDetails.longSessionDuration)
+                    }
+                    color="white"
+                  />
+                </ChakraFlex>
+                <CrossSmallIcon
+                  color="white"
+                  boxSize={8}
+                  mr={10}
+                  onClick={onCloseFlipZoom}
+                />
+              </ChakraFlex>
+            </ModalHeader>
             <ModalBody>
               <ChakraFlex h="100%" w="100%" direction="column" align="center">
-                <ChakraBox w="100%">
+                <ChakraBox id="zoomedFlips" w="100%">
                   {reorderList(images, orders[variant - 1]).map((src, idx) => (
-                    <AspectRatio ratio={4 / 3} bg="gray.50">
+                    <ElementFlipImage
+                      name={`flipId-${idx}`}
+                      ratio={4 / 3}
+                      bg="gray.50"
+                    >
                       {src ? (
                         <Image
                           src={src}
@@ -332,7 +373,7 @@ export function Flip({
                       ) : (
                         <EmptyFlipImage />
                       )}
-                    </AspectRatio>
+                    </ElementFlipImage>
                   ))}
                 </ChakraBox>
               </ChakraFlex>
@@ -901,7 +942,7 @@ export function NavButton({type, bg, color, ...props}) {
   )
 }
 
-export function ValidationTimer({validationStart, duration}) {
+export function ValidationTimer({validationStart, duration, color}) {
   const adjustedDuration = useMemo(
     () => adjustDuration(validationStart, duration),
     [duration, validationStart]
@@ -910,7 +951,7 @@ export function ValidationTimer({validationStart, duration}) {
   return (
     <Timer>
       <TimerIcon color={theme.colors.danger} mr={1} />
-      <TimerClock duration={adjustedDuration} color={theme.colors.danger} />
+      <TimerClock duration={adjustedDuration} color={color || theme.colors.danger} />
     </Timer>
   )
 }
@@ -1962,6 +2003,13 @@ export function ValidationScreen({
     trackMouse: true,
   })
 
+  const flipTimerDetails = {
+    state,
+    validationStart,
+    shortSessionDuration,
+    longSessionDuration,
+  }
+
   return (
     <ValidationScene
       bg={isShortSession(state) ? theme.colors.black : theme.colors.white}
@@ -2035,6 +2083,7 @@ export function ValidationScreen({
               <Flip
                 {...currentFlip}
                 variant={AnswerType.Left}
+                timerDetails={flipTimerDetails}
                 onChoose={hash =>
                   send({
                     type: 'ANSWER',
@@ -2046,6 +2095,7 @@ export function ValidationScreen({
               <Flip
                 {...currentFlip}
                 variant={AnswerType.Right}
+                timerDetails={flipTimerDetails}
                 onChoose={hash =>
                   send({
                     type: 'ANSWER',
@@ -2529,4 +2579,25 @@ function getFlipBorderRadius(index, size, radius) {
     return `0 0 ${radius} ${radius}`
   }
   return 0
+}
+
+function useSingleAndDoubleClick(
+  actionSimpleClick,
+  actionDoubleClick,
+  delay = 250
+) {
+  const [click, setClick] = useState(0)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (click === 1) actionSimpleClick()
+      setClick(0)
+    }, delay)
+
+    if (click === 2) actionDoubleClick()
+
+    return () => clearTimeout(timer)
+  }, [actionDoubleClick, actionSimpleClick, click, delay])
+
+  return () => setClick(prev => prev + 1)
 }
