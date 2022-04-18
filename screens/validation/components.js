@@ -88,6 +88,7 @@ import {
 import {TEST_SHORT_SESSION_INTERVAL_SEC} from '../../shared/providers/test-validation-context'
 import {use100vh} from '../../shared/hooks/use-100vh'
 import {useIsDesktop} from '../../shared/utils/utils'
+import useHover from "@react-hook/hover";
 
 const Scroll = require('react-scroll')
 
@@ -186,28 +187,11 @@ export function Flip({
   onChoose,
   onImageFail,
 }) {
-  const useHover = () => {
-    const [value, setValue] = useState(false)
-    const ref = useRef(null)
-    const handleMouseOver = () => setValue(true)
-    const handleMouseOut = () => setValue(false)
-    useEffect(() => {
-      const node = ref.current
-      if (node) {
-        node.addEventListener('mouseover', handleMouseOver)
-        node.addEventListener('mouseout', handleMouseOut)
-        return () => {
-          node.removeEventListener('mouseover', handleMouseOver)
-          node.removeEventListener('mouseout', handleMouseOut)
-        }
-      }
-    }, [ref.current])
-    return [ref, value]
-  }
   const radius = useBreakpointValue(['12px', '8px'])
   const windowHeight = use100vh()
   const isDesktop = useIsDesktop()
-  const [hoverRef, isHovered] = useHover()
+  const refHover = useRef(null)
+  const isHovered = useHover(refHover.current)
   const {
     isOpen: isOpenFlipZoom,
     onOpen: onOpenFlipZoom,
@@ -231,7 +215,7 @@ export function Flip({
   if (!fetched) return <LoadingFlip />
 
   return (
-    <div ref={hoverRef}>
+    <div ref={refHover}>
       <FlipHolder
         css={
           // eslint-disable-next-line no-nested-ternary
@@ -268,7 +252,7 @@ export function Flip({
             }}
             onClick={() => {
               onFLipClick()
-              scrollToZoomedFlip(idx)
+              setTimeout(() => scrollToZoomedFlip(idx), 100)
             }}
           >
             {isDesktop && idx === 0 && (
@@ -316,49 +300,47 @@ export function Flip({
 
         <Modal size="xl" isOpen={isOpenFlipZoom} onClose={onCloseFlipZoom}>
           <ModalOverlay />
-          <ModalContent bg="transparent" border="none">
-            <ModalHeader>
-              <ChakraFlex
-                zIndex={1401}
-                position="fixed"
-                top={0}
-                left={0}
-                right={0}
-                h={20}
-                justify="space-between"
-                align="center"
-                backgroundColor="gray.980"
-              >
-                <ChakraBox />
-                <ChakraFlex zIndex={2} justify="center">
-                  <ValidationTimer
-                    key={
-                      isShortSession(timerDetails.state)
-                        ? 'short-timer'
-                        : 'long-timer'
-                    }
-                    validationStart={timerDetails.validationStart}
-                    duration={
-                      timerDetails.shortSessionDuration -
-                      10 +
-                      (isShortSession(timerDetails.state)
-                        ? 0
-                        : timerDetails.longSessionDuration)
-                    }
-                    color="white"
-                  />
-                </ChakraFlex>
-                <CrossSmallIcon
-                  color="white"
-                  boxSize={8}
-                  mr={10}
-                  onClick={onCloseFlipZoom}
-                />
-              </ChakraFlex>
-            </ModalHeader>
+          <ChakraFlex
+            zIndex={1401}
+            position="fixed"
+            top={0}
+            left={0}
+            right={0}
+            h={20}
+            justify="space-between"
+            align="center"
+            backgroundColor="gray.980"
+          >
+            <ChakraBox />
+            <ChakraFlex zIndex={2} justify="center">
+              <ValidationTimer
+                key={
+                  isShortSession(timerDetails.state)
+                    ? 'short-timer'
+                    : 'long-timer'
+                }
+                validationStart={timerDetails.validationStart}
+                duration={
+                  timerDetails.shortSessionDuration -
+                  10 +
+                  (isShortSession(timerDetails.state)
+                    ? 0
+                    : timerDetails.longSessionDuration)
+                }
+                color="white"
+              />
+            </ChakraFlex>
+            <CrossSmallIcon
+              color="white"
+              boxSize={8}
+              mr={10}
+              onClick={onCloseFlipZoom}
+            />
+          </ChakraFlex>
+          <ModalContent bg="transparent" border="none" containerProps={{id: 'zoomedFlips'}}>
             <ModalBody>
               <ChakraFlex h="100%" w="100%" direction="column" align="center">
-                <ChakraBox id="zoomedFlips" w="100%">
+                <ChakraBox w="100%">
                   {reorderList(images, orders[variant - 1]).map((src, idx) => (
                     <ElementFlipImage
                       name={`flipId-${idx}`}
@@ -951,7 +933,10 @@ export function ValidationTimer({validationStart, duration, color}) {
   return (
     <Timer>
       <TimerIcon color={theme.colors.danger} mr={1} />
-      <TimerClock duration={adjustedDuration} color={color || theme.colors.danger} />
+      <TimerClock
+        duration={adjustedDuration}
+        color={color || theme.colors.danger}
+      />
     </Timer>
   )
 }

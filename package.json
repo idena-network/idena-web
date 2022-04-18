@@ -47,6 +47,7 @@
     "@idena/vrf-js": "^1.0.1",
     "@toast-ui/react-image-editor": "^1.2.0",
     "@xstate/react": "^1.6.3",
+    "@react-hook/hover": "^4.0.0",
     "ansi-to-react": "^6.0.5",
     "axios": "^0.18.1",
     "bn.js": "^5.1.3",
