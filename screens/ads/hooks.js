@@ -260,10 +260,20 @@ export function usePersistedAds(options) {
     async () =>
       Promise.all(
         (await db.table('ads').toArray()).map(
-          async ({status, contract, ...ad}) => {
+          async ({status, contract, thumb, media, ...ad}) => {
             const voting = await fetchAdVoting(contract)
+            const fallbackSrc = '/static/body-medium-pic-icn.svg'
+
             return {
               ...ad,
+              thumb:
+                thumb instanceof File && thumb.size > 0
+                  ? URL.createObjectURL(thumb)
+                  : fallbackSrc,
+              media:
+                media instanceof File && media.size > 0
+                  ? URL.createObjectURL(media)
+                  : fallbackSrc,
               contract,
               status:
                 // eslint-disable-next-line no-nested-ternary

@@ -9,16 +9,21 @@ export class Ad {
   static fromBytes = bytes => {
     const protoAd = root.ProtoAd.deserializeBinary(bytes)
 
+    const thumb = protoAd.getThumb()
+    const media = protoAd.getMedia()
+
+    const fallbackSrc = '/static/body-medium-pic-icn.svg'
+
     return new Ad({
       title: protoAd.getTitle(),
       desc: protoAd.getDesc(),
       url: protoAd.getUrl(),
-      thumb: URL.createObjectURL(
-        new Blob([protoAd.getThumb()], {type: 'image/jpeg'})
-      ),
-      media: URL.createObjectURL(
-        new Blob([protoAd.getMedia()], {type: 'image/jpeg'})
-      ),
+      thumb: thumb
+        ? URL.createObjectURL(new Blob([thumb], {type: 'image/jpeg'}))
+        : fallbackSrc,
+      media: media
+        ? URL.createObjectURL(new Blob([media], {type: 'image/jpeg'}))
+        : fallbackSrc,
     })
   }
 

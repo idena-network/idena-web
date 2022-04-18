@@ -801,12 +801,13 @@ export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
     startVotingError,
     isPending,
     isDone,
+    status,
     submit,
     reset,
   } = useReviewAd()
 
   React.useEffect(() => {
-    if (isDone && onSendToReview) {
+    if (isDone) {
       onSendToReview({
         cid: storeToIpfsData?.cid,
         contract: estimateDeployData?.receipt?.contract,
@@ -832,6 +833,28 @@ export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
   )
 
   useAdErrorToast(reviewError)
+
+  React.useEffect(() => {
+    if (
+      status === 'error' &&
+      !(storeToIpfsError || estimateDeployError || deployError)
+    ) {
+      onSendToReview({
+        cid: storeToIpfsData?.cid,
+        contract: estimateDeployData?.receipt?.contract,
+      })
+      reset()
+    }
+  }, [
+    deployError,
+    estimateDeployData,
+    estimateDeployError,
+    onSendToReview,
+    reset,
+    status,
+    storeToIpfsData,
+    storeToIpfsError,
+  ])
 
   const {data: deployAmount} = useDeployVotingAmount()
 
@@ -897,7 +920,7 @@ export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
               if (Object.values(errors).some(Boolean)) {
                 failToast({
                   title: t('Unable to send invalid ad'),
-                  description: t(`Please check {{fields}}`, {
+                  description: t(`Please check {{fields}} fields`, {
                     fields: Object.entries(errors)
                       .filter(([, v]) => Boolean(v))
                       .map(([k]) => k)

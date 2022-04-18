@@ -208,6 +208,8 @@ export function AdImage({
     setSrc(initialSrc)
   }, [initialSrc])
 
+  const isFallbackSrc = src === fallbackSrc
+
   return (
     <AspectRatio
       ratio={1}
@@ -226,25 +228,28 @@ export function AdImage({
       {...boxProps}
     >
       <>
-        <Box position="relative" filter="blur(24px)">
-          <Image
-            src={src}
-            ignoreFallback
-            objectFit="cover"
-            onError={() => {
-              setSrc(fallbackSrc)
-            }}
-            h="full"
-            w="full"
-            position="absolute"
-            inset={0}
-            zIndex="hide"
-          />
-        </Box>
+        {isFallbackSrc || (
+          <Box position="relative" filter="blur(24px)">
+            <Image
+              src={src}
+              ignoreFallback
+              objectFit="cover"
+              onError={() => {
+                setSrc(fallbackSrc)
+              }}
+              h="full"
+              w="full"
+              position="absolute"
+              inset={0}
+              zIndex="hide"
+            />
+          </Box>
+        )}
         <Image
           src={src}
           ignoreFallback
           objectFit={objectFit}
+          bg={isFallbackSrc ? 'gray.50' : 'transparent'}
           onError={() => {
             setSrc(fallbackSrc)
           }}
