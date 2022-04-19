@@ -342,6 +342,7 @@ export function Flip({
             mt={20}
             bg="transparent"
             border="none"
+            boxShadow="none"
             containerProps={{id: 'zoomedFlips'}}
           >
             <ModalBody py={0}>
@@ -354,10 +355,27 @@ export function Flip({
                       bg="gray.50"
                     >
                       {src ? (
-                        <Image
-                          src={src}
-                          fallbackSrc="/static/flips-cant-icn.svg"
-                        />
+                        <ChakraBox position="relative">
+                          <ChakraBox
+                            style={{
+                              background: `center center / cover no-repeat url(${src})`,
+                              filter: `blur(${rem(24)})`,
+                              ...cover(),
+                              zIndex: 1,
+                            }}
+                          />
+                          <FlipImage
+                            src={src}
+                            alt="current-flip"
+                            height="100%"
+                            width="100%"
+                            style={{
+                              position: 'relative',
+                              zIndex: 1,
+                            }}
+                            onError={onImageFail}
+                          />
+                        </ChakraBox>
                       ) : (
                         <EmptyFlipImage />
                       )}
