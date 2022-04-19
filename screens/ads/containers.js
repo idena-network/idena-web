@@ -915,7 +915,9 @@ export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
             onSubmit={async e => {
               e.preventDefault()
 
-              const errors = validateAd(ad)
+              const {thumb, media} = await db.table('ads').get(ad.id)
+
+              const errors = validateAd({...ad, thumb, media})
 
               if (Object.values(errors).some(Boolean)) {
                 failToast({
@@ -936,13 +938,11 @@ export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
                 if (balance > requiredAmount) {
                   submit({
                     ...ad,
-                    // new Uint8Array(await ad.thumb.arrayBuffer()),
                     thumb: new Uint8Array(
-                      await compressAdImage(await ad.thumb.arrayBuffer())
+                      await compressAdImage(await thumb.arrayBuffer())
                     ),
-                    // new Uint8Array(await ad.media.arrayBuffer()),
                     media: new Uint8Array(
-                      await compressAdImage(await ad.media.arrayBuffer(), {
+                      await compressAdImage(await media.arrayBuffer(), {
                         width: 320,
                         height: 320,
                       })
