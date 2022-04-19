@@ -88,7 +88,7 @@ import {
 import {TEST_SHORT_SESSION_INTERVAL_SEC} from '../../shared/providers/test-validation-context'
 import {use100vh} from '../../shared/hooks/use-100vh'
 import {useIsDesktop} from '../../shared/utils/utils'
-import useHover from "@react-hook/hover";
+import useHover from '@react-hook/hover'
 
 const Scroll = require('react-scroll')
 
@@ -204,6 +204,7 @@ export function Flip({
       smooth: true,
       containerId: 'zoomedFlips',
       horizontal: false,
+      offset: -80,
     })
   }
   const onFLipClick = useSingleAndDoubleClick(
@@ -337,8 +338,13 @@ export function Flip({
               onClick={onCloseFlipZoom}
             />
           </ChakraFlex>
-          <ModalContent bg="transparent" border="none" containerProps={{id: 'zoomedFlips'}}>
-            <ModalBody>
+          <ModalContent
+            mt={20}
+            bg="transparent"
+            border="none"
+            containerProps={{id: 'zoomedFlips'}}
+          >
+            <ModalBody py={0}>
               <ChakraFlex h="100%" w="100%" direction="column" align="center">
                 <ChakraBox w="100%">
                   {reorderList(images, orders[variant - 1]).map((src, idx) => (
