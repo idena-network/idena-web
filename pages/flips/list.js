@@ -249,12 +249,18 @@ export default function FlipListPage() {
               >
                 <AlertIcon name="info" color="green.500" size={5} mr={3} />
                 {remainingRequiredFlips > 0
-                  ? t(`Please submit required flips.`, {remainingRequiredFlips})
+                  ? t(
+                      `Please submit {{remainingRequiredFlips}} required flips.`,
+                      {remainingRequiredFlips}
+                    )
                   : null}{' '}
                 {remainingOptionalFlips > 0
-                  ? t(`You can also submit optional flips if you want.`, {
-                      remainingOptionalFlips,
-                    })
+                  ? t(
+                      `You can also submit {{remainingOptionalFlips}} optional flips if you want.`,
+                      {
+                        remainingOptionalFlips,
+                      }
+                    )
                   : null}
               </Alert>
             </Box>
