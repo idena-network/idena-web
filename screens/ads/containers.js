@@ -46,6 +46,7 @@ import {
   VDivider,
   Select,
   SmallText,
+  Debug,
 } from '../../shared/components/components'
 import {
   useCurrentRotatingAd,
@@ -64,6 +65,7 @@ import {
   useCompetingAdsByTarget,
   useBurntCoins,
   useAdErrorToast,
+  useProtoProfileDecoder,
 } from './hooks'
 import {
   AdsIcon,
@@ -1370,5 +1372,38 @@ export function AdPreview({ad, ...props}) {
         </Center>
       </ModalContent>
     </Modal>
+  )
+}
+
+export function AdDebug() {
+  const {decodeProfile} = useProtoProfileDecoder()
+
+  const [result, setResult] = React.useState()
+
+  return (
+    <Stack spacing="6">
+      <Stack as="section" spacing="4">
+        <form
+          onSubmit={e => {
+            e.preventDefault()
+
+            const formData = new FormData(e.target)
+            const decodedProfile = decodeProfile(formData.get('encodedProfile'))
+
+            setResult(decodedProfile)
+          }}
+        >
+          <fieldset>
+            <legend>Profile decoder</legend>
+            <FormLabel>
+              Encoded profile
+              <Input name="encodedProfile" />
+            </FormLabel>
+          </fieldset>
+          <PrimaryButton type="submit">Decode profile</PrimaryButton>
+        </form>
+      </Stack>
+      <Debug>{result ?? null}</Debug>
+    </Stack>
   )
 }
