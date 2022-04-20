@@ -223,10 +223,12 @@ function validateAdMedia(media) {
   }
 }
 
-function isValidImage(image) {
+export function isValidImage(image) {
   return image instanceof File && image.size > 0
 }
 
 function isExceededImageSize(image) {
   return image.size > 1024 * 1024
 }
+
+export const adFallbackSrc = '/static/body-medium-pic-icn.svg'

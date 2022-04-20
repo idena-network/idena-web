@@ -14,7 +14,7 @@ import {
 } from '../../screens/ads/components'
 import db from '../../shared/utils/db'
 import {useCoinbase, usePersistedAd} from '../../screens/ads/hooks'
-import {useFailToast} from '../../shared/hooks/use-toast'
+import {isValidImage} from '../../screens/ads/utils'
 
 export default function EditAdPage() {
   const {t} = useTranslation()
@@ -31,8 +31,6 @@ export default function EditAdPage() {
 
   const previewDisclosure = useDisclosure()
 
-  const failToast = useFailToast()
-
   return (
     <Layout>
       <Page px={0} py={0} overflow="hidden">
@@ -47,51 +45,29 @@ export default function EditAdPage() {
             id="adForm"
             ad={ad}
             onSubmit={async nextAd => {
-              const hasValues = Object.values(nextAd).some(value =>
-                value instanceof File ? value.size > 0 : Boolean(value)
-              )
-
-              const imageLimit = 1024 * 1024
-
-              if (hasValues) {
-                if (
-                  nextAd.thumb.size > imageLimit ||
-                  nextAd.media.size > imageLimit
-                ) {
-                  failToast(t('Ad image is too large'))
-                } else {
-                  await db.table('ads').update(ad.id, {
-                    ...nextAd,
-                    thumb: nextAd.thumb.size > 0 ? nextAd.thumb : ad.thumb,
-                    media: nextAd.media.size > 0 ? nextAd.media : ad.thumb,
-                  })
-
-                  router.push('/adn/list')
-                }
-              } else {
-                failToast(t('Nothing to submit. Please fill in the form'))
-              }
+              await db.table('ads').update(ad.id, nextAd)
+              router.push('/adn/list')
             }}
           />
         </Box>
 
         <PageFooter>
           <SecondaryButton
-            onClick={() => {
-              const nextAd = Object.fromEntries(
+            onClick={async () => {
+              const currentAd = Object.fromEntries(
                 new FormData(adFormRef.current).entries()
               )
 
               previewAdRef.current = {
                 ...ad,
-                ...nextAd,
+                ...currentAd,
                 author: coinbase,
-                thumb: URL.createObjectURL(
-                  nextAd.thumb.size > 0 ? nextAd.thumb : ad.thumb
-                ),
-                media: URL.createObjectURL(
-                  nextAd.media.size > 0 ? nextAd.media : ad.media
-                ),
+                thumb: isValidImage(currentAd.thumb)
+                  ? URL.createObjectURL(currentAd.thumb)
+                  : ad.thumb,
+                media: isValidImage(currentAd.media)
+                  ? URL.createObjectURL(currentAd.media)
+                  : ad.media,
               }
 
               previewDisclosure.onOpen()

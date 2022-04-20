@@ -1,3 +1,4 @@
+import {adFallbackSrc} from '../../screens/ads/utils'
 import {stripHexPrefix} from '../utils/buffers'
 import root from './proto/models_pb'
 
@@ -12,18 +13,16 @@ export class Ad {
     const thumb = protoAd.getThumb()
     const media = protoAd.getMedia()
 
-    const fallbackSrc = '/static/body-medium-pic-icn.svg'
-
     return new Ad({
       title: protoAd.getTitle(),
       desc: protoAd.getDesc(),
       url: protoAd.getUrl(),
       thumb: thumb
         ? URL.createObjectURL(new Blob([thumb], {type: 'image/jpeg'}))
-        : fallbackSrc,
+        : adFallbackSrc,
       media: media
         ? URL.createObjectURL(new Blob([media], {type: 'image/jpeg'}))
-        : fallbackSrc,
+        : adFallbackSrc,
     })
   }
 

@@ -17,6 +17,7 @@ import {
 } from '../../shared/utils/utils'
 import {AdRotationStatus, AdStatus} from './types'
 import {
+  adFallbackSrc,
   AD_VOTING_COMMITTEE_SIZE,
   areCompetingAds,
   buildAdReviewVoting,
@@ -25,6 +26,7 @@ import {
   fetchProfileAds,
   isApprovedVoting,
   isRejectedVoting,
+  isValidImage,
   minOracleReward,
   selectProfileHash,
 } from './utils'
@@ -262,18 +264,15 @@ export function usePersistedAds(options) {
         (await db.table('ads').toArray()).map(
           async ({status, contract, thumb, media, ...ad}) => {
             const voting = await fetchAdVoting(contract)
-            const fallbackSrc = '/static/body-medium-pic-icn.svg'
 
             return {
               ...ad,
-              thumb:
-                thumb instanceof File && thumb.size > 0
-                  ? URL.createObjectURL(thumb)
-                  : fallbackSrc,
-              media:
-                media instanceof File && media.size > 0
-                  ? URL.createObjectURL(media)
-                  : fallbackSrc,
+              thumb: isValidImage(thumb)
+                ? URL.createObjectURL(thumb)
+                : adFallbackSrc,
+              media: isValidImage(media)
+                ? URL.createObjectURL(media)
+                : adFallbackSrc,
               contract,
               status:
                 // eslint-disable-next-line no-nested-ternary

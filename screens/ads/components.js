@@ -30,6 +30,7 @@ import {useTranslation} from 'react-i18next'
 import {rem} from '../../shared/theme'
 import {FormLabel} from '../../shared/components/components'
 import {omit, pick} from '../../shared/utils/utils'
+import {adFallbackSrc} from './utils'
 
 export function AdStatLabel(props) {
   return <StatLabel color="muted" fontSize="md" {...props} />
@@ -195,7 +196,7 @@ export function PageFooter(props) {
 
 export function AdImage({
   src: initialSrc,
-  fallbackSrc = '/static/body-medium-pic-icn.svg',
+  fallbackSrc = adFallbackSrc,
   objectFit = 'contain',
   ...props
 }) {

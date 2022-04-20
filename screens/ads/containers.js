@@ -95,7 +95,14 @@ import {
   SecondaryButton,
 } from '../../shared/components/button'
 import {AVAILABLE_LANGS} from '../../i18n'
-import {adImageThumbSrc, compressAdImage, OS, validateAd} from './utils'
+import {
+  adFallbackSrc,
+  adImageThumbSrc,
+  compressAdImage,
+  isValidImage,
+  OS,
+  validateAd,
+} from './utils'
 import {AdRotationStatus, AdStatus} from './types'
 import {viewVotingHref} from '../oracles/utils'
 import db from '../../shared/utils/db'
@@ -588,10 +595,22 @@ export const AdForm = React.forwardRef(function AdForm(
           setDescCharacterCount(70 - value.length)
         }
       }}
-      onSubmit={e => {
+      onSubmit={async e => {
         e.preventDefault()
 
-        const nextAd = Object.fromEntries(new FormData(e.target).entries())
+        const formAd = Object.fromEntries(new FormData(e.target).entries())
+
+        const maybePersistedAd = ad ? await db.table('ads').get(ad.id) : null
+
+        const nextAd = {
+          ...formAd,
+          thumb: isValidImage(formAd.thumb)
+            ? formAd.thumb
+            : maybePersistedAd?.thumb,
+          media: isValidImage(formAd.media)
+            ? formAd.media
+            : maybePersistedAd?.media,
+        }
 
         const errors = validateAd(nextAd)
 
@@ -639,7 +658,7 @@ export const AdForm = React.forwardRef(function AdForm(
                 label={t('Upload media')}
                 description={t('640x640px, no more than 1 Mb')}
                 fallbackSrc="/static/upload-cover-icn.svg"
-                maybeError={fieldErrors.thumb}
+                maybeError={fieldErrors.media}
                 onChange={setMedia}
               />
             </Box>
@@ -650,7 +669,7 @@ export const AdForm = React.forwardRef(function AdForm(
                 label={t('Upload thumb')}
                 description={t('80x80px, no more than 1 Mb')}
                 fallbackSrc="/static/upload-thumbnail-icn.svg"
-                maybeError={fieldErrors.media}
+                maybeError={fieldErrors.thumb}
                 onChange={setThumb}
               />
             </Box>
@@ -729,7 +748,11 @@ export function AdMediaInput({
   onChange,
   ...props
 }) {
-  const src = React.useMemo(() => value && URL.createObjectURL(value), [value])
+  const src = React.useMemo(
+    () =>
+      isValidImage(value) ? URL.createObjectURL(value) : value ?? adFallbackSrc,
+    [value]
+  )
 
   return (
     <FormControl isInvalid={Boolean(maybeError)}>
@@ -754,7 +777,7 @@ export function AdMediaInput({
         />
         <HStack spacing={4} align="center">
           <Box flexShrink={0}>
-            {value ? (
+            {src !== adFallbackSrc ? (
               <AdImage src={src} width={70} />
             ) : (
               <Center
@@ -936,18 +959,25 @@ export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
                 const requiredAmount = deployAmount + startAmount
 
                 if (balance > requiredAmount) {
-                  submit({
-                    ...ad,
-                    thumb: new Uint8Array(
-                      await compressAdImage(await thumb.arrayBuffer())
-                    ),
-                    media: new Uint8Array(
-                      await compressAdImage(await media.arrayBuffer(), {
-                        width: 320,
-                        height: 320,
-                      })
-                    ),
-                  })
+                  try {
+                    submit({
+                      ...ad,
+                      thumb: new Uint8Array(
+                        await compressAdImage(await thumb.arrayBuffer())
+                      ),
+                      media: new Uint8Array(
+                        await compressAdImage(await media.arrayBuffer(), {
+                          width: 320,
+                          height: 320,
+                        })
+                      ),
+                    })
+                  } catch (error) {
+                    failToast({
+                      title: t('Error compressing images'),
+                      description: error?.message,
+                    })
+                  }
                 } else {
                   failToast(
                     t(
