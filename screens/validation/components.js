@@ -209,7 +209,7 @@ export function Flip({
   }
   const onFLipClick = useSingleAndDoubleClick(
     () => onChoose(hash),
-    onOpenFlipZoom
+    isDesktop ? onOpenFlipZoom : () => onChoose(hash)
   )
 
   if ((fetched && !decoded) || failed) return <FailedFlip />
