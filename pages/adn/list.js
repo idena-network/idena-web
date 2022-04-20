@@ -71,7 +71,7 @@ export default function AdListPage() {
   const ads = [
     ...profileAds,
     ...persistedAds?.filter(
-      a => profileAds.findIndex(b => a?.cid === b?.cid) === -1
+      a => profileAds.findIndex(b => a?.cid === b?.cid) < 0
     ),
   ].filter(ad => ad?.status === filter)
 

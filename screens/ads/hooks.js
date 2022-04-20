@@ -106,7 +106,7 @@ export function useRotatingAds(limit = 3) {
       .map(({key, address, amount}) => {
         const {cid} = AdBurnKey.fromHex(key)
         return {
-          queryKey: ['decodedProfileAd', [cid]],
+          queryKey: ['decodedRotatingAd', [cid]],
           queryFn: async () => ({
             ...decodeAd(await callRpc('ipfs_get', cid).catch(() => '')),
             cid,
