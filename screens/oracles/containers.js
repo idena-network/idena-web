@@ -1668,7 +1668,7 @@ export function OracleAdDescription({ad}) {
           <Box>
             <Text>{t('Media')}</Text>
             <Text fontSize="sm" color="muted">
-              320x320 px
+              {t('640x640px')}
             </Text>
           </Box>
         </HStack>
@@ -1677,7 +1677,7 @@ export function OracleAdDescription({ad}) {
           <Box>
             <Text>{t('Thumbnail')}</Text>
             <Text fontSize="sm" color="muted">
-              80x80 px
+              {t('80x80 px')}
             </Text>
           </Box>
         </HStack>

@@ -6,7 +6,7 @@ import {VotingStatus} from '../../shared/types'
 import {areSameCaseInsensitive, callRpc} from '../../shared/utils/utils'
 import {isValidUrl} from '../dna/utils'
 import {fetchNetworkSize, hexToObject} from '../oracles/utils'
-import {AdStatus, AdVotingOption, AdVotingOptionId} from './types'
+import {AdVotingOption, AdVotingOptionId} from './types'
 
 export const OS = {
   Windows: 'windows',
@@ -99,7 +99,7 @@ export const buildAdReviewVoting = ({title, adCid}) => ({
     buildAdReviewVotingOption(AdVotingOption.Approve),
     buildAdReviewVotingOption(AdVotingOption.Reject),
   ],
-  ownerFee: 100,
+  ownerFee: 0,
   shouldStartImmediately: true,
   isFreeVoting: true,
 })
@@ -124,26 +124,21 @@ export async function fetchProfileAds(address) {
   }
 }
 
-export const mapVotingToAdStatus = voting => {
-  if (voting.status) {
-    // eslint-disable-next-line no-nested-ternary
-    return [VotingStatus.Archived, VotingStatus.Terminated].includes(
-      voting.status
-    )
-      ? voting.result === AdVotingOptionId[AdVotingOption.Approve]
-        ? AdStatus.Approved
-        : AdStatus.Rejected
-      : AdStatus.Reviewing
-  }
-}
-
 export const isApprovedVoting = voting =>
-  voting?.status === VotingStatus.Archived &&
-  voting?.result === AdVotingOptionId[AdVotingOption.Approve]
+  isFinalVoting(voting) &&
+  isApprovedAd(voting) &&
+  voting.title === buildAdReviewVoting({}).title
 
 export const isRejectedVoting = voting =>
-  voting?.status === VotingStatus.Archived &&
-  voting?.result === AdVotingOptionId[AdVotingOption.Reject]
+  isFinalVoting(voting) && !isApprovedAd(voting)
+
+const isFinalVoting = voting =>
+  [VotingStatus.Archived, VotingStatus.Terminated].includes(voting?.status)
+
+const isApprovedAd = voting =>
+  voting?.result === AdVotingOptionId[AdVotingOption.Approve] ||
+  voting?.options?.find(option => option?.id === voting?.result)?.value ===
+    AdVotingOption.Approve
 
 export const adImageThumbSrc = ad =>
   typeof ad.thumb === 'string'

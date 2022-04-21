@@ -36,3 +36,33 @@ export function useStatusToast(status) {
     [status, toast]
   )
 }
+
+export const useClosableToast = () => {
+  const chakraToast = useToast()
+
+  const toastIdRef = React.useRef()
+
+  const toast = React.useCallback(
+    params =>
+      (toastIdRef.current = chakraToast({
+        duration: DURATION,
+        // eslint-disable-next-line react/display-name
+        render: () => (
+          <Toast duration={DURATION} {...resolveToastParams(params)} />
+        ),
+      })),
+    [chakraToast]
+  )
+
+  const close = React.useCallback(() => {
+    chakraToast.close(toastIdRef.current)
+  }, [chakraToast])
+
+  return React.useMemo(
+    () => ({
+      toast,
+      close,
+    }),
+    [close, toast]
+  )
+}

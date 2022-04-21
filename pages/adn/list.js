@@ -31,7 +31,7 @@ import IconLink from '../../shared/components/icon-link'
 import {PlusSolidIcon, RefreshIcon} from '../../shared/components/icons'
 import db from '../../shared/utils/db'
 import {IconButton} from '../../shared/components/button'
-import {useSuccessToast} from '../../shared/hooks/use-toast'
+import {useClosableToast} from '../../shared/hooks/use-toast'
 
 export default function AdListPage() {
   const {t} = useTranslation()
@@ -85,7 +85,7 @@ export default function AdListPage() {
     refetchPersistedAds()
   }, [refetchPersistedAds, refetchProfileAds])
 
-  const toast = useSuccessToast()
+  const {toast, close: closeToast} = useClosableToast()
 
   const handlePublish = React.useCallback(async () => {
     try {
@@ -96,10 +96,11 @@ export default function AdListPage() {
       refetchAds()
 
       toast({
-        title: t('Ad has been published successfully'),
-        actionContent: t('View published ads'),
+        title: t('Ad has been successfully published'),
+        actionContent: t(`View 'Published'`),
         onAction: () => {
           setFilter(AdStatus.Published)
+          closeToast()
         },
       })
     } catch {
@@ -107,7 +108,7 @@ export default function AdListPage() {
     } finally {
       publishDisclosure.onClose()
     }
-  }, [publishDisclosure, refetchAds, selectedAd, t, toast])
+  }, [closeToast, publishDisclosure, refetchAds, selectedAd, t, toast])
 
   const handleReview = React.useCallback(
     async ({cid, contract}) => {
@@ -122,9 +123,10 @@ export default function AdListPage() {
 
         toast({
           title: t('Ad has been sent to oracles review'),
-          actionContent: t(`Open 'On review'`),
+          actionContent: t(`View 'On review'`),
           onAction: () => {
             setFilter(AdStatus.Reviewing)
+            closeToast()
           },
         })
       } catch {
@@ -133,7 +135,7 @@ export default function AdListPage() {
         reviewDisclosure.onClose()
       }
     },
-    [refetchAds, reviewDisclosure, selectedAd, t, toast]
+    [closeToast, refetchAds, reviewDisclosure, selectedAd, t, toast]
   )
 
   const handleBurn = React.useCallback(() => {
@@ -147,20 +149,20 @@ export default function AdListPage() {
     if (query.from === 'new' && query.save) {
       toast({
         title: t('Ad has been saved to drafts'),
-        actionContent: t('View drafts'),
+        actionContent: t(`View 'Drafts'`),
         onAction: () => {
           setFilter(AdStatus.Draft)
+          closeToast()
           replace('/adn/list')
         },
       })
     }
-  }, [query, replace, t, toast])
+  }, [closeToast, query, replace, t, toast])
 
   return (
     <Layout>
       <Page as={Stack} spacing={4}>
         <PageTitle>{t('My Ads')}</PageTitle>
-
         <Stack isInline spacing={20}>
           <BlockAdStat label="My balance" w="2xs">
             <Skeleton isLoaded={Boolean(balance)}>
@@ -175,7 +177,7 @@ export default function AdListPage() {
           <Flex align="center" justify="space-between" w="full">
             <HStack>
               <FilterButton value={AdStatus.Published}>
-                {t('Published')}
+                {t('Campaigns')}
               </FilterButton>
               <VDivider />
               <FilterButton value={AdStatus.Draft}>{t('Drafts')}</FilterButton>

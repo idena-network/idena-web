@@ -345,10 +345,10 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
           <HStack flex={1}>
             <InlineAdStatGroup spacing="1.5" labelWidth="14" flex={1}>
               <SmallInlineAdStat label="Language" value={language} />
-              <SmallInlineAdStat label="Stake" value={stake} />
+              <SmallInlineAdStat label="Min stake" value={stake} />
             </InlineAdStatGroup>
             <InlineAdStatGroup spacing="1.5" labelWidth="8" flex={1}>
-              <SmallInlineAdStat label="Age" value={age} />
+              <SmallInlineAdStat label="Min age" value={age} />
               <SmallInlineAdStat label="OS" value={os} />
             </InlineAdStatGroup>
           </HStack>
@@ -368,7 +368,15 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
               />
               <InlineAdStat
                 label="Competitors"
-                value={status === AdStatus.Published ? competitorCount : '--'}
+                value={
+                  status === AdStatus.Published &&
+                  rotationStatus === AdRotationStatus.Showing
+                    ? t('{{burnIndex}} out of {{competitorCount}}', {
+                        burnIndex,
+                        competitorCount,
+                      })
+                    : '--'
+                }
                 flex={0}
               />
               <InlineAdStat
@@ -680,7 +688,7 @@ export const AdForm = React.forwardRef(function AdForm(
         <FormSection>
           <FormSectionTitle>{t('Target audience')}</FormSectionTitle>
           <Stack spacing={3} shouldWrapChildren>
-            <AdFormField label="Language">
+            <AdFormField label={t('Language')}>
               <Select
                 name="language"
                 defaultValue={ad?.language}
@@ -694,7 +702,7 @@ export const AdForm = React.forwardRef(function AdForm(
                 ))}
               </Select>
             </AdFormField>
-            <AdFormField label="Age">
+            <AdFormField label={t('Min age')}>
               <AdNumberInput
                 name="age"
                 defaultValue={ad?.age}
@@ -705,7 +713,7 @@ export const AdForm = React.forwardRef(function AdForm(
                 {t('Min age to see the ad')}
               </FormHelperText>
             </AdFormField>
-            <AdFormField label="Stake">
+            <AdFormField label={t('Min stake')}>
               <AdNumberInput
                 name="stake"
                 defaultValue={ad?.stake}
@@ -714,7 +722,7 @@ export const AdForm = React.forwardRef(function AdForm(
                 addon={t('iDNA')}
               />
               <FormHelperText color="muted" fontSize="sm" mt="1">
-                {t('Least amount of iDNA at stake to see the ad')}
+                {t('Min stake amount to see the ad')}
               </FormHelperText>
             </AdFormField>
             <AdFormField label="OS">

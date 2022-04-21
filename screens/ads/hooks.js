@@ -1092,8 +1092,8 @@ export function useAdStatusText(status) {
   const {t} = useTranslation()
 
   const statusText = {
-    [AdRotationStatus.Showing]: t('Showing'),
-    [AdRotationStatus.NotShowing]: t('Not showing'),
+    [AdRotationStatus.Showing]: t('Burning'),
+    [AdRotationStatus.NotShowing]: t('Not burning'),
     [AdRotationStatus.PartiallyShowing]: t('Partially showing'),
   }
 

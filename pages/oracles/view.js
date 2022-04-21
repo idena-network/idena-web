@@ -993,8 +993,8 @@ export default function ViewVotingPage() {
       >
         <DialogHeader>{t('Leaving Idena')}</DialogHeader>
         <DialogBody>
-          <Text>You're about to leave Idena.</Text>
-          <Text>Are you sure?</Text>
+          <Text>{t(`You're about to leave Idena.`)}</Text>
+          <Text>{t(`Are you sure?`)}</Text>
         </DialogBody>
         <DialogFooter>
           <SecondaryButton onClick={() => send('CANCEL')}>
