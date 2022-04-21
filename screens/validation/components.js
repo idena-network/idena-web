@@ -209,7 +209,7 @@ export function Flip({
   }
   const onFLipClick = useSingleAndDoubleClick(
     () => onChoose(hash),
-    isDesktop ? onOpenFlipZoom : () => onChoose(hash)
+    onOpenFlipZoom
   )
 
   if ((fetched && !decoded) || failed) return <FailedFlip />
@@ -251,10 +251,14 @@ export function Flip({
               position: 'relative',
               overflow: 'hidden',
             }}
-            onClick={() => {
-              onFLipClick()
-              setTimeout(() => scrollToZoomedFlip(idx), 100)
-            }}
+            onClick={
+              isDesktop
+                ? () => {
+                    onFLipClick()
+                    setTimeout(() => scrollToZoomedFlip(idx), 100)
+                  }
+                : () => onChoose(hash)
+            }
           >
             {isDesktop && idx === 0 && (
               <ChakraFlex
