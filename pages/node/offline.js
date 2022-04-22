@@ -37,6 +37,7 @@ import {
   getRawTx,
   activateKey,
   checkProvider,
+  checkSavedKey,
 } from '../../shared/api'
 
 import {PrimaryButton} from '../../shared/components/button'
@@ -48,6 +49,7 @@ import {Transaction} from '../../shared/models/transaction'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {
   apiKeyStates,
+  useSettingsDispatch,
   useSettingsState,
 } from '../../shared/providers/settings-context'
 import {IdentityStatus} from '../../shared/types'
@@ -59,6 +61,7 @@ import {
   signMessage,
 } from '../../shared/utils/crypto'
 import {promiseTimeout} from '../../shared/utils/utils'
+import {getLastEpoch} from '../../shared/api/indexer'
 
 const options = {
   BUY: 0,
@@ -66,6 +69,7 @@ const options = {
   ACTIVATE: 2,
   CANDIDATE: 3,
   RESTRICTED: 4,
+  RESTORE: 5,
 }
 
 const steps = {
@@ -83,6 +87,7 @@ const errorType = {
 export default function Offline() {
   const {t} = useTranslation()
   const {apiKeyState, apiKey, url} = useSettingsState()
+  const {saveConnection} = useSettingsDispatch()
   const {coinbase, privateKey} = useAuthState()
   const router = useRouter()
 
@@ -92,6 +97,9 @@ export default function Offline() {
   const [error, setError] = useState({type: errorType.NONE})
   const [state, setState] = useState(options.BUY)
   const [step, setStep] = useState(steps.INITIAL)
+
+  const [savedApiKey, setSavedApiKey] = useState()
+  const [isSavedKeyActual, setIsSavedKeyActual] = useState(false)
 
   const [submitting, setSubmitting] = useState(false)
 
@@ -190,9 +198,26 @@ export default function Offline() {
       case options.RESTRICTED: {
         return onOpen()
       }
+      case options.RESTORE: {
+        return saveConnection(savedApiKey.url, savedApiKey.apiKey)
+      }
       default:
     }
   }
+
+  useEffect(() => {
+    async function checkSaved() {
+      try {
+        const currentEpoch = await getLastEpoch()
+        const savedKey = await checkSavedKey(apiKey)
+        setSavedApiKey(savedKey)
+        setIsSavedKeyActual(savedKey && savedKey.epoch === currentEpoch.epoch)
+      } catch (e) {
+        setError({type: errorType.NONE})
+      }
+    }
+    checkSaved()
+  }, [apiKey])
 
   useEffect(() => {
     if (
@@ -397,6 +422,21 @@ export default function Offline() {
                               fontSize="sm"
                             >
                               {t('Can not be used for validation')}
+                            </Text>
+                          </ChooseItemRadio>
+                        )}
+                        {isSavedKeyActual && savedApiKey.url !== apiKey.url && (
+                          <ChooseItemRadio
+                            variant={variantRadio}
+                            px={[4, 0]}
+                            isChecked={state === options.RESTORE}
+                            onChange={() => setState(options.RESTORE)}
+                          >
+                            <Text color="white">
+                              {t('Restore connection to shared node')}
+                            </Text>
+                            <Text color="muted" fontSize="sm">
+                              {savedApiKey.url}
                             </Text>
                           </ChooseItemRadio>
                         )}

@@ -14,6 +14,7 @@ import {useQuery} from 'react-query'
 import {BuySharedNodeForm, ChooseItemRadio} from '../../screens/node/components'
 import {GetProviderPrice} from '../../screens/node/utils'
 import {
+  checkSavedKey,
   getAvailableProviders,
   getCandidateKey,
   getProvider,
@@ -27,17 +28,22 @@ import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useIdentity} from '../../shared/providers/identity-context'
-import {useSettings} from '../../shared/providers/settings-context'
+import {
+  useSettings,
+  useSettingsDispatch,
+} from '../../shared/providers/settings-context'
 import {IdentityStatus} from '../../shared/types'
 import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
 import {signMessage} from '../../shared/utils/crypto'
 import {loadPersistentState, persistState} from '../../shared/utils/persist'
+import {getLastEpoch} from '../../shared/api/indexer'
 
 const options = {
   PROLONG: 0,
   BUY: 1,
   ENTER_KEY: 2,
   CANDIDATE: 3,
+  RESTORE: 4,
 }
 
 const steps = {
@@ -46,7 +52,8 @@ const steps = {
 }
 
 export default function Restricted() {
-  const [{apiKeyData}] = useSettings()
+  const [{apiKeyData, apiKey}] = useSettings()
+  const {saveConnection} = useSettingsDispatch()
   const {coinbase, privateKey} = useAuthState()
   const [{state: identityState}] = useIdentity()
   const auth = useAuthState()
@@ -65,6 +72,9 @@ export default function Restricted() {
   const failToast = useFailToast()
 
   const {isPurchasing, savePurchase} = useApikeyPurchasing()
+
+  const [savedApiKey, setSavedApiKey] = useState()
+  const [isSavedKeyActual, setIsSavedKeyActual] = useState(false)
 
   const persistCheckbox = () => {
     const current = loadPersistentState('restricted-modal')
@@ -106,6 +116,8 @@ export default function Restricted() {
       return router.push('/settings/node')
     } else if (state === options.CANDIDATE) {
       return getKeyForCandidate()
+    } else if (state === options.RESTORE) {
+      return saveConnection(savedApiKey.url, savedApiKey.apiKey)
     } else return router.push('/node/rent')
   }
 
@@ -118,6 +130,18 @@ export default function Restricted() {
       refetchOnWindowFocus: false,
     }
   )
+
+  useEffect(() => {
+    async function checkSaved() {
+      try {
+        const currentEpoch = await getLastEpoch()
+        const savedKey = await checkSavedKey(apiKey)
+        setSavedApiKey(savedKey)
+        setIsSavedKeyActual(savedKey && savedKey.epoch === currentEpoch.epoch)
+      } catch (e) {}
+    }
+    checkSaved()
+  }, [apiKey])
 
   useEffect(() => {
     if (identityState === IdentityStatus.Candidate) {
@@ -243,6 +267,20 @@ export default function Restricted() {
                             </Text>
                             <Text color="muted" fontSize="sm">
                               {provider.data.url}
+                            </Text>
+                          </ChooseItemRadio>
+                        )}
+                        {isSavedKeyActual && savedApiKey.url !== apiKey.url && (
+                          <ChooseItemRadio
+                            isChecked={state === options.RESTORE}
+                            onChange={() => setState(options.RESTORE)}
+                            alignItems="baseline"
+                          >
+                            <Text color="white">
+                              {t('Restore connection to shared node')}
+                            </Text>
+                            <Text color="muted" fontSize="sm">
+                              {savedApiKey.url}
                             </Text>
                           </ChooseItemRadio>
                         )}

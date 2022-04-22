@@ -15,6 +15,14 @@ export function checkKey(key) {
     .then(x => x.data)
 }
 
+export function checkSavedKey(key) {
+  return api()
+    .get('/api/key/getKey', {
+      params: {key},
+    })
+    .then(x => x.data)
+}
+
 export function getProviders() {
   return api()
     .get('/api/provider/list')
