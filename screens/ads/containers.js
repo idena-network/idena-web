@@ -371,10 +371,7 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
                 value={
                   status === AdStatus.Published &&
                   rotationStatus === AdRotationStatus.Showing
-                    ? t('{{burnIndex}} out of {{competitorCount}}', {
-                        burnIndex,
-                        competitorCount,
-                      })
+                    ? competitorCount
                     : '--'
                 }
                 flex={0}
