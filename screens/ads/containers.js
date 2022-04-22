@@ -384,10 +384,7 @@ export function AdListItem({
               <InlineAdStat
                 label="Competitors"
                 value={
-                  status === AdStatus.Published &&
-                  rotationStatus === AdRotationStatus.Showing
-                    ? competitorCount
-                    : '--'
+                  status === AdStatus.Published ? String(competitorCount) : '--'
                 }
                 flex={0}
               />
