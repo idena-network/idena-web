@@ -12,6 +12,7 @@ import {
   ReviewAdDrawer,
   PublishAdDrawer,
   BurnDrawer,
+  AdPreview,
 } from '../../screens/ads/containers'
 import {
   useBalance,
@@ -162,6 +163,8 @@ export default function AdListPage() {
     }
   }, [closeToast, query, replace, t, toast])
 
+  const previewAdDisclosure = useDisclosure()
+
   return (
     <Layout>
       <Page as={Stack} spacing={4}>
@@ -229,6 +232,10 @@ export default function AdListPage() {
                   burnDisclosure.onOpen()
                 }}
                 onRemove={refetchPersistedAds}
+                onPreview={() => {
+                  setSelectedAd(ad)
+                  previewAdDisclosure.onOpen()
+                }}
               />
             ))}
           </AdList>
@@ -255,6 +262,8 @@ export default function AdListPage() {
         {selectedAd && (
           <BurnDrawer ad={selectedAd} onBurn={handleBurn} {...burnDisclosure} />
         )}
+
+        {selectedAd && <AdPreview ad={selectedAd} {...previewAdDisclosure} />}
 
         <Debug>{ads}</Debug>
       </Page>

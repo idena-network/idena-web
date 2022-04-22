@@ -205,7 +205,14 @@ function AdBannerAuthor({ad, ...props}) {
   )
 }
 
-export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
+export function AdListItem({
+  ad,
+  onReview,
+  onPublish,
+  onBurn,
+  onRemove,
+  onPreview,
+}) {
   const {id, cid, title, language, age, os, stake, status, contract} = ad
 
   const {t, i18n} = useTranslation()
@@ -251,24 +258,31 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
       <Stack spacing="5" w="full">
         <Flex justify="space-between">
           <Stack spacing="1">
-            <TextLink
-              href={
-                eitherStatus(
-                  AdStatus.Reviewing,
-                  AdStatus.Approved,
-                  AdStatus.Published
-                )
-                  ? `/adn/view?cid=${cid}`
-                  : `/adn/edit?id=${id}`
-              }
-              color="gray.500"
-              fontSize="mdx"
-              fontWeight={500}
-              lineHeight="shorter"
-              _hover={{color: 'muted'}}
-            >
-              {title}
-            </TextLink>
+            {eitherStatus(
+              AdStatus.Reviewing,
+              AdStatus.Approved,
+              AdStatus.Published
+            ) ? (
+              <Text
+                color="gray.500"
+                fontSize="mdx"
+                fontWeight={500}
+                lineHeight="shorter"
+              >
+                {title}
+              </Text>
+            ) : (
+              <TextLink
+                href={`/adn/edit?id=${id}`}
+                color="gray.500"
+                fontSize="mdx"
+                fontWeight={500}
+                lineHeight="shorter"
+                _hover={{color: 'muted'}}
+              >
+                {title}
+              </TextLink>
+            )}
             <Text color="muted">{ad.desc}</Text>
           </Stack>
 
@@ -280,11 +294,12 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
                   AdStatus.Approved,
                   AdStatus.Published
                 ) && (
-                  <NextLink href={`/adn/view?cid=${cid}`} passHref>
-                    <MenuItem icon={<ViewIcon boxSize={5} color="blue.500" />}>
-                      {t('View')}
-                    </MenuItem>
-                  </NextLink>
+                  <MenuItem
+                    icon={<ViewIcon boxSize={5} color="blue.500" />}
+                    onClick={onPreview}
+                  >
+                    {t('View')}
+                  </MenuItem>
                 )}
                 {eitherStatus(AdStatus.Draft, AdStatus.Rejected) && (
                   <NextLink href={`/adn/edit?id=${id}`} passHref>
