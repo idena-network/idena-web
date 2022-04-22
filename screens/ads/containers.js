@@ -315,7 +315,7 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
 
             {status === AdStatus.Approved && (
               <SecondaryButton onClick={onPublish}>
-                {t('Publish')}
+                {t('Start campaign')}
               </SecondaryButton>
             )}
 
@@ -344,12 +344,12 @@ export function AdListItem({ad, onReview, onPublish, onBurn, onRemove}) {
         >
           <HStack flex={1}>
             <InlineAdStatGroup spacing="1.5" labelWidth="14" flex={1}>
-              <SmallInlineAdStat label="Language" value={language} />
-              <SmallInlineAdStat label="Min stake" value={stake} />
+              <SmallInlineAdStat label={t('Language')} value={language} />
+              <SmallInlineAdStat label={t('Min stake')} value={stake} />
             </InlineAdStatGroup>
-            <InlineAdStatGroup spacing="1.5" labelWidth="8" flex={1}>
-              <SmallInlineAdStat label="Min age" value={age} />
-              <SmallInlineAdStat label="OS" value={os} />
+            <InlineAdStatGroup spacing="1.5" labelWidth="14" flex={1}>
+              <SmallInlineAdStat label={t('Min age')} value={age} />
+              <SmallInlineAdStat label={t('OS')} value={os} />
             </InlineAdStatGroup>
           </HStack>
 
@@ -936,10 +936,10 @@ export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
             <Stack spacing={3}>
               <HDivider />
               <InlineAdStatGroup labelWidth="20">
-                <SmallInlineAdStat label="Language" value={ad.language} />
-                <SmallInlineAdStat label="Stake" value={ad.stake} />
-                <SmallInlineAdStat label="Age" value={ad.age} />
-                <SmallInlineAdStat label="OS" value={ad.os} />
+                <SmallInlineAdStat label={t('Language')} value={ad.language} />
+                <SmallInlineAdStat label={t('Min stake')} value={ad.stake} />
+                <SmallInlineAdStat label={t('Min age')} value={ad.age} />
+                <SmallInlineAdStat label={t('OS')} value={ad.os} />
               </InlineAdStatGroup>
             </Stack>
           </Stack>
@@ -1097,14 +1097,19 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
             <AdsIcon boxSize={6} color="blue.500" />
           </FillCenter>
           <Heading fontSize="lg" fontWeight={500}>
-            {t('Publish')}
+            {t('Start ad campaign')}
           </Heading>
         </Stack>
       </DrawerHeader>
       <DrawerBody overflowY="auto" mx={-6} mb={10}>
         <Stack spacing="6" color="brandGray.500" fontSize="md" p={6} pt={0}>
           <Stack spacing="3">
-            <Text>{t('Your ad is about to be published')}</Text>
+            <Text>
+              {t(
+                'Your ad campaign is about to be started for the audience with the following target parameters:',
+                {nsSeparator: '|'}
+              )}
+            </Text>
 
             {isPending && <MiningBadge>{t('Mining...')}</MiningBadge>}
           </Stack>
@@ -1132,8 +1137,8 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
               <HDivider />
               <InlineAdStatGroup labelWidth="20">
                 <SmallInlineAdStat label={t('Language')} value={ad.language} />
-                <SmallInlineAdStat label={t('Stake')} value={ad.stake} />
-                <SmallInlineAdStat label={t('Age')} value={ad.age} />
+                <SmallInlineAdStat label={t('Min stake')} value={ad.stake} />
+                <SmallInlineAdStat label={t('Min age')} value={ad.age} />
                 <SmallInlineAdStat label={t('OS')} value={ad.os} />
               </InlineAdStatGroup>
             </Stack>
@@ -1143,7 +1148,7 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
       <DrawerFooter>
         <PrimaryButton
           isLoading={isPending}
-          loadingText={t('Mining...')}
+          loadingText={t('Starting...')}
           onClick={() => {
             if (balance > 0) {
               submit(ad)
@@ -1152,7 +1157,7 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
             }
           }}
         >
-          {t('Publish')}
+          {t('Start')}
         </PrimaryButton>
       </DrawerFooter>
     </AdDrawer>
@@ -1234,8 +1239,8 @@ export function BurnDrawer({ad, onBurn, ...props}) {
               <HDivider />
               <InlineAdStatGroup labelWidth="20">
                 <SmallInlineAdStat label={t('Language')} value={ad.language} />
-                <SmallInlineAdStat label={t('Stake')} value={ad.stake} />
-                <SmallInlineAdStat label={t('Age')} value={ad.age} />
+                <SmallInlineAdStat label={t('Min stake')} value={ad.stake} />
+                <SmallInlineAdStat label={t('Min age')} value={ad.age} />
                 <SmallInlineAdStat label={t('OS')} value={ad.os} />
               </InlineAdStatGroup>
             </Stack>

@@ -96,8 +96,8 @@ export default function AdListPage() {
       refetchAds()
 
       toast({
-        title: t('Ad has been successfully published'),
-        actionContent: t(`View 'Published'`),
+        title: t('Ad campaign is successfully started'),
+        actionContent: t(`View 'Campaigns'`),
         onAction: () => {
           setFilter(AdStatus.Published)
           closeToast()
