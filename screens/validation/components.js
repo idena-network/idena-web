@@ -1,6 +1,6 @@
 /* eslint-disable no-shadow */
 /* eslint-disable react/prop-types */
-import React, {useEffect, useMemo, useState} from 'react'
+import React, {useEffect, useMemo, useRef, useState} from 'react'
 import {margin, borderRadius, cover, transparentize, rgba} from 'polished'
 import {FiCheck, FiXCircle, FiChevronLeft, FiChevronRight} from 'react-icons/fi'
 import {
@@ -24,6 +24,9 @@ import {
   useDisclosure,
   useBreakpointValue,
   useMediaQuery,
+  ModalHeader,
+  ModalBody,
+  ModalCloseButton,
 } from '@chakra-ui/react'
 import {useSwipeable} from 'react-swipeable'
 import {useMachine} from '@xstate/react'
@@ -59,6 +62,7 @@ import {NotificationType} from '../../shared/providers/notification-context'
 import {AnswerType, EpochPeriod, RelevanceType} from '../../shared/types'
 import {createTimerMachine} from '../../shared/machines'
 import {
+  EmptyFlipImage,
   FlipKeywordPanelNew,
   FlipKeywordTranslationSwitchNew,
 } from '../flips/components'
@@ -78,15 +82,20 @@ import {
   InfoIcon,
   OkIcon,
   ArrowBackIcon,
+  ZoomFlipIcon,
+  CrossSmallIcon,
 } from '../../shared/components/icons'
 import {TEST_SHORT_SESSION_INTERVAL_SEC} from '../../shared/providers/test-validation-context'
 import {use100vh} from '../../shared/hooks/use-100vh'
+import {useIsDesktop} from '../../shared/utils/utils'
+import useHover from '@react-hook/hover'
 
 const Scroll = require('react-scroll')
 
 const {ScrollElement} = Scroll
 const {scroller} = Scroll
 const ElementThumbnail = ScrollElement(Thumbnail)
+const ElementFlipImage = ScrollElement(AspectRatio)
 
 export function ValidationScene(props) {
   return (
@@ -174,72 +183,215 @@ export function Flip({
   decoded,
   option,
   variant,
+  timerDetails,
   onChoose,
   onImageFail,
 }) {
   const radius = useBreakpointValue(['12px', '8px'])
   const windowHeight = use100vh()
+  const isDesktop = useIsDesktop()
+  const refHover = useRef(null)
+  const isHovered = useHover(refHover.current)
+  const {
+    isOpen: isOpenFlipZoom,
+    onOpen: onOpenFlipZoom,
+    onClose: onCloseFlipZoom,
+  } = useDisclosure()
+
+  const scrollToZoomedFlip = flipId => {
+    scroller.scrollTo(`flipId-${flipId}`, {
+      duration: 250,
+      smooth: true,
+      containerId: 'zoomedFlips',
+      horizontal: false,
+      offset: -80,
+    })
+  }
+  const onFLipClick = useSingleAndDoubleClick(
+    () => onChoose(hash),
+    onOpenFlipZoom
+  )
 
   if ((fetched && !decoded) || failed) return <FailedFlip />
   if (!fetched) return <LoadingFlip />
 
   return (
-    <FlipHolder
-      css={
-        // eslint-disable-next-line no-nested-ternary
-        option
-          ? option === variant
-            ? {
-                border: `solid ${rem(2)} ${theme.colors.primary}`,
-                boxShadow: `0 0 ${rem(2)} ${rem(3)} ${transparentize(
-                  0.75,
-                  theme.colors.primary
-                )}`,
-                transition: 'all .3s cubic-bezier(.5, 0, .5, 1)',
-              }
-            : {
-                opacity: 0.3,
-                transform: 'scale(0.98)',
-                transition: 'all .3s cubic-bezier(.5, 0, .5, 1)',
-              }
-          : {}
-      }
-    >
-      {reorderList(images, orders[variant - 1]).map((src, idx) => (
-        <ChakraBox
-          key={idx}
-          h={[
-            `calc((${windowHeight}px - 290px) / 4)`,
-            'calc((100vh - 260px) / 4)',
-          ]}
-          borderRadius={getFlipBorderRadius(idx, images.length - 1, radius)}
-          css={{
-            // height: 'calc((100vh - 260px) / 4)',
-            position: 'relative',
-            overflow: 'hidden',
-          }}
-          onClick={() => onChoose(hash)}
-        >
-          <FlipBlur src={src} />
-          <FlipImage
-            src={src}
-            alt="current-flip"
-            height="100%"
-            width="100%"
-            style={{
-              ...borderRadius('top', idx === 0 ? rem(8) : 'none'),
-              ...borderRadius(
-                'bottom',
-                idx === images.length - 1 ? rem(8) : 'none'
-              ),
+    <div ref={refHover}>
+      <FlipHolder
+        css={
+          // eslint-disable-next-line no-nested-ternary
+          option
+            ? option === variant
+              ? {
+                  border: `solid ${rem(2)} ${theme.colors.primary}`,
+                  boxShadow: `0 0 ${rem(2)} ${rem(3)} ${transparentize(
+                    0.75,
+                    theme.colors.primary
+                  )}`,
+                  transition: 'all .3s cubic-bezier(.5, 0, .5, 1)',
+                }
+              : {
+                  opacity: 0.3,
+                  transform: 'scale(0.98)',
+                  transition: 'all .3s cubic-bezier(.5, 0, .5, 1)',
+                }
+            : {}
+        }
+      >
+        {reorderList(images, orders[variant - 1]).map((src, idx) => (
+          <ChakraBox
+            key={idx}
+            h={[
+              `calc((${windowHeight}px - 290px) / 4)`,
+              'calc((100vh - 260px) / 4)',
+            ]}
+            borderRadius={getFlipBorderRadius(idx, images.length - 1, radius)}
+            css={{
+              // height: 'calc((100vh - 260px) / 4)',
               position: 'relative',
-              zIndex: 1,
+              overflow: 'hidden',
             }}
-            onError={onImageFail}
-          />
-        </ChakraBox>
-      ))}
-    </FlipHolder>
+            onClick={
+              isDesktop
+                ? () => {
+                    onFLipClick()
+                    setTimeout(() => scrollToZoomedFlip(idx), 100)
+                  }
+                : () => onChoose(hash)
+            }
+          >
+            {isDesktop && idx === 0 && (
+              <ChakraFlex
+                display={isHovered ? 'flex' : 'none'}
+                align="center"
+                justify="center"
+                borderRadius="8px"
+                backgroundColor="rgba(17, 17, 17, 0.5)"
+                position="absolute"
+                top={1}
+                right={1}
+                h={8}
+                w={8}
+                opacity={0.5}
+                _hover={{opacity: 1}}
+                zIndex={2}
+                onClick={e => {
+                  e.stopPropagation()
+                  onOpenFlipZoom()
+                }}
+              >
+                <ZoomFlipIcon h={5} w={5} />
+              </ChakraFlex>
+            )}
+            <FlipBlur src={src} />
+            <FlipImage
+              src={src}
+              alt="current-flip"
+              height="100%"
+              width="100%"
+              style={{
+                ...borderRadius('top', idx === 0 ? rem(8) : 'none'),
+                ...borderRadius(
+                  'bottom',
+                  idx === images.length - 1 ? rem(8) : 'none'
+                ),
+                position: 'relative',
+                zIndex: 1,
+              }}
+              onError={onImageFail}
+            />
+          </ChakraBox>
+        ))}
+
+        <Modal size="xl" isOpen={isOpenFlipZoom} onClose={onCloseFlipZoom}>
+          <ModalOverlay />
+          <ChakraFlex
+            zIndex={1401}
+            position="fixed"
+            top={0}
+            left={0}
+            right={0}
+            h={20}
+            justify="space-between"
+            align="center"
+            backgroundColor="gray.980"
+          >
+            <ChakraBox />
+            <ChakraFlex zIndex={2} justify="center">
+              <ValidationTimer
+                key={
+                  isShortSession(timerDetails.state)
+                    ? 'short-timer'
+                    : 'long-timer'
+                }
+                validationStart={timerDetails.validationStart}
+                duration={
+                  timerDetails.shortSessionDuration -
+                  10 +
+                  (isShortSession(timerDetails.state)
+                    ? 0
+                    : timerDetails.longSessionDuration)
+                }
+                color="white"
+              />
+            </ChakraFlex>
+            <CrossSmallIcon
+              color="white"
+              boxSize={8}
+              mr={10}
+              onClick={onCloseFlipZoom}
+            />
+          </ChakraFlex>
+          <ModalContent
+            mt={20}
+            bg="transparent"
+            border="none"
+            boxShadow="none"
+            containerProps={{id: 'zoomedFlips'}}
+          >
+            <ModalBody py={0}>
+              <ChakraFlex h="100%" w="100%" direction="column" align="center">
+                <ChakraBox w="100%">
+                  {reorderList(images, orders[variant - 1]).map((src, idx) => (
+                    <ElementFlipImage
+                      name={`flipId-${idx}`}
+                      ratio={4 / 3}
+                      bg="gray.50"
+                    >
+                      {src ? (
+                        <ChakraBox position="relative">
+                          <ChakraBox
+                            style={{
+                              background: `center center / cover no-repeat url(${src})`,
+                              filter: `blur(${rem(24)})`,
+                              ...cover(),
+                              zIndex: 1,
+                            }}
+                          />
+                          <FlipImage
+                            src={src}
+                            alt="current-flip"
+                            height="100%"
+                            width="100%"
+                            style={{
+                              position: 'relative',
+                              zIndex: 1,
+                            }}
+                            onError={onImageFail}
+                          />
+                        </ChakraBox>
+                      ) : (
+                        <EmptyFlipImage />
+                      )}
+                    </ElementFlipImage>
+                  ))}
+                </ChakraBox>
+              </ChakraFlex>
+            </ModalBody>
+          </ModalContent>
+        </Modal>
+      </FlipHolder>
+    </div>
   )
 }
 
@@ -800,7 +952,7 @@ export function NavButton({type, bg, color, ...props}) {
   )
 }
 
-export function ValidationTimer({validationStart, duration}) {
+export function ValidationTimer({validationStart, duration, color}) {
   const adjustedDuration = useMemo(
     () => adjustDuration(validationStart, duration),
     [duration, validationStart]
@@ -809,7 +961,10 @@ export function ValidationTimer({validationStart, duration}) {
   return (
     <Timer>
       <TimerIcon color={theme.colors.danger} mr={1} />
-      <TimerClock duration={adjustedDuration} color={theme.colors.danger} />
+      <TimerClock
+        duration={adjustedDuration}
+        color={color || theme.colors.danger}
+      />
     </Timer>
   )
 }
@@ -1861,6 +2016,13 @@ export function ValidationScreen({
     trackMouse: true,
   })
 
+  const flipTimerDetails = {
+    state,
+    validationStart,
+    shortSessionDuration,
+    longSessionDuration,
+  }
+
   return (
     <ValidationScene
       bg={isShortSession(state) ? theme.colors.black : theme.colors.white}
@@ -1934,6 +2096,7 @@ export function ValidationScreen({
               <Flip
                 {...currentFlip}
                 variant={AnswerType.Left}
+                timerDetails={flipTimerDetails}
                 onChoose={hash =>
                   send({
                     type: 'ANSWER',
@@ -1945,6 +2108,7 @@ export function ValidationScreen({
               <Flip
                 {...currentFlip}
                 variant={AnswerType.Right}
+                timerDetails={flipTimerDetails}
                 onChoose={hash =>
                   send({
                     type: 'ANSWER',
@@ -2428,4 +2592,25 @@ function getFlipBorderRadius(index, size, radius) {
     return `0 0 ${radius} ${radius}`
   }
   return 0
+}
+
+function useSingleAndDoubleClick(
+  actionSimpleClick,
+  actionDoubleClick,
+  delay = 250
+) {
+  const [click, setClick] = useState(0)
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (click === 1) actionSimpleClick()
+      setClick(0)
+    }, delay)
+
+    if (click === 2) actionDoubleClick()
+
+    return () => clearTimeout(timer)
+  }, [actionDoubleClick, actionSimpleClick, click, delay])
+
+  return () => setClick(prev => prev + 1)
 }
