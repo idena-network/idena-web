@@ -88,6 +88,7 @@ export function useRotatingAds(limit = 3) {
         queryFn: () => fetchAdVoting(ad?.contract),
         enabled: Boolean(ad?.contract),
         select: data => ({...data, cid: ad?.cid}),
+        staleTime: (BLOCK_TIME / 2) * 1000,
       }))
   )
 
@@ -193,7 +194,7 @@ export function useCompetingAdsByTarget(cid, target) {
 
 export function useBurntCoins(options) {
   return useRpc('bcn_burntCoins', [], {
-    staleTime: 10 * 1000,
+    staleTime: (BLOCK_TIME / 2) * 1000,
     notifyOnChangeProps: ['data'],
     ...options,
   })
@@ -263,7 +264,10 @@ export function usePersistedAds(options) {
       Promise.all(
         (await db.table('ads').toArray()).map(
           async ({status, contract, thumb, media, ...ad}) => {
-            const voting = await fetchAdVoting(contract)
+            const voting =
+              status === AdStatus.Reviewing
+                ? await fetchAdVoting(contract)
+                : null
 
             return {
               ...ad,

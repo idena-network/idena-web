@@ -2,6 +2,7 @@ import React from 'react'
 import {Flex, Stack, HStack, useDisclosure} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
+import {useQueryClient} from 'react-query'
 import {AdList, EmptyAdList, AdStatNumber} from '../../screens/ads/components'
 import Layout from '../../shared/components/layout'
 import {Page, PageTitle} from '../../screens/app/components'
@@ -138,10 +139,12 @@ export default function AdListPage() {
     [closeToast, refetchAds, reviewDisclosure, selectedAd, t, toast]
   )
 
+  const queryClient = useQueryClient()
+
   const handleBurn = React.useCallback(() => {
     burnDisclosure.onClose()
-    refetchAds()
-  }, [burnDisclosure, refetchAds])
+    queryClient.invalidateQueries(['bcn_burntCoins', []])
+  }, [burnDisclosure, queryClient])
 
   const {query, replace} = useRouter()
 
