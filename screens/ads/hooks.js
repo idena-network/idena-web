@@ -1112,7 +1112,7 @@ export function useFormatDna() {
   return React.useCallback(value => toLocaleDna(language)(value), [language])
 }
 
-export function useIpfsAd(cid) {
+export function useIpfsAd(cid, options) {
   const {decodeAd} = useProtoProfileDecoder()
 
   return useRpc('ipfs_get', [cid], {
@@ -1120,6 +1120,7 @@ export function useIpfsAd(cid) {
     select: decodeAd,
     staleTime: Infinity,
     notifyOnChangeProps: ['data'],
+    ...options,
   })
 }
 

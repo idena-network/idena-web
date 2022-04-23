@@ -1,5 +1,5 @@
 import React from 'react'
-import {Flex, Stack, HStack, useDisclosure} from '@chakra-ui/react'
+import {Flex, Stack, HStack, useDisclosure, Box} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
 import {useQueryClient} from 'react-query'
@@ -13,6 +13,7 @@ import {
   PublishAdDrawer,
   BurnDrawer,
   AdPreview,
+  AdDebug,
 } from '../../screens/ads/containers'
 import {
   useBalance,
@@ -24,6 +25,8 @@ import {
 import {AdStatus} from '../../screens/ads/types'
 import {
   Debug,
+  Drawer,
+  DrawerBody,
   FilterButton,
   FilterButtonList,
   Skeleton,
@@ -32,7 +35,7 @@ import {
 import IconLink from '../../shared/components/icon-link'
 import {PlusSolidIcon, RefreshIcon} from '../../shared/components/icons'
 import db from '../../shared/utils/db'
-import {IconButton} from '../../shared/components/button'
+import {IconButton, SecondaryButton} from '../../shared/components/button'
 import {useClosableToast} from '../../shared/hooks/use-toast'
 
 export default function AdListPage() {
@@ -154,6 +157,8 @@ export default function AdListPage() {
 
   const previewAdDisclosure = useDisclosure()
 
+  const devToolsDisclosure = useDisclosure()
+
   return (
     <Layout>
       <Page as={Stack} spacing={4}>
@@ -254,7 +259,31 @@ export default function AdListPage() {
 
         {selectedAd && <AdPreview ad={selectedAd} {...previewAdDisclosure} />}
 
-        <Debug>{ads}</Debug>
+        {typeof window !== 'undefined' &&
+          window.location.hostname.includes('localhost') && (
+            <>
+              <Box position="absolute" bottom="10" right="10">
+                <SecondaryButton onClick={devToolsDisclosure.onOpen}>
+                  Debug ads
+                </SecondaryButton>
+              </Box>
+
+              <Drawer title="Debug ads" size="xl" {...devToolsDisclosure}>
+                <DrawerBody>
+                  <Stack spacing="10">
+                    <Box>
+                      <h4>Current ads</h4>
+                      <Debug>{ads}</Debug>
+                    </Box>
+                    <Box>
+                      <h4>Decoders</h4>
+                      <AdDebug />
+                    </Box>
+                  </Stack>
+                </DrawerBody>
+              </Drawer>
+            </>
+          )}
       </Page>
     </Layout>
   )

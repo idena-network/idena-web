@@ -23,10 +23,13 @@ import {
   ModalContent,
   ModalCloseButton,
   FormHelperText,
+  Tr,
+  Td,
+  Link,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
-import {TriangleUpIcon, ViewIcon} from '@chakra-ui/icons'
+import {ChevronRightIcon, TriangleUpIcon, ViewIcon} from '@chakra-ui/icons'
 import {
   Avatar,
   Drawer,
@@ -47,6 +50,7 @@ import {
   Select,
   SmallText,
   Debug,
+  Tooltip,
 } from '../../shared/components/components'
 import {
   useCurrentRotatingAd,
@@ -66,6 +70,7 @@ import {
   useBurntCoins,
   useAdErrorToast,
   useProtoProfileDecoder,
+  useIpfsAd,
 } from './hooks'
 import {
   AdsIcon,
@@ -111,6 +116,7 @@ import db from '../../shared/utils/db'
 import {AdTarget} from '../../shared/models/adKey'
 import {AdBurnKey} from '../../shared/models/adBurnKey'
 import {useIdentity} from '../../shared/providers/identity-context'
+import {pick} from '../../shared/utils/utils'
 
 export function AdBanner() {
   const {t} = useTranslation()
@@ -1404,7 +1410,7 @@ export function AdPreview({ad, ...props}) {
 }
 
 export function AdDebug() {
-  const {decodeProfile} = useProtoProfileDecoder()
+  const {decodeProfile, decodeAd} = useProtoProfileDecoder()
 
   const [result, setResult] = React.useState()
 
@@ -1430,8 +1436,142 @@ export function AdDebug() {
           </fieldset>
           <PrimaryButton type="submit">Decode profile</PrimaryButton>
         </form>
+        <form
+          onSubmit={e => {
+            e.preventDefault()
+
+            const formData = new FormData(e.target)
+            const decodedProfile = decodeAd(formData.get('encodedAd'))
+
+            setResult(decodedProfile)
+          }}
+        >
+          <fieldset>
+            <legend>Ad decoder</legend>
+            <FormLabel>
+              Encoded ad
+              <Input name="encodedAd" />
+            </FormLabel>
+          </fieldset>
+          <PrimaryButton type="submit">Decode ad</PrimaryButton>
+        </form>
       </Stack>
       <Debug>{result ?? null}</Debug>
     </Stack>
+  )
+}
+
+export function AdOfferListItem({burn: {cid, target, address, amount}}) {
+  const {t} = useTranslation()
+
+  const {decodeAd, decodeAdTarget} = useProtoProfileDecoder()
+
+  const {data: ad, isLoading, isError} = useIpfsAd(cid, {
+    select: data => ({
+      ...decodeAd(data),
+      ...decodeAdTarget(target),
+      cid,
+      author: address,
+    }),
+  })
+
+  const formatDna = useFormatDna()
+
+  const targetValues = React.useMemo(
+    () => Object.values(pick(ad ?? {}, ['language', 'os', 'age', 'stake'])),
+    [ad]
+  )
+
+  if (isLoading || isError) {
+    return (
+      <Tr fontWeight={500}>
+        <Td colSpan={4} px={0}>
+          <Skeleton h="10" />
+        </Td>
+      </Tr>
+    )
+  }
+
+  return (
+    <Tr fontWeight={500}>
+      <Td>
+        <HStack>
+          <AdImage src={adImageThumbSrc(ad)} boxSize="10" />
+          <Stack spacing="1.5">
+            <Text lineHeight={4} isTruncated>
+              {ad.title}
+            </Text>
+            <HStack spacing={1}>
+              <Avatar
+                address={ad.author}
+                boxSize="4"
+                borderWidth={1}
+                borderColor="brandGray.016"
+                borderRadius={['mobile', 'sm']}
+              />
+              <Text
+                color="muted"
+                fontSize="sm"
+                fontWeight={500}
+                lineHeight="shorter"
+              >
+                {ad.author}
+              </Text>
+            </HStack>
+          </Stack>
+        </HStack>
+      </Td>
+      <Td>
+        <NextLink href={String(ad.url)} passHref>
+          <Link target="_blank" color="blue.500">
+            {ad.url}
+          </Link>
+        </NextLink>
+      </Td>
+      <Td>
+        {targetValues.some(Boolean) ? (
+          <>
+            {t('Set')}{' '}
+            <Tooltip
+              label={
+                <InlineAdStatGroup labelWidth="16">
+                  <SmallInlineAdStat
+                    label={t('Language')}
+                    value={ad.language || 'Any'}
+                  />
+                  <SmallInlineAdStat label={t('OS')} value={ad.os || 'Any'} />
+                  <SmallInlineAdStat label={t('Age')} value={ad.age ?? 'Any'} />
+                  <SmallInlineAdStat
+                    label={t('Stake')}
+                    value={ad.stake ?? 'Any'}
+                  />
+                </InlineAdStatGroup>
+              }
+              placement="right-start"
+              arrowSize={8}
+              offset={[-8, 6]}
+            >
+              <Button
+                variant="link"
+                rightIcon={<ChevronRightIcon />}
+                iconSpacing="0"
+                color="blue.500"
+                cursor="pointer"
+                _hover={{
+                  textDecoration: 'none',
+                }}
+              >
+                {t('{{count}} targets', {
+                  count: targetValues.filter(Boolean).length,
+                })}
+              </Button>
+            </Tooltip>
+          </>
+        ) : (
+          t('Not set')
+        )}
+      </Td>
+      <Td>{formatDna(amount)}</Td>
+    </Tr>
   )
 }

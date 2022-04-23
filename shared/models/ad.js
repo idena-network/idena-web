@@ -17,12 +17,8 @@ export class Ad {
       title: protoAd.getTitle(),
       desc: protoAd.getDesc(),
       url: protoAd.getUrl(),
-      thumb: thumb
-        ? URL.createObjectURL(new Blob([thumb], {type: 'image/jpeg'}))
-        : adFallbackSrc,
-      media: media
-        ? URL.createObjectURL(new Blob([media], {type: 'image/jpeg'}))
-        : adFallbackSrc,
+      thumb: thumb ? URL.createObjectURL(new Blob([thumb])) : adFallbackSrc,
+      media: media ? URL.createObjectURL(new Blob([media])) : adFallbackSrc,
     })
   }
 
