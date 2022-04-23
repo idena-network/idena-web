@@ -939,7 +939,9 @@ export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
               <AdImage src={adImageThumbSrc(ad)} w="10" />
               <Box>
                 <Text fontWeight={500}>{ad.title}</Text>
-                <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
+                <ExternalLink href={ad.url} maxW="48">
+                  {ad.url}
+                </ExternalLink>
               </Box>
             </Stack>
             <Stack spacing={3}>
@@ -1128,7 +1130,9 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
               <AdImage src={adImageThumbSrc(ad)} w="10" />
               <Box>
                 <Text fontWeight={500}>{ad.title}</Text>
-                <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
+                <ExternalLink href={ad.url} maxW="48">
+                  {ad.url}
+                </ExternalLink>
               </Box>
             </Stack>
             <Stack spacing={3}>
@@ -1230,7 +1234,9 @@ export function BurnDrawer({ad, onBurn, ...props}) {
               <AdImage src={adImageThumbSrc(ad)} w="10" />
               <Box>
                 <Text fontWeight={500}>{ad.title}</Text>
-                <ExternalLink href={ad.url}>{ad.url}</ExternalLink>
+                <ExternalLink href={ad.url} maxW="48">
+                  {ad.url}
+                </ExternalLink>
               </Box>
             </Stack>
             <Stack spacing={3}>
