@@ -207,7 +207,7 @@ export function useProfileAds() {
 
   const {decodeProfile, decodeAd, decodeAdTarget} = useProtoProfileDecoder()
 
-  const {data: profile} = useQuery({
+  const {data: profile, status: profileStatus} = useQuery({
     queryKey: ['ipfs_get', [profileHash]],
     queryFn: rpcFetcher,
     enabled: Boolean(profileHash),
@@ -246,13 +246,17 @@ export function useProfileAds() {
       })
   )
 
+  const status =
+    profileStatus === 'loading' ||
+    profileStatus === 'idle' ||
+    decodedProfileAds.some(ad => ad.status === 'loading') ||
+    profileAds.some(ad => ad.status === 'loading')
+      ? 'loading'
+      : 'done'
+
   return {
     data: profileAds.map(({data}) => data) ?? [],
-    status:
-      profileAds.length > 0 &&
-      profileAds.every(({status}) => status === 'success' || status === 'error')
-        ? 'done'
-        : 'loading',
+    status,
     refetch: forceIdentityUpdate,
   }
 }
@@ -293,7 +297,6 @@ export function usePersistedAds(options) {
         )
       ),
     {
-      initialData: [],
       notifyOnChangeProps: 'tracked',
       ...options,
     }

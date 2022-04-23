@@ -61,15 +61,28 @@ export default function AdListPage() {
     localStorage.setItem('adListFilter', filter)
   }, [filter])
 
-  const {data: profileAds, refetch: refetchProfileAds} = useProfileAds()
+  const {
+    data: profileAds,
+    refetch: refetchProfileAds,
+    status: profileAdsStatus,
+  } = useProfileAds()
 
-  const {data: persistedAds, refetch: refetchPersistedAds} = usePersistedAds()
+  const {
+    data: persistedAds,
+    refetch: refetchPersistedAds,
+    status: persistedAdsStatus,
+  } = usePersistedAds()
+
+  const loadingStatus =
+    profileAdsStatus === 'loading' || persistedAdsStatus === 'loading'
+      ? 'loading'
+      : 'done'
 
   const ads = [
     ...profileAds,
-    ...persistedAds?.filter(
+    ...(persistedAds?.filter(
       a => profileAds.findIndex(b => a?.cid === b?.cid) < 0
-    ),
+    ) ?? []),
   ].filter(ad => ad?.status === filter)
 
   const [selectedAd, setSelectedAd] = React.useState()
@@ -207,7 +220,7 @@ export default function AdListPage() {
           </Flex>
         </FilterButtonList>
 
-        {ads.length > 0 && (
+        {loadingStatus === 'done' && (
           <AdList py={4} spacing={4} alignSelf="stretch">
             {ads.map(ad => (
               <AdListItem
@@ -235,7 +248,7 @@ export default function AdListPage() {
           </AdList>
         )}
 
-        {ads.length === 0 && <EmptyAdList />}
+        {loadingStatus === 'done' && ads.length === 0 && <EmptyAdList />}
 
         {selectedAd && (
           <ReviewAdDrawer
