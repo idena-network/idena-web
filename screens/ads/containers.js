@@ -308,25 +308,31 @@ export function AdListItem({
                   </MenuItem>
                 )}
                 {eitherStatus(AdStatus.Draft, AdStatus.Rejected) && (
-                  <NextLink href={`/adn/edit?id=${id}`} passHref>
-                    <MenuItem icon={<EditIcon boxSize={5} color="blue.500" />}>
-                      {t('Edit')}
+                  <>
+                    <NextLink href={`/adn/edit?id=${id}`} passHref>
+                      <MenuItem
+                        icon={<EditIcon boxSize={5} color="blue.500" />}
+                      >
+                        {t('Edit')}
+                      </MenuItem>
+                    </NextLink>
+
+                    <MenuDivider />
+
+                    <MenuItem
+                      icon={<DeleteIcon boxSize={5} />}
+                      color="red.500"
+                      onClick={async () => {
+                        await db.table('ads').delete(id)
+                        if (onRemove) {
+                          onRemove()
+                        }
+                      }}
+                    >
+                      {t('Delete')}
                     </MenuItem>
-                  </NextLink>
+                  </>
                 )}
-                <MenuDivider />
-                <MenuItem
-                  icon={<DeleteIcon boxSize={5} />}
-                  color="red.500"
-                  onClick={async () => {
-                    await db.table('ads').delete(id)
-                    if (onRemove) {
-                      onRemove()
-                    }
-                  }}
-                >
-                  {t('Delete')}
-                </MenuItem>
               </Menu>
             </Box>
 
