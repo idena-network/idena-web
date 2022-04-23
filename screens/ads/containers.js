@@ -336,7 +336,7 @@ export function AdListItem({
 
             {status === AdStatus.Approved && (
               <SecondaryButton onClick={onPublish}>
-                {t('Start campaign')}
+                {t('Create campaign')}
               </SecondaryButton>
             )}
 
@@ -1114,7 +1114,7 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
             <AdsIcon boxSize={6} color="blue.500" />
           </FillCenter>
           <Heading fontSize="lg" fontWeight={500}>
-            {t('Start ad campaign')}
+            {t('Create ad campaign')}
           </Heading>
         </Stack>
       </DrawerHeader>
@@ -1123,7 +1123,7 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
           <Stack spacing="3">
             <Text>
               {t(
-                'Your ad campaign is about to be started for the audience with the following target parameters:',
+                'Your ad campaign is about to be created for the audience with the following target parameters:',
                 {nsSeparator: '|'}
               )}
             </Text>
@@ -1167,7 +1167,7 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
       <DrawerFooter>
         <PrimaryButton
           isLoading={isPending}
-          loadingText={t('Starting...')}
+          loadingText={t('Creating...')}
           onClick={() => {
             if (balance > 0) {
               submit(ad)
