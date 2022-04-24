@@ -107,7 +107,9 @@ export function Drawer({isCloseable = true, children, ...props}) {
           )}
           {children}
         </DrawerContent>
-        <DrawerPromotion right={maxWidth} />
+        <DrawerPromotion
+          left={maxWidth > 0 ? `calc(50% - ${maxWidth / 2}px)` : '50%'}
+        />
       </ChakraDrawer>
     </DrawerPromotionContext.Provider>
   )
@@ -122,9 +124,9 @@ export function DrawerPromotion(props) {
     <Center
       ref={setDrawerPromotion}
       position="absolute"
-      top={0}
-      left={0}
-      h="full"
+      top="50%"
+      left="50%"
+      transform="translate(-50%,-50%)"
       zIndex="modal"
       {...props}
     />
