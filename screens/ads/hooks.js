@@ -120,7 +120,7 @@ export function useRotatingAds(limit = 3) {
       }) ?? []
   )
 
-  return decodedProfileAds?.map(x => x.data) ?? []
+  return decodedProfileAds?.map(x => x.data).filter(Boolean) ?? []
 }
 
 export function useCurrentRotatingAd() {

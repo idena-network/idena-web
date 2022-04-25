@@ -1280,7 +1280,7 @@ export function BurnDrawer({ad, onBurn, ...props}) {
               const amount = Number(new FormData(e.target).get('amount'))
 
               if (amount <= 0) {
-                console.log({amount})
+                console.error('Invalid amount', amount)
                 failToast(t('Please burn more than 0 coins'))
               } else if (amount > balance) {
                 failToast(
