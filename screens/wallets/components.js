@@ -80,7 +80,7 @@ import useSyncing from '../../shared/hooks/use-syncing'
 import {WideLink} from '../home/components'
 import {useDeferredVotes} from '../oracles/hooks'
 import {AdDrawer} from '../ads/containers'
-import {useTx} from '../ads/hooks'
+import {useTrackTx} from '../ads/hooks'
 
 export function TransactionsTab(props) {
   return (
@@ -447,7 +447,7 @@ export function SendDrawer(props) {
 
   const {onClose} = props
 
-  const txData = useTx(state.hash)
+  const txData = useTrackTx(state.hash)
 
   const isPending = state.status === 'pending'
 

@@ -168,6 +168,18 @@ export default function AdListPage() {
     }
   }, [closeToast, query, replace, t, toast])
 
+  const handleDeploy = React.useCallback(
+    ({storeToIpfsData, estimateDeployData}) => {
+      db.table('ads').update(selectedAd?.id, {
+        status: AdStatus.Reviewing,
+        cid: storeToIpfsData?.cid,
+        contract: estimateDeployData?.receipt?.contract,
+      })
+      refetchPersistedAds()
+    },
+    [refetchPersistedAds, selectedAd]
+  )
+
   const previewAdDisclosure = useDisclosure()
 
   const devToolsDisclosure = useDisclosure()
@@ -220,41 +232,41 @@ export default function AdListPage() {
           </Flex>
         </FilterButtonList>
 
-        {/* {loadingStatus === 'done' && ( */}
-        <AdList py={4} spacing={4} alignSelf="stretch">
-          {ads.map(ad => (
-            <AdListItem
-              key={`${ad.cid}!!${ad.id}`}
-              ad={ad}
-              onReview={() => {
-                setSelectedAd(ad)
-                reviewDisclosure.onOpen()
-              }}
-              onPublish={() => {
-                setSelectedAd(ad)
-                publishDisclosure.onOpen()
-              }}
-              onBurn={() => {
-                setSelectedAd(ad)
-                burnDisclosure.onOpen()
-              }}
-              onRemove={refetchPersistedAds}
-              onPreview={() => {
-                setSelectedAd(ad)
-                previewAdDisclosure.onOpen()
-              }}
-            />
-          ))}
-        </AdList>
-        {/* )} */}
+        {loadingStatus === 'done' && (
+          <AdList py={4} spacing={4} alignSelf="stretch">
+            {ads.map(ad => (
+              <AdListItem
+                key={`${ad.cid}!!${ad.id}`}
+                ad={ad}
+                onReview={() => {
+                  setSelectedAd(ad)
+                  reviewDisclosure.onOpen()
+                }}
+                onPublish={() => {
+                  setSelectedAd(ad)
+                  publishDisclosure.onOpen()
+                }}
+                onBurn={() => {
+                  setSelectedAd(ad)
+                  burnDisclosure.onOpen()
+                }}
+                onRemove={refetchPersistedAds}
+                onPreview={() => {
+                  setSelectedAd(ad)
+                  previewAdDisclosure.onOpen()
+                }}
+              />
+            ))}
+          </AdList>
+        )}
 
-        {/* {loadingStatus === 'done' && ads.length === 0 && <EmptyAdList />} */}
-        {ads.length === 0 && <EmptyAdList />}
+        {loadingStatus === 'done' && ads.length === 0 && <EmptyAdList />}
 
         {selectedAd && (
           <ReviewAdDrawer
             ad={selectedAd}
             onSendToReview={handleReview}
+            onDeploy={handleDeploy}
             {...reviewDisclosure}
           />
         )}
@@ -273,32 +285,31 @@ export default function AdListPage() {
 
         {selectedAd && <AdPreview ad={selectedAd} {...previewAdDisclosure} />}
 
-        {(true ||
-          (typeof window !== 'undefined' &&
-            window.location.hostname.includes('localhost'))) && (
-          <>
-            <Box position="absolute" bottom="10" right="10">
-              <SecondaryButton onClick={devToolsDisclosure.onOpen}>
-                Debug ads
-              </SecondaryButton>
-            </Box>
+        {typeof window !== 'undefined' &&
+          window.location.hostname.includes('localhost') && (
+            <>
+              <Box position="absolute" bottom="10" right="10">
+                <SecondaryButton onClick={devToolsDisclosure.onOpen}>
+                  Debug ads
+                </SecondaryButton>
+              </Box>
 
-            <Drawer title="Debug ads" size="xl" {...devToolsDisclosure}>
-              <DrawerBody>
-                <Stack spacing="10">
-                  <Box>
-                    <h4>Current ads</h4>
-                    <Debug>{ads}</Debug>
-                  </Box>
-                  <Box>
-                    <h4>Decoders</h4>
-                    <AdDebug />
-                  </Box>
-                </Stack>
-              </DrawerBody>
-            </Drawer>
-          </>
-        )}
+              <Drawer title="Debug ads" size="xl" {...devToolsDisclosure}>
+                <DrawerBody>
+                  <Stack spacing="10">
+                    <Box>
+                      <h4>Current ads</h4>
+                      <Debug>{ads}</Debug>
+                    </Box>
+                    <Box>
+                      <h4>Decoders</h4>
+                      <AdDebug />
+                    </Box>
+                  </Stack>
+                </DrawerBody>
+              </Drawer>
+            </>
+          )}
       </Page>
     </Layout>
   )

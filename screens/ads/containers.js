@@ -806,7 +806,7 @@ export function AdMediaInput({
           }}
           {...props}
         />
-        <HStack spacing={4} align="center">
+        <HStack spacing={4} align="center" cursor="pointer">
           <Box flexShrink={0}>
             {src !== adFallbackSrc ? (
               <AdImage src={src} width={70} />
@@ -838,7 +838,7 @@ export function AdMediaInput({
   )
 }
 
-export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
+export function ReviewAdDrawer({ad, onSendToReview, onDeploy, ...props}) {
   const {t} = useTranslation()
 
   const coinbase = useCoinbase()
@@ -858,7 +858,7 @@ export function ReviewAdDrawer({ad, onSendToReview, ...props}) {
     status,
     submit,
     reset,
-  } = useReviewAd()
+  } = useReviewAd({onDeploy})
 
   React.useEffect(() => {
     if (isDone) {

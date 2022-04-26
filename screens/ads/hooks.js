@@ -310,7 +310,7 @@ export function usePersistedAd(id) {
   })
 }
 
-export function useReviewAd() {
+export function useReviewAd({onDeploy}) {
   const [status, setStatus] = React.useState('idle')
 
   const [ad, setAd] = React.useState()
@@ -338,7 +338,6 @@ export function useReviewAd() {
 
   React.useEffect(() => {
     if (status === 'pending' && storeToIpfsData) {
-      console.log({storeToIpfsData})
       deployVoting(
         buildAdReviewVoting({
           title: ad?.title,
@@ -363,7 +362,15 @@ export function useReviewAd() {
       deployTxData &&
       deployTxData?.blockHash !== HASH_IN_MEMPOOL
     ) {
-      console.log({deployData, deployTxData})
+      if (onDeploy) {
+        onDeploy({
+          storeToIpfsData,
+          estimateDeployData,
+          deployData,
+          deployTxData,
+        })
+      }
+
       startVoting({
         ...buildAdReviewVoting({
           title: ad?.title,
@@ -380,6 +387,7 @@ export function useReviewAd() {
     storeToIpfsData,
     estimateDeployData,
     status,
+    onDeploy,
   ])
 
   React.useEffect(() => {
@@ -389,7 +397,6 @@ export function useReviewAd() {
       startVotingTxData &&
       startVotingTxData?.blockHash !== HASH_IN_MEMPOOL
     ) {
-      console.log({startVotingData, startVotingTxData})
       setStatus('done')
     }
   }, [startVotingData, startVotingTxData, status])
@@ -454,8 +461,6 @@ function useDeployVoting() {
 
   React.useEffect(() => {
     if (status === 'pending' && payload && deployAmount) {
-      console.log({payload, deployAmount})
-
       estimate({
         type: 0xf,
         from: String(coinbase),
@@ -467,8 +472,6 @@ function useDeployVoting() {
 
   React.useEffect(() => {
     if (status === 'pending' && estimateData) {
-      console.log({estimateData})
-
       const {txFee} = estimateData
 
       send({
@@ -493,7 +496,7 @@ function useDeployVoting() {
     }
   }, [data])
 
-  const txData = useTx(data)
+  const txData = useTrackTx(data)
 
   return {
     data,
@@ -549,7 +552,6 @@ function useStartVoting() {
 
   React.useEffect(() => {
     if (status === 'pending' && payload && startAmount) {
-      console.log({voting})
       estimate({
         type: 0x10,
         from: String(coinbase),
@@ -567,8 +569,6 @@ function useStartVoting() {
       estimateData?.receipt?.success &&
       startAmount
     ) {
-      console.log({estimateData, voting})
-
       const {txFee} = estimateData
 
       send({
@@ -580,7 +580,7 @@ function useStartVoting() {
         maxFee: Number(txFee) * 1.1,
       })
     } else if (estimateData?.receipt?.error) {
-      console.log({error: estimateData?.receipt?.error})
+      console.error(estimateData?.receipt?.error)
     }
   }, [coinbase, estimateData, payload, send, startAmount, status, voting])
 
@@ -596,7 +596,7 @@ function useStartVoting() {
     }
   }, [data])
 
-  const txData = useTx(data)
+  const txData = useTrackTx(data)
 
   return {
     data,
@@ -734,7 +734,7 @@ function useChangeProfile() {
     }
   }, [cid, coinbase, payload, send])
 
-  const txData = useTx(data)
+  const txData = useTrackTx(data)
 
   return {
     data,
@@ -804,7 +804,7 @@ export function useBurnAd() {
     }
   }, [coinbase, send, state])
 
-  const txData = useTx(txHash)
+  const txData = useTrackTx(txHash)
 
   React.useEffect(() => {
     if (
@@ -1019,10 +1019,11 @@ function usePrivateKey() {
   return privateKey
 }
 
-function useLastBlock() {
+function useLastBlock(options) {
   return useRpc('bcn_lastBlock', [], {
     refetchInterval: (BLOCK_TIME / 2) * 1000,
-    notifyOnChangeProps: ['data', 'error'],
+    notifyOnChangeProps: 'tracked',
+    ...options,
   }).data
 }
 
@@ -1035,14 +1036,15 @@ export function useRpc(method, params, options) {
   })
 }
 
-function useLiveRpc(method, params, options) {
+function useLiveRpc(method, params, {enabled, ...options} = {}) {
   const rpcFetcher = useRpcFetcher()
 
-  const lastBlock = useLastBlock()
+  const lastBlock = useLastBlock({enabled})
 
   return useQuery([method, params, lastBlock?.hash], rpcFetcher, {
     staleTime: Infinity,
     notifyOnChangeProps: 'tracked',
+    enabled: Boolean(lastBlock?.hash) && enabled,
     ...options,
   })
 }
@@ -1056,29 +1058,25 @@ export function useRpcFetcher() {
   return fetcher
 }
 
-export function useTx(hash, options) {
-  const isMiningRef = React.useRef(true)
+export function useTrackTx(hash, options) {
+  const [enabled, setEnabled] = React.useState(false)
 
   React.useEffect(() => {
-    isMiningRef.current = true
+    setEnabled(Boolean(hash))
   }, [hash])
 
-  const {data, remove} = useLiveRpc('bcn_transaction', [hash], {
-    enabled: Boolean(hash) && isMiningRef.current,
-    ...options,
-  })
-
-  React.useEffect(() => {
-    if (data && isMiningRef.current) {
-      const isMining = data?.blockHash === HASH_IN_MEMPOOL
-
-      isMiningRef.current = isMining
-
-      if (!isMining) {
-        remove()
+  const {data} = useLiveRpc('bcn_transaction', [hash], {
+    enabled,
+    // eslint-disable-next-line no-shadow
+    onSuccess: data => {
+      if (data.blockHash !== HASH_IN_MEMPOOL) {
+        if (options?.onMined) {
+          options.onMined(data)
+        }
+        setEnabled(false)
       }
-    }
-  }, [data, remove])
+    },
+  })
 
   return data
 }
