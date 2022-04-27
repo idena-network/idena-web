@@ -996,12 +996,17 @@ export function ReviewAdDrawer({ad, onSendToReview, onDeploy, ...props}) {
                     submit({
                       ...ad,
                       thumb: new Uint8Array(
-                        await compressAdImage(await thumb.arrayBuffer())
+                        await compressAdImage(await thumb.arrayBuffer(), {
+                          width: 80,
+                          height: 80,
+                          type: thumb.type,
+                        })
                       ),
                       media: new Uint8Array(
                         await compressAdImage(await media.arrayBuffer(), {
                           width: 320,
                           height: 320,
+                          type: thumb.type,
                         })
                       ),
                     })

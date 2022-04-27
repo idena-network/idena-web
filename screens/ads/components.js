@@ -230,7 +230,7 @@ export function AdImage({
     >
       <>
         {isFallbackSrc || (
-          <Box position="relative" filter="blur(24px)">
+          <Box position="relative" filter="blur(20px)">
             <Image
               src={src}
               ignoreFallback

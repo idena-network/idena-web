@@ -147,7 +147,7 @@ export const adImageThumbSrc = ad =>
 
 export async function compressAdImage(
   bytes,
-  {width, height} = {width: 80, height: 80}
+  {width = 80, height = 80, type} = {width: 80, height: 80, type: 'image/jpeg'}
 ) {
   const image = await Jimp.read(bytes)
 
@@ -159,7 +159,12 @@ export async function compressAdImage(
       ? image.resize(width, Jimp.AUTO)
       : image.resize(Jimp.AUTO, height)
 
-  return resizedImage.quality(60).getBufferAsync('image/jpeg')
+  const compressedImage =
+    type === 'image/png'
+      ? resizedImage.deflateLevel(1)
+      : resizedImage.quality(60)
+
+  return compressedImage.getBufferAsync('image/jpeg')
 }
 
 export function validateAd(ad) {
