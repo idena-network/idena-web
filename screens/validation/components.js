@@ -398,24 +398,34 @@ export function Flip({
 function FlipHolder({css, ...props}) {
   const windowHeight = use100vh()
   return (
-    <ChakraFlex
-      justify="center"
-      direction="column"
-      position="relative"
-      h={[`calc(${windowHeight}px - 290px)`, 'calc(100vh - 260px)']}
-      w={['100%', 'calc((100vh - 240px) / 3)']}
-      mx={['6px', '10px']}
-      my={0}
-      p={1}
-      borderRadius={['16px', '8px']}
-      border={`solid ${rem(2)} ${transparentize(0.95, theme.colors.primary2)}`}
-      boxShadow={`0 0 ${rem(2)} 0 ${transparentize(
-        0.95,
-        theme.colors.primary2
-      )}`}
-      css={css}
-      {...props}
-    />
+    <Tooltip
+      label={['', 'Doubleclick to zoom']}
+      placement="top"
+      zIndex="tooltip"
+      bg="graphite.500"
+    >
+      <ChakraFlex
+        justify="center"
+        direction="column"
+        position="relative"
+        h={[`calc(${windowHeight}px - 290px)`, 'calc(100vh - 260px)']}
+        w={['100%', 'calc((100vh - 240px) / 3)']}
+        mx={['6px', '10px']}
+        my={0}
+        p={1}
+        borderRadius={['16px', '8px']}
+        border={`solid ${rem(2)} ${transparentize(
+          0.95,
+          theme.colors.primary2
+        )}`}
+        boxShadow={`0 0 ${rem(2)} 0 ${transparentize(
+          0.95,
+          theme.colors.primary2
+        )}`}
+        css={css}
+        {...props}
+      />
+    </Tooltip>
   )
 }
 
@@ -1479,10 +1489,14 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
 
   const badFlipDialogHandlers = useSwipeable({
     onSwipedLeft: () => {
-      setFlipCase(flipCase === 4 ? flipCase : flipCase + 1)
+      if (isDesktop) {
+        setFlipCase(flipCase === 4 ? flipCase : flipCase + 1)
+      }
     },
     onSwipedRight: () => {
-      setFlipCase(flipCase === 0 ? flipCase : flipCase - 1)
+      if (isDesktop) {
+        setFlipCase(flipCase === 0 ? flipCase : flipCase - 1)
+      }
     },
     preventDefaultTouchmoveEvent: true,
     trackMouse: true,
@@ -2005,12 +2019,16 @@ export function ValidationScreen({
 
   const handlers = useSwipeable({
     onSwipedLeft: () => {
-      send({type: 'NEXT'})
-      scrollToCurrentFlip(currentIndex + 1)
+      if (!isDesktop) {
+        send({type: 'NEXT'})
+        scrollToCurrentFlip(currentIndex + 1)
+      }
     },
     onSwipedRight: () => {
-      send({type: 'PREV'})
-      scrollToCurrentFlip(currentIndex - 1)
+      if (!isDesktop) {
+        send({type: 'PREV'})
+        scrollToCurrentFlip(currentIndex - 1)
+      }
     },
     preventDefaultTouchmoveEvent: true,
     trackMouse: true,
