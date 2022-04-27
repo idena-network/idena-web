@@ -788,6 +788,22 @@ function FlipWords({
 }) {
   const {t} = useTranslation()
 
+  const getWordName = idx => {
+    try {
+      return capitalize(keywords[words[idx]].name)
+    } catch {
+      return 'No words'
+    }
+  }
+
+  const getWordDesc = idx => {
+    try {
+      return capitalize(keywords[words[idx]].desc)
+    } catch {
+      return ''
+    }
+  }
+
   return (
     <Flex direction="column" {...props}>
       <Flex
@@ -801,24 +817,16 @@ function FlipWords({
         mb={4}
       >
         <Box color="gray.500" fontWeight={500}>
-          {isLoading ? (
-            <Skeleton h={5} w={20} />
-          ) : (
-            capitalize(keywords[words[0]].name)
-          )}
+          {isLoading ? <Skeleton h={5} w={20} /> : getWordName(0)}
         </Box>
         <Box color="muted" mt={1 / 2}>
-          {!isLoading && capitalize(keywords[words[0]].desc)}
+          {!isLoading && getWordDesc(0)}
         </Box>
         <Box color="gray.500" fontWeight={500} mt={3}>
-          {isLoading ? (
-            <Skeleton h={5} w={20} />
-          ) : (
-            capitalize(keywords[words[1]].name)
-          )}
+          {isLoading ? <Skeleton h={5} w={20} /> : getWordName(1)}
         </Box>
         <Box color="muted" mt={1 / 2}>
-          {!isLoading && capitalize(keywords[words[1]].desc)}
+          {!isLoading && getWordDesc(1)}
         </Box>
       </Flex>
       {isCorrectReport && shouldBeReported && (
