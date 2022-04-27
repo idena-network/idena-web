@@ -199,7 +199,7 @@ export default function Offline() {
         return onOpen()
       }
       case options.RESTORE: {
-        return saveConnection(savedApiKey.url, savedApiKey.apiKey)
+        return saveConnection(savedApiKey.url, savedApiKey.key)
       }
       default:
     }
@@ -209,7 +209,11 @@ export default function Offline() {
     async function checkSaved() {
       try {
         const currentEpoch = await getLastEpoch()
-        const savedKey = await checkSavedKey(apiKey)
+        const signature = signMessage(hexToUint8Array(coinbase), privateKey)
+        const savedKey = await checkSavedKey(
+          coinbase,
+          toHexString(signature, true)
+        )
         setSavedApiKey(savedKey)
         setIsSavedKeyActual(savedKey && savedKey.epoch === currentEpoch.epoch)
       } catch (e) {

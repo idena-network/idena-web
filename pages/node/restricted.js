@@ -117,7 +117,7 @@ export default function Restricted() {
     } else if (state === options.CANDIDATE) {
       return getKeyForCandidate()
     } else if (state === options.RESTORE) {
-      return saveConnection(savedApiKey.url, savedApiKey.apiKey)
+      return saveConnection(savedApiKey.url, savedApiKey.key)
     } else return router.push('/node/rent')
   }
 
@@ -135,7 +135,8 @@ export default function Restricted() {
     async function checkSaved() {
       try {
         const currentEpoch = await getLastEpoch()
-        const savedKey = await checkSavedKey(apiKey)
+        const signature = signMessage(hexToUint8Array(coinbase), privateKey)
+        const savedKey = await checkSavedKey(coinbase, toHexString(signature, true))
         setSavedApiKey(savedKey)
         setIsSavedKeyActual(savedKey && savedKey.epoch === currentEpoch.epoch)
       } catch (e) {}

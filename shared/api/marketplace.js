@@ -15,11 +15,9 @@ export function checkKey(key) {
     .then(x => x.data)
 }
 
-export function checkSavedKey(key) {
+export function checkSavedKey(coinbase, signature) {
   return api()
-    .get('/api/key/getKey', {
-      params: {key},
-    })
+    .post('/api/key/restore', {coinbase, signature})
     .then(x => x.data)
 }
 

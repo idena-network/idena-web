@@ -8,7 +8,7 @@ import {
 import {usePersistence} from '../hooks/use-persistent-state'
 import {loadPersistentState} from '../utils/persist'
 import useLogger from '../hooks/use-logger'
-import {checkSavedKey, fetchEpoch, fetchSync} from '../api'
+import {fetchEpoch, fetchSync} from '../api'
 import {checkKey} from '../api/marketplace'
 import {useInterval} from '../hooks/use-interval'
 import {getLastBlock} from '../api/indexer'
@@ -159,13 +159,6 @@ function SettingsProvider({children}) {
         return null
       }
     }
-    async function softCheckSavedKey(key) {
-      try {
-        return await checkSavedKey(key)
-      } catch (e) {
-        return null
-      }
-    }
     async function softCheckIsSyncing() {
       try {
         const lastBlock = await getLastBlock()
@@ -200,41 +193,21 @@ function SettingsProvider({children}) {
           }
 
         const result = await softCheckKey(state.apiKey)
-        const savedKey = await softCheckSavedKey(state.apiKey)
-        const isActualKeySaved = savedKey && savedKey.epoch === epoch
         if (result) {
           if (result.epoch < epoch) {
-            if (isActualKeySaved) {
-              dispatch({
-                type: SET_API_KEY_STATE,
-                data: {
-                  apiKeyState: apiKeyStates.ONLINE,
-                  apiKeyData: savedKey,
-                },
-              })
-            } else {
-              dispatch({
-                type: SET_API_KEY_STATE,
-                data: {
-                  apiKeyState: apiKeyStates.RESTRICTED,
-                  apiKeyData: result,
-                },
-              })
-            }
+            dispatch({
+              type: SET_API_KEY_STATE,
+              data: {
+                apiKeyState: apiKeyStates.RESTRICTED,
+                apiKeyData: result,
+              },
+            })
           } else {
             dispatch({
               type: SET_API_KEY_STATE,
               data: {apiKeyState: apiKeyStates.ONLINE, apiKeyData: result},
             })
           }
-        } else if (isActualKeySaved) {
-          dispatch({
-            type: SET_API_KEY_STATE,
-            data: {
-              apiKeyState: apiKeyStates.ONLINE,
-              apiKeyData: savedKey,
-            },
-          })
         } else {
           dispatch({
             type: SET_API_KEY_STATE,
