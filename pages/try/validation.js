@@ -26,7 +26,7 @@ import {toHexString} from '../../shared/utils/buffers'
 
 export default function TrainingPage() {
   const {auth, privateKey, coinbase} = useAuthState()
-  const {current, timestamp} = useTestValidationState()
+  const {current, timestamp, last} = useTestValidationState()
   const router = useRouter()
 
   // hack to redirect only when new page /try/validation is opened
@@ -50,10 +50,10 @@ export default function TrainingPage() {
   if (privateKey && coinbase)
     return (
       <ValidationSession
-        id={current?.id}
+        id={current?.id || last?.id}
         coinbase={coinbase}
         privateKey={privateKey}
-        validationStart={current?.startTime}
+        validationStart={current?.startTime || last?.startTime}
         shortSessionDuration={TEST_SHORT_SESSION_INTERVAL_SEC}
         longSessionDuration={TEST_LONG_SESSION_INTERVAL_SEC}
       />
@@ -93,6 +93,7 @@ function ValidationSession({
         shortSessionDuration,
         longSessionDuration,
         locale: i18n.language || 'en',
+        isTraining: true,
       }),
     [
       coinbase,
