@@ -149,6 +149,18 @@ export function useDeferredVotes() {
               },
               actionContent: t('Open voting'),
             })
+
+            const readContractData = createContractDataReader(vote.contractHash)
+
+            const votingDuration = await readContractData(
+              'votingDuration',
+              'uint64'
+            )
+
+            await updateDeferredVote(vote.id, {
+              block: vote.block + votingDuration,
+            })
+            queryClient.invalidateQueries('useDeferredVotes')
           } else {
             showError(e.message)
             deleteVote(vote.id)
