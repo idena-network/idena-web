@@ -889,23 +889,12 @@ export function WalletTransactions({address}) {
 
 export function WalletPendingTransactions() {
   const {t} = useTranslation()
-  const failToast = useFailToast()
-
-  const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const menuRef = useRef()
-
-  useClickOutside(menuRef, () => {
-    setIsMenuOpen(false)
-  })
-
-  const [currentPending, setCurrentPending] = useState()
-  const deleteModalDisclosure = useDisclosure()
 
   const {
     data: {currentBlock},
   } = useSyncing()
 
-  const [{all: votes, isReady}, {deleteVote, sendVote}] = useDeferredVotes()
+  const [{all: votes, isReady}] = useDeferredVotes()
 
   const data = votes.map(item => ({
     timestamp: getDateFromBlocks(item.block, currentBlock)
@@ -913,23 +902,6 @@ export function WalletPendingTransactions() {
       .getTime(),
     ...item,
   }))
-
-  const del = async () => {
-    try {
-      await deleteVote(currentPending.id)
-    } catch (e) {
-      failToast(e.message)
-    }
-  }
-
-  // eslint-disable-next-line no-unused-vars
-  const send = async tx => {
-    try {
-      await sendVote(tx)
-    } catch (e) {
-      failToast(e.message)
-    }
-  }
 
   return (
     <div>
@@ -1009,36 +981,7 @@ export function WalletPendingTransactions() {
                   textAlign="right"
                   display={['none', 'table-cell']}
                 >
-                  <Box ml="auto" cursor="pointer" w={3} position="relative">
-                    <MoreIcon boxSize={5} onClick={() => setIsMenuOpen(true)} />
-                    {isMenuOpen && (
-                      <Box position="absolute" top={6} right={0} zIndex={2}>
-                        <WalletMenu ref={menuRef}>
-                          <WalletMenuItem
-                            color="blue.500"
-                            onClick={async () => {
-                              setIsMenuOpen(false)
-                              send(tx)
-                            }}
-                            icon={<SendOutIcon color="blue.500" />}
-                          >
-                            {t('Send now')}
-                          </WalletMenuItem>
-                          <WalletMenuItem
-                            color="red.500"
-                            onClick={async () => {
-                              setIsMenuOpen(false)
-                              setCurrentPending(tx)
-                              deleteModalDisclosure.onOpen()
-                            }}
-                            icon={<BasketIcon color="red.500" />}
-                          >
-                            {t('Delete')}
-                          </WalletMenuItem>
-                        </WalletMenu>
-                      </Box>
-                    )}
-                  </Box>
+                  <TransactionMenu tx={tx} />
                 </TransactionsTd>
               </Tr>
             ))}
@@ -1057,8 +1000,70 @@ export function WalletPendingTransactions() {
           {t(`You don't have any pending transactions yet`)}
         </Box>
       )}
-      <PendingTxRemoveModal {...deleteModalDisclosure} onSubmit={del} />
     </div>
+  )
+}
+
+function TransactionMenu({tx}) {
+  const {t} = useTranslation()
+  const failToast = useFailToast()
+  const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const menuRef = useRef()
+  const deleteModalDisclosure = useDisclosure()
+
+  const [, {deleteVote, sendVote}] = useDeferredVotes()
+
+  const del = async () => {
+    try {
+      await deleteVote(tx.id)
+    } catch (e) {
+      failToast(e.message)
+    }
+  }
+
+  const send = async () => {
+    try {
+      await sendVote(tx)
+    } catch (e) {
+      failToast(e.message)
+    }
+  }
+
+  useClickOutside(menuRef, () => {
+    setIsMenuOpen(false)
+  })
+
+  return (
+    <Box ml="auto" cursor="pointer" w={3} position="relative">
+      <MoreIcon boxSize={5} onClick={() => setIsMenuOpen(true)} />
+      {isMenuOpen && (
+        <Box position="absolute" top={6} right={0} zIndex={2}>
+          <WalletMenu ref={menuRef}>
+            <WalletMenuItem
+              color="blue.500"
+              onClick={async () => {
+                setIsMenuOpen(false)
+                send(tx)
+              }}
+              icon={<SendOutIcon color="blue.500" />}
+            >
+              {t('Send now')}
+            </WalletMenuItem>
+            <WalletMenuItem
+              color="red.500"
+              onClick={async () => {
+                setIsMenuOpen(false)
+                deleteModalDisclosure.onOpen()
+              }}
+              icon={<BasketIcon color="red.500" />}
+            >
+              {t('Delete')}
+            </WalletMenuItem>
+          </WalletMenu>
+        </Box>
+      )}
+      <PendingTxRemoveModal {...deleteModalDisclosure} onSubmit={del} />
+    </Box>
   )
 }
 
