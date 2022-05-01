@@ -3,6 +3,7 @@ import {Flex, Stack, HStack, useDisclosure, Box} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
 import {useQueryClient} from 'react-query'
+import {ReactQueryDevtools} from 'react-query/devtools'
 import {AdList, EmptyAdList, AdStatNumber} from '../../screens/ads/components'
 import Layout from '../../shared/components/layout'
 import {Page, PageTitle} from '../../screens/app/components'
@@ -98,6 +99,8 @@ export default function AdListPage() {
 
   const {toast, close: closeToast} = useClosableToast()
 
+  const {onClose: onClosePublishDisclosure} = publishDisclosure
+
   const handlePublish = React.useCallback(async () => {
     try {
       await db.table('ads').update(selectedAd.id, {
@@ -117,11 +120,13 @@ export default function AdListPage() {
     } catch {
       console.error('Error updating persisted ads', {id: selectedAd?.id})
     } finally {
-      publishDisclosure.onClose()
+      onClosePublishDisclosure()
     }
-  }, [closeToast, publishDisclosure, refetchAds, selectedAd, t, toast])
+  }, [closeToast, onClosePublishDisclosure, refetchAds, selectedAd, t, toast])
 
-  const handleReview = React.useCallback(
+  const {onClose: onCloseReviewDisclosure} = reviewDisclosure
+
+  const handleStartVoting = React.useCallback(
     async ({cid, contract}) => {
       try {
         await db.table('ads').update(selectedAd.id, {
@@ -143,18 +148,20 @@ export default function AdListPage() {
       } catch {
         console.error('Error updating persisted ads', {id: selectedAd?.id})
       } finally {
-        reviewDisclosure.onClose()
+        onCloseReviewDisclosure()
       }
     },
-    [closeToast, refetchAds, reviewDisclosure, selectedAd, t, toast]
+    [closeToast, onCloseReviewDisclosure, refetchAds, selectedAd, t, toast]
   )
 
   const queryClient = useQueryClient()
 
+  const {onClose: onCloseBurnDisclosure} = burnDisclosure
+
   const handleBurn = React.useCallback(() => {
-    burnDisclosure.onClose()
+    onCloseBurnDisclosure()
     queryClient.invalidateQueries(['bcn_burntCoins', []])
-  }, [burnDisclosure, queryClient])
+  }, [onCloseBurnDisclosure, queryClient])
 
   const {query, replace} = useRouter()
 
@@ -236,42 +243,41 @@ export default function AdListPage() {
           </Flex>
         </FilterButtonList>
 
-        {/* {loadingStatus === 'done' && ( */}
-        <AdList py={4} spacing={4} alignSelf="stretch">
-          {ads.map(ad => (
-            <AdListItem
-              key={`${ad.cid}!!${ad.id}`}
-              ad={ad}
-              onReview={() => {
-                setSelectedAd(ad)
-                reviewDisclosure.onOpen()
-              }}
-              onPublish={() => {
-                setSelectedAd(ad)
-                publishDisclosure.onOpen()
-              }}
-              onBurn={() => {
-                setSelectedAd(ad)
-                burnDisclosure.onOpen()
-              }}
-              onRemove={refetchPersistedAds}
-              onPreview={() => {
-                setSelectedAd(ad)
-                previewAdDisclosure.onOpen()
-              }}
-            />
-          ))}
-        </AdList>
-        {/* )} */}
+        {loadingStatus === 'done' && (
+          <AdList py={4} spacing={4} alignSelf="stretch">
+            {ads.map(ad => (
+              <AdListItem
+                key={`${ad.cid}!!${ad.id}`}
+                ad={ad}
+                onReview={() => {
+                  setSelectedAd(ad)
+                  reviewDisclosure.onOpen()
+                }}
+                onPublish={() => {
+                  setSelectedAd(ad)
+                  publishDisclosure.onOpen()
+                }}
+                onBurn={() => {
+                  setSelectedAd(ad)
+                  burnDisclosure.onOpen()
+                }}
+                onRemove={refetchPersistedAds}
+                onPreview={() => {
+                  setSelectedAd(ad)
+                  previewAdDisclosure.onOpen()
+                }}
+              />
+            ))}
+          </AdList>
+        )}
 
-        {/* {loadingStatus === 'done' && ads.length === 0 && <EmptyAdList />} */}
-        {ads.length === 0 && <EmptyAdList />}
+        {loadingStatus === 'done' && ads.length === 0 && <EmptyAdList />}
 
         {selectedAd && (
           <ReviewAdDrawer
             ad={selectedAd}
-            onSendToReview={handleReview}
-            onDeploy={handleDeploy}
+            onDeployContract={handleDeploy}
+            onStartVoting={handleStartVoting}
             {...reviewDisclosure}
           />
         )}
@@ -290,31 +296,33 @@ export default function AdListPage() {
 
         {selectedAd && <AdPreview ad={selectedAd} {...previewAdDisclosure} />}
 
-        {/* {typeof window !== 'undefined' &&
-          window.location.hostname.includes('localhost') && ( */}
-        <>
-          <Box position="fixed" bottom="8" right="8">
-            <SecondaryButton onClick={devToolsDisclosure.onOpen}>
-              Debug ads
-            </SecondaryButton>
-          </Box>
+        {typeof window !== 'undefined' &&
+          window.location.hostname.includes('localhost') && (
+            <>
+              <Box position="fixed" bottom="8" right="8">
+                <SecondaryButton onClick={devToolsDisclosure.onOpen}>
+                  Debug ads
+                </SecondaryButton>
+              </Box>
 
-          <Drawer title="Debug ads" size="xl" {...devToolsDisclosure}>
-            <DrawerBody>
-              <Stack spacing="10">
-                <Box>
-                  <h4>Current ads</h4>
-                  <Debug>{ads}</Debug>
-                </Box>
-                <Box>
-                  <h4>Decoders</h4>
-                  <AdDebug />
-                </Box>
-              </Stack>
-            </DrawerBody>
-          </Drawer>
-        </>
-        {/* )} */}
+              <Drawer title="Debug ads" size="xl" {...devToolsDisclosure}>
+                <DrawerBody>
+                  <Stack spacing="10">
+                    <Box>
+                      <h4>Current ads</h4>
+                      <Debug>{ads}</Debug>
+                    </Box>
+
+                    <Box>
+                      <h4>Decoders</h4>
+                      <AdDebug />
+                    </Box>
+                  </Stack>
+                </DrawerBody>
+              </Drawer>
+              <ReactQueryDevtools />
+            </>
+          )}
       </Page>
     </Layout>
   )

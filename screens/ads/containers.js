@@ -68,7 +68,6 @@ import {
   useBurnAd,
   useCompetingAdsByTarget,
   useBurntCoins,
-  useAdErrorToast,
   useProtoProfileDecoder,
   useIpfsAd,
 } from './hooks'
@@ -304,7 +303,7 @@ export function AdListItem({
                     icon={<ViewIcon boxSize={5} color="blue.500" />}
                     onClick={onPreview}
                   >
-                    {t('View')}
+                    {t('Preview')}
                   </MenuItem>
                 )}
                 {eitherStatus(AdStatus.Draft, AdStatus.Rejected) && (
@@ -838,83 +837,40 @@ export function AdMediaInput({
   )
 }
 
-export function ReviewAdDrawer({ad, onSendToReview, onDeploy, ...props}) {
+export function ReviewAdDrawer({
+  ad,
+  onDeployContract,
+  onStartVoting,
+  ...props
+}) {
   const {t} = useTranslation()
 
   const coinbase = useCoinbase()
 
   const balance = useBalance(coinbase)
 
-  const {
-    storeToIpfsData,
-    storeToIpfsError,
-    estimateDeployData,
-    estimateDeployError,
-    deployError,
-    estimateStartVotingError,
-    startVotingError,
-    isPending,
-    isDone,
-    status,
-    submit,
-    reset,
-  } = useReviewAd({onDeploy})
-
-  React.useEffect(() => {
-    if (isDone) {
-      onSendToReview({
-        cid: storeToIpfsData?.cid,
-        contract: estimateDeployData?.receipt?.contract,
-      })
-      reset()
-    }
-  }, [storeToIpfsData, estimateDeployData, isDone, onSendToReview, reset])
-
-  const reviewError = React.useMemo(
-    () =>
-      storeToIpfsError ??
-      estimateDeployError ??
-      deployError ??
-      estimateStartVotingError ??
-      startVotingError,
-    [
-      deployError,
-      estimateDeployError,
-      estimateStartVotingError,
-      startVotingError,
-      storeToIpfsError,
-    ]
-  )
-
-  useAdErrorToast(reviewError)
-
-  React.useEffect(() => {
-    if (
-      status === 'error' &&
-      !(storeToIpfsError || estimateDeployError || deployError)
-    ) {
-      onSendToReview({
-        cid: storeToIpfsData?.cid,
-        contract: estimateDeployData?.receipt?.contract,
-      })
-      reset()
-    }
-  }, [
-    deployError,
-    estimateDeployData,
-    estimateDeployError,
-    onSendToReview,
-    reset,
-    status,
-    storeToIpfsData,
-    storeToIpfsError,
-  ])
-
-  const {data: deployAmount} = useDeployVotingAmount()
-
-  const {data: startAmount} = useStartAdVotingAmount()
+  const [reviewAd, setReviewAd] = React.useState()
 
   const failToast = useFailToast()
+
+  const {onClose} = props
+  const onError = React.useCallback(
+    error => {
+      failToast(error)
+      onClose()
+    },
+    [failToast, onClose]
+  )
+
+  const {isPending} = useReviewAd(reviewAd, {
+    onDeployContract,
+    onStartVoting,
+    onError,
+  })
+
+  const {data: deployAmount} = useDeployVotingAmount({onError})
+
+  const {data: startAmount} = useStartAdVotingAmount({onError})
 
   const formatDna = useFormatDna()
 
@@ -993,7 +949,7 @@ export function ReviewAdDrawer({ad, onSendToReview, onDeploy, ...props}) {
 
                 if (balance > requiredAmount) {
                   try {
-                    submit({
+                    setReviewAd({
                       ...ad,
                       thumb: new Uint8Array(
                         await compressAdImage(await thumb.arrayBuffer(), {
@@ -1083,28 +1039,25 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
 
   const balance = useBalance(address)
 
-  const {
-    storeToIpfsError,
-    changeProfileError,
-    isPending,
-    isDone,
-    submit,
-    reset,
-  } = usePublishAd()
+  const [publishAd, setPublishAd] = React.useState()
 
-  React.useEffect(() => {
-    if (isDone && onPublish) {
-      onPublish()
-      reset()
-    }
-  }, [isDone, onPublish, reset])
-
-  const publishError = React.useMemo(
-    () => storeToIpfsError ?? changeProfileError,
-    [changeProfileError, storeToIpfsError]
+  const {onClose} = props
+  const onError = React.useCallback(
+    error => {
+      failToast(error)
+      onClose()
+    },
+    [failToast, onClose]
   )
 
-  useAdErrorToast(publishError)
+  const {isPending, isDone} = usePublishAd(publishAd, {onError})
+
+  React.useEffect(() => {
+    if (isDone) {
+      // eslint-disable-next-line no-unused-expressions
+      onPublish?.()
+    }
+  }, [isDone, onPublish])
 
   const {data: competingAds} = useCompetingAdsByTarget(ad.cid, new AdTarget(ad))
 
@@ -1181,7 +1134,7 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
           loadingText={t('Creating...')}
           onClick={() => {
             if (balance > 0) {
-              submit(ad)
+              setPublishAd(ad)
             } else {
               failToast(t('Insufficient funds to publish ad'))
             }
@@ -1201,18 +1154,20 @@ export function BurnDrawer({ad, onBurn, ...props}) {
 
   const balance = useBalance(address)
 
-  const {error, isPending, isDone, submit, reset} = useBurnAd()
-
-  React.useEffect(() => {
-    if (isDone && onBurn) {
-      onBurn()
-      reset()
-    }
-  }, [isDone, onBurn, reset])
-
-  useAdErrorToast(error)
+  const [burnParams, setBurnParams] = React.useState()
 
   const failToast = useFailToast()
+
+  const {onClose} = props
+  const onError = React.useCallback(
+    error => {
+      failToast(error)
+      onClose()
+    },
+    [failToast, onClose]
+  )
+
+  const {isPending} = useBurnAd(burnParams, {onBurn, onError})
 
   const formatDna = useFormatDna()
 
@@ -1294,7 +1249,7 @@ export function BurnDrawer({ad, onBurn, ...props}) {
                   })
                 )
               } else {
-                submit({ad, amount})
+                setBurnParams({ad, amount})
               }
             }}
           >

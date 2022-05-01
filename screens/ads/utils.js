@@ -3,7 +3,11 @@ import Jimp from 'jimp'
 import i18n from '../../i18n'
 import {Profile} from '../../shared/models/profile'
 import {VotingStatus} from '../../shared/types'
-import {areSameCaseInsensitive, callRpc} from '../../shared/utils/utils'
+import {
+  areSameCaseInsensitive,
+  callRpc,
+  HASH_IN_MEMPOOL,
+} from '../../shared/utils/utils'
 import {isValidUrl} from '../dna/utils'
 import {fetchNetworkSize, hexToObject} from '../oracles/utils'
 import {AdVotingOption, AdVotingOptionId} from './types'
@@ -232,3 +236,9 @@ function isExceededImageSize(image) {
 }
 
 export const adFallbackSrc = '/static/body-medium-pic-icn.svg'
+
+export const isMiningTx = txData =>
+  (txData?.blockHash ?? HASH_IN_MEMPOOL) === HASH_IN_MEMPOOL
+
+export const isMinedTx = txData =>
+  (txData?.blockHash ?? HASH_IN_MEMPOOL) !== HASH_IN_MEMPOOL
