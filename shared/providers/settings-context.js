@@ -57,6 +57,7 @@ function settingsReducer(state, action) {
         ...state,
         url: action.data.url,
         apiKey: action.data.key,
+        isManualRemoteNode: action.data.isManual,
       }
     }
     case SAVE_RESTRICTED_CONNECTION: {
@@ -89,6 +90,7 @@ function settingsReducer(state, action) {
         apiKeyData: {
           provider: action.data.provider,
         },
+        isManualRemoteNode: false,
       }
     }
     case ADD_PURCHASED_KEY: {
@@ -254,8 +256,8 @@ function SettingsProvider({children}) {
     dispatch({type: CLEAR_ENCRYPTED_KEY})
   }
 
-  const saveConnection = (url, key) => {
-    dispatch({type: SAVE_CONNECTION, data: {url, key}})
+  const saveConnection = (url, key, isManual) => {
+    dispatch({type: SAVE_CONNECTION, data: {url, key, isManual}})
   }
 
   const saveRestrictedConnection = () => {

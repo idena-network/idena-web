@@ -199,7 +199,7 @@ export default function Offline() {
         return onOpen()
       }
       case options.RESTORE: {
-        return saveConnection(savedApiKey.url, savedApiKey.key)
+        return saveConnection(savedApiKey.url, savedApiKey.key, false)
       }
       default:
     }

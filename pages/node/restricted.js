@@ -117,7 +117,7 @@ export default function Restricted() {
     } else if (state === options.CANDIDATE) {
       return getKeyForCandidate()
     } else if (state === options.RESTORE) {
-      return saveConnection(savedApiKey.url, savedApiKey.key)
+      return saveConnection(savedApiKey.url, savedApiKey.key, false)
     } else return router.push('/node/rent')
   }
 

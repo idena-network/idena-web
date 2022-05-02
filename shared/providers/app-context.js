@@ -43,7 +43,7 @@ export function AppProvider({tabId, ...props}) {
   const epoch = useEpoch()
 
   const [{state}] = useIdentity()
-  const [{apiKeyState}] = useSettings()
+  const [{apiKeyState, isManualRemoteNode}] = useSettings()
   const {saveConnection} = useSettingsDispatch()
 
   const {auth, coinbase, privateKey} = useAuthState()
@@ -193,11 +193,12 @@ export function AppProvider({tabId, ...props}) {
       const isActualKeySaved = savedKey && savedKey.epoch === epoch.epoch
       if (
         isActualKeySaved &&
+        !isManualRemoteNode &&
         (apiKeyState === apiKeyStates.NONE ||
           apiKeyState === apiKeyStates.OFFLINE ||
           apiKeyState === apiKeyStates.RESTRICTED)
       ) {
-        saveConnection(savedKey.url, savedKey.key)
+        saveConnection(savedKey.url, savedKey.key, false)
       }
     } catch (e) {}
   }

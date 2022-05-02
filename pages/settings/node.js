@@ -229,7 +229,7 @@ function Settings() {
             size={size}
             w={['100%', 'auto']}
             onClick={() => {
-              saveConnection(state.url, state.apiKey)
+              saveConnection(state.url, state.apiKey, true)
               notify()
             }}
             ml="auto"
