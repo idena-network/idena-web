@@ -24,9 +24,7 @@ import {
   useDisclosure,
   useBreakpointValue,
   useMediaQuery,
-  ModalHeader,
   ModalBody,
-  ModalCloseButton,
 } from '@chakra-ui/react'
 import {useSwipeable} from 'react-swipeable'
 import {useMachine} from '@xstate/react'
@@ -34,6 +32,7 @@ import {Trans, useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
 import {useRouter} from 'next/router'
 import {State} from 'xstate'
+import useHover from '@react-hook/hover'
 import {Box, Fill, Absolute} from '../../shared/components'
 import Flex from '../../shared/components/flex'
 import {reorderList} from '../../shared/utils/arr'
@@ -88,7 +87,6 @@ import {
 import {TEST_SHORT_SESSION_INTERVAL_SEC} from '../../shared/providers/test-validation-context'
 import {use100vh} from '../../shared/hooks/use-100vh'
 import {useIsDesktop} from '../../shared/utils/utils'
-import useHover from '@react-hook/hover'
 
 const Scroll = require('react-scroll')
 
@@ -190,8 +188,10 @@ export function Flip({
   const radius = useBreakpointValue(['12px', '8px'])
   const windowHeight = use100vh()
   const isDesktop = useIsDesktop()
-  const refHover = useRef(null)
-  const isHovered = useHover(refHover.current)
+  const refFlipHover = useRef(null)
+  const refZoomIconHover = useRef(null)
+  const isFlipHovered = useHover(refFlipHover.current)
+  const isZoomIconHovered = useHover(refZoomIconHover.current)
   const {
     isOpen: isOpenFlipZoom,
     onOpen: onOpenFlipZoom,
@@ -216,8 +216,9 @@ export function Flip({
   if (!fetched) return <LoadingFlip />
 
   return (
-    <div ref={refHover}>
+    <div ref={refFlipHover}>
       <FlipHolder
+        isZoomHovered={isZoomIconHovered}
         css={
           // eslint-disable-next-line no-nested-ternary
           option
@@ -261,27 +262,29 @@ export function Flip({
             }
           >
             {isDesktop && idx === 0 && (
-              <ChakraFlex
-                display={isHovered ? 'flex' : 'none'}
-                align="center"
-                justify="center"
-                borderRadius="8px"
-                backgroundColor="rgba(17, 17, 17, 0.5)"
-                position="absolute"
-                top={1}
-                right={1}
-                h={8}
-                w={8}
-                opacity={0.5}
-                _hover={{opacity: 1}}
-                zIndex={2}
-                onClick={e => {
-                  e.stopPropagation()
-                  onOpenFlipZoom()
-                }}
-              >
-                <ZoomFlipIcon h={5} w={5} />
-              </ChakraFlex>
+              <div ref={refZoomIconHover}>
+                <ChakraFlex
+                  display={isFlipHovered ? 'flex' : 'none'}
+                  align="center"
+                  justify="center"
+                  borderRadius="8px"
+                  backgroundColor="rgba(17, 17, 17, 0.5)"
+                  position="absolute"
+                  top={1}
+                  right={1}
+                  h={8}
+                  w={8}
+                  opacity={0.5}
+                  _hover={{opacity: 1}}
+                  zIndex={2}
+                  onClick={e => {
+                    e.stopPropagation()
+                    onOpenFlipZoom()
+                  }}
+                >
+                  <ZoomFlipIcon h={5} w={5} />
+                </ChakraFlex>
+              </div>
             )}
             <FlipBlur src={src} />
             <FlipImage
@@ -395,11 +398,12 @@ export function Flip({
   )
 }
 
-function FlipHolder({css, ...props}) {
+function FlipHolder({css, isZoomHovered = false, ...props}) {
   const windowHeight = use100vh()
   return (
     <Tooltip
-      label={['', 'Doubleclick to zoom']}
+      isOpen={isZoomHovered}
+      label="Doubleclick to zoom"
       placement="top"
       zIndex="tooltip"
       bg="graphite.500"
@@ -1573,6 +1577,7 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
               borderColor="brandGray.016"
               borderWidth={[0, 1]}
               flexGrow={1}
+              h="100%"
               minW={['42%', 120]}
               position="relative"
             >
