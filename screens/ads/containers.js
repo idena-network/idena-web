@@ -26,6 +26,7 @@ import {
   Tr,
   Td,
   Link,
+  useBoolean,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
@@ -1154,20 +1155,23 @@ export function BurnDrawer({ad, onBurn, ...props}) {
 
   const balance = useBalance(address)
 
-  const [burnParams, setBurnParams] = React.useState()
-
   const failToast = useFailToast()
 
-  const {onClose} = props
-  const onError = React.useCallback(
-    error => {
-      failToast(error)
-      onClose()
-    },
-    [failToast, onClose]
-  )
+  const [isPending, {on: setIsPendingOn, off: setIsPendingOff}] = useBoolean()
 
-  const {isPending} = useBurnAd(burnParams, {onBurn, onError})
+  const {submit} = useBurnAd({
+    onMined: React.useCallback(() => {
+      setIsPendingOff()
+      onBurn()
+    }, [onBurn, setIsPendingOff]),
+    onError: React.useCallback(
+      error => {
+        setIsPendingOff()
+        failToast(error)
+      },
+      [failToast, setIsPendingOff]
+    ),
+  })
 
   const formatDna = useFormatDna()
 
@@ -1239,17 +1243,17 @@ export function BurnDrawer({ad, onBurn, ...props}) {
 
               const amount = Number(new FormData(e.target).get('amount'))
 
-              if (amount <= 0) {
-                console.error('Invalid amount', amount)
-                failToast(t('Please burn more than 0 coins'))
-              } else if (amount > balance) {
-                failToast(
-                  t('Insufficient funds to burn {{amount}}', {
-                    amount: formatDna(amount),
-                  })
-                )
+              if (amount > 0 && amount < balance) {
+                setIsPendingOn()
+                submit({ad, amount})
               } else {
-                setBurnParams({ad, amount})
+                failToast(
+                  amount > 0
+                    ? t('Insufficient funds to burn {{amount}}', {
+                        amount: formatDna(amount),
+                      })
+                    : t('Invalid amount')
+                )
               }
             }}
           >

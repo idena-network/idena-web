@@ -2,7 +2,7 @@
 import {useToken, useInterval} from '@chakra-ui/react'
 import React from 'react'
 import {useTranslation} from 'react-i18next'
-import {useQueries, useQuery} from 'react-query'
+import {useMutation, useQueries, useQuery} from 'react-query'
 import {CID, bytes} from 'multiformats'
 import {Ad} from '../../shared/models/ad'
 import {AdTarget} from '../../shared/models/adKey'
@@ -467,7 +467,7 @@ function useDeployVoting(voting, {onError}) {
 
   const {data: hash, error} = useSendTx(params, {onError})
 
-  const txData = useTrackTx(hash, {onError})
+  const {data: txData} = useTrackTx(hash, {onError})
 
   return {
     data: hash,
@@ -529,7 +529,7 @@ function useStartVoting(voting, {onError}) {
 
   const {data: hash, error} = useSendTx(params, {onError})
 
-  const txData = useTrackTx(hash, {onError})
+  const {data: txData} = useTrackTx(hash, {onError})
 
   return {
     data: hash,
@@ -609,7 +609,7 @@ function useChangeProfile(cid, {onError}) {
 
   const {data: hash, error} = useSendTx(params, {onError})
 
-  const txData = useTrackTx(hash, {onError})
+  const {data: txData} = useTrackTx(hash, {onError})
 
   return {
     data: hash,
@@ -618,49 +618,59 @@ function useChangeProfile(cid, {onError}) {
   }
 }
 
-export function useBurnAd(burnParams, {onBurn, onError}) {
+export function useBurnAd({onSubmit, onMined, onError}) {
   const {encodeAdTarget} = useProtoProfileEncoder()
+
+  const rpcClient = useRpcClient()
 
   const coinbase = useCoinbase()
 
-  const params = React.useMemo(() => {
-    if (burnParams && coinbase) {
-      return {
+  const privateKey = usePrivateKey()
+
+  const {data: hash, error, mutate, reset} = useMutation(
+    async ({ad, amount}) => {
+      const rawTx = await rpcClient('bcn_getRawTx', {
         type: TxType.BurnTx,
         from: coinbase,
-        amount: burnParams.amount,
+        amount,
         payload: prependHex(
           new BurnAttachment({
             key: new AdBurnKey({
-              cid: burnParams.ad.cid,
-              target: encodeAdTarget(burnParams.ad),
-            }).toHex(2),
+              cid: ad.cid,
+              target: encodeAdTarget(ad),
+            }).toHex(),
           }).toHex()
         ),
-      }
+        useProto: true,
+      })
+
+      const signedRawTx = prependHex(
+        new Transaction()
+          .fromHex(stripHexPrefix(rawTx))
+          .sign(privateKey)
+          .toHex()
+      )
+
+      return rpcClient('bcn_sendRawTx', signedRawTx)
+    },
+    {
+      onSuccess: onSubmit,
+      onError,
     }
-  }, [burnParams, coinbase, encodeAdTarget])
+  )
 
-  const {data: hash, error} = useSendTx(params, {onError})
-
-  const txData = useTrackTx(hash, {onError})
-
-  const isPending = Boolean(burnParams) && isMiningTx(txData)
-  const isDone = isMinedTx(txData)
-
-  React.useEffect(() => {
-    if (isDone) {
-      // eslint-disable-next-line no-unused-expressions
-      onBurn?.()
-    }
-  }, [isDone, onBurn])
+  const {data: txData, error: txError} = useTrackTx(hash, {
+    onMined,
+    onError,
+  })
 
   return {
     data: hash,
     error,
     txData,
-    isPending,
-    isDone,
+    txError,
+    submit: mutate,
+    reset,
   }
 }
 
@@ -798,49 +808,24 @@ function useSendTx(params, options) {
 }
 
 export function useTrackTx(hash, options) {
-  const [enabled, setEnabled] = React.useState(true)
+  const [enabled, setEnabled] = React.useState(Boolean(hash))
 
-  const {data} = useLiveRpc('bcn_transaction', [hash], {
-    enabled: Boolean(hash) && enabled,
+  React.useEffect(() => {
+    setEnabled(Boolean(hash))
+  }, [hash])
+
+  return useLiveRpc('bcn_transaction', [hash], {
+    enabled,
     // eslint-disable-next-line no-shadow
     onSuccess: data => {
       if (data.blockHash !== HASH_IN_MEMPOOL) {
-        if (options?.onMined) {
-          options.onMined(data)
-        }
+        // eslint-disable-next-line no-unused-expressions
+        options.onMined?.(data)
         setEnabled(false)
       }
     },
     ...options,
   })
-
-  return data
-}
-
-export function useCoinbase() {
-  const {coinbase} = useAuthState()
-  return coinbase
-}
-
-export function useBalance(address) {
-  const {data} = useRpc('dna_getBalance', [address], {
-    enabled: Boolean(address),
-  })
-
-  return data?.balance
-}
-
-function usePrivateKey() {
-  const {privateKey} = useAuthState()
-  return privateKey
-}
-
-function useLastBlock(options) {
-  return useRpc('bcn_lastBlock', [], {
-    refetchInterval: (BLOCK_TIME / 2) * 1000,
-    notifyOnChangeProps: 'tracked',
-    ...options,
-  }).data
 }
 
 export function useRpc(method, params, options) {
@@ -878,6 +863,32 @@ export function useRpcClient() {
     (method, ...params) => callRpc(method, ...params),
     []
   )
+}
+
+function useLastBlock(options) {
+  return useRpc('bcn_lastBlock', [], {
+    refetchInterval: (BLOCK_TIME / 2) * 1000,
+    notifyOnChangeProps: 'tracked',
+    ...options,
+  }).data
+}
+
+export function useCoinbase() {
+  const {coinbase} = useAuthState()
+  return coinbase
+}
+
+export function useBalance(address) {
+  const {data} = useRpc('dna_getBalance', [address], {
+    enabled: Boolean(address),
+  })
+
+  return data?.balance
+}
+
+function usePrivateKey() {
+  const {privateKey} = useAuthState()
+  return privateKey
 }
 
 export function useDeployVotingAmount(options) {
