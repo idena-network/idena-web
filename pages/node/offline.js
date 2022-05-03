@@ -37,7 +37,7 @@ import {
   getRawTx,
   activateKey,
   checkProvider,
-  checkSavedKey,
+  checkSavedKey, fetchEpoch,
 } from '../../shared/api'
 
 import {PrimaryButton} from '../../shared/components/button'
@@ -61,7 +61,6 @@ import {
   signMessage,
 } from '../../shared/utils/crypto'
 import {promiseTimeout} from '../../shared/utils/utils'
-import {getLastEpoch} from '../../shared/api/indexer'
 
 const options = {
   BUY: 0,
@@ -208,14 +207,14 @@ export default function Offline() {
   useEffect(() => {
     async function checkSaved() {
       try {
-        const currentEpoch = await getLastEpoch()
+        const {epoch} = await fetchEpoch(true)
         const signature = signMessage(hexToUint8Array(coinbase), privateKey)
         const savedKey = await checkSavedKey(
           coinbase,
           toHexString(signature, true)
         )
         setSavedApiKey(savedKey)
-        setIsSavedKeyActual(savedKey && savedKey.epoch === currentEpoch.epoch)
+        setIsSavedKeyActual(savedKey && savedKey.epoch === epoch)
       } catch (e) {
         setError({type: errorType.NONE})
       }

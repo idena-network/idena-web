@@ -15,6 +15,7 @@ import {BuySharedNodeForm, ChooseItemRadio} from '../../screens/node/components'
 import {GetProviderPrice} from '../../screens/node/utils'
 import {
   checkSavedKey,
+  fetchEpoch,
   getAvailableProviders,
   getCandidateKey,
   getProvider,
@@ -36,7 +37,6 @@ import {IdentityStatus} from '../../shared/types'
 import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
 import {signMessage} from '../../shared/utils/crypto'
 import {loadPersistentState, persistState} from '../../shared/utils/persist'
-import {getLastEpoch} from '../../shared/api/indexer'
 
 const options = {
   PROLONG: 0,
@@ -134,15 +134,18 @@ export default function Restricted() {
   useEffect(() => {
     async function checkSaved() {
       try {
-        const currentEpoch = await getLastEpoch()
+        const {epoch} = await fetchEpoch(true)
         const signature = signMessage(hexToUint8Array(coinbase), privateKey)
-        const savedKey = await checkSavedKey(coinbase, toHexString(signature, true))
+        const savedKey = await checkSavedKey(
+          coinbase,
+          toHexString(signature, true)
+        )
         setSavedApiKey(savedKey)
-        setIsSavedKeyActual(savedKey && savedKey.epoch === currentEpoch.epoch)
+        setIsSavedKeyActual(savedKey && savedKey.epoch === epoch)
       } catch (e) {}
     }
     checkSaved()
-  }, [apiKey])
+  }, [apiKey, coinbase, privateKey])
 
   useEffect(() => {
     if (identityState === IdentityStatus.Candidate) {
