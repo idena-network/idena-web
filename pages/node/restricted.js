@@ -248,6 +248,18 @@ export default function Restricted() {
                   <Flex mt={4}>
                     <RadioGroup>
                       <Stack direction="column" spacing={3}>
+                        {isSavedKeyActual && savedApiKey.url !== apiKey.url && (
+                          <ChooseItemRadio
+                            isChecked={state === options.RESTORE}
+                            onChange={() => setState(options.RESTORE)}
+                            alignItems="baseline"
+                          >
+                            <Text color="white">{t('Restore connection')}</Text>
+                            <Text color="muted" fontSize="sm">
+                              {savedApiKey.url}
+                            </Text>
+                          </ChooseItemRadio>
+                        )}
                         {identityState === IdentityStatus.Candidate && (
                           <ChooseItemRadio
                             isChecked={state === options.CANDIDATE}
@@ -271,20 +283,6 @@ export default function Restricted() {
                             </Text>
                             <Text color="muted" fontSize="sm">
                               {provider.data.url}
-                            </Text>
-                          </ChooseItemRadio>
-                        )}
-                        {isSavedKeyActual && savedApiKey.url !== apiKey.url && (
-                          <ChooseItemRadio
-                            isChecked={state === options.RESTORE}
-                            onChange={() => setState(options.RESTORE)}
-                            alignItems="baseline"
-                          >
-                            <Text color="white">
-                              {t('Restore connection to shared node')}
-                            </Text>
-                            <Text color="muted" fontSize="sm">
-                              {savedApiKey.url}
                             </Text>
                           </ChooseItemRadio>
                         )}

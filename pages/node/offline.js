@@ -37,7 +37,8 @@ import {
   getRawTx,
   activateKey,
   checkProvider,
-  checkSavedKey, fetchEpoch,
+  checkSavedKey,
+  fetchEpoch,
 } from '../../shared/api'
 
 import {PrimaryButton} from '../../shared/components/button'
@@ -357,6 +358,19 @@ export default function Offline() {
                   <Flex mt={[2, 4]}>
                     <RadioGroup>
                       <Stack direction="column" spacing={3}>
+                        {isSavedKeyActual && savedApiKey.url !== apiKey.url && (
+                          <ChooseItemRadio
+                            variant={variantRadio}
+                            px={[4, 0]}
+                            isChecked={state === options.RESTORE}
+                            onChange={() => setState(options.RESTORE)}
+                          >
+                            <Text color="white">{t('Restore connection')}</Text>
+                            <Text color="muted" fontSize="sm">
+                              {savedApiKey.url}
+                            </Text>
+                          </ChooseItemRadio>
+                        )}
                         {identity?.state === IdentityStatus.Candidate && (
                           <ChooseItemRadio
                             variant={variantRadio}
@@ -425,21 +439,6 @@ export default function Offline() {
                               fontSize="sm"
                             >
                               {t('Can not be used for validation')}
-                            </Text>
-                          </ChooseItemRadio>
-                        )}
-                        {isSavedKeyActual && savedApiKey.url !== apiKey.url && (
-                          <ChooseItemRadio
-                            variant={variantRadio}
-                            px={[4, 0]}
-                            isChecked={state === options.RESTORE}
-                            onChange={() => setState(options.RESTORE)}
-                          >
-                            <Text color="white">
-                              {t('Restore connection to shared node')}
-                            </Text>
-                            <Text color="muted" fontSize="sm">
-                              {savedApiKey.url}
                             </Text>
                           </ChooseItemRadio>
                         )}
