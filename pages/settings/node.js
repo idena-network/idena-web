@@ -33,8 +33,6 @@ import {
 } from '../../shared/components/icons'
 import {PageTitleNew} from '../../screens/app/components'
 
-const BASIC_ERROR = 'Node is unavailable.'
-
 function Settings() {
   const router = useRouter()
   const {t} = useTranslation()
@@ -51,7 +49,7 @@ function Settings() {
     apiKey: settingsState.apiKey || '',
   })
 
-  const [offlineError, setOfflineError] = useState(BASIC_ERROR)
+  const [offlineError, setOfflineError] = useState(t('Node is unavailable.'))
   const [nodeProvider, setNodeProvider] = useState('')
 
   useEffect(() => {
@@ -71,7 +69,7 @@ function Settings() {
         const provider = await getProvider(result.provider)
         setNodeProvider(provider.data.ownerName)
       } catch (e) {
-        setOfflineError(BASIC_ERROR)
+        setOfflineError(t('Node is unavailable.'))
       }
     }
 
@@ -134,7 +132,9 @@ function Settings() {
             >
               <AlertIcon name="info" color="red.500" size={5} mr={3} />
               <Text>
-                This node is unavailable. Please contact the node owner:{' '}
+                {t('This node is unavailable. Please contact the node owner:', {
+                  nsSeparator: '!',
+                })}{' '}
                 <Link
                   color="#578fff"
                   href={`https://t.me/${nodeProvider}`}
