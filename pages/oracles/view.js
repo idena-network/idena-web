@@ -838,7 +838,7 @@ export default function ViewVotingPage() {
                           : toPercent(winnerThreshold / 100)
                       }
                     />
-                    {isClosed && (
+                    {isClosed && totalReward && (
                       <AsideStat
                         label={t('Prize paid')}
                         value={toDna(totalReward)}
