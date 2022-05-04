@@ -1262,17 +1262,6 @@ export const createValidationMachine = ({
                     LONG_SESSION_CHECK: [
                       {
                         target: '#validation.validationFailed',
-                        cond: ({longFlips}) => {
-                          const solvableFlips = filterSolvableFlips(longFlips)
-                          const answers = solvableFlips.filter(
-                            ({option}) => option
-                          )
-                          return (
-                            !solvableFlips.length ||
-                            (solvableFlips.length &&
-                              answers.length < solvableFlips.length / 2)
-                          )
-                        },
                       },
                     ],
                   },
