@@ -148,8 +148,6 @@ export default function ProfilePage() {
     {dismissCurrentTask, next: nextOnboardingTask},
   ] = useOnboarding()
 
-  const {hasSuccessTrainingValidation} = useTestValidationState()
-
   const eitherOnboardingState = (...states) =>
     eitherState(currentOnboarding, ...states)
 
@@ -193,9 +191,9 @@ export default function ProfilePage() {
 
   const [didConnectIdenaBot, connectIdenaBot] = useIdenaBot()
 
-  const shouldStartIdenaJourney =
-    state === IdentityStatus.Undefined && !hasSuccessTrainingValidation
-
+  const shouldStartIdenaJourney = currentOnboarding.matches(
+    OnboardingStep.StartTraining
+  )
   const onboardingPopoverPlacement = useBreakpointValue(['top', 'bottom'])
 
   return (
