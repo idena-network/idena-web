@@ -229,12 +229,12 @@ export function Flip({
                     0.75,
                     theme.colors.primary
                   )}`,
-                  transition: 'all .3s cubic-bezier(.5, 0, .5, 1)',
+                  transition: 'all .1s cubic-bezier(.5, 0, .5, 1)',
                 }
               : {
                   opacity: 0.3,
                   transform: 'scale(0.98)',
-                  transition: 'all .3s cubic-bezier(.5, 0, .5, 1)',
+                  transition: 'all .1s cubic-bezier(.5, 0, .5, 1)',
                 }
             : {}
         }
@@ -2620,7 +2620,7 @@ function getFlipBorderRadius(index, size, radius) {
 function useSingleAndDoubleClick(
   actionSimpleClick,
   actionDoubleClick,
-  delay = 250
+  delay = 200
 ) {
   const [click, setClick] = useState(0)
 
