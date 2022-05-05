@@ -1487,18 +1487,18 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
 
   const [flipCase, setFlipCase] = React.useState(0)
 
-  const isDesktop = useBreakpointValue([true, false])
-  const BadFlipNotice = isDesktop ? Drawer : Modal
-  const BadFlipNoticeBody = isDesktop ? DrawerBody : ModalContent
+  const isMobile = useBreakpointValue([true, false])
+  const BadFlipNotice = isMobile ? Drawer : Modal
+  const BadFlipNoticeBody = isMobile ? DrawerBody : ModalContent
 
   const badFlipDialogHandlers = useSwipeable({
     onSwipedLeft: () => {
-      if (isDesktop) {
+      if (isMobile) {
         setFlipCase(flipCase === 4 ? flipCase : flipCase + 1)
       }
     },
     onSwipedRight: () => {
-      if (isDesktop) {
+      if (isMobile) {
         setFlipCase(flipCase === 0 ? flipCase : flipCase - 1)
       }
     },
