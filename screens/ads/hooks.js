@@ -22,21 +22,20 @@ import {
   areCompetingAds,
   buildAdReviewVoting,
   currentOs,
+  estimateSignedTx,
   fetchAdVoting,
   fetchProfileAds,
   isApprovedVoting,
-  isMinedTx,
-  isMiningTx,
   isRejectedVoting,
   isValidImage,
-  minOracleReward,
+  calculateMinOracleReward,
   selectProfileHash,
+  sendSignedTx,
+  sendToIpfs,
 } from './utils'
 import {TxType} from '../../shared/types'
 import {capitalize} from '../../shared/utils/string'
 import {useAuthState} from '../../shared/providers/auth-context'
-import {stripHexPrefix} from '../../shared/utils/buffers'
-import {Transaction} from '../../shared/models/transaction'
 import {
   argsToSlice,
   BLOCK_TIME,
@@ -46,7 +45,6 @@ import {
 import {DeployContractAttachment} from '../../shared/models/deployContractAttachment'
 import {CallContractAttachment} from '../../shared/models/callContractAttachment'
 import db from '../../shared/utils/db'
-import {StoreToIpfsAttachment} from '../../shared/models/storeToIpfsAttachment'
 import {ChangeProfileAttachment} from '../../shared/models/changeProfileAttachment'
 import {BurnAttachment} from '../../shared/models/burnAttachment'
 import {AdBurnKey} from '../../shared/models/adBurnKey'
@@ -54,7 +52,7 @@ import {AdBurnKey} from '../../shared/models/adBurnKey'
 export function useRotatingAds(limit = 3) {
   const rpcFetcher = useRpcFetcher()
 
-  const {data: burntCoins} = useCompetingAds()
+  const {data: burntCoins} = useSelfCompetingAds()
 
   const addresses = [...new Set(burntCoins?.map(({address}) => address))]
 
@@ -155,7 +153,7 @@ export function useRotateAd() {
   }
 }
 
-export function useCompetingAds() {
+export function useSelfCompetingAds() {
   const {i18n} = useTranslation()
 
   const [{address, age, stake}] = useIdentity()
@@ -171,10 +169,10 @@ export function useCompetingAds() {
     [age, i18n.language, stake]
   )
 
-  return useCompetingAdsByTarget(address, currentTarget)
+  return useCompetingAds(address, currentTarget)
 }
 
-export function useCompetingAdsByTarget(cid, target) {
+export function useCompetingAds(cid, target) {
   const {decodeAdTarget} = useProtoProfileDecoder()
 
   return useBurntCoins({
@@ -264,7 +262,7 @@ export function useProfileAds() {
 
 export function usePersistedAds(options) {
   return useQuery(
-    'draftAds',
+    'usePersistedAds',
     async () =>
       Promise.all(
         (await db.table('ads').toArray()).map(
@@ -324,108 +322,63 @@ export function useIpfsAd(cid, options) {
   })
 }
 
-export function useReviewAd(ad, {onDeployContract, onStartVoting, onError}) {
-  const {encodeAd} = useProtoProfileEncoder()
+export function useReviewAd({
+  onBeforeSubmit,
+  onDeployContract,
+  onStartVoting,
+  onError,
+}) {
+  const {data: deployData, mutate} = useDeployAdContract({
+    onBeforeSubmit,
+    onSubmit: onDeployContract,
+    onError,
+  })
 
-  const encodedAd = React.useMemo(() => {
-    if (ad) {
-      return encodeAd(ad)
-    }
-  }, [ad, encodeAd])
+  useTrackTx(deployData?.hash, {
+    onMined: React.useCallback(() => {
+      startVoting(deployData)
+    }, [deployData, startVoting]),
+    onError,
+  })
 
-  const {
-    data: storeToIpfsData,
-    error: storeToIpfsError,
-  } = useStoreToIpfs(encodedAd, {onError})
+  const {data: startVotingHash, mutate: startVoting} = useStartAdVoting({
+    onError,
+  })
 
-  const voting = React.useMemo(() => {
-    if (storeToIpfsData?.cid) {
-      return buildAdReviewVoting({
-        title: ad.title,
-        adCid: storeToIpfsData.cid,
-      })
-    }
-  }, [ad, storeToIpfsData])
-
-  const {
-    data: deployData,
-    error: deployError,
-    estimateData: estimateDeployData,
-    estimateError: estimateDeployError,
-    txData: deployTxData,
-  } = useDeployVoting(voting, {onError})
-
-  const isMinedDeploy = isMinedTx(deployTxData)
-
-  React.useEffect(() => {
-    if (isMinedDeploy) {
-      // eslint-disable-next-line no-unused-expressions
-      onDeployContract?.({
-        storeToIpfsData,
-        estimateDeployData,
-        deployData,
-        deployTxData,
-      })
-    }
-  }, [
-    deployData,
-    deployTxData,
-    estimateDeployData,
-    onDeployContract,
-    storeToIpfsData,
-    isMinedDeploy,
-  ])
-
-  const startVoting = React.useMemo(() => {
-    if (isMinedDeploy) {
-      return {...voting, address: estimateDeployData.receipt?.contract}
-    }
-  }, [estimateDeployData, isMinedDeploy, voting])
-
-  const {
-    data: startVotingData,
-    error: startVotingError,
-    estimateError: estimateStartVotingError,
-    txData: startVotingTxData,
-  } = useStartVoting(startVoting, {onError})
-
-  const isPending = Boolean(ad)
-  const isDone = isMinedTx(startVotingTxData)
-
-  React.useEffect(() => {
-    if (isDone) {
-      // eslint-disable-next-line no-unused-expressions
-      onStartVoting?.({
-        cid: storeToIpfsData?.cid,
-        contract: estimateDeployData?.receipt?.contract,
-      })
-    }
-  }, [storeToIpfsData, estimateDeployData, isDone, onStartVoting])
+  useTrackTx(startVotingHash, {
+    onMined: React.useCallback(() => {
+      onStartVoting(deployData)
+    }, [deployData, onStartVoting]),
+    onError,
+  })
 
   return {
-    storeToIpfsData,
-    storeToIpfsError,
-    estimateDeployData,
-    estimateDeployError,
-    deployData,
-    deployError,
-    estimateStartVotingError,
-    startVotingData,
-    startVotingError,
-    startVotingTxData,
-    isPending,
-    isDone,
+    submit: mutate,
   }
 }
 
-function useDeployVoting(voting, {onError}) {
+function useDeployAdContract({onBeforeSubmit, onSubmit, onError}) {
+  const {encodeAd} = useProtoProfileEncoder()
+
   const coinbase = useCoinbase()
 
-  const {data: deployAmount} = useDeployVotingAmount({onError})
+  const privateKey = usePrivateKey()
 
-  const payload = React.useMemo(() => {
-    if (voting) {
-      return prependHex(
+  const {data: deployAmount} = useDeployVotingAmount()
+
+  return useMutation(
+    async ad => {
+      const {cid} = await sendToIpfs(encodeAd(ad), {
+        from: coinbase,
+        privateKey,
+      })
+
+      const voting = buildAdReviewVoting({
+        title: ad.title,
+        adCid: cid,
+      })
+
+      const deployPayload = prependHex(
         bytes.toHex(
           new DeployContractAttachment(
             bytes.fromHex('0x02'),
@@ -434,129 +387,101 @@ function useDeployVoting(voting, {onError}) {
           ).toBytes()
         )
       )
-    }
-  }, [voting])
 
-  const estimateParams = React.useMemo(() => {
-    if (payload && coinbase && deployAmount) {
+      const estimateDeployResult = await estimateSignedTx(
+        {
+          type: TxType.DeployContractTx,
+          from: coinbase,
+          amount: deployAmount,
+          payload: deployPayload,
+        },
+        privateKey
+      )
+
+      const hash = await sendSignedTx(
+        {
+          type: TxType.DeployContractTx,
+          from: coinbase,
+          amount: deployAmount,
+          payload: deployPayload,
+          maxFee: Number(estimateDeployResult.txFee) * 1.1,
+        },
+        privateKey
+      )
+
       return {
-        type: 0xf,
-        from: coinbase,
-        amount: deployAmount,
-        payload,
+        cid,
+        contract: estimateDeployResult.receipt?.contract,
+        hash,
+        voting,
       }
+    },
+    {
+      onMutate: onBeforeSubmit,
+      onSuccess: onSubmit,
+      onError,
     }
-  }, [coinbase, deployAmount, payload])
-
-  const {
-    data: estimateData,
-    error: estimateError,
-  } = useEstimateTx(estimateParams, {onError})
-
-  const params = React.useMemo(() => {
-    if (estimateData) {
-      return {
-        type: 0xf,
-        from: coinbase,
-        amount: deployAmount,
-        payload,
-        maxFee: Number(estimateData.txFee) * 1.1,
-      }
-    }
-  }, [coinbase, deployAmount, estimateData, payload])
-
-  const {data: hash, error} = useSendTx(params, {onError})
-
-  const {data: txData} = useTrackTx(hash, {onError})
-
-  return {
-    data: hash,
-    error,
-    estimateData,
-    estimateError,
-    txData,
-  }
+  )
 }
 
-function useStartVoting(voting, {onError}) {
+function useStartAdVoting({onError}) {
   const coinbase = useCoinbase()
 
-  const payload = React.useMemo(() => {
-    if (voting) {
-      return prependHex(
+  const privateKey = usePrivateKey()
+
+  const {data: startAmount} = useStartAdVotingAmount()
+
+  return useMutation(
+    async startParams => {
+      const payload = prependHex(
         bytes.toHex(
           new CallContractAttachment(
             'startVoting',
-            argsToSlice(buildContractDeploymentArgs(voting)),
+            argsToSlice(buildContractDeploymentArgs(startParams?.voting)),
             3
           ).toBytes()
         )
       )
-    }
-  }, [voting])
 
-  const {data: startAmount} = useStartAdVotingAmount({onError})
+      const estimateResult = await estimateSignedTx(
+        {
+          type: TxType.CallContractTx,
+          from: coinbase,
+          to: startParams?.contract,
+          amount: startAmount,
+          payload,
+        },
+        privateKey
+      )
 
-  const estimateParams = React.useMemo(() => {
-    if (payload && coinbase && startAmount) {
-      return {
-        type: 0x10,
-        from: coinbase,
-        to: voting.address,
-        amount: startAmount,
-        payload,
-      }
-    }
-  }, [coinbase, payload, startAmount, voting])
-
-  const {
-    data: estimateData,
-    error: estimateError,
-  } = useEstimateTx(estimateParams, {onError})
-
-  const params = React.useMemo(() => {
-    if (estimateData) {
-      return {
-        type: 0x10,
-        from: coinbase,
-        to: voting?.address,
-        amount: startAmount,
-        payload,
-        maxFee: Number(estimateData.txFee) * 1.1,
-      }
-    }
-  }, [coinbase, estimateData, payload, startAmount, voting])
-
-  const {data: hash, error} = useSendTx(params, {onError})
-
-  const {data: txData} = useTrackTx(hash, {onError})
-
-  return {
-    data: hash,
-    error,
-    estimateData,
-    estimateError,
-    txData,
-  }
+      return sendSignedTx(
+        {
+          type: TxType.CallContractTx,
+          from: coinbase,
+          to: startParams?.contract,
+          amount: startAmount,
+          payload,
+          maxFee: Number(estimateResult.txFee) * 1.1,
+        },
+        privateKey
+      )
+    },
+    {onError}
+  )
 }
 
-export function usePublishAd(ad, {onError}) {
-  const coinbase = useCoinbase()
-
+export function usePublishAd({onBeforeSubmit, onMined, onError}) {
   const {encodeAdTarget, encodeProfile} = useProtoProfileEncoder()
 
-  const {data: profileAds} = useQuery({
-    queryKey: ['profileAds', coinbase],
-    // eslint-disable-next-line no-shadow
-    queryFn: ({queryKey: [, coinbase]}) => fetchProfileAds(coinbase),
-    enabled: Boolean(coinbase),
-    notifyOnChangeProps: 'tracked',
-    onError,
-  })
+  const coinbase = useCoinbase()
 
-  const encodedProfile = React.useMemo(() => {
-    if (ad && profileAds) {
-      return encodeProfile({
+  const privateKey = usePrivateKey()
+
+  const {data, mutate} = useMutation(
+    async ad => {
+      const profileAds = await fetchProfileAds(coinbase)
+
+      const encodedProfile = encodeProfile({
         ads: [
           ...profileAds,
           {
@@ -567,244 +492,91 @@ export function usePublishAd(ad, {onError}) {
           },
         ],
       })
-    }
-  }, [ad, coinbase, encodeAdTarget, encodeProfile, profileAds])
 
-  const {data: ipfsData, error: ipfsError} = useStoreToIpfs(encodedProfile, {
-    onError,
-  })
+      const {cid: profileCid, hash: sendToIpfsHash} = await sendToIpfs(
+        encodedProfile,
+        {
+          from: coinbase,
+          privateKey,
+        }
+      )
 
-  const {
-    data: changeProfileHash,
-    error: changeProfileError,
-    txData: changeProfileTxData,
-  } = useChangeProfile(ipfsData?.cid, {onError})
+      const changeProfileHash = await sendSignedTx(
+        {
+          type: TxType.ChangeProfileTx,
+          from: coinbase,
+          payload: prependHex(
+            new ChangeProfileAttachment({
+              cid: CID.parse(profileCid).bytes,
+            }).toHex()
+          ),
+        },
+        privateKey
+      )
 
-  return {
-    storeToIpfsData: ipfsData,
-    storeToIpfsError: ipfsError,
-    changeProfileData: changeProfileHash,
-    changeProfileError,
-    isPending: Boolean(ad) && isMiningTx(changeProfileTxData),
-    isDone: isMinedTx(changeProfileTxData),
-  }
-}
-
-function useChangeProfile(cid, {onError}) {
-  const coinbase = useCoinbase()
-
-  const params = React.useMemo(() => {
-    if (coinbase && cid) {
       return {
-        type: TxType.ChangeProfileTx,
-        from: coinbase,
-        payload: prependHex(
-          new ChangeProfileAttachment({
-            cid: CID.parse(cid).bytes,
-          }).toHex()
-        ),
+        profileCid,
+        sendToIpfsHash,
+        changeProfileHash,
       }
+    },
+    {
+      onMutate: onBeforeSubmit,
+      onError,
     }
-  }, [cid, coinbase])
+  )
 
-  const {data: hash, error} = useSendTx(params, {onError})
-
-  const {data: txData} = useTrackTx(hash, {onError})
+  const {data: txData} = useTrackTx(data?.changeProfileHash, {onMined, onError})
 
   return {
-    data: hash,
-    error,
+    data,
     txData,
+    submit: mutate,
   }
 }
 
-export function useBurnAd({onSubmit, onMined, onError}) {
+export function useBurnAd({onBeforeSubmit, onMined, onError}) {
   const {encodeAdTarget} = useProtoProfileEncoder()
-
-  const rpcClient = useRpcClient()
 
   const coinbase = useCoinbase()
 
   const privateKey = usePrivateKey()
 
-  const {data: hash, error, mutate, reset} = useMutation(
-    async ({ad, amount}) => {
-      const rawTx = await rpcClient('bcn_getRawTx', {
-        type: TxType.BurnTx,
-        from: coinbase,
-        amount,
-        payload: prependHex(
-          new BurnAttachment({
-            key: new AdBurnKey({
-              cid: ad.cid,
-              target: encodeAdTarget(ad),
-            }).toHex(),
-          }).toHex()
-        ),
-        useProto: true,
-      })
-
-      const signedRawTx = prependHex(
-        new Transaction()
-          .fromHex(stripHexPrefix(rawTx))
-          .sign(privateKey)
-          .toHex()
-      )
-
-      return rpcClient('bcn_sendRawTx', signedRawTx)
-    },
+  const {data: hash, mutate, reset} = useMutation(
+    async ({ad, amount}) =>
+      sendSignedTx(
+        {
+          type: TxType.BurnTx,
+          from: coinbase,
+          amount,
+          payload: prependHex(
+            new BurnAttachment({
+              key: new AdBurnKey({
+                cid: ad.cid,
+                target: encodeAdTarget(ad),
+              }).toHex(),
+            }).toHex()
+          ),
+        },
+        privateKey
+      ),
     {
-      onSuccess: onSubmit,
+      onBeforeSubmit,
       onError,
     }
   )
 
-  const {data: txData, error: txError} = useTrackTx(hash, {
+  const {data: txData} = useTrackTx(hash, {
     onMined,
     onError,
   })
 
   return {
     data: hash,
-    error,
     txData,
-    txError,
     submit: mutate,
     reset,
   }
-}
-
-function useStoreToIpfs(hex, {onError} = {onError: console.error}) {
-  const coinbase = useCoinbase()
-
-  const {data: cid} = useRpc('ipfs_cid', [hex && prependHex(hex)], {
-    enabled: Boolean(hex),
-    staleTime: Infinity,
-    onError,
-  })
-
-  const rawTxParams = React.useMemo(() => {
-    if (cid && coinbase && hex) {
-      return {
-        type: 0x15,
-        from: coinbase,
-        payload: prependHex(
-          new StoreToIpfsAttachment({
-            size: bytes.fromHex(hex).byteLength,
-            cid: CID.parse(cid).bytes,
-          }).toHex()
-        ),
-        useProto: true,
-      }
-    }
-  }, [cid, coinbase, hex])
-
-  const {data: rawTx} = useRawTx(rawTxParams, {onError})
-
-  const signedRawTx = useSignRawTx(rawTx)
-
-  const sendToIpfsParams = React.useMemo(() => {
-    if (signedRawTx) {
-      return {
-        tx: signedRawTx,
-        data: prependHex(hex),
-      }
-    }
-  }, [hex, signedRawTx])
-
-  const {data: hash, error} = useRpc('dna_sendToIpfs', [sendToIpfsParams], {
-    enabled: Boolean(sendToIpfsParams),
-    staleTime: Infinity,
-    onError,
-  })
-
-  const data = React.useMemo(() => {
-    if (cid && hash) {
-      return {cid, hash}
-    }
-  }, [cid, hash])
-
-  return {
-    data,
-    error,
-  }
-}
-
-export function useRawTx(params, options) {
-  return useRpc(
-    'bcn_getRawTx',
-    [
-      params && {
-        ...params,
-        payload: prependHex(params?.payload),
-        useProto: true,
-      },
-    ],
-    {
-      enabled: Boolean(params),
-      staleTime: Infinity,
-      ...options,
-    }
-  )
-}
-
-export function useSignRawTx(rawTx) {
-  const privateKey = usePrivateKey()
-
-  return React.useMemo(() => {
-    if (rawTx) {
-      return prependHex(
-        new Transaction()
-          .fromHex(stripHexPrefix(rawTx))
-          .sign(privateKey)
-          .toHex()
-      )
-    }
-  }, [privateKey, rawTx])
-}
-
-export function useEstimateRawTx(rawTx, options) {
-  const rpcClient = useRpcClient()
-
-  return useQuery({
-    queryKey: ['bcn_estimateRawTx', [rawTx && prependHex(rawTx)]],
-    queryFn: async ({queryKey: [method, params]}) => {
-      const result = await rpcClient(method, ...params)
-
-      if (result.receipt?.error) {
-        throw new Error(result.receipt.error)
-      }
-
-      return result
-    },
-    enabled: Boolean(rawTx),
-    staleTime: Infinity,
-    notifyOnChangeProps: 'tracked',
-    ...options,
-  })
-}
-
-export function useSendRawTx(rawTx, options) {
-  return useRpc('bcn_sendRawTx', [rawTx && prependHex(rawTx)], {
-    enabled: Boolean(rawTx),
-    staleTime: Infinity,
-    ...options,
-  })
-}
-
-function useSignTx(params, options) {
-  const {data: rawTx} = useRawTx(params, options)
-  return useSignRawTx(rawTx)
-}
-
-function useEstimateTx(params, options) {
-  const signedRawTx = useSignTx(params)
-  return useEstimateRawTx(signedRawTx, options)
-}
-
-function useSendTx(params, options) {
-  const signedRawTx = useSignTx(params, options)
-  return useSendRawTx(signedRawTx, options)
 }
 
 export function useTrackTx(hash, options) {
@@ -858,13 +630,6 @@ export function useRpcFetcher() {
   )
 }
 
-export function useRpcClient() {
-  return React.useCallback(
-    (method, ...params) => callRpc(method, ...params),
-    []
-  )
-}
-
 function useLastBlock(options) {
   return useRpc('bcn_lastBlock', [], {
     refetchInterval: (BLOCK_TIME / 2) * 1000,
@@ -891,20 +656,25 @@ function usePrivateKey() {
   return privateKey
 }
 
-export function useDeployVotingAmount(options) {
+export function useDeployVotingAmount() {
   return useRpc('bcn_feePerGas', [], {
     select: votingMinStake,
-    ...options,
   })
 }
 
-export function useStartVotingAmount(committeeSize, options) {
+export function useStartAdVotingAmount() {
+  return useStartVotingAmount(AD_VOTING_COMMITTEE_SIZE)
+}
+
+export function useStartVotingAmount(committeeSize) {
   return useQuery(
     ['useStartVotingAmount', committeeSize],
     // eslint-disable-next-line no-shadow
     async ({queryKey: [, committeeSize]}) =>
-      roundToPrecision(4, Number(await minOracleReward()) * committeeSize),
-    options
+      roundToPrecision(
+        4,
+        Number(await calculateMinOracleReward()) * committeeSize
+      )
   )
 }
 
@@ -934,10 +704,6 @@ export function useProtoProfileDecoder() {
     decodeProfile: React.useCallback(Profile.fromHex, []),
     decodeAdBurnKey: React.useCallback(AdBurnKey.fromHex, []),
   }
-}
-
-export function useStartAdVotingAmount(options) {
-  return useStartVotingAmount(AD_VOTING_COMMITTEE_SIZE, options)
 }
 
 export function useAdStatusColor(status, fallbackColor = 'muted') {

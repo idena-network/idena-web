@@ -90,7 +90,7 @@ export default function AdListPage() {
     ) ?? []),
   ].filter(ad => ad?.status === filter)
 
-  const [selectedAd, setSelectedAd] = React.useState()
+  const [selectedAd, setSelectedAd] = React.useState({})
 
   const refetchAds = React.useCallback(() => {
     refetchProfileAds()
@@ -179,12 +179,12 @@ export default function AdListPage() {
     }
   }, [closeToast, query, replace, t, toast])
 
-  const handleDeploy = React.useCallback(
-    ({storeToIpfsData, estimateDeployData}) => {
+  const handleDeployContract = React.useCallback(
+    ({cid, contract}) => {
       db.table('ads').update(selectedAd?.id, {
         status: AdStatus.Reviewing,
-        cid: storeToIpfsData?.cid,
-        contract: estimateDeployData?.receipt?.contract,
+        cid,
+        contract,
       })
       refetchPersistedAds()
     },
@@ -263,7 +263,7 @@ export default function AdListPage() {
                 }}
                 onRemove={refetchPersistedAds}
                 onPreview={() => {
-                  setSelectedAd(ad)
+                  setSelectedAd({...ad, author: coinbase})
                   previewAdDisclosure.onOpen()
                 }}
               />
@@ -273,28 +273,22 @@ export default function AdListPage() {
 
         {loadingStatus === 'done' && ads.length === 0 && <EmptyAdList />}
 
-        {selectedAd && (
-          <ReviewAdDrawer
-            ad={selectedAd}
-            onDeployContract={handleDeploy}
-            onStartVoting={handleStartVoting}
-            {...reviewDisclosure}
-          />
-        )}
+        <ReviewAdDrawer
+          ad={selectedAd}
+          onDeployContract={handleDeployContract}
+          onStartVoting={handleStartVoting}
+          {...reviewDisclosure}
+        />
 
-        {selectedAd && (
-          <PublishAdDrawer
-            ad={selectedAd}
-            onPublish={handlePublish}
-            {...publishDisclosure}
-          />
-        )}
+        <PublishAdDrawer
+          ad={selectedAd}
+          onPublish={handlePublish}
+          {...publishDisclosure}
+        />
 
-        {selectedAd && (
-          <BurnDrawer ad={selectedAd} onBurn={handleBurn} {...burnDisclosure} />
-        )}
+        <BurnDrawer ad={selectedAd} onBurn={handleBurn} {...burnDisclosure} />
 
-        {selectedAd && <AdPreview ad={selectedAd} {...previewAdDisclosure} />}
+        <AdPreview ad={selectedAd} {...previewAdDisclosure} />
 
         {typeof window !== 'undefined' &&
           window.location.hostname.includes('localhost') && (

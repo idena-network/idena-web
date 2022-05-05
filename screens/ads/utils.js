@@ -1,12 +1,17 @@
 /* eslint-disable no-use-before-define */
 import Jimp from 'jimp'
+import {bytes, CID} from 'multiformats'
 import i18n from '../../i18n'
+import {estimateRawTx, getRawTx, sendRawTx} from '../../shared/api'
 import {Profile} from '../../shared/models/profile'
-import {VotingStatus} from '../../shared/types'
+import {StoreToIpfsAttachment} from '../../shared/models/storeToIpfsAttachment'
+import {Transaction} from '../../shared/models/transaction'
+import {TxType, VotingStatus} from '../../shared/types'
 import {
   areSameCaseInsensitive,
   callRpc,
   HASH_IN_MEMPOOL,
+  prependHex,
 } from '../../shared/utils/utils'
 import {isValidUrl} from '../dna/utils'
 import {fetchNetworkSize, hexToObject} from '../oracles/utils'
@@ -113,7 +118,8 @@ const buildAdReviewVotingOption = option => ({
   value: option,
 })
 
-export const minOracleReward = async () => 5000 / (await fetchNetworkSize())
+export const calculateMinOracleReward = async () =>
+  5000 / (await fetchNetworkSize())
 
 export async function fetchProfileAds(address) {
   try {
@@ -242,3 +248,70 @@ export const isMiningTx = txData =>
 
 export const isMinedTx = txData =>
   (txData?.blockHash ?? HASH_IN_MEMPOOL) !== HASH_IN_MEMPOOL
+
+export async function sendSignedTx(
+  {type, from, to, amount, maxFee, payload, tips},
+  privateKey
+) {
+  const rawTx = await getRawTx(type, from, to, amount, maxFee, payload, tips)
+
+  const signedRawTx = new Transaction()
+    .fromHex(rawTx)
+    .sign(privateKey)
+    .toHex()
+
+  return sendRawTx(prependHex(signedRawTx))
+}
+
+export async function estimateSignedTx(
+  {type, from, to, amount, maxFee, payload, tips},
+  privateKey
+) {
+  const rawTx = await getRawTx(type, from, to, amount, maxFee, payload, tips)
+
+  const signedRawTx = new Transaction()
+    .fromHex(rawTx)
+    .sign(privateKey)
+    .toHex()
+
+  const result = await estimateRawTx(prependHex(signedRawTx))
+
+  if (result.receipt?.error) {
+    throw new Error(result.receipt.error)
+  }
+
+  return result
+}
+
+export async function sendToIpfs(hex, {from, privateKey}) {
+  const cid = await callRpc('ipfs_cid', prependHex(hex))
+
+  const sendToIpfsRawTx = await getRawTx(
+    TxType.StoreToIpfsTx,
+    from,
+    null,
+    null,
+    null,
+    prependHex(
+      new StoreToIpfsAttachment({
+        size: bytes.fromHex(hex).byteLength,
+        cid: CID.parse(cid).bytes,
+      }).toHex()
+    )
+  )
+
+  const signedSendToIpfsRawTx = new Transaction()
+    .fromHex(sendToIpfsRawTx)
+    .sign(privateKey)
+    .toHex()
+
+  const hash = await callRpc('dna_sendToIpfs', {
+    tx: prependHex(signedSendToIpfsRawTx),
+    data: prependHex(hex),
+  })
+
+  return {
+    cid,
+    hash,
+  }
+}

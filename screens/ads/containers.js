@@ -67,7 +67,7 @@ import {
   useCoinbase,
   usePublishAd,
   useBurnAd,
-  useCompetingAdsByTarget,
+  useCompetingAds,
   useBurntCoins,
   useProtoProfileDecoder,
   useIpfsAd,
@@ -225,7 +225,7 @@ export function AdListItem({
 
   const formatDna = useFormatDna()
 
-  const {data: competingAds} = useCompetingAdsByTarget(
+  const {data: competingAds} = useCompetingAds(
     cid,
     new AdTarget({language, age, os, stake})
   )
@@ -850,28 +850,38 @@ export function ReviewAdDrawer({
 
   const balance = useBalance(coinbase)
 
-  const [reviewAd, setReviewAd] = React.useState()
-
   const failToast = useFailToast()
 
-  const {onClose} = props
-  const onError = React.useCallback(
-    error => {
-      failToast(error)
-      onClose()
-    },
-    [failToast, onClose]
-  )
+  const [isPending, {on: setIsPendingOn, off: setIsPendingOff}] = useBoolean()
 
-  const {isPending} = useReviewAd(reviewAd, {
-    onDeployContract,
-    onStartVoting,
-    onError,
+  const {submit} = useReviewAd({
+    onBeforeSubmit: setIsPendingOn,
+    onDeployContract: React.useCallback(
+      data => {
+        onDeployContract(data)
+        setIsPendingOff()
+      },
+      [onDeployContract, setIsPendingOff]
+    ),
+    onStartVoting: React.useCallback(
+      data => {
+        onStartVoting(data)
+        setIsPendingOff()
+      },
+      [onStartVoting, setIsPendingOff]
+    ),
+    onError: React.useCallback(
+      error => {
+        failToast(error)
+        setIsPendingOff()
+      },
+      [failToast, setIsPendingOff]
+    ),
   })
 
-  const {data: deployAmount} = useDeployVotingAmount({onError})
+  const {data: deployAmount} = useDeployVotingAmount()
 
-  const {data: startAmount} = useStartAdVotingAmount({onError})
+  const {data: startAmount} = useStartAdVotingAmount()
 
   const formatDna = useFormatDna()
 
@@ -950,7 +960,7 @@ export function ReviewAdDrawer({
 
                 if (balance > requiredAmount) {
                   try {
-                    setReviewAd({
+                    submit({
                       ...ad,
                       thumb: new Uint8Array(
                         await compressAdImage(await thumb.arrayBuffer(), {
@@ -1040,27 +1050,24 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
 
   const balance = useBalance(address)
 
-  const [publishAd, setPublishAd] = React.useState()
+  const [isPending, {on: setIsPendingOn, off: setIsPendingOff}] = useBoolean()
 
-  const {onClose} = props
-  const onError = React.useCallback(
-    error => {
-      failToast(error)
-      onClose()
-    },
-    [failToast, onClose]
-  )
+  const {submit} = usePublishAd({
+    onBeforeSubmit: setIsPendingOn,
+    onMined: React.useCallback(() => {
+      onPublish()
+      setIsPendingOff()
+    }, [onPublish, setIsPendingOff]),
+    onError: React.useCallback(
+      error => {
+        failToast(error)
+        setIsPendingOff()
+      },
+      [failToast, setIsPendingOff]
+    ),
+  })
 
-  const {isPending, isDone} = usePublishAd(publishAd, {onError})
-
-  React.useEffect(() => {
-    if (isDone) {
-      // eslint-disable-next-line no-unused-expressions
-      onPublish?.()
-    }
-  }, [isDone, onPublish])
-
-  const {data: competingAds} = useCompetingAdsByTarget(ad.cid, new AdTarget(ad))
+  const {data: competingAds} = useCompetingAds(ad.cid, new AdTarget(ad))
 
   const competitorCount = competingAds?.length
   const maxCompetitor = competingAds?.sort((a, b) => b.amount - a.amount)[0]
@@ -1135,13 +1142,13 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
           loadingText={t('Creating...')}
           onClick={() => {
             if (balance > 0) {
-              setPublishAd(ad)
+              submit(ad)
             } else {
-              failToast(t('Insufficient funds to publish ad'))
+              failToast(t('Insufficient funds to start campaign'))
             }
           }}
         >
-          {t('Start')}
+          {t('Create')}
         </PrimaryButton>
       </DrawerFooter>
     </AdDrawer>
@@ -1161,13 +1168,13 @@ export function BurnDrawer({ad, onBurn, ...props}) {
 
   const {submit} = useBurnAd({
     onMined: React.useCallback(() => {
-      setIsPendingOff()
       onBurn()
+      setIsPendingOff()
     }, [onBurn, setIsPendingOff]),
     onError: React.useCallback(
       error => {
-        setIsPendingOff()
         failToast(error)
+        setIsPendingOff()
       },
       [failToast, setIsPendingOff]
     ),
@@ -1175,7 +1182,7 @@ export function BurnDrawer({ad, onBurn, ...props}) {
 
   const formatDna = useFormatDna()
 
-  const {data: competingAds} = useCompetingAdsByTarget(ad.cid, new AdTarget(ad))
+  const {data: competingAds} = useCompetingAds(ad.cid, new AdTarget(ad))
 
   const competitorCount = competingAds?.length
   const maxCompetitor = competingAds?.sort((a, b) => b.amount - a.amount)[0]
