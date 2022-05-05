@@ -49,7 +49,6 @@ function Settings() {
     apiKey: settingsState.apiKey || '',
   })
 
-  const [offlineError, setOfflineError] = useState(t('Node is unavailable.'))
   const [nodeProvider, setNodeProvider] = useState('')
 
   useEffect(() => {
@@ -68,13 +67,10 @@ function Settings() {
         const result = await checkKey(settingsState.apiKey)
         const provider = await getProvider(result.provider)
         setNodeProvider(provider.data.ownerName)
-      } catch (e) {
-        setOfflineError(t('Node is unavailable.'))
-      }
+      } catch (e) {}
     }
 
     if (settingsState.apiKeyState === apiKeyStates.OFFLINE) check()
-    else setOfflineError('')
   }, [settingsState.apiKeyState, settingsState.url, settingsState.apiKey])
 
   return (
@@ -118,8 +114,7 @@ function Settings() {
         )}
         {settingsState.apiKeyState === apiKeyStates.OFFLINE &&
           !!settingsState.url &&
-          !!settingsState.apiKey &&
-          (nodeProvider ? (
+          !!settingsState.apiKey && (
             <Alert
               status="error"
               bg="red.010"
@@ -132,34 +127,27 @@ function Settings() {
             >
               <AlertIcon name="info" color="red.500" size={5} mr={3} />
               <Text>
-                {t('This node is unavailable. Please contact the node owner:', {
-                  nsSeparator: '!',
-                })}{' '}
-                <Link
-                  color="#578fff"
-                  href={`https://t.me/${nodeProvider}`}
-                  target="_blank"
-                  ml={1}
-                >
-                  {nodeProvider}
-                </Link>
+                {nodeProvider
+                  ? t(
+                      'This node is unavailable. Please contact the node owner:',
+                      {
+                        nsSeparator: 'null',
+                      }
+                    )
+                  : t('Node is unavailable.')}{' '}
+                {nodeProvider && (
+                  <Link
+                    color="#578fff"
+                    href={`https://t.me/${nodeProvider}`}
+                    target="_blank"
+                    ml={1}
+                  >
+                    {nodeProvider}
+                  </Link>
+                )}
               </Text>
             </Alert>
-          ) : (
-            <Alert
-              status="error"
-              bg="red.010"
-              borderWidth="1px"
-              borderColor="red.050"
-              fontWeight={500}
-              rounded="md"
-              px={3}
-              py={2}
-            >
-              <AlertIcon name="info" color="red.500" size={5} mr={3} />
-              {t(offlineError, {nsSeparator: 'null'})}
-            </Alert>
-          ))}
+          )}
         <Flex display={['none', 'flex']} justify="space-between">
           <Heading as="h1" fontSize="lg" fontWeight={500} textAlign="start">
             {t('Node settings')}
