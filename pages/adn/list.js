@@ -4,7 +4,12 @@ import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
 import {useQueryClient} from 'react-query'
 import {ReactQueryDevtools} from 'react-query/devtools'
-import {AdList, EmptyAdList, AdStatNumber} from '../../screens/ads/components'
+import {
+  AdList,
+  EmptyAdList,
+  AdStatNumber,
+  LoadingAdList,
+} from '../../screens/ads/components'
 import Layout from '../../shared/components/layout'
 import {Page, PageTitle} from '../../screens/app/components'
 import {
@@ -78,10 +83,6 @@ export default function AdListPage() {
     profileAdsStatus === 'loading' || persistedAdsStatus === 'loading'
       ? 'loading'
       : 'done'
-
-  React.useEffect(() => {
-    console.log({loadingStatus})
-  }, [loadingStatus])
 
   const ads = [
     ...profileAds,
@@ -197,19 +198,20 @@ export default function AdListPage() {
 
   return (
     <Layout>
-      <Page as={Stack} spacing={4}>
+      <Page>
         <PageTitle>{t('My Ads')}</PageTitle>
-        <Stack isInline spacing={20}>
+
+        <HStack spacing={20} pb="2" pt="1">
           <BlockAdStat label="My balance" w="2xs">
             <Skeleton isLoaded={Boolean(balance)}>
-              <AdStatNumber fontSize="lg" isTruncated>
+              <AdStatNumber fontSize="lg" lineHeight="5" isTruncated>
                 {formatDna(balance)}
               </AdStatNumber>
             </Skeleton>
           </BlockAdStat>
-        </Stack>
+        </HStack>
 
-        <FilterButtonList value={filter} onChange={setFilter} w="full">
+        <FilterButtonList value={filter} onChange={setFilter} w="full" mt={4}>
           <Flex align="center" justify="space-between" w="full">
             <HStack>
               <FilterButton value={AdStatus.Published}>
@@ -244,7 +246,7 @@ export default function AdListPage() {
         </FilterButtonList>
 
         {loadingStatus === 'done' && (
-          <AdList py={4} spacing={4} alignSelf="stretch">
+          <AdList spacing={4} w="full" my="8">
             {ads.map(ad => (
               <AdListItem
                 key={`${ad.cid}!!${ad.id}`}
@@ -271,7 +273,15 @@ export default function AdListPage() {
           </AdList>
         )}
 
-        {loadingStatus === 'done' && ads.length === 0 && <EmptyAdList />}
+        {loadingStatus === 'loading' && <LoadingAdList />}
+
+        {loadingStatus === 'done' && ads.length === 0 && (
+          <EmptyAdList>
+            {filter === AdStatus.Published
+              ? t(`You haven't created any campaigns yet`)
+              : t('No corresponding ads')}
+          </EmptyAdList>
+        )}
 
         <ReviewAdDrawer
           ad={selectedAd}

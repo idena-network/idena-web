@@ -25,10 +25,12 @@ import {
   Text,
   FormErrorMessage,
   FormErrorIcon,
+  SkeletonCircle,
+  SkeletonText,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {rem} from '../../shared/theme'
-import {FormLabel} from '../../shared/components/components'
+import {FormLabel, HDivider, Skeleton} from '../../shared/components/components'
 import {omit, pick} from '../../shared/utils/utils'
 import {adFallbackSrc} from './utils'
 
@@ -58,12 +60,13 @@ export function AdList(props) {
   )
 }
 
-export function EmptyAdList() {
+export function EmptyAdList({children}) {
   const {t} = useTranslation()
+
   return (
     <Center color="muted" flex={1} w="full">
-      <Stack spacing="4">
-        <Text as="span">{t(`You haven't created any ads yet`)}</Text>
+      <Stack spacing="4" align="center">
+        <Text>{children}</Text>
         <NextLink href="/adn/new">
           <Button variant="outline">{t('Create new ad')}</Button>
         </NextLink>
@@ -292,5 +295,40 @@ export function MiningBadge(props) {
       textTransform="initial"
       {...props}
     />
+  )
+}
+
+export function LoadingAdList() {
+  return (
+    <Stack spacing={4} my="8" w="full" divider={<HDivider />}>
+      {[...Array(5)].map((_, idx) => (
+        <AdListItemSkeleton key={idx} />
+      ))}
+    </Stack>
+  )
+}
+
+function AdListItemSkeleton() {
+  return (
+    <HStack spacing="5" align="flex-start">
+      <SkeletonCircle
+        size={['60px']}
+        startColor="gray.50"
+        endColor="gray.100"
+      />
+      <Stack spacing="5" w="full">
+        <Stack spacing="1">
+          <Skeleton minH="4" w="44" />
+          <Skeleton minH="10" w="md" />
+        </Stack>
+        <SkeletonText
+          noOfLines={3}
+          spacing="1.5"
+          startColor="gray.50"
+          endColor="gray.100"
+          minH="4"
+        />
+      </Stack>
+    </HStack>
   )
 }

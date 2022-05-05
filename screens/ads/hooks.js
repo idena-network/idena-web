@@ -247,7 +247,7 @@ export function useProfileAds() {
 
   const status =
     profileStatus === 'loading' ||
-    profileStatus === 'idle' ||
+    (Boolean(profileHash) && profileStatus === 'idle') ||
     decodedProfileAds.some(ad => ad.status === 'loading') ||
     profileAds.some(ad => ad.status === 'loading')
       ? 'loading'

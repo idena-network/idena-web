@@ -1297,7 +1297,7 @@ export function BurnDrawer({ad, onBurn, ...props}) {
 export function BlockAdStat({label, value, children, ...props}) {
   return (
     <Stat {...props}>
-      {label && <AdStatLabel>{label}</AdStatLabel>}
+      {label && <AdStatLabel lineHeight="4">{label}</AdStatLabel>}
       {value && <AdStatNumber>{value}</AdStatNumber>}
       {children}
     </Stat>
