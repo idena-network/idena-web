@@ -80,6 +80,7 @@ import {WideLink} from '../home/components'
 import {useDeferredVotes} from '../oracles/hooks'
 import {AdDrawer} from '../ads/containers'
 import {useTrackTx} from '../ads/hooks'
+import {MiningBadge} from '../ads/components'
 
 export function TransactionsTab(props) {
   return (
@@ -466,7 +467,7 @@ export function SendDrawer(props) {
 
   return (
     <AdDrawer isMining={isPending} {...props}>
-      <DrawerHeader mb={8}>
+      <DrawerHeader mb="6">
         <Flex direction="column" textAlign={['center', 'start']}>
           <Flex
             order={[2, 1]}
@@ -493,6 +494,11 @@ export function SendDrawer(props) {
         </Flex>
       </DrawerHeader>
       <DrawerBody>
+        {isPending && (
+          <Box mb="4">
+            <MiningBadge>{t('Mining...')}</MiningBadge>
+          </Box>
+        )}
         <form
           id="send"
           onSubmit={async e => {
