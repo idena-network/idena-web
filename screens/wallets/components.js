@@ -66,7 +66,6 @@ import {
 import useClickOutside from '../../shared/hooks/use-click-outside'
 import {
   getDateFromBlocks,
-  HASH_IN_MEMPOOL,
   lowerCase,
   openExternalUrl,
   toLocaleDna,
@@ -447,19 +446,14 @@ export function SendDrawer(props) {
 
   const {onClose} = props
 
-  const txData = useTrackTx(state.hash)
-
-  const isPending = state.status === 'pending'
-
-  React.useEffect(() => {
-    if (
-      isPending &&
-      (txData?.blockHash ?? HASH_IN_MEMPOOL) !== HASH_IN_MEMPOOL
-    ) {
+  useTrackTx(state.hash, {
+    onMined: React.useCallback(() => {
       dispatch('done')
       onClose()
-    }
-  }, [isPending, onClose, txData])
+    }, [onClose]),
+  })
+
+  const isPending = state.status === 'pending'
 
   React.useEffect(() => {
     if (state.status === 'error') {

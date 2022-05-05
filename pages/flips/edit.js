@@ -22,12 +22,11 @@ import {
   FlipShuffleStep,
   FlipSubmitStep,
   CommunityTranslationUnavailable,
+  PublishFlipDrawer,
 } from '../../screens/flips/components'
 import Layout from '../../shared/components/layout'
-import {NotificationType} from '../../shared/providers/notification-context'
 import {flipMasterMachine} from '../../screens/flips/machines'
 import {publishFlip, isPendingKeywordPair} from '../../screens/flips/utils'
-import {Notification} from '../../shared/components/notifications'
 import {Step} from '../../screens/flips/types'
 import {
   IconButton,
@@ -42,6 +41,8 @@ import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {BadFlipDialog} from '../../screens/validation/components'
 import {InfoIcon, RefreshIcon} from '../../shared/components/icons'
+import {useTrackTx} from '../../screens/ads/hooks'
+import {useFailToast} from '../../shared/hooks/use-toast'
 
 export default function EditFlipPage() {
   const {t, i18n} = useTranslation()
@@ -55,6 +56,8 @@ export default function EditFlipPage() {
   const epochState = useEpoch()
   const {privateKey} = useAuthState()
   const [, {waitFlipsUpdate}] = useIdentity()
+
+  const failToast = useFailToast()
 
   const [current, send] = useMachine(flipMasterMachine, {
     context: {
@@ -89,27 +92,9 @@ export default function EditFlipPage() {
       },
     },
     actions: {
-      onSubmitted: () => router.push('/flips/list'),
-      onError: (
-        _,
-        {data, error = data.response?.data?.error ?? data.message}
-      ) =>
-        toast({
-          title: error,
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-          // eslint-disable-next-line react/display-name
-          render: () => (
-            <Box fontSize="md">
-              <Notification
-                title={error}
-                type={NotificationType.Error}
-                delay={5000}
-              />
-            </Box>
-          ),
-        }),
+      onError: (_, {data}) => {
+        failToast(data.response?.data?.error ?? data.message)
+      },
     },
     logger: msg => console.log(redact(msg)),
   })
@@ -128,6 +113,7 @@ export default function EditFlipPage() {
     order,
     showTranslation,
     isCommunityTranslationsExpanded,
+    txHash,
   } = current.context
 
   const not = state => !current?.matches({editing: state})
@@ -140,6 +126,14 @@ export default function EditFlipPage() {
     onOpen: onOpenBadFlipDialog,
     onClose: onCloseBadFlipDialog,
   } = useDisclosure()
+
+  const publishDrawerDisclosure = useDisclosure()
+
+  useTrackTx(txHash, {
+    onMined: React.useCallback(() => {
+      router.push('/flips/list')
+    }, [router]),
+  })
 
   return (
     <Layout>
@@ -332,7 +326,9 @@ export default function EditFlipPage() {
               isDisabled={is('submit.submitting')}
               isLoading={is('submit.submitting')}
               loadingText={t('Publishing')}
-              onClick={() => send('SUBMIT')}
+              onClick={() => {
+                publishDrawerDisclosure.onOpen()
+              }}
             >
               {t('Submit')}
             </PrimaryButton>
@@ -346,6 +342,20 @@ export default function EditFlipPage() {
             'Please read the rules carefully. You can lose all your validation rewards if any of your flips is reported.'
           )}
           onClose={onCloseBadFlipDialog}
+        />
+
+        <PublishFlipDrawer
+          {...publishDrawerDisclosure}
+          isPending={is('submit.submitting')}
+          flip={{
+            keywords: showTranslation ? keywords.translations : keywords.words,
+            images,
+            originalOrder,
+            order,
+          }}
+          onSubmit={() => {
+            send('SUBMIT')
+          }}
         />
       </Page>
     </Layout>

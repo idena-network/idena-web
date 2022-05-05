@@ -579,7 +579,7 @@ export function useBurnAd({onBeforeSubmit, onMined, onError}) {
   }
 }
 
-export function useTrackTx(hash, options) {
+export function useTrackTx(hash, {onMined, ...options} = {}) {
   const [enabled, setEnabled] = React.useState(Boolean(hash))
 
   React.useEffect(() => {
@@ -592,7 +592,7 @@ export function useTrackTx(hash, options) {
     onSuccess: data => {
       if (data.blockHash !== HASH_IN_MEMPOOL) {
         // eslint-disable-next-line no-unused-expressions
-        options.onMined?.(data)
+        onMined?.(data)
         setEnabled(false)
       }
     },
