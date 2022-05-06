@@ -5,6 +5,7 @@ import {
   AlertIcon,
   Box,
   Flex,
+  Text,
   FormControl,
   Heading,
   Stack,
@@ -32,8 +33,6 @@ import {
 } from '../../shared/components/icons'
 import {PageTitleNew} from '../../screens/app/components'
 
-const BASIC_ERROR = 'Node is unavailable.'
-
 function Settings() {
   const router = useRouter()
   const {t} = useTranslation()
@@ -50,7 +49,7 @@ function Settings() {
     apiKey: settingsState.apiKey || '',
   })
 
-  const [offlineError, setOfflineError] = useState(BASIC_ERROR)
+  const [nodeProvider, setNodeProvider] = useState('')
 
   useEffect(() => {
     setState({url: settingsState.url, apiKey: settingsState.apiKey})
@@ -67,16 +66,11 @@ function Settings() {
       try {
         const result = await checkKey(settingsState.apiKey)
         const provider = await getProvider(result.provider)
-        setOfflineError(
-          `This node is unavailable. Please contact the node owner: ${provider.data.ownerName}`
-        )
-      } catch (e) {
-        setOfflineError(BASIC_ERROR)
-      }
+        setNodeProvider(provider.data.ownerName)
+      } catch (e) {}
     }
 
     if (settingsState.apiKeyState === apiKeyStates.OFFLINE) check()
-    else setOfflineError('')
   }, [settingsState.apiKeyState, settingsState.url, settingsState.apiKey])
 
   return (
@@ -132,7 +126,26 @@ function Settings() {
               py={2}
             >
               <AlertIcon name="info" color="red.500" size={5} mr={3} />
-              {t(offlineError, {nsSeparator: 'null'})}
+              <Text>
+                {nodeProvider
+                  ? t(
+                      'This node is unavailable. Please contact the node owner:',
+                      {
+                        nsSeparator: 'null',
+                      }
+                    )
+                  : t('Node is unavailable.')}{' '}
+                {nodeProvider && (
+                  <Link
+                    color="#578fff"
+                    href={`https://t.me/${nodeProvider}`}
+                    target="_blank"
+                    ml={1}
+                  >
+                    {nodeProvider}
+                  </Link>
+                )}
+              </Text>
             </Alert>
           )}
         <Flex display={['none', 'flex']} justify="space-between">
