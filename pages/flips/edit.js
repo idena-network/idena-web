@@ -43,6 +43,7 @@ import {BadFlipDialog} from '../../screens/validation/components'
 import {InfoIcon, RefreshIcon} from '../../shared/components/icons'
 import {useTrackTx} from '../../screens/ads/hooks'
 import {useFailToast} from '../../shared/hooks/use-toast'
+import {eitherState} from '../../shared/utils/utils'
 
 export default function EditFlipPage() {
   const {t, i18n} = useTranslation()
@@ -118,6 +119,8 @@ export default function EditFlipPage() {
 
   const not = state => !current?.matches({editing: state})
   const is = state => current?.matches({editing: state})
+  const either = (...states) =>
+    eitherState(current, ...states.map(s => ({editing: s})))
 
   const isOffline = is('keywords.loaded.fetchTranslationsFailed')
 
@@ -131,8 +134,9 @@ export default function EditFlipPage() {
 
   useTrackTx(txHash, {
     onMined: React.useCallback(() => {
+      send({type: 'FLIP_MINED'})
       router.push('/flips/list')
-    }, [router]),
+    }, [router, send]),
   })
 
   return (
@@ -346,7 +350,7 @@ export default function EditFlipPage() {
 
         <PublishFlipDrawer
           {...publishDrawerDisclosure}
-          isPending={is('submit.submitting')}
+          isPending={either('submit.submitting', 'submit.mining')}
           flip={{
             keywords: showTranslation ? keywords.translations : keywords.words,
             images,

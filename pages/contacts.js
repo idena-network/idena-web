@@ -18,11 +18,15 @@ import {useFailToast, useSuccessToast} from '../shared/hooks/use-toast'
 export default function ContactsPage() {
   const {t} = useTranslation()
 
-  const {query} = useRouter()
+  const router = useRouter()
 
   const [selectedContact, setSelectedContact] = React.useState(null)
 
   const sendInviteDisclosure = useDisclosure()
+  const {
+    onOpen: onOpenInviteDrawer,
+    onClose: onCloseInviteDrawer,
+  } = sendInviteDisclosure
 
   const {
     isOpen: isOpenEditContactDrawer,
@@ -37,8 +41,10 @@ export default function ContactsPage() {
   } = useDisclosure()
 
   React.useEffect(() => {
-    if (query.new !== undefined) sendInviteDisclosure.onOpen()
-  }, [query.new, sendInviteDisclosure])
+    if (router.query.new !== undefined) {
+      onOpenInviteDrawer()
+    }
+  }, [onOpenInviteDrawer, router])
 
   const successToast = useSuccessToast()
   const failToast = useFailToast()
@@ -46,9 +52,12 @@ export default function ContactsPage() {
   const [isMining, setIsMining] = useBoolean()
 
   const handleInviteMined = React.useCallback(() => {
+    if (router.query.new !== undefined) {
+      router.push('/contacts')
+    }
+    onCloseInviteDrawer()
     setIsMining.off()
-    sendInviteDisclosure.onClose()
-  }, [sendInviteDisclosure, setIsMining])
+  }, [onCloseInviteDrawer, router, setIsMining])
 
   return (
     <InviteProvider>
@@ -58,7 +67,7 @@ export default function ContactsPage() {
             <ContactListSidebar
               selectedContactId={selectedContact?.id}
               onSelectContact={setSelectedContact}
-              onNewContact={sendInviteDisclosure.onOpen}
+              onNewContact={onOpenInviteDrawer}
             />
             <Flex flex={1} py={6} px={20}>
               {selectedContact ? (
@@ -68,9 +77,7 @@ export default function ContactsPage() {
                   onRemoveContact={() => {
                     setSelectedContact(null)
                   }}
-                  onRecoverContact={contact => {
-                    setSelectedContact(contact)
-                  }}
+                  onRecoverContact={setSelectedContact}
                   onKillContact={onOpenKillContactDrawer}
                   onInviteMined={handleInviteMined}
                 />
@@ -84,7 +91,7 @@ export default function ContactsPage() {
 
           <IssueInviteDrawer
             {...sendInviteDisclosure}
-            inviteeAddress={query.address}
+            inviteeAddress={router.query.address}
             isMining={isMining}
             onIssue={invite => {
               setSelectedContact(invite)
