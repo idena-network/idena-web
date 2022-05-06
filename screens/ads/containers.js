@@ -91,7 +91,6 @@ import {
   AdImage,
   InputCharacterCount,
   AdNumberInput,
-  MiningBadge,
   AdFormError,
 } from './components'
 import {Fill} from '../../shared/components'
@@ -910,8 +909,6 @@ export function ReviewAdDrawer({
               {t(`Please keep in mind that you will not be able to edit the banner
               after it has been submitted for verification`)}
             </Text>
-
-            {isPending && <MiningBadge>{t('Mining...')}</MiningBadge>}
           </Stack>
           <Stack spacing={6} bg="gray.50" p={6} rounded="lg">
             <Stack isInline spacing={5}>
@@ -1099,8 +1096,6 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
                 {nsSeparator: '|'}
               )}
             </Text>
-
-            {isPending && <MiningBadge>{t('Mining...')}</MiningBadge>}
           </Stack>
 
           <Stack spacing="6" bg="gray.50" p={6} rounded="lg">
@@ -1209,7 +1204,6 @@ export function BurnDrawer({ad, onBurn, ...props}) {
         <Stack spacing="6" color="brandGray.500" fontSize="md" p={6} pt={0}>
           <Stack spacing="3">
             <Text>{t('Burn iDNA to make your ad visible.')}</Text>
-            {isPending && <MiningBadge>{t('Mining...')}</MiningBadge>}
           </Stack>
 
           <Stack spacing="6" bg="gray.50" p={6} rounded="lg">

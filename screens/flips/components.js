@@ -82,7 +82,6 @@ import {
 import {WideLink} from '../home/components'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {AdDrawer} from '../ads/containers'
-import {MiningBadge} from '../ads/components'
 
 export function FlipPageTitle({onClose, ...props}) {
   return (
@@ -1437,11 +1436,6 @@ export function PublishFlipDrawer({isPending, flip, onSubmit, ...props}) {
         </Stack>
       </DrawerHeader>
       <DrawerBody overflowY="auto" mx={-6} mt="3" mb={10}>
-        {isPending && (
-          <Box mb="4" px={6}>
-            <MiningBadge>{t('Mining...')}</MiningBadge>
-          </Box>
-        )}
         <Stack spacing={6} fontSize="md" px={6} align="center">
           <HStack spacing="3">
             <FlipImageList>

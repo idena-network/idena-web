@@ -20,7 +20,6 @@ import {
   Image,
   InputRightElement,
   InputGroup,
-  Badge,
   Center,
   Text,
   FormErrorMessage,
@@ -273,26 +272,6 @@ export function InputCharacterCount(props) {
       top="unset"
       right="2"
       bottom="1.5"
-      {...props}
-    />
-  )
-}
-
-export function MiningBadge(props) {
-  return (
-    <Badge
-      display="inline-flex"
-      alignItems="center"
-      alignSelf="flex-start"
-      colorScheme="orange"
-      bg="orange.020"
-      color="orange.500"
-      fontWeight="normal"
-      fontSize="md"
-      rounded="xl"
-      h="6"
-      px={3}
-      textTransform="initial"
       {...props}
     />
   )
