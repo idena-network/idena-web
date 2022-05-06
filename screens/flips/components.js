@@ -66,7 +66,6 @@ import {
   CommunityIcon,
   CycleIcon,
   DeleteIcon,
-  GalleryIcon,
   GtranslateIcon,
   InfoSolidIcon,
   MoreIcon,
@@ -74,6 +73,7 @@ import {
   OkIcon,
   PicIcon,
   PlusSolidIcon,
+  PublishFlipIcon,
   SwitchIcon,
   UndoIcon,
   UploadIcon,
@@ -1428,7 +1428,7 @@ export function PublishFlipDrawer({isPending, flip, onSubmit, ...props}) {
             minH={12}
             rounded="xl"
           >
-            <GalleryIcon boxSize={6} color="blue.500" />
+            <PublishFlipIcon boxSize={6} color="blue.500" />
           </Center>
           <Heading color="gray.500" fontSize="lg" fontWeight={500}>
             {t('Submit flip')}
