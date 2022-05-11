@@ -70,11 +70,14 @@ export function exponentialBackoff(retry) {
 
 export function persistValidationState(state) {
   localStorage.setItem('validation', JSON.stringify(state))
-  // persistState('validation2', state)
 }
 
 export function loadValidationState() {
   return JSON.parse(localStorage.getItem('validation'))
+}
+
+export function hasValidationResults() {
+  return !!localStorage.getItem('validationResults')
 }
 
 export function parsePersistedValidationState() {

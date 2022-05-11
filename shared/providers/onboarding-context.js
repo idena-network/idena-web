@@ -3,7 +3,7 @@ import {useMachine} from '@xstate/react'
 import React, {useMemo} from 'react'
 import {createMachine} from 'xstate'
 import {assign, choose} from 'xstate/lib/actions'
-import {canValidate} from '../../screens/validation/utils'
+import {canValidate, hasValidationResults} from '../../screens/validation/utils'
 import {IdentityStatus, OnboardingStep} from '../types'
 import {rewardWithConfetti, shouldCreateFlips} from '../utils/onboarding'
 import {loadPersistentState, persistState} from '../utils/persist'
@@ -165,12 +165,13 @@ export function OnboardingProvider({children}) {
   const [current, send] = useMachine(machine)
 
   React.useEffect(() => {
-    if (epoch?.epoch >= 0 && identity) {
+    if (epoch?.epoch >= 0 && identity?.state) {
       send(
         (() => {
           switch (true) {
             case identity.state === IdentityStatus.Undefined &&
-              !hasSuccessTrainingValidation:
+              !hasSuccessTrainingValidation &&
+              !hasValidationResults():
               return OnboardingStep.StartTraining
             case identity.canActivateInvite:
               return OnboardingStep.ActivateInvite

@@ -66,7 +66,6 @@ import {
   TimerIcon,
   OracleIcon,
 } from './icons'
-import {useTestValidationState} from '../providers/test-validation-context'
 import {TodoVotingCountBadge} from '../../screens/oracles/components'
 import useUnreadOraclesCount from '../hooks/use-unread-oracles-count'
 import {useDeferredVotes} from '../../screens/oracles/hooks'
@@ -664,8 +663,6 @@ function CurrentTask({epoch, period}) {
 
   const [identity] = useIdentity()
 
-  const {hasSuccessTrainingValidation} = useTestValidationState()
-
   const [currentOnboarding] = useOnboarding()
 
   if (!period || !identity || !identity.state) return null
@@ -681,8 +678,7 @@ function CurrentTask({epoch, period}) {
       } = identity
 
       switch (true) {
-        case status === IdentityStatus.Undefined &&
-          !hasSuccessTrainingValidation:
+        case currentOnboarding.matches(OnboardingStep.StartTraining):
           return t('Start training')
         case canActivateInvite:
           return status === IdentityStatus.Invite
