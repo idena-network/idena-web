@@ -1,3 +1,4 @@
+/* eslint-disable no-shadow */
 import {Machine, assign} from 'xstate'
 import {decode} from 'rlp'
 import {choose, log, send} from 'xstate/lib/actions'
@@ -350,6 +351,7 @@ export const createValidationMachine = ({
   shortSessionDuration,
   longSessionDuration,
   locale,
+  isTraining,
 }) =>
   Machine(
     {
@@ -371,6 +373,7 @@ export const createValidationMachine = ({
         locale,
         translations: {},
         reportedFlipsCount: 0,
+        isTraining,
       },
       states: {
         shortSession: {
@@ -1259,17 +1262,6 @@ export const createValidationMachine = ({
                     LONG_SESSION_CHECK: [
                       {
                         target: '#validation.validationFailed',
-                        cond: ({longFlips}) => {
-                          const solvableFlips = filterSolvableFlips(longFlips)
-                          const answers = solvableFlips.filter(
-                            ({option}) => option
-                          )
-                          return (
-                            !solvableFlips.length ||
-                            (solvableFlips.length &&
-                              answers.length < solvableFlips.length / 2)
-                          )
-                        },
                       },
                     ],
                   },
@@ -1480,13 +1472,24 @@ export const createValidationMachine = ({
         FINALIZE_FLIPS: ({validationStart}) =>
           Math.max(adjustDuration(validationStart, 90), 5) * 1000,
         // eslint-disable-next-line no-shadow
-        SHORT_SESSION_AUTO_SUBMIT: ({validationStart, shortSessionDuration}) =>
-          adjustDuration(validationStart, shortSessionDuration - 10) * 1000,
-        // eslint-disable-next-line no-shadow
-        LONG_SESSION_CHECK: ({validationStart, longSessionDuration}) =>
+        SHORT_SESSION_AUTO_SUBMIT: ({
+          validationStart,
+          shortSessionDuration,
+          isTraining,
+        }) =>
           adjustDuration(
             validationStart,
-            shortSessionDuration - 10 + longSessionDuration
+            shortSessionDuration - (isTraining ? 0 : 10)
+          ) * 1000,
+        // eslint-disable-next-line no-shadow
+        LONG_SESSION_CHECK: ({
+          validationStart,
+          longSessionDuration,
+          isTraining,
+        }) =>
+          adjustDuration(
+            validationStart,
+            shortSessionDuration - (isTraining ? 0 : 10) + longSessionDuration
           ) * 1000,
         // eslint-disable-next-line no-shadow
         SEND_SHORT_ANSWERS: ({validationStart, shortSessionDuration}) =>

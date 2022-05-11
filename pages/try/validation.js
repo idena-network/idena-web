@@ -26,7 +26,7 @@ import {toHexString} from '../../shared/utils/buffers'
 
 export default function TrainingPage() {
   const {auth, privateKey, coinbase} = useAuthState()
-  const {current, timestamp} = useTestValidationState()
+  const {current, timestamp, last} = useTestValidationState()
   const router = useRouter()
 
   // hack to redirect only when new page /try/validation is opened
@@ -50,10 +50,10 @@ export default function TrainingPage() {
   if (privateKey && coinbase)
     return (
       <ValidationSession
-        id={current?.id}
+        id={current?.id || last?.id}
         coinbase={coinbase}
         privateKey={privateKey}
-        validationStart={current?.startTime}
+        validationStart={current?.startTime || last?.startTime}
         shortSessionDuration={TEST_SHORT_SESSION_INTERVAL_SEC}
         longSessionDuration={TEST_LONG_SESSION_INTERVAL_SEC}
       />
@@ -66,7 +66,6 @@ function ValidationSession({
   id,
   privateKey,
   coinbase,
-  epoch,
   validationStart,
   shortSessionDuration,
   longSessionDuration,
@@ -88,15 +87,15 @@ function ValidationSession({
       createValidationMachine({
         privateKey,
         coinbase,
-        epoch,
+        epoch: 0,
         validationStart,
         shortSessionDuration,
         longSessionDuration,
         locale: i18n.language || 'en',
+        isTraining: true,
       }),
     [
       coinbase,
-      epoch,
       i18n.language,
       longSessionDuration,
       privateKey,
@@ -111,8 +110,11 @@ function ValidationSession({
         setTimeout(onCloseExceededTooltip, 3000)
       },
       onValidationSucceeded: async () => {
-        await checkValidation(id)
-        return router.push(`/try/details/${id}`)
+        try {
+          await checkValidation(id)
+        } finally {
+          router.push(`/try/details/${id}`)
+        }
       },
     },
     services: {
@@ -193,8 +195,11 @@ function ValidationSession({
       longSessionDuration={longSessionDuration}
       isExceededTooltipOpen={isExceededTooltipOpen}
       onValidationFailed={async () => {
-        await checkValidation(id)
-        return router.push(`/try/details/${id}`)
+        try {
+          await checkValidation(id)
+        } finally {
+          router.push(`/try/details/${id}`)
+        }
       }}
     />
   )

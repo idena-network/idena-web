@@ -141,6 +141,7 @@ function TestValidationProvider({children}) {
   }, [coinbase, privateKey, state])
 
   const checkValidation = async id => {
+    if (!state.current) return
     const result = await getResult(id)
 
     if (result.actionType === CertificateActionType.Passed) {
@@ -151,6 +152,10 @@ function TestValidationProvider({children}) {
       ...prevState,
       timestamp: new Date().getTime(),
       shouldPersist: true,
+      last: {
+        id,
+        startTime: prevState.current.startTime,
+      },
       current: null,
       validations: {
         ...prevState.validations,
@@ -237,6 +242,10 @@ function TestValidationProvider({children}) {
         ...prevState,
         timestamp: new Date().getTime(),
         shouldPersist: true,
+        last: {
+          id,
+          startTime: prevState.current.startTime,
+        },
         current: null,
         validations: {
           ...prevState.validations,

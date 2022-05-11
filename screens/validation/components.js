@@ -184,6 +184,7 @@ export function Flip({
   timerDetails,
   onChoose,
   onImageFail,
+  isTrainingValidation,
 }) {
   const radius = useBreakpointValue(['12px', '8px'])
   const windowHeight = use100vh()
@@ -330,7 +331,7 @@ export function Flip({
                 validationStart={timerDetails.validationStart}
                 duration={
                   timerDetails.shortSessionDuration -
-                  10 +
+                  (isTrainingValidation ? 0 : 10) +
                   (isShortSession(timerDetails.state)
                     ? 0
                     : timerDetails.longSessionDuration)
@@ -2008,6 +2009,7 @@ export function ValidationScreen({
     translations,
     reportedFlipsCount,
     longFlips,
+    isTraining,
   } = state.context
 
   const flips = sessionFlips(state)
@@ -2127,6 +2129,7 @@ export function ValidationScreen({
                     option: AnswerType.Left,
                   })
                 }
+                isTrainingValidation={isTraining}
               />
               <Flip
                 {...currentFlip}
@@ -2140,6 +2143,7 @@ export function ValidationScreen({
                   })
                 }
                 onImageFail={() => send('REFETCH_FLIPS')}
+                isTrainingValidation={isTraining}
               />
             </ChakraFlex>
             {isLongSessionKeywords(state) && currentFlip && (
@@ -2267,7 +2271,7 @@ export function ValidationScreen({
             validationStart={validationStart}
             duration={
               shortSessionDuration -
-              10 +
+              (isTraining ? 0 : 10) +
               (isShortSession(state) ? 0 : longSessionDuration)
             }
           />
