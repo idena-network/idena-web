@@ -66,7 +66,6 @@ function ValidationSession({
   id,
   privateKey,
   coinbase,
-  epoch,
   validationStart,
   shortSessionDuration,
   longSessionDuration,
@@ -88,7 +87,7 @@ function ValidationSession({
       createValidationMachine({
         privateKey,
         coinbase,
-        epoch,
+        epoch: 0,
         validationStart,
         shortSessionDuration,
         longSessionDuration,
@@ -97,7 +96,6 @@ function ValidationSession({
       }),
     [
       coinbase,
-      epoch,
       i18n.language,
       longSessionDuration,
       privateKey,
@@ -112,8 +110,11 @@ function ValidationSession({
         setTimeout(onCloseExceededTooltip, 3000)
       },
       onValidationSucceeded: async () => {
-        await checkValidation(id)
-        return router.push(`/try/details/${id}`)
+        try {
+          await checkValidation(id)
+        } finally {
+          router.push(`/try/details/${id}`)
+        }
       },
     },
     services: {
@@ -194,8 +195,11 @@ function ValidationSession({
       longSessionDuration={longSessionDuration}
       isExceededTooltipOpen={isExceededTooltipOpen}
       onValidationFailed={async () => {
-        await checkValidation(id)
-        return router.push(`/try/details/${id}`)
+        try {
+          await checkValidation(id)
+        } finally {
+          router.push(`/try/details/${id}`)
+        }
       }}
     />
   )
