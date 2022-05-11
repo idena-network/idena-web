@@ -297,7 +297,8 @@ export function AdListItem({
                 {eitherStatus(
                   AdStatus.Reviewing,
                   AdStatus.Approved,
-                  AdStatus.Published
+                  AdStatus.Published,
+                  AdStatus.Rejected
                 ) && (
                   <MenuItem
                     icon={<ViewIcon boxSize={5} color="blue.500" />}
@@ -351,7 +352,7 @@ export function AdListItem({
               </SecondaryButton>
             )}
 
-            {status === AdStatus.Reviewing && (
+            {eitherStatus(AdStatus.Reviewing, AdStatus.Rejected) && (
               <NextLink href={viewVotingHref(contract)}>
                 <SecondaryButton>{t('View voting')}</SecondaryButton>
               </NextLink>
