@@ -211,8 +211,11 @@ export default function ValidationReport() {
                       <ValidationReportStat
                         label={t('Short session')}
                         value={
-                          validationResult === ValidationResult.MissedValidation
-                            ? '–'
+                          [
+                            ValidationResult.MissedValidation,
+                            ValidationResult.LateSubmission,
+                          ].includes(validationResult)
+                            ? '—'
                             : t('{{score}} ({{point}} out of {{flipsCount}})', {
                                 score: toPercent(shortScore),
                                 point: shortResults.point,
@@ -232,7 +235,7 @@ export default function ValidationReport() {
                         label={t('Long session')}
                         value={
                           validationResult === ValidationResult.MissedValidation
-                            ? '–'
+                            ? '—'
                             : t('{{score}} ({{point}} out of {{flipsCount}})', {
                                 score: toPercent(longScore),
                                 point: longResults.point,
