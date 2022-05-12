@@ -856,13 +856,7 @@ export function ReviewAdDrawer({
 
   const {submit} = useReviewAd({
     onBeforeSubmit: setIsPendingOn,
-    onDeployContract: React.useCallback(
-      data => {
-        onDeployContract(data)
-        setIsPendingOff()
-      },
-      [onDeployContract, setIsPendingOff]
-    ),
+    onDeployContract,
     onStartVoting: React.useCallback(
       data => {
         onStartVoting(data)
@@ -1433,7 +1427,10 @@ export function AdDebug() {
   )
 }
 
-export function AdOfferListItem({burn: {cid, target, address, amount}}) {
+export function AdOfferListItem({
+  burn: {cid, target, address, amount},
+  onBurn,
+}) {
   const {t} = useTranslation()
 
   const {decodeAd, decodeAdTarget} = useProtoProfileDecoder()
@@ -1453,6 +1450,10 @@ export function AdOfferListItem({burn: {cid, target, address, amount}}) {
     () => Object.values(pick(ad ?? {}, ['language', 'os', 'age', 'stake'])),
     [ad]
   )
+
+  const coinbase = useCoinbase()
+
+  const isSelfAuthor = ad.author === coinbase
 
   if (isLoading || isError) {
     return (
@@ -1543,7 +1544,22 @@ export function AdOfferListItem({burn: {cid, target, address, amount}}) {
           t('Not set')
         )}
       </Td>
-      <Td>{formatDna(amount)}</Td>
+      <Td>
+        <HStack spacing="5">
+          <Text as="span">{formatDna(amount)}</Text>
+          {isSelfAuthor ? (
+            <SecondaryButton
+              onClick={() => {
+                onBurn(ad)
+              }}
+            >
+              {t('Burn')}
+            </SecondaryButton>
+          ) : (
+            <Box w={61} h="8" />
+          )}
+        </HStack>
+      </Td>
     </Tr>
   )
 }
