@@ -371,12 +371,12 @@ export function AdListItem({
         >
           <HStack flex={1}>
             <InlineAdStatGroup spacing="1.5" labelWidth="14" flex={1}>
-              <SmallInlineAdStat label={t('Language')} value={language} />
-              <SmallInlineAdStat label={t('Min stake')} value={stake} />
+              <InlineAdStat label={t('Language')} value={language} />
+              <InlineAdStat label={t('Min stake')} value={stake} />
             </InlineAdStatGroup>
             <InlineAdStatGroup spacing="1.5" labelWidth="14" flex={1}>
-              <SmallInlineAdStat label={t('Min age')} value={age} />
-              <SmallInlineAdStat label={t('OS')} value={os} />
+              <InlineAdStat label={t('Min age')} value={age} />
+              <InlineAdStat label={t('OS')} value={os} />
             </InlineAdStatGroup>
           </HStack>
 
@@ -384,7 +384,7 @@ export function AdListItem({
 
           <Stack flex={1} justify="center">
             <InlineAdStatGroup spacing="2" labelWidth="28" flex={1}>
-              <InlineAdStat
+              <SmallInlineAdStat
                 label={t('Burnt, {{time}}', {
                   time: new Intl.RelativeTimeFormat(i18n.language, {
                     style: 'short',
@@ -393,14 +393,14 @@ export function AdListItem({
                 value={burnAmount ? formatDna(burnAmount.amount) : '--'}
                 flex={0}
               />
-              <InlineAdStat
+              <SmallInlineAdStat
                 label="Competitors"
                 value={
                   status === AdStatus.Published ? String(competitorCount) : '--'
                 }
                 flex={0}
               />
-              <InlineAdStat
+              <SmallInlineAdStat
                 label="Max price"
                 value={
                   status === AdStatus.Published && maxCompetitor
