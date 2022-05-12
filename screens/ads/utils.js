@@ -156,6 +156,7 @@ export const adImageThumbSrc = ad =>
     : ad.thumb && URL.createObjectURL(ad.thumb)
 
 export async function compressAdImage(
+  // eslint-disable-next-line no-shadow
   bytes,
   {width = 80, height = 80, type} = {width: 80, height: 80, type: 'image/jpeg'}
 ) {
@@ -174,7 +175,7 @@ export async function compressAdImage(
       ? resizedImage.deflateLevel(1)
       : resizedImage.quality(60)
 
-  return compressedImage.getBufferAsync('image/jpeg')
+  return compressedImage.getBufferAsync(type)
 }
 
 export function validateAd(ad) {
