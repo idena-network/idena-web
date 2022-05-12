@@ -369,8 +369,8 @@ export function AdListItem({
           mt="5"
           rounded="md"
         >
-          <HStack flex={1}>
-            <InlineAdStatGroup spacing="1.5" labelWidth="14" flex={1}>
+          <HStack flex={1} alignSelf="center">
+            <InlineAdStatGroup spacing="1.5" labelWidth="16" flex={1}>
               <InlineAdStat label={t('Language')} value={language} />
               <InlineAdStat label={t('Min stake')} value={stake} />
             </InlineAdStatGroup>
@@ -383,7 +383,7 @@ export function AdListItem({
           <VDivider minH={68} h="full" />
 
           <Stack flex={1} justify="center">
-            <InlineAdStatGroup spacing="2" labelWidth="28" flex={1}>
+            <InlineAdStatGroup spacing="2" labelWidth="20" flex={1}>
               <SmallInlineAdStat
                 label={t('Burnt, {{time}}', {
                   time: new Intl.RelativeTimeFormat(i18n.language, {
