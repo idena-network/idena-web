@@ -22,6 +22,7 @@ import {
   ListItem,
   Link as ChakraLink,
   CloseButton,
+  Skeleton,
   Portal,
   useBreakpointValue,
   Box,
@@ -352,7 +353,22 @@ function ActionPanel({onClose}) {
   }, [currentOnboarding, onClose])
 
   if (!epoch) {
-    return null
+    return (
+      <Stack spacing={[2, '1px']} mt={6}>
+        <Skeleton
+          h={[20, '55px']}
+          borderTopRadius="6px"
+          startColor="gray.200"
+          endColor="muted"
+        />
+        <Skeleton
+          h={[20, '55px']}
+          borderBottomRadius="6px"
+          startColor="gray.200"
+          endColor="muted"
+        />
+      </Stack>
+    )
   }
 
   const eitherOnboardingState = (...states) =>
