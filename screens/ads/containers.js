@@ -878,7 +878,12 @@ export function ReviewAdDrawer({
   const formatDna = useFormatDna()
 
   return (
-    <AdDrawer isMining={isPending} {...props}>
+    <AdDrawer
+      isMining={isPending}
+      closeOnOverlayClick={false}
+      closeOnEsc={false}
+      {...props}
+    >
       <DrawerHeader>
         <Stack spacing={4}>
           <Center
