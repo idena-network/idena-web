@@ -95,7 +95,7 @@ export const AD_VOTING_COMMITTEE_SIZE = 100
 
 export const buildAdReviewVoting = ({title, adCid}) => ({
   desc: title,
-  title: 'Is this ad appropriate?',
+  title: 'Is this ad apropriate?',
   adCid,
   // votingDuration: 4320 * 3,
   // publicVotingDuration: 2160,
