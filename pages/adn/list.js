@@ -281,7 +281,7 @@ export default function AdListPage() {
                 }}
                 onRemove={handleRemoveAd}
                 onPreview={() => {
-                  setSelectedAd({...ad, author: coinbase})
+                  setSelectedAd(ad)
                   previewAdDisclosure.onOpen()
                 }}
               />
