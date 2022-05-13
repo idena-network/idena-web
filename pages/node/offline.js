@@ -261,8 +261,10 @@ export default function Offline() {
   useEffect(() => {
     if (identity?.state === IdentityStatus.Candidate) {
       setState(options.CANDIDATE)
+    } else if (savedApiKey && isSavedKeyActual) {
+      setState(options.RESTORE)
     }
-  }, [identity])
+  }, [identity, savedApiKey, isSavedKeyActual])
 
   const waiting = submitting || isPurchasing
 

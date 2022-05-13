@@ -30,6 +30,7 @@ import {useFailToast} from '../../shared/hooks/use-toast'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {
+  apiKeyStates,
   useSettings,
   useSettingsDispatch,
 } from '../../shared/providers/settings-context'
@@ -52,7 +53,7 @@ const steps = {
 }
 
 export default function Restricted() {
-  const [{apiKeyData, apiKey}] = useSettings()
+  const [{apiKeyState, apiKeyData, apiKey}] = useSettings()
   const {saveConnection} = useSettingsDispatch()
   const {coinbase, privateKey} = useAuthState()
   const [{state: identityState}] = useIdentity()
@@ -148,12 +149,22 @@ export default function Restricted() {
   }, [apiKey, coinbase, privateKey])
 
   useEffect(() => {
+    if (
+      apiKeyState === apiKeyStates.ONLINE ||
+      apiKeyState === apiKeyStates.EXTERNAL
+    )
+      router.push('/home')
+  }, [apiKeyState, router])
+
+  useEffect(() => {
     if (identityState === IdentityStatus.Candidate) {
       setState(options.CANDIDATE)
+    } else if (savedApiKey && isSavedKeyActual) {
+      setState(options.RESTORE)
     } else if ((provider && !provider.slots) || isError) {
       setState(options.BUY)
     }
-  }, [identityState, isError, provider])
+  }, [identityState, isError, provider, savedApiKey, isSavedKeyActual])
 
   const waiting = submitting || isPurchasing
 
