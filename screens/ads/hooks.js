@@ -488,7 +488,7 @@ export function usePublishAd({onBeforeSubmit, onMined, onError}) {
             target: encodeAdTarget(ad),
             cid: ad.cid,
             contract: ad.contract,
-            author: coinbase,
+            author: ad.author ?? coinbase,
           },
         ],
       })

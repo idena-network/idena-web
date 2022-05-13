@@ -322,11 +322,9 @@ export function AdListItem({
                     <MenuItem
                       icon={<DeleteIcon boxSize={5} />}
                       color="red.500"
-                      onClick={async () => {
-                        await db.table('ads').delete(id)
-                        if (onRemove) {
-                          onRemove()
-                        }
+                      onClick={() => {
+                        // eslint-disable-next-line no-unused-expressions
+                        onRemove?.(ad)
                       }}
                     >
                       {t('Delete')}

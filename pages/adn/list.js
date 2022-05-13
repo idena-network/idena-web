@@ -42,7 +42,7 @@ import IconLink from '../../shared/components/icon-link'
 import {PlusSolidIcon, RefreshIcon} from '../../shared/components/icons'
 import db from '../../shared/utils/db'
 import {IconButton, SecondaryButton} from '../../shared/components/button'
-import {useClosableToast} from '../../shared/hooks/use-toast'
+import {useClosableToast, useFailToast} from '../../shared/hooks/use-toast'
 
 export default function AdListPage() {
   const {t} = useTranslation()
@@ -99,6 +99,7 @@ export default function AdListPage() {
   }, [refetchPersistedAds, refetchProfileAds])
 
   const {toast, close: closeToast} = useClosableToast()
+  const failToast = useFailToast()
 
   const {onClose: onClosePublishDisclosure} = publishDisclosure
 
@@ -186,10 +187,25 @@ export default function AdListPage() {
         status: AdStatus.Reviewing,
         cid,
         contract,
+        author: coinbase,
       })
       refetchPersistedAds()
     },
-    [refetchPersistedAds, selectedAd]
+    [coinbase, refetchPersistedAds, selectedAd]
+  )
+
+  const handleRemoveAd = React.useCallback(
+    async ad => {
+      try {
+        await db.table('ads').delete(ad.id)
+      } catch {
+        console.error({ad}, 'fail to delete ad')
+        failToast('Fail to delete ad')
+      } finally {
+        refetchPersistedAds()
+      }
+    },
+    [failToast, refetchPersistedAds]
   )
 
   const previewAdDisclosure = useDisclosure()
@@ -263,7 +279,7 @@ export default function AdListPage() {
                   setSelectedAd(ad)
                   burnDisclosure.onOpen()
                 }}
-                onRemove={refetchPersistedAds}
+                onRemove={handleRemoveAd}
                 onPreview={() => {
                   setSelectedAd({...ad, author: coinbase})
                   previewAdDisclosure.onOpen()
