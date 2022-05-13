@@ -1564,21 +1564,17 @@ export function AdOfferListItem({
           t('Not set')
         )}
       </Td>
+      <Td>{formatDna(amount)}</Td>
       <Td>
-        <HStack spacing="5">
-          <Text as="span">{formatDna(amount)}</Text>
-          {isSelfAuthor ? (
-            <SecondaryButton
-              onClick={() => {
-                onBurn(ad)
-              }}
-            >
-              {t('Burn')}
-            </SecondaryButton>
-          ) : (
-            <Box w={61} h="8" />
-          )}
-        </HStack>
+        {isSelfAuthor ? (
+          <SecondaryButton
+            onClick={() => {
+              onBurn(ad)
+            }}
+          >
+            {t('Burn')}
+          </SecondaryButton>
+        ) : null}
       </Td>
     </Tr>
   )

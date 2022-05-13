@@ -64,10 +64,11 @@ export default function AdOfferList() {
         <Table>
           <Thead>
             <Tr>
-              <RoundedTh>{t('Banner/author')}</RoundedTh>
+              <RoundedTh isLeft>{t('Banner/author')}</RoundedTh>
               <RoundedTh>{t('Website')}</RoundedTh>
               <RoundedTh>{t('Target')}</RoundedTh>
               <RoundedTh>{t('Burn')}</RoundedTh>
+              <RoundedTh isRight />
             </Tr>
           </Thead>
           <Tbody>
