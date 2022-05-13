@@ -27,6 +27,8 @@ import {
   Td,
   Link,
   useBoolean,
+  ModalOverlay,
+  Portal,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
@@ -1363,20 +1365,31 @@ export function AdStatusText({children, status = children}) {
 
 export function AdPreview({ad, ...props}) {
   return (
-    <Modal size="full" {...props}>
-      <ModalContent bg="xblack.080" fontSize="md">
-        <Box bg="white" p="2" pr="4">
-          <Flex justifyContent="space-between">
-            <AdBannerContent ad={ad} />
-            <HStack spacing="10" align="center">
-              <AdBannerAuthor ad={ad} />
-              <ModalCloseButton position="initial" />
-            </HStack>
-          </Flex>
-        </Box>
-        <Center flex={1}>
-          <AdPromotion {...ad} />
-        </Center>
+    <Modal isCentered {...props}>
+      <ModalOverlay />
+      <ModalContent w={400} mb={0} mt="14">
+        <Portal>
+          <Box
+            bg="white"
+            fontSize="md"
+            p="2"
+            pr="4"
+            position="fixed"
+            top={0}
+            left={0}
+            right={0}
+            zIndex="modal"
+          >
+            <Flex justifyContent="space-between">
+              <AdBannerContent ad={ad} />
+              <HStack spacing="10" align="center">
+                <AdBannerAuthor ad={ad} />
+                <ModalCloseButton position="initial" />
+              </HStack>
+            </Flex>
+          </Box>
+        </Portal>
+        <AdPromotion {...ad} />
       </ModalContent>
     </Modal>
   )
