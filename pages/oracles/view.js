@@ -174,7 +174,7 @@ export default function ViewVotingPage() {
     estimatedTotalReward,
     pendingVote,
     adCid,
-    author,
+    issuer,
   } = current.context
 
   const [
@@ -981,7 +981,9 @@ export default function ViewVotingPage() {
         />
       )}
 
-      {adCid && <AdPreview ad={{...ad, author}} {...adPreviewDisclosure} />}
+      {adCid && (
+        <AdPreview ad={{...ad, author: issuer}} {...adPreviewDisclosure} />
+      )}
 
       <Dialog
         isOpen={eitherIdleState('redirecting')}
