@@ -33,6 +33,7 @@ import {
   InputGroup,
   InputLeftElement,
   useTab,
+  HStack,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
@@ -53,6 +54,7 @@ import {
   DialogBody,
   Dialog,
   TextLink,
+  Badge,
 } from '../../shared/components/components'
 import {
   FlatButton,
@@ -65,6 +67,7 @@ import {
   eitherState,
   mapIdentityToFriendlyStatus,
   openExternalUrl,
+  toPercent,
   useIsDesktop,
 } from '../../shared/utils/utils'
 import {useIdentity} from '../../shared/providers/identity-context'
@@ -81,8 +84,13 @@ import {
   OnboardingPopoverContentIconRow,
 } from '../../shared/components/onboarding'
 import {useInviteActivation} from './hooks'
+import {useTotalValidationScore} from '../validation-report/hooks'
 
-export function UserInlineCard({address, state, ...props}) {
+export function UserInlineCard({
+  identity: {address, state, age, penalty},
+  ...props
+}) {
+  const score = useTotalValidationScore()
   return (
     <Stack
       direction={['column', 'row']}
@@ -100,20 +108,33 @@ export function UserInlineCard({address, state, ...props}) {
         borderRadius={['48px', 'lg']}
         address={address}
       />
-      <Stack spacing={1} align={['center', 'initial']}>
-        <Heading as="h2" fontSize="lg" fontWeight={500} lineHeight="short">
-          {mapIdentityToFriendlyStatus(state)}
-        </Heading>
-        <Heading
-          as="h3"
-          fontSize="mdx"
-          fontWeight="normal"
-          textAlign={['center', 'initial']}
-          color="muted"
-          lineHeight="shorter"
-        >
-          {address}
-        </Heading>
+      <Stack spacing="1.5">
+        <Stack spacing={1} align={['center', 'initial']}>
+          <Heading as="h2" fontSize="lg" fontWeight={500} lineHeight="short">
+            {mapIdentityToFriendlyStatus(state)}
+          </Heading>
+          <Heading
+            as="h3"
+            fontSize="mdx"
+            fontWeight="normal"
+            textAlign={['center', 'initial']}
+            color="muted"
+            lineHeight="shorter"
+          >
+            {address}
+          </Heading>
+        </Stack>
+        <HStack>
+          <ProfileBadge>Age {age}</ProfileBadge>
+          {Number.isFinite(score) && (
+            <ProfileBadge>Score {toPercent(score)}</ProfileBadge>
+          )}
+          {penalty > 0 && (
+            <ProfileBadge bg="red.012" color="red.500">
+              Mining penalty {penalty}
+            </ProfileBadge>
+          )}
+        </HStack>
       </Stack>
     </Stack>
   )
@@ -250,7 +271,7 @@ export function AnnotatedUserStatistics({
 }
 
 export function UserStat(props) {
-  return <Stat as={Stack} spacing="2px" {...props} />
+  return <Stat as={Stack} spacing="3px" {...props} />
 }
 
 export function UserStatistics({label, value, children, ...props}) {
@@ -1616,5 +1637,20 @@ export function GetInvitationCopyButton({value, ...props}) {
         </FlatButton>
       )}
     </Flex>
+  )
+}
+
+export function ProfileBadge(props) {
+  return (
+    <Badge
+      bg="gray.012"
+      borderRadius="xl"
+      color="gray.500"
+      fontSize="sm"
+      px="3"
+      h="6"
+      textTransform="initial"
+      {...props}
+    />
   )
 }

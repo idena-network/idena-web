@@ -9,11 +9,15 @@ import {
   useBreakpointValue,
   useClipboard,
   useDisclosure,
+  Flex,
+  HStack,
+  Center,
+  Heading,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useQuery, useQueryClient} from 'react-query'
 import {useRouter} from 'next/router'
-import {Page, PageTitle} from '../../screens/app/components'
+import {Page} from '../../screens/app/components'
 import {
   UserInlineCard,
   UserStatList,
@@ -30,6 +34,9 @@ import {
   ActivateInviteOnboardingContent,
   StartIdenaJourneyOnboardingContent,
   ActivateInvitationDialog,
+  UserStat,
+  UserStatLabel,
+  UserStatValue,
 } from '../../screens/home/components'
 import Layout from '../../shared/components/layout'
 import {IdentityStatus, OnboardingStep} from '../../shared/types'
@@ -38,7 +45,14 @@ import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {fetchBalance} from '../../shared/api/wallet'
 import {useAuthState} from '../../shared/providers/auth-context'
-import {ExternalLink, TextLink} from '../../shared/components/components'
+import {
+  Drawer,
+  DrawerBody,
+  DrawerFooter,
+  DrawerHeader,
+  ExternalLink,
+  TextLink,
+} from '../../shared/components/components'
 import {useOnboarding} from '../../shared/providers/onboarding-context'
 import {
   OnboardingPopover,
@@ -49,17 +63,21 @@ import {useScroll} from '../../shared/hooks/use-scroll'
 import {
   AddUserIcon,
   ChevronDownIcon,
+  ChevronRightIcon,
   CopyIcon,
   DeleteIcon,
   OpenExplorerIcon,
   PhotoIcon,
   TestValidationIcon,
+  WalletIcon,
 } from '../../shared/components/icons'
 import {useSuccessToast} from '../../shared/hooks/use-toast'
 import {isValidDnaUrl} from '../../screens/dna/utils'
 import {useIdenaBot, useValidationResults} from '../../screens/home/hooks'
 import {useTestValidationState} from '../../shared/providers/test-validation-context'
 import {ValidationReportSummary} from '../../screens/validation-report/components'
+import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
+import {DnaInput} from '../../screens/oracles/components'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -69,28 +87,24 @@ export default function ProfilePage() {
     i18n: {language},
   } = useTranslation()
 
-  const [
-    {
-      address,
-      state,
-      penalty,
-      age,
-      totalShortFlipPoints,
-      totalQualifiedFlips,
-      online,
-      delegatee,
-      delegationEpoch,
-      canMine,
-      canInvite,
-      canTerminate,
-      canActivateInvite,
-    },
-  ] = useIdentity()
+  const [identity] = useIdentity()
+
+  const {
+    address,
+    state,
+    online,
+    delegatee,
+    delegationEpoch,
+    canMine,
+    canInvite,
+    canTerminate,
+    canActivateInvite,
+  } = identity
 
   const router = useRouter()
 
   const epoch = useEpoch()
-  const {coinbase, privateKey} = useAuthState()
+  const {privateKey} = useAuthState()
   const userStatAddress = useBreakpointValue([
     address ? `${address.substr(0, 3)}...${address.substr(-4, 4)}` : '',
     address,
@@ -196,14 +210,13 @@ export default function ProfilePage() {
   )
   const onboardingPopoverPlacement = useBreakpointValue(['top', 'bottom'])
 
+  const addStakeDisclosure = useDisclosure()
+
   return (
     <Layout canRedirect={!dnaUrl} didConnectIdenaBot={didConnectIdenaBot}>
       {!didConnectIdenaBot && <MyIdenaBotAlert onConnect={connectIdenaBot} />}
 
-      <Page>
-        <PageTitle mb={8} display={['none', 'block']}>
-          {t('Profile')}
-        </PageTitle>
+      <Page pt="10">
         <Stack
           w={['100%', '480px']}
           direction={['column', 'row']}
@@ -215,12 +228,7 @@ export default function ProfilePage() {
             align={['center', 'initial']}
             ref={activateInviteRef}
           >
-            <UserInlineCard
-              address={coinbase}
-              state={state}
-              h={['auto', 24]}
-              mb={[2, 0]}
-            />
+            <UserInlineCard identity={identity} h={['auto', 24]} mb={[2, 0]} />
             {canActivateInvite && (
               <Box w={['100%', 'initial']} pb={[8, 0]}>
                 <OnboardingPopover
@@ -293,99 +301,80 @@ export default function ProfilePage() {
               />
             )}
 
-            {state &&
-              ![
-                IdentityStatus.Undefined,
-                IdentityStatus.Invite,
-                IdentityStatus.Candidate,
-              ].includes(state) && (
-                <>
-                  <UserStatList title={t('Profile')}>
-                    {age >= 0 && (
-                      <UserStatistics label={t('Age')} value={age} />
-                    )}
+            <UserStatList title={t('Stake')}>
+              <Flex>
+                <Stack spacing="5px" flex={1}>
+                  <UserStat>
+                    <Stack spacing="3px">
+                      <UserStatLabel lineHeight="4">
+                        {t('Balance')}
+                      </UserStatLabel>
+                      <UserStatValue lineHeight="4">
+                        {toDna(stake)}
+                      </UserStatValue>
+                    </Stack>
+                  </UserStat>
+                  <Button
+                    variant="link"
+                    color="blue.500"
+                    fontWeight={500}
+                    lineHeight="4"
+                    w="fit-content"
+                    _hover={{
+                      background: 'transparent',
+                      textDecoration: 'underline',
+                    }}
+                    _focus={{
+                      outline: 'none',
+                    }}
+                    onClick={addStakeDisclosure.onOpen}
+                  >
+                    {t('Add stake')}
+                    <ChevronRightIcon boxSize="4" />
+                  </Button>
+                </Stack>
+                <Stack spacing="5px" flex={1}>
+                  <UserStat>
+                    <Stack spacing="3px">
+                      <UserStatLabel lineHeight="4">{t('APY')}</UserStatLabel>
+                      <UserStatValue lineHeight="4">
+                        {toPercent(0.204)}
+                      </UserStatValue>
+                    </Stack>
+                  </UserStat>
+                  <ExternalLink href="https://idena.io/staking">
+                    {t('Staking calculator')}
+                  </ExternalLink>
+                </Stack>
+              </Flex>
+              {/* {stake > 0 && (
+                <AnnotatedUserStatistics
+                  annotation={t(
+                    'You need to get Verified status to be able to terminate your identity and withdraw the stake'
+                  )}
+                  label={t('Stake')}
+                  value={toDna(
+                    stake * (state === IdentityStatus.Newbie ? 0.25 : 1)
+                  )}
+                />
+              )} */}
 
-                    {penalty > 0 && (
-                      <AnnotatedUserStatistics
-                        annotation={t(
-                          "Your node was offline more than 1 hour. The penalty will be charged automatically. Once it's fully paid you'll continue to mine coins."
-                        )}
-                        label={t('Mining penalty')}
-                        value={toDna(penalty)}
-                      />
-                    )}
+              <Button
+                display={['initial', 'none']}
+                onClick={() => router.push('/validation-report')}
+                w="100%"
+                h={10}
+                fontSize="15px"
+                variant="outline"
+                color="blue.500"
+                border="none"
+                borderColor="transparent"
+              >
+                {t('View validation report')}
+              </Button>
+            </UserStatList>
 
-                    {totalQualifiedFlips > 0 && (
-                      <AnnotatedUserStatistics
-                        annotation={t(
-                          'Total score for the last 10 validations'
-                        )}
-                        label={t('Total score')}
-                      >
-                        <Box fontWeight={['500', 'auto']}>
-                          {t(
-                            '{{shortFlipPoints}} out of {{qualifiedFlips}} ({{score}})',
-                            {
-                              shortFlipPoints: Math.min(
-                                totalShortFlipPoints,
-                                totalQualifiedFlips
-                              ),
-                              qualifiedFlips: totalQualifiedFlips,
-                              score: toPercent(
-                                totalShortFlipPoints / totalQualifiedFlips
-                              ),
-                            }
-                          )}
-                        </Box>
-                        <TextLink
-                          display={['none', 'initial']}
-                          href="/validation-report"
-                          fontWeight={500}
-                        >
-                          {t('View validation report')}
-                        </TextLink>
-                      </AnnotatedUserStatistics>
-                    )}
-
-                    {stake > 0 && (
-                      <AnnotatedUserStatistics
-                        annotation={t(
-                          'You need to get Verified status to be able to terminate your identity and withdraw the stake'
-                        )}
-                        label={t('Stake')}
-                        value={toDna(
-                          stake * (state === IdentityStatus.Newbie ? 0.25 : 1)
-                        )}
-                      />
-                    )}
-
-                    {stake > 0 && state === IdentityStatus.Newbie && (
-                      <AnnotatedUserStatistics
-                        annotation={t(
-                          'You need to get Verified status to get the locked funds into the normal wallet'
-                        )}
-                        label={t('Locked')}
-                        value={toDna(stake * 0.75)}
-                      />
-                    )}
-
-                    <Button
-                      display={['initial', 'none']}
-                      onClick={() => router.push('/validation-report')}
-                      w="100%"
-                      h={10}
-                      fontSize="15px"
-                      variant="outline"
-                      color="blue.500"
-                      border="none"
-                      borderColor="transparent"
-                    >
-                      {t('View validation report')}
-                    </Button>
-                  </UserStatList>
-                </>
-              )}
-            <UserStatList title={t('Wallets')}>
+            <UserStatList title={t('My Wallet')}>
               <UserStatistics label={t('Address')} value={userStatAddress}>
                 <ExternalLink
                   display={['none', 'initial']}
@@ -431,8 +420,19 @@ export default function ProfilePage() {
               >
                 {t('Send iDNA')}
               </Button>
+
+              {stake > 0 && state === IdentityStatus.Newbie && (
+                <AnnotatedUserStatistics
+                  annotation={t(
+                    'You need to get Verified status to get the locked funds into the normal wallet'
+                  )}
+                  label={t('Locked')}
+                  value={toDna(stake * 0.75)}
+                />
+              )}
             </UserStatList>
           </Stack>
+
           <Stack spacing={[0, 10]} flexShrink={0} w={['100%', 200]}>
             <Box minH={62} mt={[1, 6]}>
               <OnboardingPopover
@@ -556,7 +556,50 @@ export default function ProfilePage() {
         </Stack>
 
         <KillForm isOpen={isOpenKillForm} onClose={onCloseKillForm}></KillForm>
+
         <ActivateInvitationDialog {...activateInviteDisclosure} />
+
+        <Drawer {...addStakeDisclosure}>
+          <Stack spacing="5" flex={1}>
+            <DrawerHeader>
+              <Stack spacing="4">
+                <Center bg="blue.012" h="12" w="12" rounded="xl">
+                  <WalletIcon boxSize="6" color="blue.500" />
+                </Center>
+                <Heading
+                  color="brandGray.500"
+                  fontSize="lg"
+                  fontWeight={500}
+                  lineHeight="base"
+                >
+                  {t('Add stake')}
+                </Heading>
+              </Stack>
+            </DrawerHeader>
+            <DrawerBody>
+              <form
+                id="addStake"
+                onSubmit={e => {
+                  e.preventDefault()
+
+                  // add stake
+                }}
+              >
+                <DnaInput />
+              </form>
+            </DrawerBody>
+          </Stack>
+          <DrawerFooter>
+            <HStack>
+              <SecondaryButton onClick={addStakeDisclosure.onClose}>
+                {t('Not now')}
+              </SecondaryButton>
+              <PrimaryButton form="addStake" type="submit">
+                {t('Add stake')}
+              </PrimaryButton>
+            </HStack>
+          </DrawerFooter>
+        </Drawer>
       </Page>
     </Layout>
   )

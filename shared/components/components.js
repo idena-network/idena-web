@@ -47,7 +47,7 @@ import {FiEye, FiEyeOff} from 'react-icons/fi'
 import NextLink from 'next/link'
 import dynamic from 'next/dynamic'
 import {rem} from '../theme'
-import {ChevronDownIcon, GtranslateIcon} from './icons'
+import {ChevronRightIcon, GtranslateIcon} from './icons'
 import {openExternalUrl} from '../utils/utils'
 import {Heading} from './typo'
 import {FlatButton, IconButton} from './button'
@@ -437,10 +437,10 @@ export function ExternalLink({href, children, ...props}) {
       }}
       {...props}
     >
-      <Text as="span" lineHeight="short" mt="-2px">
+      <Text as="span" lineHeight="4">
         {children || href}
       </Text>
-      <ChevronDownIcon boxSize={4} transform="rotate(-90deg)" />
+      <ChevronRightIcon boxSize={4} />
     </Button>
   )
 }
