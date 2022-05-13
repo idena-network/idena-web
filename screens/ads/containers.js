@@ -790,7 +790,7 @@ export function AdMediaInput({
           id={name}
           name={name}
           type="file"
-          accept="image/png,image/jpg,image/jpeg,image/webp"
+          accept="image/png,image/jpg,image/jpeg"
           onChange={async e => {
             if (onChange) {
               const {files} = e.target
@@ -1451,7 +1451,7 @@ export function AdOfferListItem({
 
   const coinbase = useCoinbase()
 
-  const isSelfAuthor = ad.author === coinbase
+  const isSelfAuthor = ad?.author === coinbase
 
   if (isLoading || isError) {
     return (

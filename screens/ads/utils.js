@@ -91,7 +91,7 @@ const mapToVotingStatus = status => {
   }
 }
 
-export const AD_VOTING_COMMITTEE_SIZE = 4
+export const AD_VOTING_COMMITTEE_SIZE = 100
 
 export const buildAdReviewVoting = ({title, adCid}) => ({
   desc: title,

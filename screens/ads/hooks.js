@@ -261,7 +261,7 @@ export function useProfileAds() {
 }
 
 export function usePersistedAds(options) {
-  const coinbase = useCoinbase()
+  // const coinbase = useCoinbase()
 
   return useQuery(
     'usePersistedAds',
@@ -270,9 +270,9 @@ export function usePersistedAds(options) {
         (
           await db
             .table('ads')
-            .where({
-              author: coinbase,
-            })
+            // .where({
+            //   author: coinbase,
+            // })
             .toArray()
         ).map(async ({status, contract, thumb, media, ...ad}) => {
           const voting =
