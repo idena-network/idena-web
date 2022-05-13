@@ -520,7 +520,11 @@ function AdPromotion({cid, title, desc, url, media, author}) {
     >
       <Stack spacing="4">
         <Stack spacing="2">
-          <Skeleton isLoaded={Boolean(title)} minH={5} w={3 / 4}>
+          <Skeleton
+            isLoaded={Boolean(title)}
+            minH={5}
+            w={title ? 'full' : 3 / 4}
+          >
             <Heading
               as="h4"
               fontWeight="semibold"

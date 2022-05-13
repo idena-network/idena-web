@@ -145,10 +145,15 @@ export const isRejectedVoting = voting =>
 const isFinalVoting = voting =>
   [VotingStatus.Archived, VotingStatus.Terminated].includes(voting?.status)
 
-const isApprovedAd = voting =>
-  voting?.result === AdVotingOptionId[AdVotingOption.Approve] ||
-  voting?.options?.find(option => option?.id === voting?.result)?.value ===
-    AdVotingOption.Approve
+const isApprovedAd = voting => {
+  const votingResult = voting?.options?.find(
+    option => option?.id === voting?.result
+  )
+  return (
+    votingResult?.value === AdVotingOption.Approve &&
+    votingResult?.id === AdVotingOptionId[AdVotingOption.Approve]
+  )
+}
 
 export const adImageThumbSrc = ad =>
   typeof ad.thumb === 'string'
