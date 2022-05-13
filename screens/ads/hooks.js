@@ -133,7 +133,7 @@ export function useCurrentRotatingAd() {
 export function useRotateAd() {
   const ads = useRotatingAds()
 
-  const intervalsRef = React.useRef([10, 7, 5])
+  const intervalsRef = React.useRef([15, 12, 9])
 
   const [currentIndex, setCurrentIndex] = React.useState(0)
 
