@@ -43,9 +43,12 @@ export default function NewAdPage() {
             ref={adFormRef}
             id="adForm"
             onSubmit={async ad => {
-              await db
-                .table('ads')
-                .add({...ad, id: nanoid(), status: AdStatus.Draft})
+              await db.table('ads').add({
+                ...ad,
+                id: nanoid(),
+                status: AdStatus.Draft,
+                author: coinbase,
+              })
 
               router.push('/adn/list?from=new&save=true')
             }}

@@ -261,39 +261,44 @@ export function useProfileAds() {
 }
 
 export function usePersistedAds(options) {
+  const coinbase = useCoinbase()
+
   return useQuery(
     'usePersistedAds',
     async () =>
       Promise.all(
-        (await db.table('ads').toArray()).map(
-          async ({status, contract, thumb, media, ...ad}) => {
-            const voting =
-              status === AdStatus.Reviewing
-                ? await fetchAdVoting(contract)
-                : null
+        (
+          await db
+            .table('ads')
+            .where({
+              author: coinbase,
+            })
+            .toArray()
+        ).map(async ({status, contract, thumb, media, ...ad}) => {
+          const voting =
+            status === AdStatus.Reviewing ? await fetchAdVoting(contract) : null
 
-            return {
-              ...ad,
-              thumb: isValidImage(thumb)
-                ? URL.createObjectURL(thumb)
-                : adFallbackSrc,
-              media: isValidImage(media)
-                ? URL.createObjectURL(media)
-                : adFallbackSrc,
-              contract,
-              status:
-                // eslint-disable-next-line no-nested-ternary
-                status === AdStatus.Reviewing
-                  ? // eslint-disable-next-line no-nested-ternary
-                    isApprovedVoting(voting)
-                    ? AdStatus.Approved
-                    : isRejectedVoting(voting)
-                    ? AdStatus.Rejected
-                    : AdStatus.Reviewing
-                  : status,
-            }
+          return {
+            ...ad,
+            thumb: isValidImage(thumb)
+              ? URL.createObjectURL(thumb)
+              : adFallbackSrc,
+            media: isValidImage(media)
+              ? URL.createObjectURL(media)
+              : adFallbackSrc,
+            contract,
+            status:
+              // eslint-disable-next-line no-nested-ternary
+              status === AdStatus.Reviewing
+                ? // eslint-disable-next-line no-nested-ternary
+                  isApprovedVoting(voting)
+                  ? AdStatus.Approved
+                  : isRejectedVoting(voting)
+                  ? AdStatus.Rejected
+                  : AdStatus.Reviewing
+                : status,
           }
-        )
+        })
       ),
     {
       notifyOnChangeProps: 'tracked',
