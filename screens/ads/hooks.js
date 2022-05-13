@@ -158,10 +158,12 @@ export function useSelfCompetingAds() {
 
   const [{address, age, stake}] = useIdentity()
 
+  // useLanguage()
+
   const currentTarget = React.useMemo(
     () =>
       new AdTarget({
-        language: new Intl.Locale(i18n.language).language,
+        language: new Intl.Locale(i18n.language ?? 'en').language,
         os: typeof window !== 'undefined' ? currentOs() : '',
         age,
         stake,
