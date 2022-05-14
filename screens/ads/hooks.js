@@ -23,7 +23,7 @@ import {
   buildAdReviewVoting,
   currentOs,
   estimateSignedTx,
-  fetchAdVoting,
+  getAdVoting,
   fetchProfileAds,
   isApprovedVoting,
   isRejectedVoting,
@@ -84,10 +84,9 @@ export function useRotatingAds(limit = 3) {
       .flat()
       .map(ad => ({
         queryKey: ['profileAdVoting', ad?.contract],
-        queryFn: () => fetchAdVoting(ad?.contract),
+        queryFn: () => getAdVoting(ad?.contract),
         enabled: Boolean(ad?.contract),
         select: data => ({...data, cid: ad?.cid}),
-        staleTime: (BLOCK_TIME / 2) * 1000,
       }))
   )
 
@@ -287,7 +286,7 @@ export function usePersistedAds(options) {
             .toArray()
         ).map(async ({status, contract, thumb, media, ...ad}) => {
           const voting =
-            status === AdStatus.Reviewing ? await fetchAdVoting(contract) : null
+            status === AdStatus.Reviewing ? await getAdVoting(contract) : null
 
           return {
             ...ad,

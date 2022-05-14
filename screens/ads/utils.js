@@ -61,7 +61,17 @@ export const compareNullish = (field, targetField, condition) =>
 
 export const selectProfileHash = data => data.profileHash
 
-export async function fetchAdVoting(address) {
+const adVotingCache = new Map()
+
+export async function getAdVoting(address) {
+  if (adVotingCache.has(address)) {
+    return adVotingCache.get(address)
+  }
+
+  return adVotingCache.set(address, await fetchAdVoting(address)).get(address)
+}
+
+async function fetchAdVoting(address) {
   const readContractKey = createContractDataReader(address)
 
   return {
