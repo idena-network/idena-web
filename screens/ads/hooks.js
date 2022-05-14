@@ -383,10 +383,17 @@ function useDeployAdContract({onBeforeSubmit, onSubmit, onError}) {
 
   return useMutation(
     async ad => {
-      const {cid} = await sendToIpfs(encodeAd(ad), {
-        from: coinbase,
-        privateKey,
-      })
+      const {cid} = await sendToIpfs(
+        encodeAd({
+          ...ad,
+          version: 0,
+          votingParams: buildAdReviewVoting({title: ad.title}),
+        }),
+        {
+          from: coinbase,
+          privateKey,
+        }
+      )
 
       const voting = buildAdReviewVoting({
         title: ad.title,

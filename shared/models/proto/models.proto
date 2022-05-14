@@ -109,6 +109,15 @@ message ProtoAd {
   string url = 3;
   bytes thumb = 4;
   bytes media = 5;
+  uint32 version = 6;
+  ProtoAdVotingParams votingParams = 7;
+}
+
+message ProtoAdVotingParams {
+  uint32 votingDuration = 1;
+  uint32 publicVotingDuration = 2;
+  uint32 quorum = 3;
+  uint32 committeeSize = 4;
 }
 
 message ProtoAdTarget {
