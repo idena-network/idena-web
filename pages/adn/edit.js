@@ -61,7 +61,7 @@ export default function EditAdPage() {
               previewAdRef.current = {
                 ...ad,
                 ...currentAd,
-                author: coinbase,
+                author: ad.author ?? coinbase,
                 thumb: isValidImage(currentAd.thumb)
                   ? URL.createObjectURL(currentAd.thumb)
                   : ad.thumb,

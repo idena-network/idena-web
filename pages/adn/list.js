@@ -197,10 +197,17 @@ export default function AdListPage() {
   const handleRemoveAd = React.useCallback(
     async ad => {
       try {
-        await db.table('ads').delete(ad.id)
+        if (ad.id) {
+          await db.table('ads').delete(ad.id)
+        } else {
+          await db
+            .table('ads')
+            .where({cid: ad.cid})
+            .delete()
+        }
       } catch {
-        console.error({ad}, 'fail to delete ad')
-        failToast('Fail to delete ad')
+        console.error({ad}, 'failed to delete ad')
+        failToast('Failed to delete ad')
       } finally {
         refetchPersistedAds()
       }
