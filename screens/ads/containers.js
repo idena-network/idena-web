@@ -296,19 +296,13 @@ export function AdListItem({
           <Stack isInline align="center">
             <Box>
               <Menu>
-                {eitherStatus(
-                  AdStatus.Reviewing,
-                  AdStatus.Approved,
-                  AdStatus.Published,
-                  AdStatus.Rejected
-                ) && (
-                  <MenuItem
-                    icon={<ViewIcon boxSize={5} color="blue.500" />}
-                    onClick={onPreview}
-                  >
-                    {t('Preview')}
-                  </MenuItem>
-                )}
+                <MenuItem
+                  icon={<ViewIcon boxSize={5} color="blue.500" />}
+                  onClick={onPreview}
+                >
+                  {t('Preview')}
+                </MenuItem>
+
                 {eitherStatus(AdStatus.Draft, AdStatus.Rejected) && (
                   <NextLink href={`/adn/edit?id=${id}`} passHref>
                     <MenuItem icon={<EditIcon boxSize={5} color="blue.500" />}>
@@ -327,7 +321,7 @@ export function AdListItem({
                     onRemove?.(ad)
                   }}
                 >
-                  {t('Remove from device')}
+                  {t('Delete')}
                 </MenuItem>
               </Menu>
             </Box>
@@ -882,8 +876,8 @@ export function ReviewAdDrawer({
   return (
     <AdDrawer
       isMining={isPending}
-      closeOnOverlayClick={false}
-      closeOnEsc={false}
+      closeOnOverlayClick={!isPending}
+      closeOnEsc={!isPending}
       {...props}
     >
       <DrawerHeader>
