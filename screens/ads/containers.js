@@ -56,9 +56,9 @@ import {
   Tooltip,
 } from '../../shared/components/components'
 import {
-  useCurrentRotatingAd,
+  useCurrentBannerAd,
   useRotatingAds,
-  useRotateAd,
+  useRotateAds,
   useAdStatusColor,
   useAdStatusText,
   useFormatDna,
@@ -124,7 +124,7 @@ export function AdBanner() {
 
   const router = useRouter()
 
-  const activeAd = useCurrentRotatingAd()
+  const activeAd = useCurrentBannerAd()
 
   return (
     <Flex
@@ -421,7 +421,7 @@ export function AdDrawer({isMining = true, children, ...props}) {
 
   const hasRotatingAds = ads.length > 0
 
-  const {currentIndex, prev, next, setCurrentIndex} = useRotateAd()
+  const {currentIndex, prev, next, setCurrentIndex} = useRotateAds()
 
   const activeAd = ads[currentIndex]
 

@@ -122,24 +122,35 @@ export function useRotatingAds(limit = 3) {
   return decodedProfileAds?.map(x => x.data).filter(Boolean) ?? []
 }
 
-export function useCurrentRotatingAd() {
+export function useCurrentBannerAd() {
   const ads = useRotatingAds()
 
-  const {currentIndex} = useRotateAd()
+  const timing = React.useMemo(() => [12, 10, 8], [])
+
+  const {currentIndex} = useRotateAds(timing)
 
   return ads[currentIndex]
 }
 
-export function useRotateAd() {
+export function useRotateAds(maybeTiming) {
   const ads = useRotatingAds()
 
-  const intervalsRef = React.useRef([10, 7, 5])
+  const timing = React.useMemo(() => maybeTiming ?? [10, 7, 5], [maybeTiming])
+
+  const intervalsRef = React.useRef(timing)
+
+  React.useEffect(() => {
+    intervalsRef.current = timing
+  }, [timing])
 
   const [currentIndex, setCurrentIndex] = React.useState(0)
 
-  useInterval(() => {
-    setCurrentIndex((currentIndex + 1) % ads.length)
-  }, intervalsRef.current[currentIndex] * 1000)
+  useInterval(
+    () => {
+      setCurrentIndex((currentIndex + 1) % ads.length)
+    },
+    ads.length > 0 ? intervalsRef.current[currentIndex] * 1000 : null
+  )
 
   return {
     currentIndex,

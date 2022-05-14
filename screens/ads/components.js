@@ -67,7 +67,7 @@ export function EmptyAdList({children}) {
       <Stack spacing="4" align="center">
         <Text>{children}</Text>
         <NextLink href="/adn/new">
-          <Button variant="outline">{t('Create new ad')}</Button>
+          <Button variant="outline">{t('Create a new ad')}</Button>
         </NextLink>
       </Stack>
     </Center>
