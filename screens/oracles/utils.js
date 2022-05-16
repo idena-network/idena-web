@@ -788,3 +788,16 @@ export function normalizeId(id) {
 export function getUrls(text) {
   return text.match(urlRegex()) || []
 }
+
+export const validateAdVoting = ({ad, voting}) => {
+  if (ad?.votingParams) {
+    return [
+      'votingDuration',
+      'publicVotingDuration',
+      'quorum',
+      'committeeSize',
+    ].every(prop => ad.votingParams[prop] === voting[prop])
+  }
+
+  return false
+}

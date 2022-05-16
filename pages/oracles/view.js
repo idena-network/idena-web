@@ -77,6 +77,7 @@ import {
   areSameCaseInsensitive,
   hasWinner,
   humanError,
+  validateAdVoting,
   mapVotingStatus,
   quorumVotesCount,
   votingMinBalance,
@@ -212,6 +213,9 @@ export default function ViewVotingPage() {
   const {data: ad} = useIpfsAd(adCid)
 
   const adPreviewDisclosure = useDisclosure()
+
+  const isMaliciousAdVoting =
+    validateAdVoting({ad, voting: current.context}) === false
 
   return (
     <>
@@ -456,7 +460,10 @@ export default function ViewVotingPage() {
                         )}
                         {eitherIdleState(VotingStatus.Open) &&
                           (isOracle ? (
-                            <PrimaryButton onClick={() => send('REVIEW')}>
+                            <PrimaryButton
+                              onClick={() => send('REVIEW')}
+                              isDisabled={isMaliciousAdVoting}
+                            >
                               {t('Vote')}
                             </PrimaryButton>
                           ) : (
@@ -982,7 +989,11 @@ export default function ViewVotingPage() {
       )}
 
       {adCid && (
-        <AdPreview ad={{...ad, author: issuer}} {...adPreviewDisclosure} />
+        <AdPreview
+          ad={{...ad, author: issuer}}
+          isMalicious={isMaliciousAdVoting}
+          {...adPreviewDisclosure}
+        />
       )}
 
       <Dialog
