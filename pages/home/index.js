@@ -83,6 +83,7 @@ export default function ProfilePage() {
     online,
     delegatee,
     delegationEpoch,
+    pendingUndelegation,
     canMine,
     canInvite,
     canTerminate,
@@ -446,6 +447,7 @@ export default function ProfilePage() {
                         isOnline={online}
                         delegatee={delegatee}
                         delegationEpoch={delegationEpoch}
+                        pendingUndelegation={pendingUndelegation}
                         onShow={nextOnboardingTask}
                       />
                     )}

@@ -98,6 +98,7 @@ import {useInviteActivation, useReplenishStake, useStakingAlert} from './hooks'
 import {useTotalValidationScore} from '../validation-report/hooks'
 import {DnaInput} from '../oracles/components'
 import {BLOCK_TIME} from '../oracles/utils'
+import {useFailToast} from '../../shared/hooks/use-toast'
 
 export function UserInlineCard({
   identity: {
@@ -712,9 +713,10 @@ export function ActivateMiningForm({
   isOnline,
   delegatee,
   delegationEpoch,
+  pendingUndelegation,
   onShow,
 }) {
-  const toast = useToast()
+  const failToast = useFailToast()
 
   const epoch = useEpoch()
   const [, {waitOnlineUpdate, forceUpdate}] = useIdentity()
@@ -727,13 +729,7 @@ export function ActivateMiningForm({
       privateKey,
     },
     actions: {
-      onError: (_, {data: {message}}) => {
-        toast({
-          status: 'error',
-          // eslint-disable-next-line react/display-name
-          render: () => <Toast title={message} status="error" />,
-        })
-      },
+      onError: (_, {data}) => failToast(data?.message),
       waitIdentityUpdate: () => waitOnlineUpdate(),
       forceIdentityUpdate: () => forceUpdate(),
     },
@@ -777,6 +773,9 @@ export function ActivateMiningForm({
       ) : (
         <ActivateMiningDrawer
           mode={mode}
+          delegationEpoch={delegationEpoch}
+          pendingUndelegation={pendingUndelegation}
+          currentEpoch={epoch?.epoch}
           isOpen={eitherState(current, 'showing')}
           isCloseable={!isDesktop}
           isLoading={eitherState(current, 'showing.mining')}
@@ -854,8 +853,11 @@ export function ActivateMiningSwitch({isOnline, isDelegator, onShow}) {
 }
 
 export function ActivateMiningDrawer({
-  isLoading,
   mode,
+  delegationEpoch,
+  pendingUndelegation,
+  currentEpoch,
+  isLoading,
   onChangeMode,
   onActivate,
   onClose,
@@ -956,25 +958,20 @@ export function ActivateMiningDrawer({
                 </FormLabel>
                 <Input
                   size={sizeInput}
-                  value={delegatee}
+                  value={pendingUndelegation || delegatee}
+                  isDisabled={Boolean(pendingUndelegation)}
                   onChange={e => setDelegatee(e.target.value)}
                 />
               </FormControl>
-              <Alert
-                status="error"
-                rounded="md"
-                bg="red.010"
-                borderColor="red.050"
-                borderWidth={1}
-              >
-                <AlertIcon name="info" alignSelf="flex-start" color="red.500" />
-                <AlertDescription
-                  as={Stack}
-                  spacing={3}
-                  color="brandGray.500"
-                  fontSize="md"
-                  fontWeight={500}
-                >
+              {pendingUndelegation ? (
+                <ErrorAlert>
+                  {t(
+                    'You have recently disabled delegation. You need to wait for {{count}} epochs to delegate to a new address.',
+                    {count: 3 - (currentEpoch - delegationEpoch)}
+                  )}
+                </ErrorAlert>
+              ) : (
+                <ErrorAlert>
                   <Text>
                     {t(
                       'You can lose your stake, all your mining and validation rewards if you delegate your mining status.'
@@ -983,8 +980,8 @@ export function ActivateMiningDrawer({
                   <Text>
                     {t('You can disable delegation at the next epoch only.')}
                   </Text>
-                </AlertDescription>
-              </Alert>
+                </ErrorAlert>
+              )}
             </Stack>
           ) : (
             <Stack spacing={[4, 5]}>
