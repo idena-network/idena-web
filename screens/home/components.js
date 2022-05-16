@@ -865,7 +865,7 @@ export function ActivateMiningDrawer({
 }) {
   const {t} = useTranslation()
 
-  const [delegatee, setDelegatee] = useState()
+  const [delegatee, setDelegatee] = useState(pendingUndelegation)
   const {onCopy, hasCopied} = useClipboard('https://www.idena.io/download')
 
   const sizeInput = useBreakpointValue(['lg', 'md'])
@@ -958,7 +958,7 @@ export function ActivateMiningDrawer({
                 </FormLabel>
                 <Input
                   size={sizeInput}
-                  value={pendingUndelegation || delegatee}
+                  value={delegatee}
                   isDisabled={Boolean(pendingUndelegation)}
                   onChange={e => setDelegatee(e.target.value)}
                 />
@@ -1720,8 +1720,8 @@ export function ReplenishStakeDrawer({onSuccess, onError, ...props}) {
   const {coinbase} = useAuthState()
 
   const {data: balanceData} = useQuery({
-    queryKey: ['dna_getBalance', coinbase],
-    queryFn: ({queryKey}) => callRpc(...queryKey),
+    queryKey: ['get-balance', coinbase],
+    queryFn: ({queryKey: [, address]}) => callRpc('dna_getBalance', address),
     enabled: Boolean(coinbase),
     staleTime: (BLOCK_TIME / 2) * 1000,
     notifyOnChangeProps: 'tracked',
@@ -1729,7 +1729,9 @@ export function ReplenishStakeDrawer({onSuccess, onError, ...props}) {
 
   const {submit} = useReplenishStake({onSuccess, onError})
 
-  const formatDna = toLocaleDna(i18n.language)
+  const formatDna = toLocaleDna(i18n.language, {
+    maximumFractionDigits: 4,
+  })
 
   const isRisky = [
     IdentityStatus.Candidate,
@@ -1784,9 +1786,9 @@ export function ReplenishStakeDrawer({onSuccess, onError, ...props}) {
             >
               <FormControl>
                 <FormLabel mx={0} mb="3">
-                  {t('Transfer from')}
+                  {t('Amount')}
                 </FormLabel>
-                <DnaInput />
+                <DnaInput name="amount" />
                 <FormHelperText fontSize="md">
                   <Flex justify="space-between">
                     <Box as="span" color="muted">
