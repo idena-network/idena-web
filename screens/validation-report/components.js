@@ -587,7 +587,9 @@ export function TableValidationDesc({
     </TableDescText>
   ) : (
     <TableDescText color={missedValidationReward > 0 ? 'red.500' : ''}>
-      {t('Attend every validation to get a higher reward')}
+      {missedValidationReward > 0
+        ? t('Attend every validation to get a higher reward')
+        : t(`Great job! You have earned maximum reward`)}
     </TableDescText>
   )
 }

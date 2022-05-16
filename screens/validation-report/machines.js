@@ -107,6 +107,8 @@ export const validationReportMachine = createMachine({
               missedFlipReward: missedReward('flips'),
               flipReportReward: earnedReward('reports'),
               missedFlipReportReward: missedReward('reports'),
+              stakingReward: earnedReward('staking'),
+              missedStakingReward: missedReward('staking'),
               lastValidationScore,
             }
           }
