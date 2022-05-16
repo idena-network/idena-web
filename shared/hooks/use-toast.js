@@ -15,7 +15,7 @@ export function useStatusToast(status) {
     typeof params === 'string'
       ? {title: params}
       : params instanceof Error
-      ? params?.message
+      ? {title: params?.message}
       : params
 
   return params =>
