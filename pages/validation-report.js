@@ -143,7 +143,7 @@ export default function ValidationReport() {
             </Skeleton>
           </Box>
           <Box py={2} display={['none', 'block']}>
-            <UserInlineCard address={address} state={state} />
+            <UserInlineCard identity={{address, state}} />
           </Box>
           <Stack isInline={!isMobile} spacing={[4, 10]}>
             <ValidationReportBlockOverview>

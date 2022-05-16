@@ -1,5 +1,7 @@
 import {useMachine} from '@xstate/react'
-import {useEffect, useReducer, useState} from 'react'
+import React, {useEffect, useReducer, useState} from 'react'
+import {useTranslation} from 'react-i18next'
+import {useMutation} from 'react-query'
 import {assign, createMachine} from 'xstate'
 import {
   activateKey,
@@ -15,7 +17,7 @@ import {Transaction} from '../../shared/models/transaction'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {useIdentity} from '../../shared/providers/identity-context'
-import {IdentityStatus} from '../../shared/types'
+import {IdentityStatus, TxType} from '../../shared/types'
 import {
   sendActivateInvitation,
   sendSuccessValidation,
@@ -25,7 +27,7 @@ import {
   privateKeyToPublicKey,
 } from '../../shared/utils/crypto'
 import {loadPersistentState} from '../../shared/utils/persist'
-import {validateInvitationCode} from '../../shared/utils/utils'
+import {toPercent, validateInvitationCode} from '../../shared/utils/utils'
 
 const idenaBotMachine = createMachine({
   context: {
@@ -203,4 +205,90 @@ export function useValidationResults() {
   }
 
   return [seen, setValidationResultSeen]
+}
+
+export function useReplenishStake({onSuccess, onError}) {
+  const {coinbase, privateKey} = useAuthState()
+
+  const mutation = useMutation(
+    async ({amount}) => {
+      const rawTx = await getRawTx(
+        TxType.ReplenishStakeTx,
+        coinbase,
+        coinbase,
+        amount
+      )
+
+      return sendRawTx(
+        `0x${new Transaction()
+          .fromHex(rawTx)
+          .sign(privateKey)
+          .toHex()}`
+      )
+    },
+    {
+      onSuccess,
+      onError,
+    }
+  )
+
+  return {
+    submit: mutation.mutate,
+  }
+}
+
+export function useStakingAlert() {
+  const {t} = useTranslation()
+
+  const [{state, age}] = useIdentity()
+
+  const lossRatio = React.useMemo(() => (age === 4 ? 1 : (10 - age) / 100), [
+    age,
+  ])
+
+  const messages = React.useMemo(
+    () => ({
+      [IdentityStatus.Newbie]: t(
+        'You will lose 100% of the Stake if you fail or miss the upcoming validation'
+      ),
+      [IdentityStatus.Candidate]: t(
+        'You will lose 100% of the Stake if you fail or miss the upcoming validation'
+      ),
+      [IdentityStatus.Verified]: t(
+        'You will lose 100% of the Stake if you fail the upcoming validation'
+      ),
+      [IdentityStatus.Zombie]: [
+        t(
+          `You will lose {{ratio}} of the Stake if you fail the upcoming validation.`,
+          {
+            ratio: toPercent(lossRatio),
+          }
+        ),
+        t(
+          'You will lose 100% of the Stake if you miss the upcoming validation'
+        ),
+      ],
+      [IdentityStatus.Suspended]: t(
+        'You will lose {{ratio}}% of the Stake if you fail the upcoming validation.',
+        {
+          ratio: toPercent(lossRatio),
+        }
+      ),
+    }),
+    [lossRatio, t]
+  )
+
+  return React.useMemo(
+    () =>
+      [
+        IdentityStatus.Candidate,
+        IdentityStatus.Newbie,
+        IdentityStatus.Verified,
+        IdentityStatus.Zombie,
+      ].includes(state) ||
+      (state === IdentityStatus.Suspended && age > 0)
+        ? messages[state]
+        : null,
+    [age, state, messages]
+  )
 }

@@ -47,7 +47,7 @@ import {FiEye, FiEyeOff} from 'react-icons/fi'
 import NextLink from 'next/link'
 import dynamic from 'next/dynamic'
 import {rem} from '../theme'
-import {ChevronRightIcon, GtranslateIcon} from './icons'
+import {ChevronRightIcon, GtranslateIcon, InfoIcon} from './icons'
 import {openExternalUrl} from '../utils/utils'
 import {Heading} from './typo'
 import {FlatButton, IconButton} from './button'
@@ -488,7 +488,7 @@ export function ErrorAlert({children, ...props}) {
       py={2}
       {...props}
     >
-      <AlertIcon name="info" color="red.500" size={5} mr={3}></AlertIcon>
+      <InfoIcon color="red.500" boxSize={5} mr={3} />
       {children}
     </Alert>
   )

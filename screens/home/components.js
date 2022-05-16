@@ -34,6 +34,14 @@ import {
   InputLeftElement,
   useTab,
   HStack,
+  Tag,
+  Center,
+  FormHelperText,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverBody,
+  PopoverArrow,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
@@ -54,7 +62,7 @@ import {
   DialogBody,
   Dialog,
   TextLink,
-  Badge,
+  ErrorAlert,
 } from '../../shared/components/components'
 import {
   FlatButton,
@@ -64,9 +72,11 @@ import {
 import {IdentityStatus, NodeType} from '../../shared/types'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {
+  callRpc,
   eitherState,
   mapIdentityToFriendlyStatus,
   openExternalUrl,
+  toLocaleDna,
   toPercent,
   useIsDesktop,
 } from '../../shared/utils/utils'
@@ -78,19 +88,36 @@ import {
   LaptopIcon,
   TestValidationIcon,
   UserIcon,
+  WalletIcon,
 } from '../../shared/components/icons'
 import {
   OnboardingPopoverContent,
   OnboardingPopoverContentIconRow,
 } from '../../shared/components/onboarding'
-import {useInviteActivation} from './hooks'
+import {useInviteActivation, useReplenishStake, useStakingAlert} from './hooks'
 import {useTotalValidationScore} from '../validation-report/hooks'
+import {DnaInput} from '../oracles/components'
+import {BLOCK_TIME} from '../oracles/utils'
 
 export function UserInlineCard({
-  identity: {address, state, age, penalty},
+  identity: {
+    address,
+    state,
+    age,
+    penalty,
+    totalShortFlipPoints,
+    totalQualifiedFlips,
+  },
   ...props
 }) {
+  const {t, i18n} = useTranslation()
+
   const score = useTotalValidationScore()
+
+  const epoch = useEpoch()
+
+  const formatDna = toLocaleDna(i18n.language)
+
   return (
     <Stack
       direction={['column', 'row']}
@@ -101,12 +128,15 @@ export function UserInlineCard({
       {...props}
     >
       <Avatar
+        address={address}
         size={[
           ['160px', '160px'],
           ['88px', '80px'],
         ]}
+        bg="white"
+        borderWidth={1}
+        borderColor="gray.016"
         borderRadius={['48px', 'lg']}
-        address={address}
       />
       <Stack spacing="1.5">
         <Stack spacing={1} align={['center', 'initial']}>
@@ -125,14 +155,55 @@ export function UserInlineCard({
           </Heading>
         </Stack>
         <HStack>
-          <ProfileBadge>Age {age}</ProfileBadge>
+          <ProfileTag>{t(`Age {{age}}`, {age})}</ProfileTag>
+
           {Number.isFinite(score) && (
-            <ProfileBadge>Score {toPercent(score)}</ProfileBadge>
+            <Popover placement="top">
+              <PopoverTrigger>
+                <ProfileTag cursor="help">
+                  {t(`Score {{score}}`, {score: toPercent(score)})}
+                </ProfileTag>
+              </PopoverTrigger>
+              <PopoverContent fontSize="sm" w="max-content">
+                <PopoverArrow bg="graphite.500" />
+                <PopoverBody bg="graphite.500" p="2" pt="1">
+                  <Stack>
+                    <Stack spacing="0.5">
+                      <Text color="muted" lineHeight="shorter">
+                        {t('Total score')}
+                      </Text>
+                      <Text color="white" lineHeight="4">
+                        {t(
+                          `{{totalShortFlipPoints}} out of {{totalQualifiedFlips}}`,
+                          {
+                            totalShortFlipPoints,
+                            totalQualifiedFlips,
+                          }
+                        )}
+                      </Text>
+                    </Stack>
+                    <Stack spacing="0.5">
+                      <Text color="muted" lineHeight="shorter">
+                        {t('Epoch #{{epoch}}', {epoch: epoch?.epoch})}
+                      </Text>
+                      <TextLink
+                        href="/validation-report"
+                        color="white"
+                        lineHeight="4"
+                      >
+                        {t('Validation report')}
+                      </TextLink>
+                    </Stack>
+                  </Stack>
+                </PopoverBody>
+              </PopoverContent>
+            </Popover>
           )}
+
           {penalty > 0 && (
-            <ProfileBadge bg="red.012" color="red.500">
-              Mining penalty {penalty}
-            </ProfileBadge>
+            <ProfileTag bg="red.012" color="red.500">
+              {t(`Mining penalty {{penalty}}`, {penalty: formatDna(penalty)})}
+            </ProfileTag>
           )}
         </HStack>
       </Stack>
@@ -1640,17 +1711,135 @@ export function GetInvitationCopyButton({value, ...props}) {
   )
 }
 
-export function ProfileBadge(props) {
+export const ProfileTag = React.forwardRef(function ProfileTag(props, ref) {
+  return <Tag ref={ref} bg="gray.016" borderRadius="xl" px="3" {...props} />
+})
+
+export function ReplenishStakeDrawer({onSuccess, onError, ...props}) {
+  const {t, i18n} = useTranslation()
+
+  const [{state}] = useIdentity()
+
+  const {coinbase} = useAuthState()
+
+  const {data: balanceData} = useQuery({
+    queryKey: ['dna_getBalance', coinbase],
+    queryFn: ({queryKey}) => callRpc(...queryKey),
+    enabled: Boolean(coinbase),
+    staleTime: (BLOCK_TIME / 2) * 1000,
+    notifyOnChangeProps: 'tracked',
+  })
+
+  const {submit} = useReplenishStake({onSuccess, onError})
+
+  const formatDna = toLocaleDna(i18n.language)
+
+  const isRisky = [
+    IdentityStatus.Candidate,
+    IdentityStatus.Newbie,
+    IdentityStatus.Verified,
+  ].includes(state)
+
   return (
-    <Badge
-      bg="gray.012"
-      borderRadius="xl"
-      color="gray.500"
-      fontSize="sm"
-      px="3"
-      h="6"
-      textTransform="initial"
-      {...props}
-    />
+    <Drawer {...props}>
+      <DrawerHeader>
+        <Stack spacing="4">
+          <Center bg="blue.012" h="12" w="12" rounded="xl">
+            <WalletIcon boxSize="6" color="blue.500" />
+          </Center>
+          <Heading
+            color="brandGray.500"
+            fontSize="lg"
+            fontWeight={500}
+            lineHeight="base"
+          >
+            {t('Add stake')}
+          </Heading>
+        </Stack>
+      </DrawerHeader>
+      <DrawerBody fontSize="md">
+        <Stack spacing={30}>
+          <Stack>
+            <Text>
+              {t(
+                'Get quadratic staking rewards for locking iDNA in your identity stake.'
+              )}
+            </Text>
+            <Text>
+              {t('Current stake amount: {{amount}}', {
+                amount: formatDna(balanceData?.stake),
+                nsSeparator: '!!',
+              })}
+            </Text>
+          </Stack>
+          <Stack spacing="2.5">
+            <form
+              id="replenishStake"
+              onSubmit={e => {
+                e.preventDefault()
+
+                const formData = new FormData(e.target)
+
+                const amount = formData.get('amount')
+
+                submit({amount})
+              }}
+            >
+              <FormControl>
+                <FormLabel mx={0} mb="3">
+                  {t('Transfer from')}
+                </FormLabel>
+                <DnaInput />
+                <FormHelperText fontSize="md">
+                  <Flex justify="space-between">
+                    <Box as="span" color="muted">
+                      {t('Available')}
+                    </Box>
+                    <Box as="span">{formatDna(balanceData?.balance)}</Box>
+                  </Flex>
+                </FormHelperText>
+              </FormControl>
+            </form>
+          </Stack>
+          {isRisky && (
+            <ErrorAlert>
+              {state === IdentityStatus.Verified
+                ? t(
+                    'You will lose 100% of the Stake if you fail the upcoming validation'
+                  )
+                : t(
+                    'You will lose 100% of the Stake if you fail or miss the upcoming validation'
+                  )}
+            </ErrorAlert>
+          )}
+        </Stack>
+      </DrawerBody>
+      <DrawerFooter>
+        <HStack>
+          <SecondaryButton onClick={props.onClose}>
+            {t('Not now')}
+          </SecondaryButton>
+          <PrimaryButton form="replenishStake" type="submit">
+            {t('Add stake')}
+          </PrimaryButton>
+        </HStack>
+      </DrawerFooter>
+    </Drawer>
   )
+}
+
+export function StakingAlert(props) {
+  const warning = useStakingAlert()
+
+  return warning ? (
+    <ErrorAlert {...props}>
+      {Array.isArray(warning)
+        ? warning.map((message, idx) => (
+            <Text key={idx} as="span">
+              {message}
+            </Text>
+          ))
+        : warning}
+    </ErrorAlert>
+  ) : null
 }
