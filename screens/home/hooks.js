@@ -11,6 +11,7 @@ import {
   sendRawTx,
 } from '../../shared/api'
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
+import {useBalance} from '../../shared/hooks/use-balance'
 import {usePersistence} from '../../shared/hooks/use-persistent-state'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import useTx from '../../shared/hooks/use-tx'
@@ -296,7 +297,9 @@ export function useStakingAlert() {
 }
 
 export function useStakingApy() {
-  const [{stake}] = useIdentity()
+  const {
+    data: {stake},
+  } = useBalance()
 
   const epoch = useEpoch()
 
