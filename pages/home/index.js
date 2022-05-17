@@ -205,6 +205,15 @@ export default function ProfilePage() {
 
   const replenishStakeDisclosure = useDisclosure()
 
+  const {onOpen: onOpenReplenishStakeDisclosure} = replenishStakeDisclosure
+
+  React.useEffect(() => {
+    if (Object.keys(router.query).find(q => q === 'replenishStake')) {
+      onOpenReplenishStakeDisclosure()
+      router.push('/home')
+    }
+  }, [onOpenReplenishStakeDisclosure, router])
+
   const failToast = useFailToast()
 
   const toast = useSuccessToast()
