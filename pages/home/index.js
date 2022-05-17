@@ -367,24 +367,26 @@ export default function ProfilePage() {
                         </UserStatValue>
                       </Stack>
                     </UserStat>
-                    <Button
-                      variant="link"
-                      color="blue.500"
-                      fontWeight={500}
-                      lineHeight="4"
-                      w="fit-content"
-                      _hover={{
-                        background: 'transparent',
-                        textDecoration: 'underline',
-                      }}
-                      _focus={{
-                        outline: 'none',
-                      }}
-                      onClick={replenishStakeDisclosure.onOpen}
-                    >
-                      {t('Add stake')}
-                      <ChevronRightIcon boxSize="4" />
-                    </Button>
+                    {state !== IdentityStatus.Undefined && (
+                      <Button
+                        variant="link"
+                        color="blue.500"
+                        fontWeight={500}
+                        lineHeight="4"
+                        w="fit-content"
+                        _hover={{
+                          background: 'transparent',
+                          textDecoration: 'underline',
+                        }}
+                        _focus={{
+                          outline: 'none',
+                        }}
+                        onClick={replenishStakeDisclosure.onOpen}
+                      >
+                        {t('Add stake')}
+                        <ChevronRightIcon boxSize="4" />
+                      </Button>
+                    )}
                   </Stack>
                   <Stack spacing="5px" flex={1}>
                     <UserStat>
