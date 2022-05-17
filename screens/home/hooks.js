@@ -302,7 +302,7 @@ export function useStakingApy() {
 
   const fetcher = React.useCallback(async ({queryKey}) => {
     const {result, error} = await (
-      await fetch(apiUrl(queryKey.join('/')))
+      await fetch(apiUrl(queryKey.join('/').toLowerCase()))
     ).json()
 
     if (error) throw new Error(error.message)
@@ -311,21 +311,24 @@ export function useStakingApy() {
   }, [])
 
   const {data: stakingData} = useQuery({
-    queryKey: ['staking'],
+    queryKey: ['staking', stake],
     queryFn: fetcher,
+    notifyOnChangeProps: 'tracked',
   })
 
   const {data: validationRewardsSummaryData} = useQuery({
-    queryKey: ['epoch', epoch?.epoch - 1, 'rewardssummary'],
+    queryKey: ['epoch', epoch?.epoch - 1, 'rewardsSummary'],
     queryFn: fetcher,
     enabled: Boolean(epoch),
     staleTime: Infinity,
+    notifyOnChangeProps: 'tracked',
   })
 
   const {data: prevEpochData} = useQuery({
     queryKey: ['epoch', epoch?.epoch - 1],
     queryFn: fetcher,
     staleTime: Infinity,
+    notifyOnChangeProps: 'tracked',
   })
 
   return React.useMemo(() => {
