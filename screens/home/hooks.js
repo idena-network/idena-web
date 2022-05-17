@@ -1,7 +1,8 @@
 import {useMachine} from '@xstate/react'
+import dayjs from 'dayjs'
 import React, {useEffect, useReducer, useState} from 'react'
 import {useTranslation} from 'react-i18next'
-import {useMutation} from 'react-query'
+import {useMutation, useQuery} from 'react-query'
 import {assign, createMachine} from 'xstate'
 import {
   activateKey,
@@ -28,6 +29,7 @@ import {
 } from '../../shared/utils/crypto'
 import {loadPersistentState} from '../../shared/utils/persist'
 import {toPercent, validateInvitationCode} from '../../shared/utils/utils'
+import {apiUrl} from '../oracles/utils'
 
 const idenaBotMachine = createMachine({
   context: {
@@ -249,27 +251,27 @@ export function useStakingAlert() {
   const messages = React.useMemo(
     () => ({
       [IdentityStatus.Newbie]: t(
-        'You will lose 100% of the Stake if you fail or miss the upcoming validation'
+        'You will lose 100% of the stake if you fail or miss the upcoming validation'
       ),
       [IdentityStatus.Candidate]: t(
-        'You will lose 100% of the Stake if you fail or miss the upcoming validation'
+        'You will lose 100% of the stake if you fail or miss the upcoming validation'
       ),
       [IdentityStatus.Verified]: t(
-        'You will lose 100% of the Stake if you fail the upcoming validation'
+        'You will lose 100% of the stake if you fail the upcoming validation'
       ),
       [IdentityStatus.Zombie]: [
         t(
-          `You will lose {{ratio}} of the Stake if you fail the upcoming validation.`,
+          `You will lose {{ratio}} of the stake if you fail the upcoming validation.`,
           {
             ratio: toPercent(lossRatio),
           }
         ),
         t(
-          'You will lose 100% of the Stake if you miss the upcoming validation'
+          'You will lose 100% of the stake if you miss the upcoming validation'
         ),
       ],
       [IdentityStatus.Suspended]: t(
-        'You will lose {{ratio}} of the Stake if you fail the upcoming validation.',
+        'You will lose {{ratio}} of the stake if you fail the upcoming validation.',
         {
           ratio: toPercent(lossRatio),
         }
@@ -291,4 +293,58 @@ export function useStakingAlert() {
         : null,
     [age, state, messages]
   )
+}
+
+export function useStakingApy() {
+  const [{stake}] = useIdentity()
+
+  const epoch = useEpoch()
+
+  const fetcher = React.useCallback(async ({queryKey}) => {
+    const {result, error} = await (
+      await fetch(apiUrl(queryKey.join('/')))
+    ).json()
+
+    if (error) throw new Error(error.message)
+
+    return result
+  }, [])
+
+  const {data: stakingData} = useQuery({
+    queryKey: ['staking'],
+    queryFn: fetcher,
+  })
+
+  const {data: validationRewardsSummaryData} = useQuery({
+    queryKey: ['epoch', epoch?.epoch - 1, 'rewardssummary'],
+    queryFn: fetcher,
+    enabled: Boolean(epoch),
+    staleTime: Infinity,
+  })
+
+  const {data: prevEpochData} = useQuery({
+    queryKey: ['epoch', epoch?.epoch - 1],
+    queryFn: fetcher,
+    staleTime: Infinity,
+  })
+
+  return React.useMemo(() => {
+    if (stakingData && validationRewardsSummaryData && epoch && prevEpochData) {
+      const {weight} = stakingData
+      const {validation, staking} = validationRewardsSummaryData
+
+      const epochStakingRewardFund = Number(staking) || 0.9 * Number(validation)
+
+      const epochReward = (stake ** 0.9 / weight) * epochStakingRewardFund
+
+      const epy = epochReward / stake
+
+      const epochDays = dayjs(epoch?.nextValidation).diff(
+        prevEpochData?.validationTime,
+        'day'
+      )
+
+      return (epy / epochDays) * 366
+    }
+  }, [epoch, prevEpochData, stake, stakingData, validationRewardsSummaryData])
 }

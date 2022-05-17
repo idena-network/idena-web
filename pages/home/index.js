@@ -64,7 +64,11 @@ import {
 } from '../../shared/components/icons'
 import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
 import {isValidDnaUrl} from '../../screens/dna/utils'
-import {useIdenaBot, useValidationResults} from '../../screens/home/hooks'
+import {
+  useIdenaBot,
+  useStakingApy,
+  useValidationResults,
+} from '../../screens/home/hooks'
 import {ValidationReportSummary} from '../../screens/validation-report/components'
 
 export default function ProfilePage() {
@@ -204,6 +208,8 @@ export default function ProfilePage() {
   const failToast = useFailToast()
 
   const toast = useSuccessToast()
+
+  const stakingApy = useStakingApy()
 
   return (
     <Layout canRedirect={!dnaUrl} didConnectIdenaBot={didConnectIdenaBot}>
@@ -360,24 +366,24 @@ export default function ProfilePage() {
                 </Button>
               </UserStatList>
 
-              <UserStatList title={t('Stake')}>
-                <Flex>
-                  <Stack spacing="5px" flex={1}>
-                    <UserStat>
-                      <Stack spacing="3px">
-                        <UserStatLabel lineHeight="4">
-                          {t('Balance')}
-                        </UserStatLabel>
-                        <UserStatValue lineHeight="4">
-                          {toDna(
-                            state === IdentityStatus.Newbie
-                              ? (stake - (replenishedStake ?? 0)) * 0.25
-                              : stake
-                          )}
-                        </UserStatValue>
-                      </Stack>
-                    </UserStat>
-                    {state !== IdentityStatus.Undefined && (
+              {Boolean(state) && state !== IdentityStatus.Undefined && (
+                <UserStatList title={t('Stake')}>
+                  <Flex>
+                    <Stack spacing="5px" flex={1}>
+                      <UserStat>
+                        <Stack spacing="3px">
+                          <UserStatLabel lineHeight="4">
+                            {t('Balance')}
+                          </UserStatLabel>
+                          <UserStatValue lineHeight="4">
+                            {toDna(
+                              state === IdentityStatus.Newbie
+                                ? (stake - (replenishedStake ?? 0)) * 0.25
+                                : stake
+                            )}
+                          </UserStatValue>
+                        </Stack>
+                      </UserStat>
                       <Button
                         variant="link"
                         color="blue.500"
@@ -396,33 +402,35 @@ export default function ProfilePage() {
                         {t('Add stake')}
                         <ChevronRightIcon boxSize="4" />
                       </Button>
-                    )}
-                  </Stack>
-                  <Stack spacing="5px" flex={1}>
-                    <UserStat>
-                      <Stack spacing="3px">
-                        <UserStatLabel lineHeight="4">{t('APY')}</UserStatLabel>
-                        <UserStatValue lineHeight="4">
-                          {toPercent(0.204)}
-                        </UserStatValue>
-                      </Stack>
-                    </UserStat>
-                    <ExternalLink href="https://idena.io/staking">
-                      {t('Staking calculator')}
-                    </ExternalLink>
-                  </Stack>
-                </Flex>
+                    </Stack>
+                    <Stack spacing="5px" flex={1}>
+                      <UserStat>
+                        <Stack spacing="3px">
+                          <UserStatLabel lineHeight="4">
+                            {t('APY')}
+                          </UserStatLabel>
+                          <UserStatValue lineHeight="4">
+                            {stakingApy > 0 ? toPercent(stakingApy) : '--'}
+                          </UserStatValue>
+                        </Stack>
+                      </UserStat>
+                      <ExternalLink href="https://idena.io/staking">
+                        {t('Staking calculator')}
+                      </ExternalLink>
+                    </Stack>
+                  </Flex>
 
-                {stake > 0 && state === IdentityStatus.Newbie && (
-                  <AnnotatedUserStatistics
-                    annotation={t(
-                      'You need to get Verified status to get the locked funds into the normal wallet'
-                    )}
-                    label={t('Locked')}
-                    value={toDna((stake - (replenishedStake ?? 0)) * 0.75)}
-                  />
-                )}
-              </UserStatList>
+                  {stake > 0 && state === IdentityStatus.Newbie && (
+                    <AnnotatedUserStatistics
+                      annotation={t(
+                        'You need to get Verified status to get the locked funds into the normal wallet'
+                      )}
+                      label={t('Locked')}
+                      value={toDna((stake - (replenishedStake ?? 0)) * 0.75)}
+                    />
+                  )}
+                </UserStatList>
+              )}
             </Stack>
             <StakingAlert mt="2" />
           </Box>
