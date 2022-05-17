@@ -111,9 +111,9 @@ export default function ProfilePage() {
   } = useDisclosure()
 
   const {
-    data: {balance, stake},
+    data: {balance, stake, replenishedStake},
   } = useQuery(['get-balance', address], () => fetchBalance(address), {
-    initialData: {balance: 0, stake: 0},
+    initialData: {balance: 0, stake: 0, replenishedStake: 0},
     enabled: !!address,
     refetchInterval: 30 * 1000,
   })
@@ -343,15 +343,19 @@ export default function ProfilePage() {
                   {t('Send iDNA')}
                 </Button>
 
-                {stake > 0 && state === IdentityStatus.Newbie && (
-                  <AnnotatedUserStatistics
-                    annotation={t(
-                      'You need to get Verified status to get the locked funds into the normal wallet'
-                    )}
-                    label={t('Locked')}
-                    value={toDna(stake * 0.75)}
-                  />
-                )}
+                <Button
+                  display={['initial', 'none']}
+                  onClick={() => router.push('/validation-report')}
+                  w="100%"
+                  h={10}
+                  fontSize="15px"
+                  variant="outline"
+                  color="blue.500"
+                  border="none"
+                  borderColor="transparent"
+                >
+                  {t('View validation report')}
+                </Button>
               </UserStatList>
 
               <UserStatList title={t('Stake')}>
@@ -363,7 +367,11 @@ export default function ProfilePage() {
                           {t('Balance')}
                         </UserStatLabel>
                         <UserStatValue lineHeight="4">
-                          {toDna(stake)}
+                          {toDna(
+                            state === IdentityStatus.Newbie
+                              ? (stake - (replenishedStake ?? 0)) * 0.25
+                              : stake
+                          )}
                         </UserStatValue>
                       </Stack>
                     </UserStat>
@@ -403,19 +411,15 @@ export default function ProfilePage() {
                   </Stack>
                 </Flex>
 
-                <Button
-                  display={['initial', 'none']}
-                  onClick={() => router.push('/validation-report')}
-                  w="100%"
-                  h={10}
-                  fontSize="15px"
-                  variant="outline"
-                  color="blue.500"
-                  border="none"
-                  borderColor="transparent"
-                >
-                  {t('View validation report')}
-                </Button>
+                {stake > 0 && state === IdentityStatus.Newbie && (
+                  <AnnotatedUserStatistics
+                    annotation={t(
+                      'You need to get Verified status to get the locked funds into the normal wallet'
+                    )}
+                    label={t('Locked')}
+                    value={toDna((stake - (replenishedStake ?? 0)) * 0.75)}
+                  />
+                )}
               </UserStatList>
             </Stack>
             <StakingAlert mt="2" />

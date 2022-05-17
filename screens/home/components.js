@@ -85,6 +85,7 @@ import {useEpoch} from '../../shared/providers/epoch-context'
 import {activateMiningMachine} from './machines'
 import {fetchBalance} from '../../shared/api/wallet'
 import {
+  ChevronRightIcon,
   LaptopIcon,
   TestValidationIcon,
   UserIcon,
@@ -117,7 +118,7 @@ export function UserInlineCard({
 
   const epoch = useEpoch()
 
-  const formatDna = toLocaleDna(i18n.language)
+  const formatDna = toLocaleDna(i18n.language, {maximumFractionDigits: 5})
 
   return (
     <Stack
@@ -159,15 +160,15 @@ export function UserInlineCard({
           <ProfileTag>{t(`Age {{age}}`, {age})}</ProfileTag>
 
           {Number.isFinite(score) && (
-            <Popover placement="top">
+            <Popover placement="top" arrowShadowColor="transparent">
               <PopoverTrigger>
                 <ProfileTag cursor="help">
                   {t(`Score {{score}}`, {score: toPercent(score)})}
                 </ProfileTag>
               </PopoverTrigger>
-              <PopoverContent fontSize="sm" w="max-content">
+              <PopoverContent border="none" fontSize="sm" w="max-content">
                 <PopoverArrow bg="graphite.500" />
-                <PopoverBody bg="graphite.500" p="2" pt="1">
+                <PopoverBody bg="graphite.500" borderRadius="sm" p="2" pt="1">
                   <Stack>
                     <Stack spacing="0.5">
                       <Text color="muted" lineHeight="shorter">
@@ -193,6 +194,7 @@ export function UserInlineCard({
                         lineHeight="4"
                       >
                         {t('Validation report')}
+                        <ChevronRightIcon />
                       </TextLink>
                     </Stack>
                   </Stack>
@@ -203,7 +205,9 @@ export function UserInlineCard({
 
           {penalty > 0 && (
             <ProfileTag bg="red.012" color="red.500">
-              {t(`Mining penalty {{penalty}}`, {penalty: formatDna(penalty)})}
+              {t(`Mining penalty {{penalty}}`, {
+                penalty: formatDna(penalty),
+              })}
             </ProfileTag>
           )}
         </HStack>
@@ -1730,7 +1734,7 @@ export function ReplenishStakeDrawer({onSuccess, onError, ...props}) {
   const {submit} = useReplenishStake({onSuccess, onError})
 
   const formatDna = toLocaleDna(i18n.language, {
-    maximumFractionDigits: 4,
+    maximumFractionDigits: 5,
   })
 
   const isRisky = [

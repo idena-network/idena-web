@@ -269,7 +269,7 @@ export function useStakingAlert() {
         ),
       ],
       [IdentityStatus.Suspended]: t(
-        'You will lose {{ratio}}% of the Stake if you fail the upcoming validation.',
+        'You will lose {{ratio}} of the Stake if you fail the upcoming validation.',
         {
           ratio: toPercent(lossRatio),
         }
