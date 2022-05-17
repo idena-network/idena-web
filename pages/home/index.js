@@ -360,6 +360,7 @@ export default function ProfilePage() {
                         </Stack>
                       </UserStat>
                       <Button
+                        display={['none', 'inline-flex']}
                         variant="link"
                         color="blue.500"
                         fontWeight={500}
@@ -389,7 +390,13 @@ export default function ProfilePage() {
                           </UserStatValue>
                         </Stack>
                       </UserStat>
-                      <ExternalLink href="https://idena.io/staking">
+                      <ExternalLink
+                        href={`https://idena.io/staking?amount=${Math.floor(
+                          state === IdentityStatus.Newbie
+                            ? (stake - (replenishedStake ?? 0)) * 0.25
+                            : stake
+                        )}`}
+                      >
                         {t('Staking calculator')}
                       </ExternalLink>
                     </Stack>
@@ -404,6 +411,20 @@ export default function ProfilePage() {
                       value={toDna((stake - (replenishedStake ?? 0)) * 0.75)}
                     />
                   )}
+
+                  <Button
+                    display={['inline-flex', 'none']}
+                    onClick={replenishStakeDisclosure.onOpen}
+                    w="100%"
+                    h={10}
+                    fontSize="15px"
+                    variant="outline"
+                    color="blue.500"
+                    border="none"
+                    borderColor="transparent"
+                  >
+                    {t('Add stake')}
+                  </Button>
                 </UserStatList>
               )}
             </Stack>
