@@ -240,7 +240,7 @@ export default function ProfilePage() {
               <UserInlineCard
                 identity={identity}
                 h={['auto', 24]}
-                mb={[2, 0]}
+                mb={[8, 0]}
               />
               {canActivateInvite && (
                 <Box w={['100%', 'initial']} pb={[8, 0]}>
@@ -284,33 +284,13 @@ export default function ProfilePage() {
                   </OnboardingPopover>
                 </Box>
               )}
-              {state &&
-                ![
-                  IdentityStatus.Undefined,
-                  IdentityStatus.Invite,
-                  IdentityStatus.Candidate,
-                ].includes(state) && (
-                  <WideLink
-                    display={['initial', 'none']}
-                    pb={3}
-                    label="Open in blockchain explorer"
-                    href={`https://scan.idena.io/address/${address}`}
-                    isNewTab
-                  >
-                    <Box
-                      boxSize={8}
-                      backgroundColor="brandBlue.10"
-                      borderRadius="10px"
-                    >
-                      <OpenExplorerIcon boxSize={5} mt="6px" ml="6px" />
-                    </Box>
-                  </WideLink>
-                )}
+
               {showValidationResults && (
                 <ValidationReportSummary
                   onClose={() => setValidationResultSeen()}
                 />
               )}
+
               <UserStatList title={t('My Wallet')}>
                 <UserStatistics label={t('Address')} value={userStatAddress}>
                   <ExternalLink
@@ -358,20 +338,6 @@ export default function ProfilePage() {
                   borderColor="transparent"
                 >
                   {t('Send iDNA')}
-                </Button>
-
-                <Button
-                  display={['initial', 'none']}
-                  onClick={() => router.push('/validation-report')}
-                  w="100%"
-                  h={10}
-                  fontSize="15px"
-                  variant="outline"
-                  color="blue.500"
-                  border="none"
-                  borderColor="transparent"
-                >
-                  {t('View validation report')}
                 </Button>
               </UserStatList>
 
@@ -491,6 +457,20 @@ export default function ProfilePage() {
               </OnboardingPopover>
             </Box>
             <Stack spacing={[0, 1]} align="flex-start">
+              <WideLink
+                display={['initial', 'none']}
+                label="Open in blockchain explorer"
+                href={`https://scan.idena.io/address/${address}`}
+                isNewTab
+              >
+                <Box
+                  boxSize={8}
+                  backgroundColor="brandBlue.10"
+                  borderRadius="10px"
+                >
+                  <OpenExplorerIcon boxSize={5} mt="6px" ml="6px" />
+                </Box>
+              </WideLink>
               <WideLink
                 mt={[0, '2px']}
                 label={t('Training validation')}
