@@ -36,6 +36,7 @@ import {
   UserStatValue,
   ReplenishStakeDrawer,
   StakingAlert,
+  ProfileTagList,
 } from '../../screens/home/components'
 import Layout from '../../shared/components/layout'
 import {IdentityStatus, OnboardingStep} from '../../shared/types'
@@ -54,7 +55,6 @@ import {onboardingShowingStep} from '../../shared/utils/onboarding'
 import {useScroll} from '../../shared/hooks/use-scroll'
 import {
   AddUserIcon,
-  ChevronDownIcon,
   ChevronRightIcon,
   CopyIcon,
   DeleteIcon,
@@ -205,7 +205,10 @@ export default function ProfilePage() {
 
   const replenishStakeDisclosure = useDisclosure()
 
-  const {onOpen: onOpenReplenishStakeDisclosure} = replenishStakeDisclosure
+  const {
+    onOpen: onOpenReplenishStakeDisclosure,
+    onClose: onCloseReplenishStakeDisclosure,
+  } = replenishStakeDisclosure
 
   React.useEffect(() => {
     if (Object.keys(router.query).find(q => q === 'replenishStake')) {
@@ -237,11 +240,10 @@ export default function ProfilePage() {
               align={['center', 'initial']}
               ref={activateInviteRef}
             >
-              <UserInlineCard
-                identity={identity}
-                h={['auto', 24]}
-                mb={[8, 0]}
-              />
+              <UserInlineCard identity={identity} h={['auto', 24]} mb={[8, 0]}>
+                <ProfileTagList />
+              </UserInlineCard>
+
               {canActivateInvite && (
                 <Box w={['100%', 'initial']} pb={[8, 0]}>
                   <OnboardingPopover
@@ -319,7 +321,7 @@ export default function ProfilePage() {
                   <TextLink display={['none', 'initial']} href="/wallets">
                     <Stack isInline spacing={0} align="center" fontWeight={500}>
                       <Text as="span">{t('Send')}</Text>
-                      <ChevronDownIcon boxSize={4} transform="rotate(-90deg)" />
+                      <ChevronRightIcon boxSize={4} />
                     </Stack>
                   </TextLink>
                 </UserStatistics>
@@ -343,52 +345,89 @@ export default function ProfilePage() {
 
               {Boolean(state) && state !== IdentityStatus.Undefined && (
                 <UserStatList title={t('Stake')}>
-                  <Flex>
-                    <Stack spacing="5px" flex={1}>
-                      <UserStat>
-                        <Stack spacing="3px">
-                          <UserStatLabel lineHeight="4">
-                            {t('Balance')}
-                          </UserStatLabel>
-                          <UserStatValue lineHeight="4">
-                            {toDna(
-                              state === IdentityStatus.Newbie
-                                ? (stake - (replenishedStake ?? 0)) * 0.25
-                                : stake
-                            )}
-                          </UserStatValue>
-                        </Stack>
-                      </UserStat>
-                      <Button
-                        display={['none', 'inline-flex']}
-                        variant="link"
-                        color="blue.500"
-                        fontWeight={500}
-                        lineHeight="4"
-                        w="fit-content"
-                        _hover={{
-                          background: 'transparent',
-                          textDecoration: 'underline',
-                        }}
-                        _focus={{
-                          outline: 'none',
-                        }}
-                        onClick={replenishStakeDisclosure.onOpen}
-                      >
-                        {t('Add stake')}
-                        <ChevronRightIcon boxSize="4" />
-                      </Button>
+                  <Stack direction={['column', 'row']} spacing={['5', 0]}>
+                    <Stack spacing={['5', '3']} flex={1}>
+                      <Stack spacing="5px">
+                        <UserStat>
+                          <Flex
+                            direction={['row', 'column']}
+                            justify={['space-between', 'flex-start']}
+                          >
+                            <UserStatLabel
+                              color={[null, 'muted']}
+                              fontSize={['mdx', 'md']}
+                              fontWeight={[400, 500]}
+                              lineHeight="4"
+                            >
+                              {t('Balance')}
+                            </UserStatLabel>
+                            <UserStatValue
+                              fontSize={['mdx', 'md']}
+                              lineHeight="4"
+                              mt={[null, '3px']}
+                            >
+                              {toDna(
+                                state === IdentityStatus.Newbie
+                                  ? (stake - (replenishedStake ?? 0)) * 0.25
+                                  : stake
+                              )}
+                            </UserStatValue>
+                          </Flex>
+                        </UserStat>
+                        <Button
+                          display={['none', 'inline-flex']}
+                          variant="link"
+                          color="blue.500"
+                          fontWeight={500}
+                          lineHeight="4"
+                          w="fit-content"
+                          _hover={{
+                            background: 'transparent',
+                            textDecoration: 'underline',
+                          }}
+                          _focus={{
+                            outline: 'none',
+                          }}
+                          onClick={replenishStakeDisclosure.onOpen}
+                        >
+                          {t('Add stake')}
+                          <ChevronRightIcon boxSize="4" />
+                        </Button>
+                      </Stack>
+                      {stake > 0 && state === IdentityStatus.Newbie && (
+                        <AnnotatedUserStatistics
+                          annotation={t(
+                            'You need to get Verified status to get the locked funds into the normal wallet'
+                          )}
+                          label={t('Locked')}
+                          value={toDna(
+                            (stake - (replenishedStake ?? 0)) * 0.75
+                          )}
+                        />
+                      )}
                     </Stack>
                     <Stack spacing="5px" flex={1}>
-                      <UserStat>
-                        <Stack spacing="3px">
-                          <UserStatLabel lineHeight="4">
+                      <UserStat flex={0}>
+                        <Flex
+                          direction={['row', 'column']}
+                          justify={['space-between', 'flex-start']}
+                        >
+                          <UserStatLabel
+                            color={[null, 'muted']}
+                            fontSize={['mdx', 'md']}
+                            fontWeight={[400, 500]}
+                            lineHeight="4"
+                          >
                             {t('APY')}
                           </UserStatLabel>
-                          <UserStatValue lineHeight="4">
+                          <UserStatValue
+                            fontSize={['mdx', 'md']}
+                            lineHeight="4"
+                            mt={[null, '3px']}
+                          >
                             {stakingApy > 0 ? toPercent(stakingApy) : '--'}
                           </UserStatValue>
-                        </Stack>
+                        </Flex>
                       </UserStat>
                       <ExternalLink
                         href={`https://idena.io/staking?amount=${Math.floor(
@@ -396,35 +435,41 @@ export default function ProfilePage() {
                             ? (stake - (replenishedStake ?? 0)) * 0.25
                             : stake
                         )}`}
+                        display={['none', 'inline-flex']}
                       >
                         {t('Staking calculator')}
                       </ExternalLink>
                     </Stack>
+                  </Stack>
+
+                  <Flex align="center" display={['inline-flex', 'none']}>
+                    <Box flex={1}>
+                      <Button
+                        onClick={replenishStakeDisclosure.onOpen}
+                        w="100%"
+                        h={10}
+                        fontSize="15px"
+                        variant="outline"
+                        color="blue.500"
+                        border="none"
+                        borderColor="transparent"
+                      >
+                        {t('Add stake')}
+                      </Button>
+                    </Box>
+                    <Box flex={1}>
+                      <ExternalLink
+                        href={`https://idena.io/staking?amount=${Math.floor(
+                          state === IdentityStatus.Newbie
+                            ? (stake - (replenishedStake ?? 0)) * 0.25
+                            : stake
+                        )}`}
+                        fontSize="15px"
+                      >
+                        {t('Staking calculator')}
+                      </ExternalLink>
+                    </Box>
                   </Flex>
-
-                  {stake > 0 && state === IdentityStatus.Newbie && (
-                    <AnnotatedUserStatistics
-                      annotation={t(
-                        'You need to get Verified status to get the locked funds into the normal wallet'
-                      )}
-                      label={t('Locked')}
-                      value={toDna((stake - (replenishedStake ?? 0)) * 0.75)}
-                    />
-                  )}
-
-                  <Button
-                    display={['inline-flex', 'none']}
-                    onClick={replenishStakeDisclosure.onOpen}
-                    w="100%"
-                    h={10}
-                    fontSize="15px"
-                    variant="outline"
-                    color="blue.500"
-                    border="none"
-                    borderColor="transparent"
-                  >
-                    {t('Add stake')}
-                  </Button>
                 </UserStatList>
               )}
             </Stack>
@@ -580,9 +625,9 @@ export default function ProfilePage() {
                 title: t('Transaction sent'),
                 description: hash,
               })
-              replenishStakeDisclosure.onClose()
+              onCloseReplenishStakeDisclosure()
             },
-            [replenishStakeDisclosure, t, toast]
+            [onCloseReplenishStakeDisclosure, t, toast]
           )}
           onError={failToast}
         />

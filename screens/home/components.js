@@ -103,26 +103,10 @@ import {BLOCK_TIME} from '../oracles/utils'
 import {useFailToast} from '../../shared/hooks/use-toast'
 
 export function UserInlineCard({
-  identity: {
-    address,
-    state,
-    age,
-    penalty,
-    totalShortFlipPoints,
-    totalQualifiedFlips,
-  },
+  identity: {address, state},
+  children,
   ...props
 }) {
-  const {t, i18n} = useTranslation()
-
-  const score = useTotalValidationScore()
-
-  const epoch = useEpoch()
-
-  const formatDna = toLocaleDna(i18n.language, {maximumFractionDigits: 5})
-
-  const [isMobile] = useMediaQuery('(max-width: 480px)')
-
   return (
     <Stack
       direction={['column', 'row']}
@@ -160,104 +144,7 @@ export function UserInlineCard({
             {address}
           </Heading>
         </Stack>
-        <Stack spacing={[0, '1']} direction={['column', 'row']} w={['full']}>
-          <ProfileTag>
-            <Stack direction={['column', 'row']} spacing={['1.5', '1']}>
-              <Text>{t('Age')}</Text>
-              <Text color={['muted', 'inherit']}>{age}</Text>
-            </Stack>
-          </ProfileTag>
-
-          {Number.isFinite(score) && (
-            <>
-              {isMobile ? (
-                <ProfileTag>
-                  <Stack
-                    direction={['column', 'row']}
-                    spacing={['1.5', '1']}
-                    w="full"
-                  >
-                    <Flex align="center" justify="space-between">
-                      <Text>{t('Score')}</Text>
-                      <TextLink
-                        href="/validation-report"
-                        display={['inline-flex', 'none']}
-                      >
-                        {t('Validation report')}
-                      </TextLink>
-                    </Flex>
-                    <Text color={['muted', 'inherit']}>{toPercent(score)}</Text>
-                  </Stack>
-                </ProfileTag>
-              ) : (
-                <Popover placement="top" arrowShadowColor="transparent">
-                  <PopoverTrigger>
-                    <ProfileTag cursor="help">
-                      <Stack
-                        direction={['column', 'row']}
-                        spacing={['1.5', '1']}
-                        w="full"
-                      >
-                        <Text>{t('Score')}</Text>
-                        <Text color={['muted', 'inherit']}>
-                          {toPercent(score)}
-                        </Text>
-                      </Stack>
-                    </ProfileTag>
-                  </PopoverTrigger>
-                  <PopoverContent border="none" fontSize="sm" w="max-content">
-                    <PopoverArrow bg="graphite.500" />
-                    <PopoverBody
-                      bg="graphite.500"
-                      borderRadius="sm"
-                      p="2"
-                      pt="1"
-                    >
-                      <Stack>
-                        <Stack spacing="0.5">
-                          <Text color="muted" lineHeight="shorter">
-                            {t('Total score')}
-                          </Text>
-                          <Text color="white" lineHeight="4">
-                            {t(
-                              `{{totalShortFlipPoints}} out of {{totalQualifiedFlips}}`,
-                              {
-                                totalShortFlipPoints,
-                                totalQualifiedFlips,
-                              }
-                            )}
-                          </Text>
-                        </Stack>
-                        <Stack spacing="0.5">
-                          <Text color="muted" lineHeight="shorter">
-                            {t('Epoch #{{epoch}}', {epoch: epoch?.epoch})}
-                          </Text>
-                          <TextLink
-                            href="/validation-report"
-                            color="white"
-                            lineHeight="4"
-                          >
-                            {t('Validation report')}
-                            <ChevronRightIcon />
-                          </TextLink>
-                        </Stack>
-                      </Stack>
-                    </PopoverBody>
-                  </PopoverContent>
-                </Popover>
-              )}
-            </>
-          )}
-
-          {penalty > 0 && (
-            <ProfileTag bg={[null, 'red.012']} color="red.500">
-              <Stack direction={['column', 'row']} spacing={['1.5', '1']}>
-                <Text>{t('Mining penalty')}</Text>
-                <Text color={['inherit']}>{formatDna(penalty)}</Text>
-              </Stack>
-            </ProfileTag>
-          )}
-        </Stack>
+        {children}
       </Stack>
     </Stack>
   )
@@ -380,7 +267,7 @@ export function AnnotatedUserStatistics({
         w="fit-content"
         borderBottom={['none', `dotted 1px ${colors.muted}`]}
         cursor="help"
-        fontWeight={['400', '500']}
+        fontWeight={[400, 500]}
         color={['auto', colors.muted]}
       >
         <UserStatLabelTooltip label={[annotation]}>
@@ -1756,6 +1643,115 @@ export function GetInvitationCopyButton({value, ...props}) {
         </FlatButton>
       )}
     </Flex>
+  )
+}
+
+export function ProfileTagList() {
+  const {t, i18n} = useTranslation()
+
+  const [
+    {age, penalty, totalShortFlipPoints, totalQualifiedFlips},
+  ] = useIdentity()
+  const epoch = useEpoch()
+
+  const score = useTotalValidationScore()
+
+  const formatDna = toLocaleDna(i18n.language, {maximumFractionDigits: 5})
+
+  const [isMobile] = useMediaQuery('(max-width: 480px)')
+
+  return (
+    <Stack spacing={[0, '1']} direction={['column', 'row']} w={['full']}>
+      <ProfileTag>
+        <Stack direction={['column', 'row']} spacing={['1.5', '1']}>
+          <Text>{t('Age')}</Text>
+          <Text color={['muted', 'inherit']}>{age}</Text>
+        </Stack>
+      </ProfileTag>
+
+      {Number.isFinite(score) && (
+        <>
+          {isMobile ? (
+            <ProfileTag>
+              <Stack
+                direction={['column', 'row']}
+                spacing={['1.5', '1']}
+                w="full"
+              >
+                <Flex align="center" justify="space-between">
+                  <Text>{t('Score')}</Text>
+                  <TextLink
+                    href="/validation-report"
+                    display={['inline-flex', 'none']}
+                  >
+                    {t('Validation report')}
+                  </TextLink>
+                </Flex>
+                <Text color={['muted', 'inherit']}>{toPercent(score)}</Text>
+              </Stack>
+            </ProfileTag>
+          ) : (
+            <Popover placement="top" arrowShadowColor="transparent">
+              <PopoverTrigger>
+                <ProfileTag cursor="help">
+                  <Stack
+                    direction={['column', 'row']}
+                    spacing={['1.5', '1']}
+                    w="full"
+                  >
+                    <Text>{t('Score')}</Text>
+                    <Text color={['muted', 'inherit']}>{toPercent(score)}</Text>
+                  </Stack>
+                </ProfileTag>
+              </PopoverTrigger>
+              <PopoverContent border="none" fontSize="sm" w="max-content">
+                <PopoverArrow bg="graphite.500" />
+                <PopoverBody bg="graphite.500" borderRadius="sm" p="2" pt="1">
+                  <Stack>
+                    <Stack spacing="0.5">
+                      <Text color="muted" lineHeight="shorter">
+                        {t('Total score')}
+                      </Text>
+                      <Text color="white" lineHeight="4">
+                        {t(
+                          `{{totalShortFlipPoints}} out of {{totalQualifiedFlips}}`,
+                          {
+                            totalShortFlipPoints,
+                            totalQualifiedFlips,
+                          }
+                        )}
+                      </Text>
+                    </Stack>
+                    <Stack spacing="0.5">
+                      <Text color="muted" lineHeight="shorter">
+                        {t('Epoch #{{epoch}}', {epoch: epoch?.epoch})}
+                      </Text>
+                      <TextLink
+                        href="/validation-report"
+                        color="white"
+                        lineHeight="4"
+                      >
+                        {t('Validation report')}
+                        <ChevronRightIcon />
+                      </TextLink>
+                    </Stack>
+                  </Stack>
+                </PopoverBody>
+              </PopoverContent>
+            </Popover>
+          )}
+        </>
+      )}
+
+      {penalty > 0 && (
+        <ProfileTag bg={[null, 'red.012']} color="red.500">
+          <Stack direction={['column', 'row']} spacing={['1.5', '1']}>
+            <Text>{t('Mining penalty')}</Text>
+            <Text color={['inherit']}>{formatDna(penalty)}</Text>
+          </Stack>
+        </ProfileTag>
+      )}
+    </Stack>
   )
 }
 
