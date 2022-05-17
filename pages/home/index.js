@@ -203,6 +203,8 @@ export default function ProfilePage() {
 
   const failToast = useFailToast()
 
+  const toast = useSuccessToast()
+
   return (
     <Layout canRedirect={!dnaUrl} didConnectIdenaBot={didConnectIdenaBot}>
       {!didConnectIdenaBot && <MyIdenaBotAlert onConnect={connectIdenaBot} />}
@@ -554,7 +556,16 @@ export default function ProfilePage() {
 
         <ReplenishStakeDrawer
           {...replenishStakeDisclosure}
-          onSuccess={replenishStakeDisclosure.onClose}
+          onSuccess={React.useCallback(
+            hash => {
+              toast({
+                title: t('Transaction sent'),
+                description: hash,
+              })
+              replenishStakeDisclosure.onClose()
+            },
+            [replenishStakeDisclosure, t, toast]
+          )}
           onError={failToast}
         />
       </Page>
