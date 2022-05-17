@@ -476,61 +476,63 @@ export default function ValidationReport() {
                     </TableHiddenDescRow>
                     {state === IdentityStatus.Newbie &&
                       prevState === IdentityStatus.Candidate && (
-                        <Tr>
-                          <ValidationReportColumn>
-                            <ValidationReportCategoryLabel
-                              isFirst
-                              label={t('Validation')}
-                              description={
-                                isMobile
-                                  ? t('Category')
-                                  : t(
-                                      'Rewards for the 1st successful validation'
-                                    )
-                              }
-                              info={t(
-                                'Rewards for the 1st successful validation'
-                              )}
-                            />
-                          </ValidationReportColumn>
-                          <ValidationReportColumn>
-                            <ValidationReportCategoryLabel
-                              label={maybeDna(candidateReward)}
-                              description={isMobile ? t('Earned') : ''}
-                            />
-                          </ValidationReportColumn>
-                          <ValidationReportColumn>
-                            <ValidationReportCategoryLabel
-                              label={
-                                <Text
-                                  color={
-                                    missedCandidateReward > 0 ? 'red.500' : ''
-                                  }
-                                >
-                                  {maybeDna(missedCandidateReward)}
-                                </Text>
-                              }
-                              description={isMobile ? t('Missed') : ''}
-                            />
-                          </ValidationReportColumn>
-                          <ValidationReportColumn
-                            display={['none', 'table-cell']}
-                          >
+                        <>
+                          <Tr>
+                            <ValidationReportColumn>
+                              <ValidationReportCategoryLabel
+                                isFirst
+                                label={t('Validation')}
+                                description={
+                                  isMobile
+                                    ? t('Category')
+                                    : t(
+                                        'Rewards for the 1st successful validation'
+                                      )
+                                }
+                                info={t(
+                                  'Rewards for the 1st successful validation'
+                                )}
+                              />
+                            </ValidationReportColumn>
+                            <ValidationReportColumn>
+                              <ValidationReportCategoryLabel
+                                label={maybeDna(candidateReward)}
+                                description={isMobile ? t('Earned') : ''}
+                              />
+                            </ValidationReportColumn>
+                            <ValidationReportColumn>
+                              <ValidationReportCategoryLabel
+                                label={
+                                  <Text
+                                    color={
+                                      missedCandidateReward > 0 ? 'red.500' : ''
+                                    }
+                                  >
+                                    {maybeDna(missedCandidateReward)}
+                                  </Text>
+                                }
+                                description={isMobile ? t('Missed') : ''}
+                              />
+                            </ValidationReportColumn>
+                            <ValidationReportColumn
+                              display={['none', 'table-cell']}
+                            >
+                              <TableValidationDesc
+                                t={t}
+                                validationResult={validationResult}
+                                missedValidationReward={missedCandidateReward}
+                              />
+                            </ValidationReportColumn>
+                          </Tr>
+                          <TableHiddenDescRow>
                             <TableValidationDesc
                               t={t}
                               validationResult={validationResult}
                               missedValidationReward={missedCandidateReward}
                             />
-                          </ValidationReportColumn>
-                        </Tr>
+                          </TableHiddenDescRow>
+                        </>
                       )}
-                    <TableHiddenDescRow>
-                      <TableValidationDesc
-                        t={t}
-                        validationResult={validationResult}
-                        missedValidationReward={missedCandidateReward}
-                      />
-                    </TableHiddenDescRow>
                   </>
                 )}
                 <Tr>
