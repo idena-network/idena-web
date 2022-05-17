@@ -311,7 +311,7 @@ export function useStakingApy() {
   }, [])
 
   const {data: stakingData} = useQuery({
-    queryKey: ['staking', stake],
+    queryKey: ['staking'],
     queryFn: fetcher,
     notifyOnChangeProps: 'tracked',
   })
