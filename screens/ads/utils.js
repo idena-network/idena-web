@@ -68,7 +68,13 @@ export async function getAdVoting(address) {
     return adVotingCache.get(address)
   }
 
-  return adVotingCache.set(address, await fetchAdVoting(address)).get(address)
+  const voting = await fetchAdVoting(address)
+
+  if (isFinalVoting(voting)) {
+    return adVotingCache.set(address, voting).get(address)
+  }
+
+  return voting
 }
 
 async function fetchAdVoting(address) {
