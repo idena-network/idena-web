@@ -812,6 +812,11 @@ export function ActivateMiningDrawer({
   const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
   const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
 
+  const waitForDelegationEpochs =
+    currentEpoch - delegationEpoch < 0
+      ? 3
+      : 3 - (currentEpoch - delegationEpoch)
+
   return (
     <Drawer onClose={onClose} {...props}>
       <DrawerHeader>
@@ -905,7 +910,7 @@ export function ActivateMiningDrawer({
                 <ErrorAlert>
                   {t(
                     'You have recently disabled delegation. You need to wait for {{count}} epochs to delegate to a new address.',
-                    {count: 3 - (currentEpoch - delegationEpoch)}
+                    {count: waitForDelegationEpochs}
                   )}
                 </ErrorAlert>
               ) : (
