@@ -74,6 +74,7 @@ export const TxType = {
   UndelegateTx: 0x13,
   KillDelegatorTx: 0x14,
   StoreToIpfsTx: 0x15,
+  ReplenishStakeTx: 0x16,
 }
 
 export const OnboardingStep = {

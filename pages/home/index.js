@@ -9,11 +9,12 @@ import {
   useBreakpointValue,
   useClipboard,
   useDisclosure,
+  Flex,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useQuery, useQueryClient} from 'react-query'
 import {useRouter} from 'next/router'
-import {Page, PageTitle} from '../../screens/app/components'
+import {Page} from '../../screens/app/components'
 import {
   UserInlineCard,
   UserStatList,
@@ -30,10 +31,21 @@ import {
   ActivateInviteOnboardingContent,
   StartIdenaJourneyOnboardingContent,
   ActivateInvitationDialog,
+  UserStat,
+  UserStatLabel,
+  UserStatValue,
+  ReplenishStakeDrawer,
+  StakingAlert,
+  ProfileTagList,
 } from '../../screens/home/components'
 import Layout from '../../shared/components/layout'
 import {IdentityStatus, OnboardingStep} from '../../shared/types'
-import {toPercent, toLocaleDna, eitherState} from '../../shared/utils/utils'
+import {
+  toPercent,
+  toLocaleDna,
+  eitherState,
+  openExternalUrl,
+} from '../../shared/utils/utils'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {fetchBalance} from '../../shared/api/wallet'
@@ -48,17 +60,20 @@ import {onboardingShowingStep} from '../../shared/utils/onboarding'
 import {useScroll} from '../../shared/hooks/use-scroll'
 import {
   AddUserIcon,
-  ChevronDownIcon,
+  ChevronRightIcon,
   CopyIcon,
   DeleteIcon,
   OpenExplorerIcon,
   PhotoIcon,
   TestValidationIcon,
 } from '../../shared/components/icons'
-import {useSuccessToast} from '../../shared/hooks/use-toast'
+import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
 import {isValidDnaUrl} from '../../screens/dna/utils'
-import {useIdenaBot, useValidationResults} from '../../screens/home/hooks'
-import {useTestValidationState} from '../../shared/providers/test-validation-context'
+import {
+  useIdenaBot,
+  useStakingApy,
+  useValidationResults,
+} from '../../screens/home/hooks'
 import {ValidationReportSummary} from '../../screens/validation-report/components'
 
 export default function ProfilePage() {
@@ -69,28 +84,25 @@ export default function ProfilePage() {
     i18n: {language},
   } = useTranslation()
 
-  const [
-    {
-      address,
-      state,
-      penalty,
-      age,
-      totalShortFlipPoints,
-      totalQualifiedFlips,
-      online,
-      delegatee,
-      delegationEpoch,
-      canMine,
-      canInvite,
-      canTerminate,
-      canActivateInvite,
-    },
-  ] = useIdentity()
+  const [identity] = useIdentity()
+
+  const {
+    address,
+    state,
+    online,
+    delegatee,
+    delegationEpoch,
+    pendingUndelegation,
+    canMine,
+    canInvite,
+    canTerminate,
+    canActivateInvite,
+  } = identity
 
   const router = useRouter()
 
   const epoch = useEpoch()
-  const {coinbase, privateKey} = useAuthState()
+  const {privateKey} = useAuthState()
   const userStatAddress = useBreakpointValue([
     address ? `${address.substr(0, 3)}...${address.substr(-4, 4)}` : '',
     address,
@@ -108,9 +120,9 @@ export default function ProfilePage() {
   } = useDisclosure()
 
   const {
-    data: {balance, stake},
+    data: {balance, stake, replenishedStake},
   } = useQuery(['get-balance', address], () => fetchBalance(address), {
-    initialData: {balance: 0, stake: 0},
+    initialData: {balance: 0, stake: 0, replenishedStake: 0},
     enabled: !!address,
     refetchInterval: 30 * 1000,
   })
@@ -196,182 +208,248 @@ export default function ProfilePage() {
   )
   const onboardingPopoverPlacement = useBreakpointValue(['top', 'bottom'])
 
+  const replenishStakeDisclosure = useDisclosure()
+
+  const {
+    onOpen: onOpenReplenishStakeDisclosure,
+    onClose: onCloseReplenishStakeDisclosure,
+  } = replenishStakeDisclosure
+
+  React.useEffect(() => {
+    if (Object.keys(router.query).find(q => q === 'replenishStake')) {
+      onOpenReplenishStakeDisclosure()
+      router.push('/home')
+    }
+  }, [onOpenReplenishStakeDisclosure, router])
+
+  const failToast = useFailToast()
+
+  const toast = useSuccessToast()
+
+  const stakingApy = useStakingApy()
+
   return (
     <Layout canRedirect={!dnaUrl} didConnectIdenaBot={didConnectIdenaBot}>
       {!didConnectIdenaBot && <MyIdenaBotAlert onConnect={connectIdenaBot} />}
 
-      <Page>
-        <PageTitle mb={8} display={['none', 'block']}>
-          {t('Profile')}
-        </PageTitle>
+      <Page pt="10">
         <Stack
           w={['100%', '480px']}
           direction={['column', 'row']}
           spacing={[0, 10]}
         >
-          <Stack
-            spacing={[1, 8]}
-            w={['100%', '480px']}
-            align={['center', 'initial']}
-            ref={activateInviteRef}
-          >
-            <UserInlineCard
-              address={coinbase}
-              state={state}
-              h={['auto', 24]}
-              mb={[2, 0]}
-            />
-            {canActivateInvite && (
-              <Box w={['100%', 'initial']} pb={[8, 0]}>
-                <OnboardingPopover
-                  isOpen={isOpenActivateInvitePopover}
-                  placement={onboardingPopoverPlacement}
-                >
-                  <PopoverTrigger>
+          <Box>
+            <Stack
+              spacing={[1, 8]}
+              w={['100%', '480px']}
+              align={['center', 'initial']}
+              ref={activateInviteRef}
+            >
+              <UserInlineCard identity={identity} h={['auto', 24]} mb={[8, 0]}>
+                <ProfileTagList />
+              </UserInlineCard>
+
+              {canActivateInvite && (
+                <Box w={['100%', 'initial']} pb={[8, 0]}>
+                  <OnboardingPopover
+                    isOpen={isOpenActivateInvitePopover}
+                    placement={onboardingPopoverPlacement}
+                  >
+                    <PopoverTrigger>
+                      {shouldStartIdenaJourney ? (
+                        <StartIdenaJourneyPanel
+                          onHasActivationCode={activateInviteDisclosure.onOpen}
+                        />
+                      ) : state === IdentityStatus.Invite ? (
+                        <AcceptInvitationPanel />
+                      ) : (
+                        <ActivateInvitationPanel />
+                      )}
+                    </PopoverTrigger>
                     {shouldStartIdenaJourney ? (
-                      <StartIdenaJourneyPanel
-                        onHasActivationCode={activateInviteDisclosure.onOpen}
+                      <StartIdenaJourneyOnboardingContent
+                        onDismiss={() => {
+                          dismissCurrentTask()
+                          onCloseActivateInvitePopover()
+                        }}
                       />
                     ) : state === IdentityStatus.Invite ? (
-                      <AcceptInvitationPanel />
+                      <AcceptInviteOnboardingContent
+                        onDismiss={() => {
+                          dismissCurrentTask()
+                          onCloseActivateInvitePopover()
+                        }}
+                      />
                     ) : (
-                      <ActivateInvitationPanel />
+                      <ActivateInviteOnboardingContent
+                        onDismiss={() => {
+                          dismissCurrentTask()
+                          onCloseActivateInvitePopover()
+                        }}
+                      />
                     )}
-                  </PopoverTrigger>
-                  {shouldStartIdenaJourney ? (
-                    <StartIdenaJourneyOnboardingContent
-                      onDismiss={() => {
-                        dismissCurrentTask()
-                        onCloseActivateInvitePopover()
-                      }}
-                    />
-                  ) : state === IdentityStatus.Invite ? (
-                    <AcceptInviteOnboardingContent
-                      onDismiss={() => {
-                        dismissCurrentTask()
-                        onCloseActivateInvitePopover()
-                      }}
-                    />
-                  ) : (
-                    <ActivateInviteOnboardingContent
-                      onDismiss={() => {
-                        dismissCurrentTask()
-                        onCloseActivateInvitePopover()
-                      }}
-                    />
-                  )}
-                </OnboardingPopover>
-              </Box>
-            )}
-
-            {state &&
-              ![
-                IdentityStatus.Undefined,
-                IdentityStatus.Invite,
-                IdentityStatus.Candidate,
-              ].includes(state) && (
-                <WideLink
-                  display={['initial', 'none']}
-                  pb={3}
-                  label="Open in blockchain explorer"
-                  href={`https://scan.idena.io/address/${address}`}
-                  isNewTab
-                >
-                  <Box
-                    boxSize={8}
-                    backgroundColor="brandBlue.10"
-                    borderRadius="10px"
-                  >
-                    <OpenExplorerIcon boxSize={5} mt="6px" ml="6px" />
-                  </Box>
-                </WideLink>
+                  </OnboardingPopover>
+                </Box>
               )}
 
-            {showValidationResults && (
-              <ValidationReportSummary
-                onClose={() => setValidationResultSeen()}
-              />
-            )}
+              {showValidationResults && (
+                <ValidationReportSummary
+                  onClose={() => setValidationResultSeen()}
+                />
+              )}
 
-            {state &&
-              ![
-                IdentityStatus.Undefined,
-                IdentityStatus.Invite,
-                IdentityStatus.Candidate,
-              ].includes(state) && (
-                <>
-                  <UserStatList title={t('Profile')}>
-                    {age >= 0 && (
-                      <UserStatistics label={t('Age')} value={age} />
-                    )}
+              <UserStatList title={t('My Wallet')}>
+                <UserStatistics label={t('Address')} value={userStatAddress}>
+                  <ExternalLink
+                    display={['none', 'initial']}
+                    href={`https://scan.idena.io/address/${address}`}
+                  >
+                    {t('Open in blockchain explorer')}
+                  </ExternalLink>
+                  <CopyIcon
+                    display={['inline', 'none']}
+                    mt="3px"
+                    ml="4px"
+                    boxSize={4}
+                    fill="#96999e"
+                    onClick={() => {
+                      onCopy()
+                      successToast({
+                        title: 'Address copied!',
+                        duration: '5000',
+                      })
+                    }}
+                  />
+                </UserStatistics>
 
-                    {penalty > 0 && (
-                      <AnnotatedUserStatistics
-                        annotation={t(
-                          "Your node was offline more than 1 hour. The penalty will be charged automatically. Once it's fully paid you'll continue to mine coins."
-                        )}
-                        label={t('Mining penalty')}
-                        value={toDna(penalty)}
-                      />
-                    )}
+                <UserStatistics label={t('Balance')} value={toDna(balance)}>
+                  <TextLink display={['none', 'initial']} href="/wallets">
+                    <Stack isInline spacing={0} align="center" fontWeight={500}>
+                      <Text as="span">{t('Send')}</Text>
+                      <ChevronRightIcon boxSize={4} />
+                    </Stack>
+                  </TextLink>
+                </UserStatistics>
 
-                    {totalQualifiedFlips > 0 && (
-                      <AnnotatedUserStatistics
-                        annotation={t(
-                          'Total score for the last 10 validations'
-                        )}
-                        label={t('Total score')}
-                      >
-                        <Box fontWeight={['500', 'auto']}>
-                          {t(
-                            '{{shortFlipPoints}} out of {{qualifiedFlips}} ({{score}})',
-                            {
-                              shortFlipPoints: Math.min(
-                                totalShortFlipPoints,
-                                totalQualifiedFlips
-                              ),
-                              qualifiedFlips: totalQualifiedFlips,
-                              score: toPercent(
-                                totalShortFlipPoints / totalQualifiedFlips
-                              ),
-                            }
-                          )}
-                        </Box>
-                        <TextLink
-                          display={['none', 'initial']}
-                          href="/validation-report"
+                <Button
+                  display={['initial', 'none']}
+                  onClick={() => {
+                    router.push('/wallets')
+                  }}
+                  w="100%"
+                  h={10}
+                  fontSize="15px"
+                  variant="outline"
+                  color="blue.500"
+                  border="none"
+                  borderColor="transparent"
+                >
+                  {t('Send iDNA')}
+                </Button>
+              </UserStatList>
+
+              {Boolean(state) && state !== IdentityStatus.Undefined && (
+                <UserStatList title={t('Stake')}>
+                  <Stack direction={['column', 'row']} spacing={['5', 0]}>
+                    <Stack spacing={['5', '3']} flex={1}>
+                      <Stack spacing="5px">
+                        <UserStat>
+                          <Flex
+                            direction={['row', 'column']}
+                            justify={['space-between', 'flex-start']}
+                          >
+                            <UserStatLabel
+                              color={[null, 'muted']}
+                              fontSize={['mdx', 'md']}
+                              fontWeight={[400, 500]}
+                              lineHeight="4"
+                            >
+                              {t('Balance')}
+                            </UserStatLabel>
+                            <UserStatValue
+                              fontSize={['mdx', 'md']}
+                              lineHeight="4"
+                              mt={[null, '3px']}
+                            >
+                              {toDna(
+                                state === IdentityStatus.Newbie
+                                  ? (stake - (replenishedStake ?? 0)) * 0.25
+                                  : stake
+                              )}
+                            </UserStatValue>
+                          </Flex>
+                        </UserStat>
+                        <Button
+                          display={['none', 'inline-flex']}
+                          variant="link"
+                          color="blue.500"
                           fontWeight={500}
+                          lineHeight="4"
+                          w="fit-content"
+                          _hover={{
+                            background: 'transparent',
+                            textDecoration: 'underline',
+                          }}
+                          _focus={{
+                            outline: 'none',
+                          }}
+                          onClick={replenishStakeDisclosure.onOpen}
                         >
-                          {t('View validation report')}
-                        </TextLink>
-                      </AnnotatedUserStatistics>
-                    )}
+                          {t('Add stake')}
+                          <ChevronRightIcon boxSize="4" />
+                        </Button>
+                      </Stack>
+                      {stake > 0 && state === IdentityStatus.Newbie && (
+                        <AnnotatedUserStatistics
+                          annotation={t(
+                            'You need to get Verified status to get the locked funds into the normal wallet'
+                          )}
+                          label={t('Locked')}
+                          value={toDna(
+                            (stake - (replenishedStake ?? 0)) * 0.75
+                          )}
+                        />
+                      )}
+                    </Stack>
+                    <Stack spacing="5px" flex={1}>
+                      <UserStat flex={0}>
+                        <Flex
+                          direction={['row', 'column']}
+                          justify={['space-between', 'flex-start']}
+                        >
+                          <UserStatLabel
+                            color={[null, 'muted']}
+                            fontSize={['mdx', 'md']}
+                            fontWeight={[400, 500]}
+                            lineHeight="4"
+                          >
+                            {t('APY')}
+                          </UserStatLabel>
+                          <UserStatValue
+                            fontSize={['mdx', 'md']}
+                            lineHeight="4"
+                            mt={[null, '3px']}
+                          >
+                            {stakingApy > 0 ? toPercent(stakingApy) : '--'}
+                          </UserStatValue>
+                        </Flex>
+                      </UserStat>
+                      <ExternalLink
+                        href={`https://idena.io/staking?amount=${Math.floor(
+                          state === IdentityStatus.Newbie
+                            ? (stake - (replenishedStake ?? 0)) * 0.25
+                            : stake
+                        )}`}
+                        display={['none', 'inline-flex']}
+                      >
+                        {t('Staking calculator')}
+                      </ExternalLink>
+                    </Stack>
+                  </Stack>
 
-                    {stake > 0 && (
-                      <AnnotatedUserStatistics
-                        annotation={t(
-                          'You need to get Verified status to be able to terminate your identity and withdraw the stake'
-                        )}
-                        label={t('Stake')}
-                        value={toDna(
-                          stake * (state === IdentityStatus.Newbie ? 0.25 : 1)
-                        )}
-                      />
-                    )}
-
-                    {stake > 0 && state === IdentityStatus.Newbie && (
-                      <AnnotatedUserStatistics
-                        annotation={t(
-                          'You need to get Verified status to get the locked funds into the normal wallet'
-                        )}
-                        label={t('Locked')}
-                        value={toDna(stake * 0.75)}
-                      />
-                    )}
-
+                  <Stack display={['inline-flex', 'none']}>
                     <Button
-                      display={['initial', 'none']}
-                      onClick={() => router.push('/validation-report')}
+                      onClick={replenishStakeDisclosure.onOpen}
                       w="100%"
                       h={10}
                       fontSize="15px"
@@ -380,59 +458,36 @@ export default function ProfilePage() {
                       border="none"
                       borderColor="transparent"
                     >
-                      {t('View validation report')}
+                      {t('Add stake')}
                     </Button>
-                  </UserStatList>
-                </>
-              )}
-            <UserStatList title={t('Wallets')}>
-              <UserStatistics label={t('Address')} value={userStatAddress}>
-                <ExternalLink
-                  display={['none', 'initial']}
-                  href={`https://scan.idena.io/address/${address}`}
-                >
-                  {t('Open in blockchain explorer')}
-                </ExternalLink>
-                <CopyIcon
-                  display={['inline', 'none']}
-                  mt="3px"
-                  ml="4px"
-                  boxSize={4}
-                  fill="#96999e"
-                  onClick={() => {
-                    onCopy()
-                    successToast({
-                      title: 'Address copied!',
-                      duration: '5000',
-                    })
-                  }}
-                />
-              </UserStatistics>
 
-              <UserStatistics label={t('Balance')} value={toDna(balance)}>
-                <TextLink display={['none', 'initial']} href="/wallets">
-                  <Stack isInline spacing={0} align="center" fontWeight={500}>
-                    <Text as="span">{t('Send')}</Text>
-                    <ChevronDownIcon boxSize={4} transform="rotate(-90deg)" />
+                    <Button
+                      onClick={() => {
+                        openExternalUrl(
+                          `https://idena.io/staking?amount=${Math.floor(
+                            state === IdentityStatus.Newbie
+                              ? (stake - (replenishedStake ?? 0)) * 0.25
+                              : stake
+                          )}`
+                        )
+                      }}
+                      w="100%"
+                      h={10}
+                      fontSize="15px"
+                      variant="outline"
+                      color="blue.500"
+                      border="none"
+                      borderColor="transparent"
+                    >
+                      {t('Staking calculator')}
+                    </Button>
                   </Stack>
-                </TextLink>
-              </UserStatistics>
+                </UserStatList>
+              )}
+            </Stack>
+            <StakingAlert mt="2" />
+          </Box>
 
-              <Button
-                display={['initial', 'none']}
-                onClick={() => router.push('/wallets')}
-                w="100%"
-                h={10}
-                fontSize="15px"
-                variant="outline"
-                color="blue.500"
-                border="none"
-                borderColor="transparent"
-              >
-                {t('Send iDNA')}
-              </Button>
-            </UserStatList>
-          </Stack>
           <Stack spacing={[0, 10]} flexShrink={0} w={['100%', 200]}>
             <Box minH={62} mt={[1, 6]}>
               <OnboardingPopover
@@ -461,6 +516,7 @@ export default function ProfilePage() {
                         isOnline={online}
                         delegatee={delegatee}
                         delegationEpoch={delegationEpoch}
+                        pendingUndelegation={pendingUndelegation}
                         onShow={nextOnboardingTask}
                       />
                     )}
@@ -479,6 +535,20 @@ export default function ProfilePage() {
               </OnboardingPopover>
             </Box>
             <Stack spacing={[0, 1]} align="flex-start">
+              <WideLink
+                display={['initial', 'none']}
+                label="Open in blockchain explorer"
+                href={`https://scan.idena.io/address/${address}`}
+                isNewTab
+              >
+                <Box
+                  boxSize={8}
+                  backgroundColor="brandBlue.10"
+                  borderRadius="10px"
+                >
+                  <OpenExplorerIcon boxSize={5} mt="6px" ml="6px" />
+                </Box>
+              </WideLink>
               <WideLink
                 mt={[0, '2px']}
                 label={t('Training validation')}
@@ -556,7 +626,23 @@ export default function ProfilePage() {
         </Stack>
 
         <KillForm isOpen={isOpenKillForm} onClose={onCloseKillForm}></KillForm>
+
         <ActivateInvitationDialog {...activateInviteDisclosure} />
+
+        <ReplenishStakeDrawer
+          {...replenishStakeDisclosure}
+          onSuccess={React.useCallback(
+            hash => {
+              toast({
+                title: t('Transaction sent'),
+                description: hash,
+              })
+              onCloseReplenishStakeDisclosure()
+            },
+            [onCloseReplenishStakeDisclosure, t, toast]
+          )}
+          onError={failToast}
+        />
       </Page>
     </Layout>
   )

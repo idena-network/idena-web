@@ -367,6 +367,10 @@ export const ChevronDownIcon = createIcon({
   ),
 })
 
+export const ChevronRightIcon = props => (
+  <ChevronDownIcon transform="rotate(-90deg)" {...props} />
+)
+
 export const UpvoteIcon = createIcon({
   displayName: 'UpvoteIcon',
   viewBox: '0 0 20 20',

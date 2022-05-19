@@ -38,6 +38,7 @@ export const validationReportMachine = createMachine({
             {identity: {isValidated}, ...context},
             {
               data: {
+                prevState,
                 shortAnswers,
                 longAnswers,
                 shortAnswersCount,
@@ -95,6 +96,7 @@ export const validationReportMachine = createMachine({
 
             return {
               ...context,
+              prevState,
               validationResult,
               earnings: totalEarnedReward,
               totalMissedReward,
@@ -107,6 +109,10 @@ export const validationReportMachine = createMachine({
               missedFlipReward: missedReward('flips'),
               flipReportReward: earnedReward('reports'),
               missedFlipReportReward: missedReward('reports'),
+              stakingReward: earnedReward('staking'),
+              missedStakingReward: missedReward('staking'),
+              candidateReward: earnedReward('candidate'),
+              missedCandidateReward: missedReward('candidate'),
               lastValidationScore,
             }
           }

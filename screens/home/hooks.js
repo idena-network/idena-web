@@ -1,5 +1,8 @@
 import {useMachine} from '@xstate/react'
-import {useEffect, useReducer, useState} from 'react'
+import dayjs from 'dayjs'
+import React, {useEffect, useReducer, useState} from 'react'
+import {useTranslation} from 'react-i18next'
+import {useMutation, useQuery} from 'react-query'
 import {assign, createMachine} from 'xstate'
 import {
   activateKey,
@@ -8,6 +11,7 @@ import {
   sendRawTx,
 } from '../../shared/api'
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
+import {useBalance} from '../../shared/hooks/use-balance'
 import {usePersistence} from '../../shared/hooks/use-persistent-state'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import useTx from '../../shared/hooks/use-tx'
@@ -15,7 +19,7 @@ import {Transaction} from '../../shared/models/transaction'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {useIdentity} from '../../shared/providers/identity-context'
-import {IdentityStatus} from '../../shared/types'
+import {IdentityStatus, TxType} from '../../shared/types'
 import {
   sendActivateInvitation,
   sendSuccessValidation,
@@ -25,7 +29,8 @@ import {
   privateKeyToPublicKey,
 } from '../../shared/utils/crypto'
 import {loadPersistentState} from '../../shared/utils/persist'
-import {validateInvitationCode} from '../../shared/utils/utils'
+import {toPercent, validateInvitationCode} from '../../shared/utils/utils'
+import {apiUrl} from '../oracles/utils'
 
 const idenaBotMachine = createMachine({
   context: {
@@ -203,4 +208,149 @@ export function useValidationResults() {
   }
 
   return [seen, setValidationResultSeen]
+}
+
+export function useReplenishStake({onSuccess, onError}) {
+  const {coinbase, privateKey} = useAuthState()
+
+  const mutation = useMutation(
+    async ({amount}) => {
+      const rawTx = await getRawTx(
+        TxType.ReplenishStakeTx,
+        coinbase,
+        coinbase,
+        amount
+      )
+
+      return sendRawTx(
+        `0x${new Transaction()
+          .fromHex(rawTx)
+          .sign(privateKey)
+          .toHex()}`
+      )
+    },
+    {
+      onSuccess,
+      onError,
+    }
+  )
+
+  return {
+    submit: mutation.mutate,
+  }
+}
+
+export function useStakingAlert() {
+  const {t} = useTranslation()
+
+  const [{state, age}] = useIdentity()
+
+  const lossRatio = React.useMemo(() => (age === 4 ? 1 : (10 - age) / 100), [
+    age,
+  ])
+
+  const messages = React.useMemo(
+    () => ({
+      [IdentityStatus.Newbie]: t(
+        'You will lose 100% of the stake if you fail or miss the upcoming validation'
+      ),
+      [IdentityStatus.Candidate]: t(
+        'You will lose 100% of the stake if you fail or miss the upcoming validation'
+      ),
+      [IdentityStatus.Verified]: t(
+        'You will lose 100% of the stake if you fail the upcoming validation'
+      ),
+      [IdentityStatus.Zombie]: [
+        t(
+          `You will lose {{ratio}} of the stake if you fail the upcoming validation.`,
+          {
+            ratio: toPercent(lossRatio),
+          }
+        ),
+        t(
+          'You will lose 100% of the stake if you miss the upcoming validation'
+        ),
+      ],
+      [IdentityStatus.Suspended]: t(
+        'You will lose {{ratio}} of the stake if you fail the upcoming validation.',
+        {
+          ratio: toPercent(lossRatio),
+        }
+      ),
+    }),
+    [lossRatio, t]
+  )
+
+  return React.useMemo(
+    () =>
+      [
+        IdentityStatus.Candidate,
+        IdentityStatus.Newbie,
+        IdentityStatus.Verified,
+        IdentityStatus.Zombie,
+      ].includes(state) ||
+      (state === IdentityStatus.Suspended && age > 0)
+        ? messages[state]
+        : null,
+    [age, state, messages]
+  )
+}
+
+export function useStakingApy() {
+  const {
+    data: {stake},
+  } = useBalance()
+
+  const epoch = useEpoch()
+
+  const fetcher = React.useCallback(async ({queryKey}) => {
+    const {result, error} = await (
+      await fetch(apiUrl(queryKey.join('/').toLowerCase()))
+    ).json()
+
+    if (error) throw new Error(error.message)
+
+    return result
+  }, [])
+
+  const {data: stakingData} = useQuery({
+    queryKey: ['staking'],
+    queryFn: fetcher,
+    notifyOnChangeProps: 'tracked',
+  })
+
+  const {data: validationRewardsSummaryData} = useQuery({
+    queryKey: ['epoch', epoch?.epoch - 1, 'rewardsSummary'],
+    queryFn: fetcher,
+    enabled: Boolean(epoch),
+    staleTime: Infinity,
+    notifyOnChangeProps: 'tracked',
+  })
+
+  const {data: prevEpochData} = useQuery({
+    queryKey: ['epoch', epoch?.epoch - 1],
+    queryFn: fetcher,
+    staleTime: Infinity,
+    notifyOnChangeProps: 'tracked',
+  })
+
+  return React.useMemo(() => {
+    if (stakingData && validationRewardsSummaryData && epoch && prevEpochData) {
+      const {weight} = stakingData
+      const {validation, staking} = validationRewardsSummaryData
+
+      const epochStakingRewardFund = Number(staking) || 0.9 * Number(validation)
+
+      const epochReward = (stake ** 0.9 / weight) * epochStakingRewardFund
+
+      const epy = epochReward / stake
+
+      const epochDays = dayjs(epoch?.nextValidation).diff(
+        prevEpochData?.validationTime,
+        'day'
+      )
+
+      return (epy / epochDays) * 366
+    }
+  }, [epoch, prevEpochData, stake, stakingData, validationRewardsSummaryData])
 }
