@@ -813,7 +813,7 @@ export function ActivateMiningDrawer({
   const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
 
   const waitForDelegationEpochs =
-    currentEpoch - delegationEpoch < 0
+    3 - (currentEpoch - delegationEpoch) <= 0
       ? 3
       : 3 - (currentEpoch - delegationEpoch)
 
