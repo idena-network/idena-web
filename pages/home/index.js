@@ -40,7 +40,12 @@ import {
 } from '../../screens/home/components'
 import Layout from '../../shared/components/layout'
 import {IdentityStatus, OnboardingStep} from '../../shared/types'
-import {toPercent, toLocaleDna, eitherState} from '../../shared/utils/utils'
+import {
+  toPercent,
+  toLocaleDna,
+  eitherState,
+  openExternalUrl,
+} from '../../shared/utils/utils'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {fetchBalance} from '../../shared/api/wallet'
@@ -442,34 +447,41 @@ export default function ProfilePage() {
                     </Stack>
                   </Stack>
 
-                  <Flex align="center" display={['inline-flex', 'none']}>
-                    <Box flex={1}>
-                      <Button
-                        onClick={replenishStakeDisclosure.onOpen}
-                        w="100%"
-                        h={10}
-                        fontSize="15px"
-                        variant="outline"
-                        color="blue.500"
-                        border="none"
-                        borderColor="transparent"
-                      >
-                        {t('Add stake')}
-                      </Button>
-                    </Box>
-                    <Box flex={1}>
-                      <ExternalLink
-                        href={`https://idena.io/staking?amount=${Math.floor(
-                          state === IdentityStatus.Newbie
-                            ? (stake - (replenishedStake ?? 0)) * 0.25
-                            : stake
-                        )}`}
-                        fontSize="15px"
-                      >
-                        {t('Staking calculator')}
-                      </ExternalLink>
-                    </Box>
-                  </Flex>
+                  <Stack display={['inline-flex', 'none']}>
+                    <Button
+                      onClick={replenishStakeDisclosure.onOpen}
+                      w="100%"
+                      h={10}
+                      fontSize="15px"
+                      variant="outline"
+                      color="blue.500"
+                      border="none"
+                      borderColor="transparent"
+                    >
+                      {t('Add stake')}
+                    </Button>
+
+                    <Button
+                      onClick={() => {
+                        openExternalUrl(
+                          `https://idena.io/staking?amount=${Math.floor(
+                            state === IdentityStatus.Newbie
+                              ? (stake - (replenishedStake ?? 0)) * 0.25
+                              : stake
+                          )}`
+                        )
+                      }}
+                      w="100%"
+                      h={10}
+                      fontSize="15px"
+                      variant="outline"
+                      color="blue.500"
+                      border="none"
+                      borderColor="transparent"
+                    >
+                      {t('Staking calculator')}
+                    </Button>
+                  </Stack>
                 </UserStatList>
               )}
             </Stack>
