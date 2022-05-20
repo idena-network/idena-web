@@ -2007,7 +2007,7 @@ export function ValidationScreen({
   const {
     currentIndex,
     translations,
-    reportedFlipsCount,
+    reports,
     longFlips,
     isTraining,
   } = state.context
@@ -2249,8 +2249,7 @@ export function ValidationScreen({
                         {t('Report')}{' '}
                         {t('({{count}} left)', {
                           count:
-                            availableReportsNumber(longFlips) -
-                            reportedFlipsCount,
+                            availableReportsNumber(longFlips) - reports.size,
                         })}
                       </QualificationButton>
                     </Tooltip>
@@ -2480,7 +2479,7 @@ export function ValidationScreen({
 
       <ReviewValidationDialog
         flips={filterSolvableFlips(flips)}
-        reportedFlipsCount={reportedFlipsCount}
+        reportedFlipsCount={reports.size}
         availableReportsCount={availableReportsNumber(longFlips)}
         isOpen={state.matches('longSession.solve.answer.review')}
         isSubmitting={isSubmitting(state)}
