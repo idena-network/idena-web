@@ -49,6 +49,7 @@ import {useFailToast} from '../../shared/hooks/use-toast'
 import useSyncing from '../../shared/hooks/use-syncing'
 import {getBlockAt} from '../../shared/api'
 import {useInterval} from '../../shared/hooks/use-interval'
+import {useAuthState} from '../../shared/providers/auth-context'
 
 export function OracleDrawerHeader({
   icon = <OracleIcon />,
@@ -595,6 +596,7 @@ export function ReviewNewPendingVoteDialog({
   onClose,
   ...props
 }) {
+  const {auth} = useAuthState()
   const {t} = useTranslation()
   const [, {estimateSendVote}] = useDeferredVotes()
   const dna = toLocaleDna(undefined, {maximumFractionDigits: 4})
@@ -607,7 +609,7 @@ export function ReviewNewPendingVoteDialog({
     ['bcn_estimateRawTx', vote?.contractHash],
     () => estimateSendVote(vote),
     {
-      enabled: !!vote,
+      enabled: !!vote && !!auth,
       refetchOnWindowFocus: false,
       initialData: {txFee: ''},
     }

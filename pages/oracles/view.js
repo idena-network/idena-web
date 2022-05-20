@@ -73,10 +73,8 @@ import {useEpoch} from '../../shared/providers/epoch-context'
 import {VotingStatus} from '../../shared/types'
 import {
   areSameCaseInsensitive,
-  hasQuorum,
   hasWinner,
   humanError,
-  isAllowedToTerminate,
   mapVotingStatus,
   quorumVotesCount,
   votingMinBalance,
@@ -139,8 +137,8 @@ export default function ViewVotingPage() {
   })
 
   React.useEffect(() => {
-    send('RELOAD', {id, epoch, address: coinbase})
-  }, [coinbase, epoch, id, send])
+    send('RELOAD', {id, epoch, address: coinbase, privateKey})
+  }, [coinbase, epoch, id, privateKey, send])
 
   const toDna = toLocaleDna(i18n.language)
 
@@ -166,18 +164,19 @@ export default function ViewVotingPage() {
     balanceUpdates,
     ownerFee,
     totalReward,
-    committeeEpoch,
     estimatedOracleReward,
     estimatedMaxOracleReward = estimatedOracleReward,
     isOracle,
-    estimatedTerminationTime,
     minOracleReward,
     estimatedTotalReward,
-    epochWithoutGrowth,
     pendingVote,
+    canProlong,
+    canFinish,
+    canTerminate,
   } = current.context
 
-  const isLoaded = !current.matches('loading')
+  const isLoaded =
+    !current.matches('loading') && !current.matches('loadingActions')
 
   const sameString = a => b => areSameCaseInsensitive(a, b)
 
@@ -198,26 +197,6 @@ export default function ViewVotingPage() {
     committeeSize,
     finishCountingDate,
   })
-
-  const didReachQuorum = hasQuorum({
-    votesCount: voteProofsCount,
-    quorum,
-    committeeSize,
-  })
-
-  const canFinish =
-    didDetermineWinner ||
-    (dayjs().isAfter(finishCountingDate) && didReachQuorum)
-
-  const canProlong =
-    epochWithoutGrowth < 3 &&
-    (committeeEpoch !== epoch ||
-      (!didDetermineWinner &&
-        !didReachQuorum &&
-        dayjs().isAfter(finishCountingDate)) ||
-      (!didReachQuorum && dayjs().isAfter(finishDate)))
-
-  const shouldTerminate = isAllowedToTerminate({estimatedTerminationTime})
 
   const isMaxWinnerThreshold = winnerThreshold === 100
 
@@ -524,7 +503,7 @@ export default function ViewVotingPage() {
                           VotingStatus.Terminated,
                           VotingStatus.Terminating
                         ) &&
-                          shouldTerminate && (
+                          canTerminate && (
                             <PrimaryButton
                               colorScheme="red"
                               variant="solid"
