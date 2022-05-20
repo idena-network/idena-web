@@ -101,6 +101,7 @@ export const CertificateActionType = {
 }
 
 export const RelevanceType = {
+  Abstained: 0,
   Relevant: 1,
   Irrelevant: 2,
 }

@@ -1145,8 +1145,11 @@ export const createValidationMachine = ({
                                 ),
                               ],
                             },
-                            TOGGLE_WORDS: {
-                              actions: ['toggleKeywords'],
+                            APPROVE_WORDS: {
+                              actions: ['approveFlip'],
+                            },
+                            REPORT_WORDS: {
+                              actions: ['reportFlip'],
                             },
                             SUBMIT: {
                               target:
@@ -1497,59 +1500,51 @@ export const createValidationMachine = ({
           1000,
       },
       actions: {
-        toggleKeywords: choose([
+        approveFlip: assign({
+          longFlips: ({longFlips}, {hash}) =>
+            mergeFlipsByHash(longFlips, [
+              {hash, relevance: RelevanceType.Relevant},
+            ]),
+        }),
+        reportFlip: choose([
           {
-            cond: ({longFlips}, {hash, relevance}) =>
-              // eslint-disable-next-line no-use-before-define
-              relevance === RelevanceType.Relevant &&
-              !longFlips.find(x => x.hash === hash)?.relevance,
-            actions: [
-              assign({
-                longFlips: ({longFlips}, {hash, relevance}) =>
-                  mergeFlipsByHash(longFlips, [{hash, relevance}]),
-              }),
-            ],
-          },
-          {
-            cond: ({longFlips}, {hash, relevance}) =>
-              // eslint-disable-next-line no-use-before-define
-              relevance === RelevanceType.Relevant &&
-              longFlips.find(x => x.hash === hash)?.relevance ===
-                // eslint-disable-next-line no-use-before-define
+            cond: ({longFlips, reportedFlipsCount}, {hash}) =>
+              reportedFlipsCount < availableReportsNumber(longFlips) &&
+              longFlips.find(x => x.hash === hash).relevance !==
                 RelevanceType.Irrelevant,
             actions: [
               assign({
-                longFlips: ({longFlips}, {hash, relevance}) =>
-                  mergeFlipsByHash(longFlips, [{hash, relevance}]),
+                longFlips: ({longFlips}, {hash}) =>
+                  mergeFlipsByHash(longFlips, [
+                    {hash, relevance: RelevanceType.Irrelevant},
+                  ]),
                 reportedFlipsCount: ({reportedFlipsCount}) =>
-                  reportedFlipsCount - 1,
+                  reportedFlipsCount + 1,
               }),
             ],
           },
           {
-            cond: ({longFlips, reportedFlipsCount}, {relevance}) =>
-              // eslint-disable-next-line no-use-before-define
-              relevance === RelevanceType.Irrelevant &&
-              reportedFlipsCount < availableReportsNumber(longFlips),
-            actions: [
-              assign({
-                longFlips: ({longFlips}, {hash, relevance}) =>
-                  mergeFlipsByHash(longFlips, [{hash, relevance}]),
-                reportedFlipsCount: ({longFlips, reportedFlipsCount}, {hash}) =>
-                  longFlips.find(x => x.hash === hash)?.relevance ===
-                  // eslint-disable-next-line no-use-before-define
-                  RelevanceType.Irrelevant
-                    ? reportedFlipsCount
-                    : reportedFlipsCount + 1,
-              }),
-            ],
-          },
-          {
-            cond: ({longFlips, reportedFlipsCount}, {relevance}) =>
-              // eslint-disable-next-line no-use-before-define
-              relevance === RelevanceType.Irrelevant &&
-              reportedFlipsCount >= availableReportsNumber(longFlips),
+            cond: ({longFlips, reportedFlipsCount}, {hash}) =>
+              reportedFlipsCount >= availableReportsNumber(longFlips) &&
+              longFlips.find(x => x.hash === hash).relevance ===
+                RelevanceType.Irrelevant,
             actions: ['onExceededReports', log()],
+          },
+          {
+            cond: ({longFlips, reportedFlipsCount}, {hash}) =>
+              reportedFlipsCount >= availableReportsNumber(longFlips) &&
+              longFlips.find(x => x.hash === hash).relevance ===
+                RelevanceType.Relevant,
+            actions: [
+              'onExceededReports',
+              assign({
+                longFlips: ({longFlips}, {hash}) =>
+                  mergeFlipsByHash(longFlips, [
+                    {hash, relevance: RelevanceType.Abstained},
+                  ]),
+              }),
+              log(),
+            ],
           },
         ]),
         cleanupShortFlips: ({shortFlips}) => {

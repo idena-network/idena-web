@@ -2191,13 +2191,12 @@ export function ValidationScreen({
                       }
                       onClick={() =>
                         send({
-                          type: 'TOGGLE_WORDS',
+                          type: 'APPROVE_WORDS',
                           hash: currentFlip.hash,
-                          relevance: RelevanceType.Relevant,
                         })
                       }
                     >
-                      {t('Both relevant')}
+                      {t('Approve')}
                     </QualificationButton>
                     <Tooltip
                       label={t(
@@ -2242,9 +2241,8 @@ export function ValidationScreen({
                         }}
                         onClick={() =>
                           send({
-                            type: 'TOGGLE_WORDS',
+                            type: 'REPORT_WORDS',
                             hash: currentFlip.hash,
-                            relevance: RelevanceType.Irrelevant,
                           })
                         }
                       >
