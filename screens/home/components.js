@@ -103,10 +103,14 @@ import {BLOCK_TIME} from '../oracles/utils'
 import {useFailToast} from '../../shared/hooks/use-toast'
 
 export function UserInlineCard({
-  identity: {address, state},
+  identity: {address, state, age, penalty},
   children,
   ...props
 }) {
+  const score = useTotalValidationScore()
+
+  const hasChildren = age > 0 || penalty > 0 || Number.isFinite(score)
+
   return (
     <Stack
       direction={['column', 'row']}
@@ -127,7 +131,7 @@ export function UserInlineCard({
         borderColor="gray.016"
         borderRadius={['48px', 'lg']}
       />
-      <Stack spacing={['8', '1.5']} w="full">
+      <Stack spacing={[hasChildren ? '8' : 0, '1.5']} w="full">
         <Stack spacing={1} align={['center', 'initial']}>
           <Heading as="h2" fontSize="lg" fontWeight={500} lineHeight="short">
             {mapIdentityToFriendlyStatus(state)}
@@ -1667,12 +1671,14 @@ export function ProfileTagList() {
 
   return (
     <Stack spacing={[0, '1']} direction={['column', 'row']} w={['full']}>
-      <ProfileTag>
-        <Stack direction={['column', 'row']} spacing={['1.5', '1']}>
-          <Text>{t('Age')}</Text>
-          <Text color={['muted', 'inherit']}>{age}</Text>
-        </Stack>
-      </ProfileTag>
+      {age > 0 && (
+        <ProfileTag>
+          <Stack direction={['column', 'row']} spacing={['1.5', '1']}>
+            <Text>{t('Age')}</Text>
+            <Text color={['muted', 'inherit']}>{age}</Text>
+          </Stack>
+        </ProfileTag>
+      )}
 
       {Number.isFinite(score) && (
         <>
