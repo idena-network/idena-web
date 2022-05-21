@@ -916,7 +916,12 @@ export const createValidationMachine = ({
                     assign({
                       longFlips: ({longFlips, retries, flipIndex}, {flip}) =>
                         mergeFlipsByHash(longFlips, [
-                          {...flip, retries, flipIndex},
+                          {
+                            ...flip,
+                            retries,
+                            flipIndex,
+                            relevance: RelevanceType.Abstained,
+                          },
                         ]),
                       flipIndex: ({flipIndex}) => flipIndex + 1,
                     }),
