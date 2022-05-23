@@ -358,14 +358,14 @@ function ActionPanel({onClose}) {
         <Skeleton
           h={[20, '55px']}
           borderTopRadius="6px"
-          startColor="gray.200"
-          endColor="muted"
+          startColor="gray.100"
+          endColor="gray.300"
         />
         <Skeleton
           h={[20, '55px']}
           borderBottomRadius="6px"
-          startColor="gray.200"
-          endColor="muted"
+          startColor="gray.100"
+          endColor="gray.300"
         />
       </Stack>
     )
