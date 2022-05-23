@@ -1011,28 +1011,8 @@ export const viewVotingMachine = createMachine(
         invoke: {
           src: 'loadVoting',
           onDone: {
-            target: 'loadingActions',
-            actions: ['applyVoting', log()],
-          },
-          onError: {
-            target: 'invalid',
-            actions: [log()],
-          },
-        },
-      },
-      loadingActions: {
-        invoke: {
-          src: 'loadActions',
-          onDone: {
             target: 'loadMinOracleReward',
-            actions: [
-              assign({
-                canProlong: (_, {data}) => data.canProlong,
-                canFinish: (_, {data}) => data.canFinish,
-                canTerminate: (_, {data}) => data.canTerminate,
-              }),
-              log(),
-            ],
+            actions: ['applyVoting', log()],
           },
           onError: {
             target: 'invalid',
@@ -1291,7 +1271,6 @@ export const viewVotingMachine = createMachine(
         }),
       }),
       loadMinOracleReward,
-      loadActions,
       ...votingServices(),
       vote: async (
         // eslint-disable-next-line no-shadow
@@ -1854,37 +1833,6 @@ async function loadMinOracleReward({committeeSize}) {
   return minOracleRewardFromEstimates(
     await fetchOracleRewardsEstimates(committeeSize)
   )
-}
-
-async function loadActions({id, privateKey}) {
-  async function checkAction(fn) {
-    try {
-      const result = await fn
-      return !!result?.receipt?.success
-    } catch (e) {
-      return false
-    }
-  }
-
-  return {
-    canFinish: await checkAction(
-      estimateCallContract(privateKey, {
-        method: 'finishVoting',
-        contractHash: id,
-      })
-    ),
-    canProlong: await checkAction(
-      estimateCallContract(privateKey, {
-        method: 'prolongVoting',
-        contractHash: id,
-      })
-    ),
-    canTerminate: await checkAction(
-      estimateTermiateContract(privateKey, {
-        contractHash: id,
-      })
-    ),
-  }
 }
 
 function votingStatusGuards() {

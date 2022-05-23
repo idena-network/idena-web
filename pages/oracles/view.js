@@ -97,7 +97,7 @@ import {
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useBalance} from '../../shared/hooks/use-balance'
 import {viewVotingMachine} from '../../screens/oracles/machines'
-import {useDeferredVotes} from '../../screens/oracles/hooks'
+import {useDeferredVotes, useOracleActions} from '../../screens/oracles/hooks'
 
 dayjs.extend(relativeTime)
 dayjs.extend(duration)
@@ -137,8 +137,8 @@ export default function ViewVotingPage() {
   })
 
   React.useEffect(() => {
-    send('RELOAD', {id, epoch, address: coinbase, privateKey})
-  }, [coinbase, epoch, id, privateKey, send])
+    send('RELOAD', {id, epoch, address: coinbase})
+  }, [coinbase, epoch, id, send])
 
   const toDna = toLocaleDna(i18n.language)
 
@@ -170,13 +170,14 @@ export default function ViewVotingPage() {
     minOracleReward,
     estimatedTotalReward,
     pendingVote,
-    canProlong,
-    canFinish,
-    canTerminate,
   } = current.context
 
-  const isLoaded =
-    !current.matches('loading') && !current.matches('loadingActions')
+  const [
+    {canProlong, canFinish, canTerminate, isFetching: actionsIsFetching},
+    refetchActions,
+  ] = useOracleActions(id)
+
+  const isLoaded = !current.matches('loading')
 
   const sameString = a => b => areSameCaseInsensitive(a, b)
 
@@ -422,7 +423,7 @@ export default function ViewVotingPage() {
                     </VotingSkeleton>
                   )}
 
-                  <VotingSkeleton isLoaded={isLoaded}>
+                  <VotingSkeleton isLoaded={!actionsIsFetching}>
                     <Flex justify="space-between" align="center">
                       <Stack isInline spacing={2}>
                         {eitherIdleState(VotingStatus.Pending) && (
@@ -689,6 +690,7 @@ export default function ViewVotingPage() {
                       _focus={null}
                       onClick={() => {
                         send('REFRESH')
+                        refetchActions()
                       }}
                     >
                       {t('Refresh')}
