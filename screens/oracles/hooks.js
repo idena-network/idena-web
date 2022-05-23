@@ -14,6 +14,7 @@ import {
   createContractDataReader,
   deleteDeferredVote,
   estimateCallContract,
+  estimateTerminateContract,
   getDeferredVotes,
   updateDeferredVote,
 } from './utils'
@@ -188,5 +189,56 @@ export function useDeferredVotes() {
       isReady: isFetched && isBlockFetched,
     },
     {addVote, sendVote, estimateSendVote, deleteVote},
+  ]
+}
+
+async function loadActions(id, privateKey) {
+  async function checkAction(fn) {
+    try {
+      const result = await fn
+      return !!result?.receipt?.success
+    } catch (e) {
+      return false
+    }
+  }
+
+  return {
+    canFinish: await checkAction(
+      estimateCallContract(privateKey, {
+        method: 'finishVoting',
+        contractHash: id,
+      })
+    ),
+    canProlong: await checkAction(
+      estimateCallContract(privateKey, {
+        method: 'prolongVoting',
+        contractHash: id,
+      })
+    ),
+    canTerminate: await checkAction(
+      estimateTerminateContract(privateKey, {
+        contractHash: id,
+      })
+    ),
+  }
+}
+
+export function useOracleActions(id) {
+  const {privateKey} = useAuthState()
+
+  const {data, refetch, isFetching} = useQuery(
+    ['oracle-actions', id],
+    () => loadActions(id, privateKey),
+    {
+      enabled: !!id && !!privateKey,
+    }
+  )
+
+  return [
+    {
+      ...data,
+      isFetching,
+    },
+    refetch,
   ]
 }

@@ -21,7 +21,7 @@ import {
   minOracleRewardFromEstimates,
   fetchLastOpenVotings,
   hasLinklessOptions,
-  estimateTermiateContract,
+  estimateTerminateContract,
   terminateContract,
   callContract,
   estimateCallContract,
@@ -1391,7 +1391,7 @@ export const viewVotingMachine = createMachine(
 
         const {
           receipt: {gasCost, txFee},
-        } = await estimateTermiateContract(privateKey, terminateData)
+        } = await estimateTerminateContract(privateKey, terminateData)
 
         return terminateContract(privateKey, {
           ...terminateData,

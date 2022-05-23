@@ -73,10 +73,8 @@ import {useEpoch} from '../../shared/providers/epoch-context'
 import {VotingStatus} from '../../shared/types'
 import {
   areSameCaseInsensitive,
-  hasQuorum,
   hasWinner,
   humanError,
-  isAllowedToTerminate,
   mapVotingStatus,
   quorumVotesCount,
   votingMinBalance,
@@ -99,7 +97,7 @@ import {
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useBalance} from '../../shared/hooks/use-balance'
 import {viewVotingMachine} from '../../screens/oracles/machines'
-import {useDeferredVotes} from '../../screens/oracles/hooks'
+import {useDeferredVotes, useOracleActions} from '../../screens/oracles/hooks'
 
 dayjs.extend(relativeTime)
 dayjs.extend(duration)
@@ -166,16 +164,18 @@ export default function ViewVotingPage() {
     balanceUpdates,
     ownerFee,
     totalReward,
-    committeeEpoch,
     estimatedOracleReward,
     estimatedMaxOracleReward = estimatedOracleReward,
     isOracle,
-    estimatedTerminationTime,
     minOracleReward,
     estimatedTotalReward,
-    epochWithoutGrowth,
     pendingVote,
   } = current.context
+
+  const [
+    {canProlong, canFinish, canTerminate, isFetching: actionsIsFetching},
+    refetchActions,
+  ] = useOracleActions(id)
 
   const isLoaded = !current.matches('loading')
 
@@ -198,26 +198,6 @@ export default function ViewVotingPage() {
     committeeSize,
     finishCountingDate,
   })
-
-  const didReachQuorum = hasQuorum({
-    votesCount: voteProofsCount,
-    quorum,
-    committeeSize,
-  })
-
-  const canFinish =
-    didDetermineWinner ||
-    (dayjs().isAfter(finishCountingDate) && didReachQuorum)
-
-  const canProlong =
-    epochWithoutGrowth < 3 &&
-    (committeeEpoch !== epoch ||
-      (!didDetermineWinner &&
-        !didReachQuorum &&
-        dayjs().isAfter(finishCountingDate)) ||
-      (!didReachQuorum && dayjs().isAfter(finishDate)))
-
-  const shouldTerminate = isAllowedToTerminate({estimatedTerminationTime})
 
   const isMaxWinnerThreshold = winnerThreshold === 100
 
@@ -443,7 +423,7 @@ export default function ViewVotingPage() {
                     </VotingSkeleton>
                   )}
 
-                  <VotingSkeleton isLoaded={isLoaded}>
+                  <VotingSkeleton isLoaded={!actionsIsFetching}>
                     <Flex justify="space-between" align="center">
                       <Stack isInline spacing={2}>
                         {eitherIdleState(VotingStatus.Pending) && (
@@ -524,7 +504,7 @@ export default function ViewVotingPage() {
                           VotingStatus.Terminated,
                           VotingStatus.Terminating
                         ) &&
-                          shouldTerminate && (
+                          canTerminate && (
                             <PrimaryButton
                               colorScheme="red"
                               variant="solid"
@@ -710,6 +690,7 @@ export default function ViewVotingPage() {
                       _focus={null}
                       onClick={() => {
                         send('REFRESH')
+                        refetchActions()
                       }}
                     >
                       {t('Refresh')}
