@@ -14,7 +14,7 @@ import {
   createContractDataReader,
   deleteDeferredVote,
   estimateCallContract,
-  estimateTermiateContract,
+  estimateTerminateContract,
   getDeferredVotes,
   updateDeferredVote,
 } from './utils'
@@ -216,7 +216,7 @@ async function loadActions(id, privateKey) {
       })
     ),
     canTerminate: await checkAction(
-      estimateTermiateContract(privateKey, {
+      estimateTerminateContract(privateKey, {
         contractHash: id,
       })
     ),

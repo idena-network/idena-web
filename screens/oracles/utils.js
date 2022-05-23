@@ -303,7 +303,7 @@ export const terminateContract = async (
   return sendRawTx(hex)
 }
 
-export const estimateTermiateContract = async (
+export const estimateTerminateContract = async (
   privateKey,
   {contractHash, args}
 ) => {
