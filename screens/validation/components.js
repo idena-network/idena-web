@@ -201,8 +201,6 @@ export function Flip({
 
   const scrollToZoomedFlip = flipId => {
     scroller.scrollTo(`flipId-${flipId}`, {
-      duration: 250,
-      smooth: true,
       containerId: 'zoomedFlips',
       horizontal: false,
       offset: -80,
@@ -260,8 +258,11 @@ export function Flip({
             onClick={
               isDesktop
                 ? e => {
+                    console.log('START')
                     onFLipClick(e)
+                    console.log('OPENED')
                     setTimeout(() => scrollToZoomedFlip(idx), 100)
+                    console.log('AFTER TIMEOUT')
                   }
                 : () => onChoose(hash)
             }
