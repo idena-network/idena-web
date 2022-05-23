@@ -1903,13 +1903,17 @@ export function StakingAlert(props) {
 
   return warning ? (
     <ErrorAlert {...props}>
-      {Array.isArray(warning)
-        ? warning.map((message, idx) => (
+      {Array.isArray(warning) ? (
+        <Stack spacing={0}>
+          {warning.map((message, idx) => (
             <Text key={idx} as="span">
               {message}
             </Text>
-          ))
-        : warning}
+          ))}
+        </Stack>
+      ) : (
+        warning
+      )}
     </ErrorAlert>
   ) : null
 }

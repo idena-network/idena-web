@@ -245,54 +245,56 @@ export function useStakingAlert() {
 
   const [{state, age}] = useIdentity()
 
-  const lossRatio = React.useMemo(() => (age === 4 ? 1 : (10 - age) / 100), [
-    age,
-  ])
+  const calculateStakeLoss = useCalculateStakeLoss()
 
-  const messages = React.useMemo(
-    () => ({
-      [IdentityStatus.Newbie]: t(
-        'You will lose 100% of the stake if you fail or miss the upcoming validation'
-      ),
-      [IdentityStatus.Candidate]: t(
-        'You will lose 100% of the stake if you fail or miss the upcoming validation'
-      ),
-      [IdentityStatus.Verified]: t(
-        'You will lose 100% of the stake if you fail the upcoming validation'
-      ),
-      [IdentityStatus.Zombie]: [
-        t(
-          `You will lose {{ratio}} of the stake if you fail the upcoming validation.`,
-          {
-            ratio: toPercent(lossRatio),
-          }
-        ),
-        t(
-          'You will lose 100% of the stake if you miss the upcoming validation'
-        ),
-      ],
-      [IdentityStatus.Suspended]: t(
+  return React.useMemo(() => {
+    if ([IdentityStatus.Candidate, IdentityStatus.Newbie].includes(state)) {
+      return t(
+        'You will lose 100% of the stake if you fail or miss the upcoming validation.'
+      )
+    }
+
+    if (state === IdentityStatus.Verified) {
+      return t(
+        'You will lose 100% of the stake if you fail the upcoming validation.'
+      )
+    }
+
+    if (state === IdentityStatus.Zombie) {
+      return age >= 10
+        ? t(
+            'You will lose 100% of the Stake if you miss the upcoming validation.'
+          )
+        : [
+            t(
+              `You will lose {{ratio}} of the stake if you fail the upcoming validation.`,
+              {
+                ratio: toPercent(calculateStakeLoss(age)),
+              }
+            ),
+            t(
+              'You will lose 100% of the stake if you miss the upcoming validation.'
+            ),
+          ]
+    }
+
+    if (state === IdentityStatus.Suspended && age < 10) {
+      return t(
         'You will lose {{ratio}} of the stake if you fail the upcoming validation.',
         {
-          ratio: toPercent(lossRatio),
+          ratio: toPercent(calculateStakeLoss(age)),
         }
-      ),
-    }),
-    [lossRatio, t]
-  )
+      )
+    }
 
-  return React.useMemo(
-    () =>
-      [
-        IdentityStatus.Candidate,
-        IdentityStatus.Newbie,
-        IdentityStatus.Verified,
-        IdentityStatus.Zombie,
-      ].includes(state) ||
-      (state === IdentityStatus.Suspended && age > 0)
-        ? messages[state]
-        : null,
-    [age, state, messages]
+    return null
+  }, [state, age, t, calculateStakeLoss])
+}
+
+export function useCalculateStakeLoss() {
+  return React.useCallback(
+    age => Math.max(age === 4 ? 1 : (10 - age) / 100, 0),
+    []
   )
 }
 
