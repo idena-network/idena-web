@@ -495,7 +495,12 @@ export const createValidationMachine = ({
                                     {flip}
                                   ) =>
                                     mergeFlipsByHash(shortFlips, [
-                                      {...flip, retries, flipIndex},
+                                      {
+                                        ...flip,
+                                        retries,
+                                        flipIndex,
+                                        relevance: RelevanceType.Abstained,
+                                      },
                                     ]),
                                   flipIndex: ({flipIndex}) => flipIndex + 1,
                                 }),
