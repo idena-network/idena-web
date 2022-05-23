@@ -1385,7 +1385,7 @@ export function ReviewValidationDialog({
               />
               {availableReportsCount - reportedFlipsCount > 0 ? (
                 <ReviewValidationDialog.Stat
-                  label={t('Unused')}
+                  label={t('Unused reports')}
                   value={availableReportsCount - reportedFlipsCount}
                 />
               ) : (
@@ -1570,7 +1570,7 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
       >
         <ChakraFlex display={['initial', 'none']} textAlign="center" w="100%">
           <Text fontSize="base" fontWeight="bold" mb={9}>
-            What is a bad flip?
+            {t('What is a bad flip?')}
           </Text>
           <Button
             position="absolute"
