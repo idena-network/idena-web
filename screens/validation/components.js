@@ -1347,6 +1347,15 @@ export function ReviewValidationDialog({
   const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
   const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
 
+  const approvedCount = flips.filter(
+    flip => flip.relevance === RelevanceType.Relevant
+  ).length
+
+  const abstainedCount = flips.filter(
+    flip =>
+      (flip.relevance ?? RelevanceType.Abstained) === RelevanceType.Abstained
+  ).length
+
   return (
     <Dialog
       title={t('Submit the answers')}
@@ -1367,42 +1376,55 @@ export function ReviewValidationDialog({
                 })}
               />
               <ReviewValidationDialog.Stat
-                label={t('Flips reported')}
-                value={t(
-                  '{{reportedFlipsCount}} out of {{availableReportsCount}}',
-                  {
-                    reportedFlipsCount,
-                    availableReportsCount,
-                  }
-                )}
+                label={t('Approved')}
+                value={approvedCount}
               />
+              <ReviewValidationDialog.Stat
+                label={t('Reported')}
+                value={reportedFlipsCount}
+              />
+              {availableReportsCount - reportedFlipsCount > 0 ? (
+                <ReviewValidationDialog.Stat
+                  label={t('Unused reports')}
+                  value={availableReportsCount - reportedFlipsCount}
+                />
+              ) : (
+                <ReviewValidationDialog.Stat
+                  label={t('Abstained')}
+                  value={abstainedCount}
+                />
+              )}
             </Stack>
             {(areFlipsUnanswered || areReportsMissing) && (
-              <Text color="muted">
+              <Stack>
                 {areFlipsUnanswered && (
-                  <Trans i18nKey="reviewMissingFlips" t={t}>
-                    You need to answer{' '}
-                    <ReviewValidationDialog.LinkButton
-                      onClick={onMisingAnswers}
-                    >
-                      all flips
-                    </ReviewValidationDialog.LinkButton>{' '}
-                    otherwise you may fail the validation.
-                  </Trans>
-                )}{' '}
-                {areReportsMissing && (
-                  <Trans i18nKey="reviewMissingReports" t={t}>
-                    In order to get maximum rewards use{' '}
-                    <ReviewValidationDialog.LinkButton
-                      variant="link"
-                      onClick={onMisingReports}
-                    >
-                      all available reports
-                    </ReviewValidationDialog.LinkButton>{' '}
-                    for the worst flips.
-                  </Trans>
+                  <Text color="muted">
+                    <Trans i18nKey="reviewMissingFlips" t={t}>
+                      You need to answer{' '}
+                      <ReviewValidationDialog.LinkButton
+                        onClick={onMisingAnswers}
+                      >
+                        all flips
+                      </ReviewValidationDialog.LinkButton>{' '}
+                      otherwise you may fail the validation.
+                    </Trans>
+                  </Text>
                 )}
-              </Text>
+                {areReportsMissing && (
+                  <Text color="muted">
+                    <Trans i18nKey="reviewMissingReports" t={t}>
+                      Use{' '}
+                      <ReviewValidationDialog.LinkButton
+                        variant="link"
+                        onClick={onMisingReports}
+                      >
+                        all available reports
+                      </ReviewValidationDialog.LinkButton>{' '}
+                      to get maximum rewards.
+                    </Trans>
+                  </Text>
+                )}
+              </Stack>
             )}
           </Stack>
           {areReportsMissing && (
@@ -1548,7 +1570,7 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
       >
         <ChakraFlex display={['initial', 'none']} textAlign="center" w="100%">
           <Text fontSize="base" fontWeight="bold" mb={9}>
-            What is a bad flip?
+            {t('What is a bad flip?')}
           </Text>
           <Button
             position="absolute"
@@ -2007,7 +2029,7 @@ export function ValidationScreen({
   const {
     currentIndex,
     translations,
-    reportedFlipsCount,
+    reports,
     longFlips,
     isTraining,
   } = state.context
@@ -2191,13 +2213,12 @@ export function ValidationScreen({
                       }
                       onClick={() =>
                         send({
-                          type: 'TOGGLE_WORDS',
+                          type: 'APPROVE_WORDS',
                           hash: currentFlip.hash,
-                          relevance: RelevanceType.Relevant,
                         })
                       }
                     >
-                      {t('Both relevant')}
+                      {t('Approve')}
                     </QualificationButton>
                     <Tooltip
                       label={t(
@@ -2242,17 +2263,15 @@ export function ValidationScreen({
                         }}
                         onClick={() =>
                           send({
-                            type: 'TOGGLE_WORDS',
+                            type: 'REPORT_WORDS',
                             hash: currentFlip.hash,
-                            relevance: RelevanceType.Irrelevant,
                           })
                         }
                       >
                         {t('Report')}{' '}
                         {t('({{count}} left)', {
                           count:
-                            availableReportsNumber(longFlips) -
-                            reportedFlipsCount,
+                            availableReportsNumber(longFlips) - reports.size,
                         })}
                       </QualificationButton>
                     </Tooltip>
@@ -2482,7 +2501,7 @@ export function ValidationScreen({
 
       <ReviewValidationDialog
         flips={filterSolvableFlips(flips)}
-        reportedFlipsCount={reportedFlipsCount}
+        reportedFlipsCount={reports.size}
         availableReportsCount={availableReportsNumber(longFlips)}
         isOpen={state.matches('longSession.solve.answer.review')}
         isSubmitting={isSubmitting(state)}
