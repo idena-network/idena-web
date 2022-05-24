@@ -201,17 +201,19 @@ export function Flip({
 
   const scrollToZoomedFlip = flipId => {
     scroller.scrollTo(`flipId-${flipId}`, {
-      duration: 250,
-      smooth: true,
       containerId: 'zoomedFlips',
       horizontal: false,
       offset: -80,
     })
   }
-  const onFLipClick = useSingleAndDoubleClick(
-    () => onChoose(hash),
-    onOpenFlipZoom
-  )
+
+  const onFLipClick = e => {
+    if (e.ctrlKey || e.metaKey) {
+      onOpenFlipZoom()
+    } else {
+      onChoose(hash)
+    }
+  }
 
   if ((fetched && !decoded) || failed) return <FailedFlip />
   if (!fetched) return <LoadingFlip />
@@ -230,12 +232,12 @@ export function Flip({
                     0.75,
                     theme.colors.primary
                   )}`,
-                  transition: 'all .05s cubic-bezier(.5, 0, .5, 1)',
+                  transition: 'all .3s cubic-bezier(.5, 0, .5, 1)',
                 }
               : {
                   opacity: 0.3,
                   transform: 'scale(0.98)',
-                  transition: 'all .05s cubic-bezier(.5, 0, .5, 1)',
+                  transition: 'all .3s cubic-bezier(.5, 0, .5, 1)',
                 }
             : {}
         }
@@ -255,9 +257,12 @@ export function Flip({
             }}
             onClick={
               isDesktop
-                ? () => {
-                    onFLipClick()
+                ? e => {
+                    console.log('START')
+                    onFLipClick(e)
+                    console.log('OPENED')
                     setTimeout(() => scrollToZoomedFlip(idx), 100)
+                    console.log('AFTER TIMEOUT')
                   }
                 : () => onChoose(hash)
             }
@@ -404,7 +409,7 @@ function FlipHolder({css, isZoomHovered = false, ...props}) {
   return (
     <Tooltip
       isOpen={isZoomHovered}
-      label="Doubleclick to zoom"
+      label="Ctrl+Click to zoom"
       placement="top"
       zIndex="tooltip"
       bg="graphite.500"
@@ -2638,25 +2643,4 @@ function getFlipBorderRadius(index, size, radius) {
     return `0 0 ${radius} ${radius}`
   }
   return 0
-}
-
-function useSingleAndDoubleClick(
-  actionSimpleClick,
-  actionDoubleClick,
-  delay = 250
-) {
-  const [click, setClick] = useState(0)
-
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (click === 1) actionSimpleClick()
-      setClick(0)
-    }, delay)
-
-    if (click === 2) actionDoubleClick()
-
-    return () => clearTimeout(timer)
-  }, [actionDoubleClick, actionSimpleClick, click, delay])
-
-  return () => setClick(prev => prev + 1)
 }
