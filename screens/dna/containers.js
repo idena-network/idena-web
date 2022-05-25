@@ -368,6 +368,8 @@ export function DnaRawDialog({
     i18n: {language},
   } = useTranslation()
 
+  const {privateKey} = useAuthState()
+
   const {amount, to} = React.useMemo(() => {
     if (tx) {
       const {amount: txAmount, ...restTx} = new Transaction().fromHex(tx)
@@ -490,7 +492,14 @@ export function DnaRawDialog({
               return resolve()
             })
               .then(() => setIsSubmitting(true))
-              .then(() => sendRawTx(tx))
+              .then(() =>
+                sendRawTx(
+                  new Transaction()
+                    .fromHex(tx)
+                    .sign(privateKey)
+                    .toHex(true)
+                )
+              )
               .then(hash => {
                 if (isValidUrl(callbackUrl)) {
                   const callbackUrlWithHash = appendTxHash(callbackUrl, hash)
@@ -538,7 +547,6 @@ export function DnaRawDialog({
                 console.error(message)
                 onSendRawTxFailed(message)
               })
-              .finally(onClose)
           }}
         >
           {t('Confirm')}
