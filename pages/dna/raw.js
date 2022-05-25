@@ -74,11 +74,16 @@ export default function DnaRawPage() {
             }}
             onSendRawTxFailed={failToast}
             onClose={dismissDnaAppLink}
+            onCompleteSend={dismissDnaAppLink}
           />
 
           <DnaSendSucceededDialog
             {...dnaSendResponse}
             {...dnaSendSucceededDisclosure}
+            onCompleteSend={() => {
+              dismissDnaAppLink()
+              dnaSendSucceededDisclosure.onClose()
+            }}
           />
 
           <DnaSendFailedDialog
@@ -92,6 +97,10 @@ export default function DnaRawPage() {
             }}
             {...dnaSendResponse}
             {...dnaSendFailedDisclosure}
+            onOpenFailUrl={() => {
+              dismissDnaAppLink()
+              dnaSendFailedDisclosure.onClose()
+            }}
           />
         </Box>
       </Page>
