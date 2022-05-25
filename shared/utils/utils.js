@@ -4,6 +4,7 @@ import {isMobile} from 'react-device-detect'
 import {getRpcParams} from '../api/api-client'
 import {IdentityStatus} from '../types'
 import {stripHexPrefix} from './buffers'
+import i18n from '../../i18n'
 
 export const HASH_IN_MEMPOOL =
   '0x0000000000000000000000000000000000000000000000000000000000000000'
@@ -36,8 +37,8 @@ export function callRpc(method, ...params) {
   return createRpcCaller(getRpcParams())(method, ...params)
 }
 
-export function toPercent(value) {
-  return value?.toLocaleString(undefined, {
+export function toPercent(value, locale) {
+  return value?.toLocaleString(locale ?? i18n.language, {
     style: 'percent',
     maximumSignificantDigits: 4,
   })
