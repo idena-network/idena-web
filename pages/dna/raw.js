@@ -65,15 +65,16 @@ export default function DnaRawPage() {
             {...dnaRawTxParams}
             {...dnaRawTxDisclosure}
             onSendSuccess={({hash, url}) => {
+              dnaRawTxDisclosure.onClose()
               setDnaSendResponse({hash, url})
               dnaSendSucceededDisclosure.onOpen()
             }}
             onSendError={({error, url}) => {
+              dnaRawTxDisclosure.onClose()
               setDnaSendResponse({error, url})
               dnaSendFailedDisclosure.onOpen()
             }}
             onSendRawTxFailed={failToast}
-            onClose={dismissDnaAppLink}
             onCompleteSend={dismissDnaAppLink}
           />
 
