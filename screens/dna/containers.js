@@ -357,10 +357,10 @@ export function DnaRawDialog({
   tx,
   callbackUrl,
   callbackFormat,
-  onClose,
   onSendSuccess,
   onSendError,
   onSendRawTxFailed,
+  onCompleteSend,
   ...props
 }) {
   const {
@@ -400,7 +400,7 @@ export function DnaRawDialog({
   const dna = toLocaleDna(language)
 
   return (
-    <DnaDialog title={t('Confirm transaction')} onClose={onClose} {...props}>
+    <DnaDialog title={t('Confirm transaction')} {...props}>
       <DialogBody>
         <Stack spacing={5}>
           <Text>{t('You’re about to sign and send tx from your wallet')}</Text>
@@ -472,7 +472,9 @@ export function DnaRawDialog({
         </Stack>
       </DialogBody>
       <DialogFooter>
-        <SecondaryButton onClick={onClose}>{t('Cancel')}</SecondaryButton>
+        <SecondaryButton onClick={onCompleteSend}>
+          {t('Cancel')}
+        </SecondaryButton>
         <PrimaryButton
           isDisabled={
             isExceededBalance || (shouldConfirmTx && !didConfirmAmount)
