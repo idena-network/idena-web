@@ -2,13 +2,16 @@ import {DownloadIcon} from '@chakra-ui/icons'
 import {
   Checkbox,
   Flex,
+  Button,
+  Heading,
   RadioGroup,
   Stack,
   Text,
+  useBreakpointValue,
   useDisclosure,
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
-import {useEffect, useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
 import {BuySharedNodeForm, ChooseItemRadio} from '../../screens/node/components'
@@ -76,6 +79,10 @@ export default function Restricted() {
 
   const [savedApiKey, setSavedApiKey] = useState()
   const [isSavedKeyActual, setIsSavedKeyActual] = useState(false)
+
+  const size = useBreakpointValue(['lg', 'md'])
+  const variantRadio = useBreakpointValue(['mobileDark', 'dark'])
+  const variantSecondary = useBreakpointValue(['primaryFlat', 'secondary'])
 
   const persistCheckbox = () => {
     const current = loadPersistentState('restricted-modal')
@@ -148,13 +155,13 @@ export default function Restricted() {
     checkSaved()
   }, [apiKey, coinbase, privateKey])
 
-  useEffect(() => {
-    if (
-      apiKeyState === apiKeyStates.ONLINE ||
-      apiKeyState === apiKeyStates.EXTERNAL
-    )
-      router.push('/home')
-  }, [apiKeyState, router])
+  // useEffect(() => {
+  //   if (
+  //     apiKeyState === apiKeyStates.ONLINE ||
+  //     apiKeyState === apiKeyStates.EXTERNAL
+  //   )
+  //     router.push('/home')
+  // }, [apiKeyState, router])
 
   useEffect(() => {
     if (identityState === IdentityStatus.Candidate) {
@@ -173,7 +180,7 @@ export default function Restricted() {
   return (
     <Layout canRedirect={false}>
       <Flex
-        bg="graphite.500"
+        bg={['gray.500', 'graphite.500']}
         alignItems="center"
         justifyContent="center"
         height="100%"
@@ -181,12 +188,39 @@ export default function Restricted() {
         justify="center"
         flex="1"
       >
-        <Flex flexGrow={1} align="center" justify="center" mt="44px">
-          <Flex direction="column" maxWidth={['360px', '480px']}>
-            <Flex>
-              <Avatar address={auth.coinbase} />
-              <Flex direction="column" justify="center" flex="1" ml={5}>
-                <SubHeading color="white" css={{wordBreak: 'break-word'}}>
+        <Flex
+          flexGrow={1}
+          align="center"
+          justify={['flex-start', 'center']}
+          mt="44px"
+          mx={[3, 0]}
+          direction="column"
+        >
+          <Flex
+            direction="column"
+            align={['center', 'initial']}
+            maxWidth={['100%', '480px']}
+          >
+            <Flex
+              direction={['column', 'row']}
+              align="center"
+              textAlign={['center', 'initial']}
+              w={['60%', 'auto']}
+            >
+              <Avatar address={coinbase} />
+              <Flex
+                direction="column"
+                justify="center"
+                flex="1"
+                ml={[0, 5]}
+                mt={[5, 0]}
+              >
+                <SubHeading
+                  fontSize={['mdx', 'lg']}
+                  fontWeight={[400, 500]}
+                  color={['muted', 'white']}
+                  wordBreak="break-word"
+                >
                   {auth.coinbase}
                 </SubHeading>
               </Flex>
@@ -196,8 +230,9 @@ export default function Restricted() {
               mt={6}
               bg="gray.500"
               borderRadius="lg"
-              px={10}
+              px={[6, 10]}
               py={7}
+              w={['100%', 'auto']}
             >
               {step === steps.INITIAL && (
                 <Flex direction="column" alignItems="center" mt={6}>
@@ -245,7 +280,7 @@ export default function Restricted() {
               )}
               {step === steps.CONNECT && (
                 <>
-                  <Flex>
+                  <Flex justify={['center', ' flex-start']}>
                     <Text color="white" fontSize="lg">
                       {t('Connect to a shared node')}
                     </Text>
@@ -256,23 +291,33 @@ export default function Restricted() {
                       {t('Choose an option')}
                     </Text>
                   </Flex>
-                  <Flex mt={4}>
+                  <Flex mt={[2, 4]}>
                     <RadioGroup>
-                      <Stack direction="column" spacing={3}>
-                        {isSavedKeyActual && savedApiKey.url !== apiKey.url && (
-                          <ChooseItemRadio
-                            isChecked={state === options.RESTORE}
-                            onChange={() => setState(options.RESTORE)}
-                            alignItems="baseline"
-                          >
-                            <Text color="white">{t('Restore connection')}</Text>
-                            <Text color="muted" fontSize="sm">
-                              {savedApiKey.url}
-                            </Text>
-                          </ChooseItemRadio>
-                        )}
+                      <Stack direction="column" spacing={[1, 3]}>
+                        {isSavedKeyActual &&
+                          savedApiKey &&
+                          savedApiKey.url !== apiKey.url && (
+                            <ChooseItemRadio
+                              variant={variantRadio}
+                              px={[4, 0]}
+                              isChecked={state === options.RESTORE}
+                              onChange={() => setState(options.RESTORE)}
+                              alignItems={['center', 'flex-start']}
+                            >
+                              <Flex direction="column" mt={['auto', '-2px']}>
+                                <Text color="white">
+                                  {t('Restore connection')}
+                                </Text>
+                                <Text color="muted" fontSize="sm">
+                                  {savedApiKey.url}
+                                </Text>
+                              </Flex>
+                            </ChooseItemRadio>
+                          )}
                         {identityState === IdentityStatus.Candidate && (
                           <ChooseItemRadio
+                            variant={variantRadio}
+                            px={[4, 0]}
                             isChecked={state === options.CANDIDATE}
                             onChange={() => setState(options.CANDIDATE)}
                           >
@@ -281,23 +326,29 @@ export default function Restricted() {
                         )}
                         {canProlong && (
                           <ChooseItemRadio
+                            variant={variantRadio}
+                            px={[4, 0]}
                             isChecked={state === options.PROLONG}
                             onChange={() => setState(options.PROLONG)}
-                            alignItems="baseline"
+                            alignItems={['center', 'flex-start']}
                           >
-                            <Text color="white">
-                              {t('Prolong node access')}{' '}
-                              {`(${GetProviderPrice(
-                                provider.data,
-                                identityState
-                              )} iDNA)`}
-                            </Text>
-                            <Text color="muted" fontSize="sm">
-                              {provider.data.url}
-                            </Text>
+                            <Flex direction="column" mt={['auto', '-2px']}>
+                              <Text color="white">
+                                {t('Prolong node access')}{' '}
+                                {`(${GetProviderPrice(
+                                  provider.data,
+                                  identityState
+                                )} iDNA)`}
+                              </Text>
+                              <Text color="muted" fontSize="sm">
+                                {provider.data.url}
+                              </Text>
+                            </Flex>
                           </ChooseItemRadio>
                         )}
                         <ChooseItemRadio
+                          variant={variantRadio}
+                          px={[4, 0]}
                           isChecked={state === options.BUY}
                           onChange={() => setState(options.BUY)}
                         >
@@ -308,6 +359,8 @@ export default function Restricted() {
                           </Text>
                         </ChooseItemRadio>
                         <ChooseItemRadio
+                          variant={variantRadio}
+                          px={[4, 0]}
                           isChecked={state === options.ENTER_KEY}
                           onChange={() => setState(options.ENTER_KEY)}
                         >
@@ -318,12 +371,27 @@ export default function Restricted() {
                       </Stack>
                     </RadioGroup>
                   </Flex>
-                  <Flex mt={10} justifyContent="space-between">
-                    <Flex ml="auto">
-                      <SecondaryButton onClick={() => notNow(false)} mr={2}>
+                  <Flex mt={[4, 10]} justifyContent="space-between">
+                    <Flex
+                      direction={['column', 'row']}
+                      ml="auto"
+                      w={['100%', 'auto']}
+                    >
+                      <Button
+                        variant={variantSecondary}
+                        order={[2, 1]}
+                        size={size}
+                        w={['100%', 'auto']}
+                        onClick={() => notNow(false)}
+                        mr={[0, 2]}
+                        mt={[2, 0]}
+                      >
                         {t('Not now')}
-                      </SecondaryButton>
+                      </Button>
                       <PrimaryButton
+                        order={[1, 2]}
+                        size={size}
+                        w={['100%', 'auto']}
                         onClick={process}
                         isDisabled={waiting}
                         isLoading={waiting}
