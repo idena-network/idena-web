@@ -437,6 +437,9 @@ export function TransferForm({isOpen, onClose}) {
 
       const result = await sendDna(privateKey, to, amount)
 
+      setAmount(null)
+      setTo(null)
+
       successToast({
         title: t('Transaction sent'),
         description: result,
