@@ -548,7 +548,7 @@ export function RoundedTh({isLeft, isRight, children, ...props}) {
 
 export function GoogleTranslateButton({
   phrases = [],
-  text = encodeURIComponent(phrases.join('\n\n')),
+  text = encodeURIComponent(phrases.filter(Boolean).join('\n\n')),
   locale,
   children,
   ...props
