@@ -1646,11 +1646,21 @@ export function NewOraclePresetDialog({onChoosePreset, onCancel, ...props}) {
   )
 }
 
-export function OracleAdDescription({ad}) {
+export function OracleAdDescription({ad, isMalicious}) {
   const {t} = useTranslation()
 
   return (
-    <Stack spacing="7" bg="white" rounded="lg" p="6" pt="4">
+    <Stack spacing="7" bg="white" rounded="lg" p="6" pt="4" position="relative">
+      {isMalicious && (
+        <Box
+          bg="white"
+          position="absolute"
+          inset={0}
+          filter="blur(2px)"
+          backdropFilter="blur(2px)"
+          zIndex="banner"
+        />
+      )}
       <Stack spacing="2">
         <Stack spacing="1">
           <Text fontWeight={500}>{ad.title}</Text>

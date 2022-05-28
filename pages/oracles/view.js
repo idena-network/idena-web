@@ -283,10 +283,15 @@ export default function ViewVotingPage() {
                             },
                           }}
                         >
-                          {title}
+                          {isMaliciousAdVoting
+                            ? t('Please reject malicious ad')
+                            : title}
                         </Heading>
                         {ad ? (
-                          <OracleAdDescription ad={ad} />
+                          <OracleAdDescription
+                            ad={ad}
+                            isMalicious={isMaliciousAdVoting}
+                          />
                         ) : (
                           <Text
                             isTruncated
@@ -461,8 +466,8 @@ export default function ViewVotingPage() {
                         {eitherIdleState(VotingStatus.Open) &&
                           (isOracle ? (
                             <PrimaryButton
+                              isDisabled={Boolean(adCid) && isMaliciousAdVoting}
                               onClick={() => send('REVIEW')}
-                              isDisabled={isMaliciousAdVoting}
                             >
                               {t('Vote')}
                             </PrimaryButton>

@@ -391,7 +391,7 @@ export function AdListItem({
                 flex={0}
               />
               <SmallInlineAdStat
-                label="Max price"
+                label="Max bid"
                 value={
                   status === AdStatus.Published && maxCompetitor
                     ? formatDna(maxCompetitor.amount)
@@ -1110,7 +1110,7 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
                   value={competitorCount}
                 />
                 <InlineAdStat
-                  label={t('Max price')}
+                  label={t('Max bid')}
                   value={maxCompetitor ? formatDna(maxCompetitor.amount) : '--'}
                 />
               </InlineAdStatGroup>
@@ -1218,7 +1218,7 @@ export function BurnDrawer({ad, onBurn, ...props}) {
                   value={competitorCount}
                 />
                 <InlineAdStat
-                  label={t('Max price')}
+                  label={t('Max bid')}
                   value={maxCompetitor ? formatDna(maxCompetitor.amount) : '--'}
                 />
               </InlineAdStatGroup>

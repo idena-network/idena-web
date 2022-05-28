@@ -43,13 +43,13 @@ export function currentOs() {
 }
 
 export const areCompetingAds = (targetA, targetB) =>
-  compareNullish(targetA.language, targetB.language, areSameCaseInsensitive) &&
-  compareNullish(targetA.os, targetB.os, areSameCaseInsensitive) &&
+  compareNullish(targetA.language, targetB.language, areSameCaseInsensitive) ||
+  compareNullish(targetA.os, targetB.os, areSameCaseInsensitive) ||
   compareNullish(
     targetA.age,
     targetB.age,
     (ageA, ageB) => Number(ageB) >= Number(ageA)
-  ) &&
+  ) ||
   compareNullish(
     targetA.stake,
     targetB.stake,

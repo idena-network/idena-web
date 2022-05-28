@@ -2,7 +2,7 @@ import {Center, Table, Tbody, Thead, Tr, useDisclosure} from '@chakra-ui/react'
 import React from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQueryClient} from 'react-query'
-import {useBurntCoins, useProtoProfileDecoder} from '../../screens/ads/hooks'
+import {useApprovedBurntCoins} from '../../screens/ads/hooks'
 import {Page, PageTitle} from '../../screens/app/components'
 import {RoundedTh} from '../../shared/components/components'
 import Layout from '../../shared/components/layout'
@@ -12,22 +12,9 @@ import {AdOfferListItem, BurnDrawer} from '../../screens/ads/containers'
 export default function AdOfferList() {
   const {t} = useTranslation()
 
-  const {decodeAdBurnKey} = useProtoProfileDecoder()
-
   const queryClient = useQueryClient()
 
-  const {data: burntCoins, status: burntCoinsStatus} = useBurntCoins({
-    select: data =>
-      data?.map(({address, key, amount}) => ({
-        address,
-        key,
-        ...decodeAdBurnKey(key),
-        amount,
-      })) ?? [],
-    initialData: [],
-    staleTime: 0,
-    notifyOnChangeProps: 'tracked',
-  })
+  const {data: burntCoins, status: burntCoinsStatus} = useApprovedBurntCoins()
 
   const isFetched = burntCoinsStatus === 'success'
 

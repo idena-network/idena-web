@@ -2,7 +2,7 @@
 import {useToken, useInterval} from '@chakra-ui/react'
 import React from 'react'
 import {useTranslation} from 'react-i18next'
-import {useMutation, useQueries, useQuery} from 'react-query'
+import {useMutation, useQueries, useQuery, useQueryClient} from 'react-query'
 import {CID, bytes} from 'multiformats'
 import {Ad} from '../../shared/models/ad'
 import {AdTarget} from '../../shared/models/adKey'
@@ -185,17 +185,17 @@ export function useSelfCompetingAds() {
 export function useCompetingAds(cid, target) {
   const {decodeAdTarget} = useProtoProfileDecoder()
 
-  return useBurntCoins({
+  return useApprovedBurntCoins({
     enabled: Boolean(cid) && Boolean(target),
     select: React.useCallback(
       data =>
-        data?.filter(burn => {
+        data.filter(burn => {
           const key = AdBurnKey.fromHex(burn.key)
           return (
             cid !== key.cid &&
             areCompetingAds(decodeAdTarget(key.target), target)
           )
-        }) ?? [],
+        }),
       [cid, decodeAdTarget, target]
     ),
   })
@@ -206,6 +206,57 @@ export function useBurntCoins(options) {
     staleTime: (BLOCK_TIME / 2) * 1000,
     notifyOnChangeProps: ['data'],
     ...options,
+  })
+}
+
+export function useApprovedBurntCoins() {
+  const queryClient = useQueryClient()
+
+  const {decodeProfile, decodeAdBurnKey} = useProtoProfileDecoder()
+
+  const {data: burntCoins, status: burntCoinsStatus} = useBurntCoins({
+    select: data =>
+      data?.map(({address, key, amount}) => ({
+        address,
+        key,
+        ...decodeAdBurnKey(key),
+        amount,
+      })) ?? [],
+    notifyOnChangeProps: 'tracked',
+  })
+
+  const rpcFetcher = useRpcFetcher()
+
+  return useQuery({
+    queryKey: ['approvedAdOffers'],
+    queryFn: () =>
+      Promise.all(
+        burntCoins.map(async burn => {
+          const identity = await queryClient.fetchQuery({
+            queryKey: ['dna_identity', [burn.address]],
+            queryFn: rpcFetcher,
+          })
+
+          if (identity.profileHash) {
+            const profile = await queryClient.fetchQuery({
+              queryKey: ['ipfs_get', [identity.profileHash]],
+              queryFn: rpcFetcher,
+            })
+
+            const {ads} = decodeProfile(profile)
+
+            const ad = ads.find(({cid}) => cid === burn.cid)
+
+            if (ad) {
+              const voting = await getAdVoting(ad.contract)
+              return isApprovedVoting(voting) ? burn : null
+            }
+          }
+        })
+      ),
+    enabled: burntCoinsStatus === 'success',
+    select: data => data.filter(Boolean),
+    notifyOnChangeProps: 'tracked',
   })
 }
 
