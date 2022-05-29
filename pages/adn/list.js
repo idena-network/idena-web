@@ -184,7 +184,6 @@ export default function AdListPage() {
   const handleDeployContract = React.useCallback(
     ({cid, contract}) => {
       db.table('ads').update(selectedAd?.id, {
-        status: AdStatus.Reviewing,
         cid,
         contract,
         author: coinbase,
