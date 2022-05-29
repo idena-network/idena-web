@@ -51,6 +51,7 @@ import {
   DrawerHeader,
   DrawerBody,
   FormLabel,
+  GoogleTranslateButton,
 } from '../../shared/components/components'
 import {openExternalUrl} from '../../shared/utils/utils'
 import {
@@ -513,27 +514,6 @@ export function FlipKeywordTranslationSwitch({
   const hasBothTranslations =
     keywords.translations.reduce((acc, {length}) => acc + length, 0) > 1
 
-  const translate = () => {
-    const langs = [
-      ...(window.navigator.languages || []),
-      window.navigator.language,
-      window.navigator.browserLanguage,
-      window.navigator.userLanguage,
-      window.navigator.systemLanguage,
-    ]
-      .filter(Boolean)
-      .map(language => language.substr(0, 2))
-
-    const win = openExternalUrl(
-      `https://translate.google.com/#view=home&op=translate&sl=auto&tl=${
-        langs.length ? langs[0] : 'en'
-      }&text=${encodeURIComponent(
-        keywords.words.map(({name, desc}) => `${name}\n${desc}`).join('\n')
-      )}`
-    )
-    win.focus()
-  }
-
   return (
     <Stack spacing={rem(30)}>
       <FlipKeywordPair
@@ -577,13 +557,12 @@ export function FlipKeywordTranslationSwitch({
                 h={rem(24)}
               />
             ) : null}
-            <IconButton
-              icon={<GtranslateIcon boxSize={5} />}
-              _hover={{background: 'transparent'}}
-              onClick={translate}
-            >
-              Google Translate
-            </IconButton>
+            <GoogleTranslateButton
+              phrases={keywords.words.map(({name, desc}) =>
+                [name, desc].filter(Boolean).join('\n')
+              )}
+              locale={locale}
+            />
           </>
         )}
       </Stack>
