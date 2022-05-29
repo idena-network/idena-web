@@ -107,31 +107,34 @@ const mapToVotingStatus = status => {
   }
 }
 
-export const AD_VOTING_COMMITTEE_SIZE = 100
+const buildAdReviewVotingOption = option => ({
+  id: AdVotingOptionId[option],
+  value: option,
+})
 
-export const buildAdReviewVoting = ({title, adCid}) => ({
-  desc: title,
+export const adVotingDefaults = {
   title: 'Is this ad appropriate?',
-  adCid,
   // votingDuration: 4320 * 3,
   // publicVotingDuration: 2160,
   votingDuration: 3 * 3,
   publicVotingDuration: 3 * 3,
   winnerThreshold: 66,
   quorum: 1,
-  committeeSize: AD_VOTING_COMMITTEE_SIZE,
+  committeeSize: 300,
+  ownerFee: 0,
+  shouldStartImmediately: true,
+  isFreeVoting: true,
   options: [
     buildAdReviewVotingOption(AdVotingOption.Approve),
     buildAdReviewVotingOption(AdVotingOption.Reject),
   ],
-  ownerFee: 0,
-  shouldStartImmediately: true,
-  isFreeVoting: true,
-})
+}
 
-const buildAdReviewVotingOption = option => ({
-  id: AdVotingOptionId[option],
-  value: option,
+export const buildAdReviewVoting = async ({title, adCid}) => ({
+  ...adVotingDefaults,
+  desc: title,
+  adCid,
+  committeeSize: await clampCommiteeSize(adVotingDefaults.committeeSize),
 })
 
 export const calculateMinOracleReward = async () =>
@@ -153,7 +156,7 @@ export async function fetchProfileAds(address) {
 export const isApprovedVoting = voting =>
   isFinalVoting(voting) &&
   isApprovedAd(voting) &&
-  voting.title === buildAdReviewVoting({}).title
+  voting.title === adVotingDefaults.title
 
 export const isRejectedVoting = voting =>
   isFinalVoting(voting) && !isApprovedAd(voting)
@@ -337,3 +340,6 @@ export async function sendToIpfs(hex, {from, privateKey}) {
     hash,
   }
 }
+
+export const clampCommiteeSize = async committeeSize =>
+  Math.min(committeeSize, await fetchNetworkSize())

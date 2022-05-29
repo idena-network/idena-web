@@ -13,12 +13,10 @@ import {
   toLocaleDna,
   prependHex,
   HASH_IN_MEMPOOL,
-  roundToPrecision,
 } from '../../shared/utils/utils'
 import {AdRotationStatus, AdStatus} from './types'
 import {
   adFallbackSrc,
-  AD_VOTING_COMMITTEE_SIZE,
   areCompetingAds,
   buildAdReviewVoting,
   currentOs,
@@ -32,6 +30,8 @@ import {
   selectProfileHash,
   sendSignedTx,
   sendToIpfs,
+  clampCommiteeSize,
+  adVotingDefaults,
 } from './utils'
 import {TxType} from '../../shared/types'
 import {capitalize} from '../../shared/utils/string'
@@ -430,15 +430,17 @@ function useDeployAdContract({onBeforeSubmit, onSubmit, onError}) {
 
   const privateKey = usePrivateKey()
 
-  const {data: deployAmount} = useDeployVotingAmount()
+  const {data: deployAmount} = useDeployContractAmount()
 
   return useMutation(
     async ad => {
+      const unpublishedVoting = await buildAdReviewVoting({title: ad.title})
+
       const {cid} = await sendToIpfs(
         encodeAd({
           ...ad,
           version: 0,
-          votingParams: buildAdReviewVoting({title: ad.title}),
+          votingParams: unpublishedVoting,
         }),
         {
           from: coinbase,
@@ -446,10 +448,10 @@ function useDeployAdContract({onBeforeSubmit, onSubmit, onError}) {
         }
       )
 
-      const voting = buildAdReviewVoting({
-        title: ad.title,
+      const voting = {
+        ...unpublishedVoting,
         adCid: cid,
-      })
+      }
 
       const deployPayload = prependHex(
         bytes.toHex(
@@ -729,34 +731,40 @@ function usePrivateKey() {
   return privateKey
 }
 
-export function useDeployVotingAmount() {
+export function useDeployContractAmount() {
   return useRpc('bcn_feePerGas', [], {
     select: votingMinStake,
   })
 }
 
 export function useStartAdVotingAmount() {
-  return useStartVotingAmount(AD_VOTING_COMMITTEE_SIZE)
+  return useStartVotingAmount(adVotingDefaults.committeeSize)
 }
 
 export function useStartVotingAmount(committeeSize) {
   return useQuery(
     ['useStartVotingAmount', committeeSize],
     // eslint-disable-next-line no-shadow
-    async ({queryKey: [, committeeSize]}) =>
-      roundToPrecision(
-        4,
-        Number(await calculateMinOracleReward()) * committeeSize
-      )
+    async ({queryKey: [, committeeSize]}) => {
+      const minOracleReward = await calculateMinOracleReward()
+      const clampedCommitteeSize = await clampCommiteeSize(committeeSize)
+
+      return minOracleReward * clampedCommitteeSize
+    }
   )
 }
 
-export function useFormatDna() {
+export function useFormatDna(options) {
   const {
     i18n: {language},
   } = useTranslation()
 
-  return React.useCallback(value => toLocaleDna(language)(value), [language])
+  const format = React.useMemo(() => toLocaleDna(language, options), [
+    language,
+    options,
+  ])
+
+  return React.useCallback(value => format(value), [format])
 }
 
 export function useProtoProfileEncoder() {

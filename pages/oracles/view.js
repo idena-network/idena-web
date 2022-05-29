@@ -214,8 +214,10 @@ export default function ViewVotingPage() {
 
   const adPreviewDisclosure = useDisclosure()
 
-  const isMaliciousAdVoting =
-    validateAdVoting({ad, voting: current.context}) === false
+  const isMaliciousAdVoting = React.useMemo(
+    () => validateAdVoting({ad, voting: current.context}) === false,
+    [ad, current.context]
+  )
 
   return (
     <>
@@ -288,10 +290,21 @@ export default function ViewVotingPage() {
                             : title}
                         </Heading>
                         {ad ? (
-                          <OracleAdDescription
-                            ad={ad}
-                            isMalicious={isMaliciousAdVoting}
-                          />
+                          <>
+                            {isMaliciousAdVoting ? (
+                              <Box position="relative" filter="blur(2px)">
+                                <Box
+                                  position="absolute"
+                                  inset={0}
+                                  backdropFilter="blur(2px)"
+                                  zIndex="banner"
+                                />
+                                <OracleAdDescription ad={ad} />
+                              </Box>
+                            ) : (
+                              <OracleAdDescription ad={ad} />
+                            )}
+                          </>
                         ) : (
                           <Text
                             isTruncated

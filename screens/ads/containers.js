@@ -63,7 +63,7 @@ import {
   useAdStatusText,
   useFormatDna,
   useReviewAd,
-  useDeployVotingAmount,
+  useDeployContractAmount,
   useStartAdVotingAmount,
   useBalance,
   useCoinbase,
@@ -867,11 +867,11 @@ export function ReviewAdDrawer({
     ),
   })
 
-  const {data: deployAmount} = useDeployVotingAmount()
+  const {data: deployAmount} = useDeployContractAmount()
 
   const {data: startAmount} = useStartAdVotingAmount()
 
-  const formatDna = useFormatDna()
+  const formatDna = useFormatDna({maximumFractionDigits: 5})
 
   return (
     <AdDrawer
