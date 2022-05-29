@@ -156,7 +156,6 @@ export default function ViewVotingPage() {
     options = [],
     votes = [],
     voteProofsCount,
-    votesCount,
     finishDate,
     finishCountingDate,
     selectedOption,
@@ -200,6 +199,9 @@ export default function ViewVotingPage() {
   })
 
   const isMaxWinnerThreshold = winnerThreshold === 100
+
+  const accountableVoteCount =
+    votes?.reduce((agg, curr) => agg + curr?.count, 0) ?? 0
 
   return (
     <>
@@ -406,19 +408,7 @@ export default function ViewVotingPage() {
                         <Text color="muted" fontSize="sm">
                           {t('Voting results')}
                         </Text>
-                        {votesCount ? (
-                          <VotingResult votingService={service} spacing={3} />
-                        ) : (
-                          <Text
-                            bg="gray.50"
-                            borderRadius="md"
-                            p={2}
-                            color="muted"
-                            fontSize="sm"
-                          >
-                            {t('No votes')}
-                          </Text>
-                        )}
+                        <VotingResult votingService={service} spacing={3} />
                       </Stack>
                     </VotingSkeleton>
                   )}
@@ -534,8 +524,10 @@ export default function ViewVotingPage() {
                           )}
 
                           <Text as="span">
-                            {t('{{count}} votes', {
-                              count: votesCount || voteProofsCount,
+                            {t('{{count}} published votes', {
+                              count: eitherIdleState(VotingStatus.Open)
+                                ? voteProofsCount
+                                : accountableVoteCount,
                             })}{' '}
                             {eitherIdleState(VotingStatus.Counting) &&
                               t('out of {{count}}', {count: voteProofsCount})}
