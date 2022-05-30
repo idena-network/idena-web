@@ -226,7 +226,7 @@ export function AdListItem({
 
   const formatDna = useFormatDna()
 
-  const {data: competingAds} = useCompetingAds(
+  const competingAds = useCompetingAds(
     cid,
     new AdTarget({language, age, os, stake})
   )
@@ -1058,7 +1058,7 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
     ),
   })
 
-  const {data: competingAds} = useCompetingAds(ad.cid, new AdTarget(ad))
+  const competingAds = useCompetingAds(ad.cid, new AdTarget(ad))
 
   const competitorCount = competingAds?.length
   const maxCompetitor = competingAds?.sort((a, b) => b.amount - a.amount)[0]
@@ -1171,7 +1171,7 @@ export function BurnDrawer({ad, onBurn, ...props}) {
 
   const formatDna = useFormatDna()
 
-  const {data: competingAds} = useCompetingAds(ad.cid, new AdTarget(ad))
+  const competingAds = useCompetingAds(ad.cid, new AdTarget(ad))
 
   const competitorCount = competingAds?.length
   const maxCompetitor = competingAds?.sort((a, b) => b.amount - a.amount)[0]

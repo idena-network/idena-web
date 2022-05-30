@@ -52,7 +52,7 @@ import {AdBurnKey} from '../../shared/models/adBurnKey'
 export function useRotatingAds(limit = 3) {
   const rpcFetcher = useRpcFetcher()
 
-  const {data: burntCoins} = useSelfCompetingAds()
+  const burntCoins = useSelfCompetingAds()
 
   const addresses = [...new Set(burntCoins?.map(({address}) => address))]
 
@@ -185,20 +185,18 @@ export function useSelfCompetingAds() {
 export function useCompetingAds(cid, target) {
   const {decodeAdTarget} = useProtoProfileDecoder()
 
-  return useApprovedBurntCoins({
-    enabled: Boolean(cid) && Boolean(target),
-    select: React.useCallback(
-      data =>
-        data.filter(burn => {
-          const key = AdBurnKey.fromHex(burn.key)
-          return (
-            cid !== key.cid &&
-            areCompetingAds(decodeAdTarget(key.target), target)
-          )
-        }),
-      [cid, decodeAdTarget, target]
-    ),
-  })
+  const {data: approvedBurntCoins} = useApprovedBurntCoins()
+
+  return React.useMemo(() => {
+    if (Boolean(cid) && Boolean(target)) {
+      return approvedBurntCoins.filter(burn => {
+        const key = AdBurnKey.fromHex(burn.key)
+        return (
+          cid !== key.cid && areCompetingAds(decodeAdTarget(key.target), target)
+        )
+      })
+    }
+  }, [approvedBurntCoins, cid, decodeAdTarget, target])
 }
 
 export function useBurntCoins(options) {
