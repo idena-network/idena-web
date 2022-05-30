@@ -66,13 +66,15 @@ function NormalApp({children, canRedirect = true, skipBanner}) {
     if (shouldStartValidation(epoch, identity)) router.push('/validation')
   }, 1000)
 
+  const isOffline = settings.apiKeyState === apiKeyStates.OFFLINE
+
   React.useEffect(() => {
     if (!canRedirect) return
-    if (settings.apiKeyState === apiKeyStates.OFFLINE) {
+    if (isOffline) {
       router.push('/node/offline')
     } else if (currentTrainingValidation?.period === EpochPeriod.ShortSession)
       router.push('/try/validation')
-  }, [canRedirect, currentTrainingValidation, router, settings.apiKeyState])
+  }, [canRedirect, currentTrainingValidation, isOffline, router])
 
   const ads = useRotatingAds()
 
@@ -86,7 +88,7 @@ function NormalApp({children, canRedirect = true, skipBanner}) {
       h={['auto', '100vh']}
       overflowY="auto"
     >
-      {hasRotatingAds && !skipBanner && <AdBanner />}
+      {hasRotatingAds && !skipBanner && !isOffline && <AdBanner />}
 
       {children}
 
