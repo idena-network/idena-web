@@ -32,6 +32,7 @@ import {
   sendToIpfs,
   clampCommiteeSize,
   adVotingDefaults,
+  isTargetedAd,
 } from './utils'
 import {TxType} from '../../shared/types'
 import {capitalize} from '../../shared/utils/string'
@@ -48,11 +49,12 @@ import db from '../../shared/utils/db'
 import {ChangeProfileAttachment} from '../../shared/models/changeProfileAttachment'
 import {BurnAttachment} from '../../shared/models/burnAttachment'
 import {AdBurnKey} from '../../shared/models/adBurnKey'
+import {useLanguage} from '../../shared/hooks/use-language'
 
 export function useRotatingAds(limit = 3) {
   const rpcFetcher = useRpcFetcher()
 
-  const burntCoins = useSelfCompetingAds()
+  const burntCoins = useTargetedAds()
 
   const addresses = [...new Set(burntCoins?.map(({address}) => address))]
 
@@ -163,23 +165,36 @@ export function useRotateAds(maybeTiming) {
   }
 }
 
-export function useSelfCompetingAds() {
-  const {i18n} = useTranslation()
+export function useTargetedAds() {
+  const [{age, stake}] = useIdentity()
 
-  const [{address, age, stake}] = useIdentity()
+  const language = useLanguage()
 
   const currentTarget = React.useMemo(
     () =>
       new AdTarget({
-        language: new Intl.Locale(i18n.language ?? 'en').language,
+        language: language.lng,
         os: typeof window !== 'undefined' ? currentOs() : '',
         age,
         stake,
       }),
-    [age, i18n.language, stake]
+    [age, language, stake]
   )
 
-  return useCompetingAds(address, currentTarget)
+  const {decodeAdTarget} = useProtoProfileDecoder()
+
+  const {data: approvedBurntCoins} = useApprovedBurntCoins()
+
+  return React.useMemo(
+    () =>
+      approvedBurntCoins?.filter(burn =>
+        isTargetedAd(
+          decodeAdTarget(AdBurnKey.fromHex(burn.key).target),
+          currentTarget
+        )
+      ),
+    [approvedBurntCoins, currentTarget, decodeAdTarget]
+  )
 }
 
 export function useCompetingAds(cid, target) {

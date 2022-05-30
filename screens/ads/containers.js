@@ -373,32 +373,28 @@ export function AdListItem({
           <VDivider minH={68} h="full" />
 
           <Stack flex={1} justify="center">
-            <InlineAdStatGroup spacing="2" labelWidth="20" flex={1}>
-              <SmallInlineAdStat
-                label={t('Burnt, {{time}}', {
-                  time: new Intl.RelativeTimeFormat(i18n.language, {
-                    style: 'short',
-                  }).format(24, 'hour'),
-                })}
-                value={burnAmount ? formatDna(burnAmount.amount) : '--'}
-                flex={0}
-              />
-              <SmallInlineAdStat
-                label="Competitors"
-                value={
-                  status === AdStatus.Published ? String(competitorCount) : '--'
-                }
-                flex={0}
-              />
-              <SmallInlineAdStat
-                label="Max bid"
-                value={
-                  status === AdStatus.Published && maxCompetitor
-                    ? formatDna(maxCompetitor.amount)
-                    : '--'
-                }
-              />
-            </InlineAdStatGroup>
+            {status === AdStatus.Published && (
+              <InlineAdStatGroup spacing="2" labelWidth="28" flex={1}>
+                <SmallInlineAdStat
+                  label={t('Burnt, {{time}}', {
+                    time: new Intl.RelativeTimeFormat(i18n.language, {
+                      style: 'short',
+                    }).format(24, 'hour'),
+                  })}
+                  value={burnAmount ? formatDna(burnAmount.amount) : '--'}
+                  flex={0}
+                />
+                <SmallInlineAdStat
+                  label="Competitors"
+                  value={String(competitorCount)}
+                  flex={0}
+                />
+                <SmallInlineAdStat
+                  label="Max bid"
+                  value={maxCompetitor ? formatDna(maxCompetitor.amount) : '--'}
+                />
+              </InlineAdStatGroup>
+            )}
           </Stack>
         </HStack>
       </Stack>
@@ -878,6 +874,7 @@ export function ReviewAdDrawer({
       isMining={isPending}
       closeOnOverlayClick={!isPending}
       closeOnEsc={!isPending}
+      isCloseable={!isPending}
       {...props}
     >
       <DrawerHeader>
@@ -1011,20 +1008,14 @@ export function ReviewAdDrawer({
         </Stack>
       </DrawerBody>
       <DrawerFooter bg="white">
-        <HStack>
-          {/* eslint-disable-next-line react/destructuring-assignment */}
-          <SecondaryButton onClick={props.onClose}>
-            {t('Not now')}
-          </SecondaryButton>
-          <PrimaryButton
-            type="submit"
-            form="reviewForm"
-            isLoading={isPending}
-            loadingText={t('Mining...')}
-          >
-            {t('Send')}
-          </PrimaryButton>
-        </HStack>
+        <PrimaryButton
+          type="submit"
+          form="reviewForm"
+          isLoading={isPending}
+          loadingText={t('Mining...')}
+        >
+          {t('Send')}
+        </PrimaryButton>
       </DrawerFooter>
     </AdDrawer>
   )
@@ -1468,7 +1459,7 @@ export function AdOfferListItem({
   if (isLoading || isError) {
     return (
       <Tr fontWeight={500}>
-        <Td colSpan={4} px={0}>
+        <Td colSpan={5} px={0}>
           <Skeleton h="10" />
         </Td>
       </Tr>

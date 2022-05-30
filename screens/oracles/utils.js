@@ -20,6 +20,7 @@ import {TerminateContractAttachment} from '../../shared/models/terminateContract
 import {Transaction} from '../../shared/models/transaction'
 import {privateKeyToAddress} from '../../shared/utils/crypto'
 import db from '../../shared/utils/db'
+import {adVotingDefaults} from '../ads/utils'
 
 Decimal.set({toExpPos: 10000})
 
@@ -791,13 +792,23 @@ export function getUrls(text) {
 
 export const validateAdVoting = ({ad, voting}) => {
   if (ad?.votingParams) {
-    return [
+    const areSameVotingParams = [
       'votingDuration',
       'publicVotingDuration',
       'quorum',
       'committeeSize',
     ].every(prop => ad.votingParams[prop] === voting[prop])
+
+    const areValidOptions =
+      // eslint-disable-next-line no-use-before-define
+      areSameOptions(voting.options[0], adVotingDefaults.options[0]) &&
+      // eslint-disable-next-line no-use-before-define
+      areSameOptions(voting.options[1], adVotingDefaults.options[1])
+
+    return areSameVotingParams && areValidOptions
   }
 
   return false
 }
+
+const areSameOptions = (a, b) => a.id === b.id && a.value === b.value
