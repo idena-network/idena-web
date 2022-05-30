@@ -189,7 +189,7 @@ export function useCompetingAds(cid, target) {
 
   return React.useMemo(() => {
     if (Boolean(cid) && Boolean(target)) {
-      return approvedBurntCoins.filter(burn => {
+      return approvedBurntCoins?.filter(burn => {
         const key = AdBurnKey.fromHex(burn.key)
         return (
           cid !== key.cid && areCompetingAds(decodeAdTarget(key.target), target)
