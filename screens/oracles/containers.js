@@ -1656,7 +1656,7 @@ export function OracleAdDescription({ad}) {
           <Text fontWeight={500}>{ad.title}</Text>
           <Text color="muted">{ad.desc}</Text>
         </Stack>
-        <Stack alignItems="flex-start" spacing={4}>
+        <Stack alignItems="flex-start" spacing={4} isTruncated>
           <ExternalLink href={ad.url} fontWeight={500} withArrow={false}>
             {ad.url}
           </ExternalLink>
