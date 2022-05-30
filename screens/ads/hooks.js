@@ -308,7 +308,9 @@ export function useProfileAds() {
 
   const status =
     profileStatus === 'loading' ||
-    (Boolean(profileHash) && profileStatus === 'idle') ||
+    (profileHash === undefined
+      ? true
+      : Boolean(profileHash) && profileStatus === 'idle') ||
     decodedProfileAds.some(ad => ad.status === 'loading') ||
     profileAds.some(ad => ad.status === 'loading')
       ? 'loading'
@@ -322,20 +324,18 @@ export function useProfileAds() {
 }
 
 export function usePersistedAds(options) {
-  // const coinbase = useCoinbase()
+  const coinbase = useCoinbase()
 
   return useQuery(
     'usePersistedAds',
-    async () =>
-      Promise.all(
-        (
-          await db
-            .table('ads')
-            // .where({
-            //   author: coinbase,
-            // })
-            .toArray()
-        ).map(async ({status, contract, thumb, media, ...ad}) => {
+    async () => {
+      const ads = await db
+        .table('ads')
+        .where({author: coinbase})
+        .toArray()
+
+      return Promise.all(
+        ads.map(async ({status, contract, thumb, media, ...ad}) => {
           const voting =
             status === AdStatus.Reviewing ? await getAdVoting(contract) : null
 
@@ -360,8 +360,10 @@ export function usePersistedAds(options) {
                 : status,
           }
         })
-      ),
+      )
+    },
     {
+      enabled: Boolean(coinbase),
       notifyOnChangeProps: 'tracked',
       staleTime: (BLOCK_TIME / 2) * 1000,
       ...options,
@@ -759,12 +761,7 @@ export function useFormatDna(options) {
     i18n: {language},
   } = useTranslation()
 
-  const format = React.useMemo(() => toLocaleDna(language, options), [
-    language,
-    options,
-  ])
-
-  return React.useCallback(value => format(value), [format])
+  return React.useCallback(toLocaleDna(language, options), [language, options])
 }
 
 export function useProtoProfileEncoder() {
