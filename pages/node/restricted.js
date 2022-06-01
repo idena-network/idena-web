@@ -155,13 +155,13 @@ export default function Restricted() {
     checkSaved()
   }, [apiKey, coinbase, privateKey])
 
-  useEffect(() => {
-    if (
-      apiKeyState === apiKeyStates.ONLINE ||
-      apiKeyState === apiKeyStates.EXTERNAL
-    )
-      router.push('/home')
-  }, [apiKeyState, router])
+  // useEffect(() => {
+  //   if (
+  //     apiKeyState === apiKeyStates.ONLINE ||
+  //     apiKeyState === apiKeyStates.EXTERNAL
+  //   )
+  //     router.push('/home')
+  // }, [apiKeyState, router])
 
   useEffect(() => {
     if (identityState === IdentityStatus.Candidate) {
@@ -292,7 +292,7 @@ export default function Restricted() {
                     </Text>
                   </Flex>
                   <Flex mt={[2, 4]}>
-                    <RadioGroup>
+                    <RadioGroup w={['100%', 'auto']}>
                       <Stack direction="column" spacing={[1, 3]}>
                         {isSavedKeyActual &&
                           savedApiKey &&
