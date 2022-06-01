@@ -791,3 +791,6 @@ export function normalizeId(id) {
 export function getUrls(text) {
   return text.match(urlRegex()) || []
 }
+
+export const sumAccountableVotes = votes =>
+  votes?.reduce((agg, curr) => agg + curr?.count, 0) ?? 0

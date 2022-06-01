@@ -77,6 +77,7 @@ import {
   humanError,
   mapVotingStatus,
   quorumVotesCount,
+  sumAccountableVotes,
   votingMinBalance,
 } from '../../screens/oracles/utils'
 import {
@@ -200,8 +201,7 @@ export default function ViewVotingPage() {
 
   const isMaxWinnerThreshold = winnerThreshold === 100
 
-  const accountableVoteCount =
-    votes?.reduce((agg, curr) => agg + curr?.count, 0) ?? 0
+  const accountableVoteCount = sumAccountableVotes(votes)
 
   return (
     <>
@@ -505,6 +505,7 @@ export default function ViewVotingPage() {
                             </PrimaryButton>
                           )}
                       </Stack>
+
                       <Stack isInline spacing={3} align="center">
                         {eitherIdleState(
                           VotingStatus.Archived,
@@ -524,13 +525,22 @@ export default function ViewVotingPage() {
                           )}
 
                           <Text as="span">
-                            {t('{{count}} votes', {
-                              count: eitherIdleState(VotingStatus.Open)
-                                ? voteProofsCount
-                                : accountableVoteCount,
-                            })}{' '}
-                            {eitherIdleState(VotingStatus.Counting) &&
-                              t('out of {{count}}', {count: voteProofsCount})}
+                            {eitherIdleState(VotingStatus.Counting) ? (
+                              <>
+                                {t('{{count}} published votes', {
+                                  count: accountableVoteCount,
+                                })}{' '}
+                                {t('out of {{count}}', {
+                                  count: voteProofsCount,
+                                })}
+                              </>
+                            ) : (
+                              t('{{count}} votes', {
+                                count: eitherIdleState(VotingStatus.Open)
+                                  ? voteProofsCount
+                                  : accountableVoteCount,
+                              })
+                            )}
                           </Text>
                         </Stack>
                       </Stack>
