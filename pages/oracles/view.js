@@ -524,7 +524,7 @@ export default function ViewVotingPage() {
                           )}
 
                           <Text as="span">
-                            {t('{{count}} published votes', {
+                            {t('{{count}} votes', {
                               count: eitherIdleState(VotingStatus.Open)
                                 ? voteProofsCount
                                 : accountableVoteCount,
