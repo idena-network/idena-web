@@ -155,13 +155,13 @@ export default function Restricted() {
     checkSaved()
   }, [apiKey, coinbase, privateKey])
 
-  // useEffect(() => {
-  //   if (
-  //     apiKeyState === apiKeyStates.ONLINE ||
-  //     apiKeyState === apiKeyStates.EXTERNAL
-  //   )
-  //     router.push('/home')
-  // }, [apiKeyState, router])
+  useEffect(() => {
+    if (
+      apiKeyState === apiKeyStates.ONLINE ||
+      apiKeyState === apiKeyStates.EXTERNAL
+    )
+      router.push('/home')
+  }, [apiKeyState, router])
 
   useEffect(() => {
     if (identityState === IdentityStatus.Candidate) {

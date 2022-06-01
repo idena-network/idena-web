@@ -223,13 +223,13 @@ export default function Offline() {
     checkSaved()
   }, [apiKey])
 
-  // useEffect(() => {
-  //   if (
-  //     apiKeyState === apiKeyStates.ONLINE ||
-  //     apiKeyState === apiKeyStates.EXTERNAL
-  //   )
-  //     router.push('/home')
-  // }, [apiKeyState, router])
+  useEffect(() => {
+    if (
+      apiKeyState === apiKeyStates.ONLINE ||
+      apiKeyState === apiKeyStates.EXTERNAL
+    )
+      router.push('/home')
+  }, [apiKeyState, router])
 
   useEffect(() => {
     async function check() {
