@@ -431,7 +431,13 @@ export function SendDrawer(props) {
           }
         }
         case 'done':
-          return {...prevState, hash: null, status: 'done'}
+          return {
+            ...prevState,
+            hash: null,
+            amount: null,
+            to: null,
+            status: 'done',
+          }
         case 'error':
           return {...prevState, error: action.error, status: 'error'}
 
@@ -465,7 +471,14 @@ export function SendDrawer(props) {
   }, [failToast, state, t])
 
   return (
-    <AdDrawer isMining={isPending} {...props}>
+    <AdDrawer
+      isMining={isPending}
+      {...props}
+      onClose={() => {
+        dispatch('done')
+        props.onClose()
+      }}
+    >
       <DrawerHeader mb="6">
         <Flex direction="column" textAlign={['center', 'start']}>
           <Flex
