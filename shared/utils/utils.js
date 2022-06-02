@@ -197,3 +197,13 @@ export function omit(obj, keys) {
 }
 
 export const prependHex = hex => (hex?.startsWith('0x') ? hex : `0x${hex}`)
+
+export function hexToObject(hex) {
+  try {
+    return JSON.parse(
+      new TextDecoder().decode(Buffer.from(hex.substring(2), 'hex'))
+    )
+  } catch {
+    return {}
+  }
+}

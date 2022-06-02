@@ -42,6 +42,7 @@ import {loadPersistentStateValue, persistItem} from '../../shared/utils/persist'
 import {dnaSign, privateKeyToAddress} from '../../shared/utils/crypto'
 import {sendDna} from '../../shared/api/utils'
 import {toHexString} from '../../shared/utils/buffers'
+import {AdVotingOption, AdVotingOptionId} from '../ads/types'
 
 export const votingListMachine = createMachine(
   {
@@ -1146,6 +1147,13 @@ export const viewVotingMachine = createMachine(
           ADD_FUND: 'funding',
           SELECT_OPTION: {
             actions: ['selectOption', log()],
+          },
+          FORCE_REJECT: {
+            actions: [
+              assign({
+                selectedOption: AdVotingOptionId[AdVotingOption.Reject],
+              }),
+            ],
           },
           REVIEW: [
             {

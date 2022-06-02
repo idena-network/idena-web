@@ -283,10 +283,7 @@ export function VotingCard({votingRef, ...props}) {
                   placement="top"
                   zIndex="tooltip"
                 >
-                  {/* TODO: pretending to be a Box until https://github.com/chakra-ui/chakra-ui/pull/2272 caused by https://github.com/facebook/react/issues/11972 */}
-                  <PrimaryButton as={Box} isDisabled>
-                    {t('Vote')}
-                  </PrimaryButton>
+                  <PrimaryButton isDisabled>{t('Vote')}</PrimaryButton>
                 </Tooltip>
               ))}
             {eitherIdleState(
@@ -1162,35 +1159,39 @@ export function ProlongDrawer({
   return (
     <AdDrawer isMining={isLoading} isCloseable={!isLoading} {...props}>
       <OracleDrawerHeader>{t('Prolong Oracle Voting')}</OracleDrawerHeader>
-      <OracleDrawerBody
-        as="form"
-        onSubmit={e => {
-          e.preventDefault()
-          onProlong()
-        }}
-      >
-        <Text color="muted" fontSize="md">
-          {t('Prolong the voting in order to select a new voting committee')}
-        </Text>
+      <DrawerBody>
+        <Stack spacing="5">
+          <Text color="muted" fontSize="md">
+            {t('Prolong the voting in order to select a new voting committee')}
+          </Text>
 
-        <OracleFormControl label={t('Transfer from')}>
-          <Input name="fromInput" defaultValue={from} isDisabled />
-          <OracleFormHelper
-            label={t('Available')}
-            value={toLocaleDna(i18n.language)(available)}
-          />
-        </OracleFormControl>
-
+          <form
+            id="prolong"
+            onSubmit={e => {
+              e.preventDefault()
+              onProlong()
+            }}
+          >
+            <OracleFormControl label={t('Transfer from')}>
+              <Input name="fromInput" defaultValue={from} isDisabled />
+              <OracleFormHelper
+                label={t('Available')}
+                value={toLocaleDna(i18n.language)(available)}
+              />
+            </OracleFormControl>
+          </form>
+        </Stack>
+      </DrawerBody>
+      <DrawerFooter>
         <PrimaryButton
+          type="submit"
+          form="prolong"
           isLoading={isLoading}
           loadingText={t('Prolonging')}
-          type="submit"
-          mt={3}
-          ml="auto"
         >
           {t('Prolong')}
         </PrimaryButton>
-      </OracleDrawerBody>
+      </DrawerFooter>
     </AdDrawer>
   )
 }
@@ -1493,33 +1494,37 @@ export function TerminateDrawer({
   return (
     <AdDrawer isMining={isLoading} isCloseable={!isLoading} {...props}>
       <OracleDrawerHeader>{t('Terminate Oracle Voting')}</OracleDrawerHeader>
-      <OracleDrawerBody
-        as="form"
-        onSubmit={e => {
-          e.preventDefault()
-          onTerminate()
-        }}
-      >
-        <Text color="muted" fontSize="md">
-          {t(
-            'Terminate the contract to clean-up its state and refund 50% of the stake to the owner'
-          )}
-        </Text>
+      <DrawerBody>
+        <Stack spacing="5">
+          <Text color="muted" fontSize="md">
+            {t(
+              'Terminate the contract to clean-up its state and refund 50% of the stake to the owner'
+            )}
+          </Text>
 
-        <OracleFormControl label={t('Smart contract address')}>
-          <Input defaultValue={contractAddress} isDisabled />
-        </OracleFormControl>
-
+          <form
+            id="terminate"
+            onSubmit={e => {
+              e.preventDefault()
+              onTerminate()
+            }}
+          >
+            <OracleFormControl label={t('Smart contract address')}>
+              <Input defaultValue={contractAddress} isDisabled />
+            </OracleFormControl>
+          </form>
+        </Stack>
+      </DrawerBody>
+      <DrawerFooter>
         <PrimaryButton
+          type="submit"
+          form="terminate"
           isLoading={isLoading}
           loadingText={t('Terminating')}
-          type="submit"
-          mt={3}
-          ml="auto"
         >
           {t('Terminate')}
         </PrimaryButton>
-      </OracleDrawerBody>
+      </DrawerFooter>
     </AdDrawer>
   )
 }
@@ -1688,5 +1693,19 @@ export function OracleAdDescription({ad}) {
         </HStack>
       </HStack>
     </Stack>
+  )
+}
+
+export function MaliciousAdOverlay({children}) {
+  return (
+    <Box position="relative" filter="blur(2px)">
+      <Box
+        position="absolute"
+        inset={0}
+        backdropFilter="blur(2px)"
+        zIndex="banner"
+      />
+      {children}
+    </Box>
   )
 }

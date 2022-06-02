@@ -2,7 +2,12 @@
 import Jimp from 'jimp'
 import {bytes, CID} from 'multiformats'
 import i18n from '../../i18n'
-import {estimateRawTx, getRawTx, sendRawTx} from '../../shared/api'
+import {
+  estimateRawTx,
+  fetchNetworkSize,
+  getRawTx,
+  sendRawTx,
+} from '../../shared/api'
 import {Profile} from '../../shared/models/profile'
 import {StoreToIpfsAttachment} from '../../shared/models/storeToIpfsAttachment'
 import {Transaction} from '../../shared/models/transaction'
@@ -11,10 +16,10 @@ import {
   areSameCaseInsensitive,
   callRpc,
   HASH_IN_MEMPOOL,
+  hexToObject,
   prependHex,
 } from '../../shared/utils/utils'
 import {isValidUrl} from '../dna/utils'
-import {fetchNetworkSize, hexToObject} from '../oracles/utils'
 import {AdVotingOption, AdVotingOptionId} from './types'
 
 export const OS = {
@@ -178,15 +183,14 @@ export const isRejectedVoting = voting =>
 const isFinalVoting = voting =>
   [VotingStatus.Archived, VotingStatus.Terminated].includes(voting?.status)
 
-const isApprovedAd = voting => {
-  const votingResult = voting?.options?.find(
-    option => option?.id === voting?.result
+const isApprovedAd = voting =>
+  isValidAdOption(
+    voting?.options?.find(option => option?.id === voting?.result),
+    AdVotingOption.Approve
   )
-  return (
-    votingResult?.value === AdVotingOption.Approve &&
-    votingResult?.id === AdVotingOptionId[AdVotingOption.Approve]
-  )
-}
+
+export const isValidAdOption = (option, targetValue) =>
+  option?.id === AdVotingOptionId[targetValue] && option?.value === targetValue
 
 export const adImageThumbSrc = ad =>
   typeof ad.thumb === 'string'
@@ -357,3 +361,29 @@ export async function sendToIpfs(hex, {from, privateKey}) {
 
 export const clampCommiteeSize = async committeeSize =>
   Math.min(committeeSize, await fetchNetworkSize())
+
+export const validateAdVoting = ({ad, voting}) => {
+  if (ad?.votingParams) {
+    const areSameVotingParams = [
+      'votingDuration',
+      'publicVotingDuration',
+      'quorum',
+      'committeeSize',
+    ].every(
+      prop =>
+        ad.votingParams[prop] === voting[prop] &&
+        ad.votingParams[prop] === adVotingDefaults[prop] &&
+        voting[prop] === adVotingDefaults[prop]
+    )
+
+    const [maybeApproveOption, maybeRejectOption] = voting.options
+
+    const areValidOptions =
+      isValidAdOption(maybeApproveOption, AdVotingOption.Approve) &&
+      isValidAdOption(maybeRejectOption, AdVotingOption.Reject)
+
+    return areSameVotingParams && areValidOptions
+  }
+
+  return false
+}

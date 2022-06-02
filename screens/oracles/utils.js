@@ -6,6 +6,7 @@ import urlRegex from 'url-regex-safe'
 import {TxType, VotingStatus} from '../../shared/types'
 import {
   callRpc,
+  hexToObject,
   roundToPrecision,
   toLocaleDna,
   webClientType,
@@ -20,7 +21,6 @@ import {TerminateContractAttachment} from '../../shared/models/terminateContract
 import {Transaction} from '../../shared/models/transaction'
 import {privateKeyToAddress} from '../../shared/utils/crypto'
 import db from '../../shared/utils/db'
-import {adVotingDefaults} from '../ads/utils'
 
 Decimal.set({toExpPos: 10000})
 
@@ -352,16 +352,6 @@ export function objectToHex(obj) {
 
 function stringToHex(str) {
   return Buffer.from(new TextEncoder().encode(str)).toString('hex')
-}
-
-export function hexToObject(hex) {
-  try {
-    return JSON.parse(
-      new TextDecoder().decode(Buffer.from(hex.substring(2), 'hex'))
-    )
-  } catch {
-    return {}
-  }
 }
 
 export function buildContractDeploymentArgs({
@@ -789,26 +779,3 @@ export function normalizeId(id) {
 export function getUrls(text) {
   return text.match(urlRegex()) || []
 }
-
-export const validateAdVoting = ({ad, voting}) => {
-  if (ad?.votingParams) {
-    const areSameVotingParams = [
-      'votingDuration',
-      'publicVotingDuration',
-      'quorum',
-      'committeeSize',
-    ].every(prop => ad.votingParams[prop] === voting[prop])
-
-    const areValidOptions =
-      // eslint-disable-next-line no-use-before-define
-      areSameOptions(voting.options[0], adVotingDefaults.options[0]) &&
-      // eslint-disable-next-line no-use-before-define
-      areSameOptions(voting.options[1], adVotingDefaults.options[1])
-
-    return areSameVotingParams && areValidOptions
-  }
-
-  return false
-}
-
-const areSameOptions = (a, b) => a.id === b.id && a.value === b.value

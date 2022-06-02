@@ -70,6 +70,7 @@ import {
   FinishDrawer,
   Linkify,
   OracleAdDescription,
+  MaliciousAdOverlay,
 } from '../../screens/oracles/containers'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {VotingStatus} from '../../shared/types'
@@ -77,7 +78,6 @@ import {
   areSameCaseInsensitive,
   hasWinner,
   humanError,
-  validateAdVoting,
   mapVotingStatus,
   quorumVotesCount,
   votingMinBalance,
@@ -103,6 +103,7 @@ import {viewVotingMachine} from '../../screens/oracles/machines'
 import {useDeferredVotes, useOracleActions} from '../../screens/oracles/hooks'
 import {AdPreview} from '../../screens/ads/containers'
 import {useIpfsAd} from '../../screens/ads/hooks'
+import {validateAdVoting} from '../../screens/ads/utils'
 
 dayjs.extend(relativeTime)
 dayjs.extend(duration)
@@ -214,10 +215,12 @@ export default function ViewVotingPage() {
 
   const adPreviewDisclosure = useDisclosure()
 
-  const isMaliciousAdVoting = React.useMemo(
+  const isValidAdVoting = React.useMemo(
     () => validateAdVoting({ad, voting: current.context}) === false,
     [ad, current.context]
   )
+
+  const isMaliciousAdVoting = ad && isValidAdVoting
 
   return (
     <>
@@ -292,15 +295,9 @@ export default function ViewVotingPage() {
                         {ad ? (
                           <>
                             {isMaliciousAdVoting ? (
-                              <Box position="relative" filter="blur(2px)">
-                                <Box
-                                  position="absolute"
-                                  inset={0}
-                                  backdropFilter="blur(2px)"
-                                  zIndex="banner"
-                                />
+                              <MaliciousAdOverlay>
                                 <OracleAdDescription ad={ad} />
-                              </Box>
+                              </MaliciousAdOverlay>
                             ) : (
                               <OracleAdDescription ad={ad} />
                             )}
@@ -356,91 +353,148 @@ export default function ViewVotingPage() {
                     VotingStatus.Prolonging
                   ) && (
                     <VotingSkeleton isLoaded={isLoaded}>
-                      <Box>
-                        <Text color="muted" fontSize="sm" mb={3}>
-                          {t('Choose an option to vote')}
-                        </Text>
-                        {eitherIdleState(VotingStatus.Voted) ? (
-                          <Stack spacing={3}>
-                            {/* eslint-disable-next-line no-shadow */}
-                            {options.map(({id, value}) => {
-                              const isMine = id === selectedOption
-                              return (
-                                <Stack
-                                  isInline
-                                  spacing={2}
-                                  align="center"
-                                  bg={isMine ? 'blue.012' : 'gray.50'}
-                                  borderRadius="md"
-                                  minH={8}
-                                  px={3}
-                                  py={2}
-                                  zIndex={1}
-                                >
-                                  <Flex
-                                    align="center"
-                                    justify="center"
-                                    bg={
-                                      isMine ? 'brandBlue.500' : 'transparent'
-                                    }
-                                    borderRadius="full"
-                                    borderWidth={isMine ? 0 : '4px'}
-                                    borderColor="gray.100"
-                                    color="white"
-                                    w={4}
-                                    h={4}
-                                  >
-                                    {isMine && <OkIcon boxSize={3} />}
-                                  </Flex>
+                      {isMaliciousAdVoting ? (
+                        <>
+                          {eitherIdleState(VotingStatus.Voted) ? (
+                            <Box>
+                              <Text color="muted" fontSize="sm" mb={3}>
+                                {t('Choose an option to vote')}
+                              </Text>
+                              <Stack spacing={3}>
+                                {/* eslint-disable-next-line no-shadow */}
+                                {options.map(({id, value}) => {
+                                  const isMine = id === selectedOption
+                                  return (
+                                    <Stack
+                                      isInline
+                                      spacing={2}
+                                      align="center"
+                                      bg={isMine ? 'blue.012' : 'gray.50'}
+                                      borderRadius="md"
+                                      minH={8}
+                                      px={3}
+                                      py={2}
+                                      zIndex={1}
+                                    >
+                                      <Flex
+                                        align="center"
+                                        justify="center"
+                                        bg={
+                                          isMine
+                                            ? 'brandBlue.500'
+                                            : 'transparent'
+                                        }
+                                        borderRadius="full"
+                                        borderWidth={isMine ? 0 : '4px'}
+                                        borderColor="gray.100"
+                                        color="white"
+                                        w={4}
+                                        h={4}
+                                      >
+                                        {isMine && <OkIcon boxSize={3} />}
+                                      </Flex>
 
-                                  <Text
-                                    isTruncated
-                                    maxW="sm"
-                                    title={value.length > 50 ? value : ''}
+                                      <Text
+                                        isTruncated
+                                        maxW="sm"
+                                        title={value.length > 50 ? value : ''}
+                                      >
+                                        {value}
+                                      </Text>
+                                    </Stack>
+                                  )
+                                })}
+                              </Stack>
+                            </Box>
+                          ) : null}
+                        </>
+                      ) : (
+                        <Box>
+                          <Text color="muted" fontSize="sm" mb={3}>
+                            {t('Choose an option to vote')}
+                          </Text>
+                          {eitherIdleState(VotingStatus.Voted) ? (
+                            <Stack spacing={3}>
+                              {/* eslint-disable-next-line no-shadow */}
+                              {options.map(({id, value}) => {
+                                const isMine = id === selectedOption
+                                return (
+                                  <Stack
+                                    isInline
+                                    spacing={2}
+                                    align="center"
+                                    bg={isMine ? 'blue.012' : 'gray.50'}
+                                    borderRadius="md"
+                                    minH={8}
+                                    px={3}
+                                    py={2}
+                                    zIndex={1}
+                                  >
+                                    <Flex
+                                      align="center"
+                                      justify="center"
+                                      bg={
+                                        isMine ? 'brandBlue.500' : 'transparent'
+                                      }
+                                      borderRadius="full"
+                                      borderWidth={isMine ? 0 : '4px'}
+                                      borderColor="gray.100"
+                                      color="white"
+                                      w={4}
+                                      h={4}
+                                    >
+                                      {isMine && <OkIcon boxSize={3} />}
+                                    </Flex>
+
+                                    <Text
+                                      isTruncated
+                                      maxW="sm"
+                                      title={value.length > 50 ? value : ''}
+                                    >
+                                      {value}
+                                    </Text>
+                                  </Stack>
+                                )
+                              })}
+                            </Stack>
+                          ) : (
+                            <RadioGroup
+                              value={String(selectedOption)}
+                              onChange={value => {
+                                send('SELECT_OPTION', {
+                                  option: Number(value),
+                                })
+                              }}
+                            >
+                              <Stack spacing={2}>
+                                {/* eslint-disable-next-line no-shadow */}
+                                {options.map(({id, value}) => (
+                                  <VotingOption
+                                    key={id}
+                                    value={String(id)}
+                                    isDisabled={eitherIdleState(
+                                      VotingStatus.Pending,
+                                      VotingStatus.Starting,
+                                      VotingStatus.Voted
+                                    )}
+                                    annotation={
+                                      isMaxWinnerThreshold
+                                        ? null
+                                        : t('{{count}} min. votes required', {
+                                            count: toPercent(
+                                              winnerThreshold / 100
+                                            ),
+                                          })
+                                    }
                                   >
                                     {value}
-                                  </Text>
-                                </Stack>
-                              )
-                            })}
-                          </Stack>
-                        ) : (
-                          <RadioGroup
-                            value={String(selectedOption)}
-                            onChange={value => {
-                              send('SELECT_OPTION', {
-                                option: Number(value),
-                              })
-                            }}
-                          >
-                            <Stack spacing={2}>
-                              {/* eslint-disable-next-line no-shadow */}
-                              {options.map(({id, value}) => (
-                                <VotingOption
-                                  key={id}
-                                  value={String(id)}
-                                  isDisabled={eitherIdleState(
-                                    VotingStatus.Pending,
-                                    VotingStatus.Starting,
-                                    VotingStatus.Voted
-                                  )}
-                                  annotation={
-                                    isMaxWinnerThreshold
-                                      ? null
-                                      : t('{{count}} min. votes required', {
-                                          count: toPercent(
-                                            winnerThreshold / 100
-                                          ),
-                                        })
-                                  }
-                                >
-                                  {value}
-                                </VotingOption>
-                              ))}
-                            </Stack>
-                          </RadioGroup>
-                        )}
-                      </Box>
+                                  </VotingOption>
+                                ))}
+                              </Stack>
+                            </RadioGroup>
+                          )}
+                        </Box>
+                      )}
                     </VotingSkeleton>
                   )}
 
@@ -476,13 +530,18 @@ export default function ViewVotingPage() {
                             {t('Launch')}
                           </PrimaryButton>
                         )}
+
                         {eitherIdleState(VotingStatus.Open) &&
                           (isOracle ? (
                             <PrimaryButton
-                              isDisabled={Boolean(adCid) && isMaliciousAdVoting}
-                              onClick={() => send('REVIEW')}
+                              onClick={() => {
+                                if (isMaliciousAdVoting) {
+                                  send('FORCE_REJECT')
+                                }
+                                send('REVIEW')
+                              }}
                             >
-                              {t('Vote')}
+                              {isMaliciousAdVoting ? t('Reject') : t('Vote')}
                             </PrimaryButton>
                           ) : (
                             <Box>
@@ -493,8 +552,7 @@ export default function ViewVotingPage() {
                                 placement="top"
                                 zIndex="tooltip"
                               >
-                                {/* TODO: pretending to be a Box until https://github.com/chakra-ui/chakra-ui/pull/2272 caused by https://github.com/facebook/react/issues/11972 */}
-                                <PrimaryButton as={Box} isDisabled>
+                                <PrimaryButton isDisabled>
                                   {t('Vote')}
                                 </PrimaryButton>
                               </Tooltip>
@@ -510,8 +568,8 @@ export default function ViewVotingPage() {
                             onClick={() => send('FINISH', {from: coinbase})}
                           >
                             {didDetermineWinner
-                              ? t('Distribute rewards')
-                              : t('Refund')}
+                              ? t('Finish voting')
+                              : t('Claim refunds')}
                           </PrimaryButton>
                         )}
 

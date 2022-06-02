@@ -471,6 +471,7 @@ function ActionPanel({onClose}) {
                 <Menu autoSelect={false} mr={1}>
                   <MenuButton
                     rounded="md"
+                    _hover={{bg: 'unset'}}
                     _expanded={{bg: 'brandGray.500'}}
                     _focus={{outline: 0}}
                     position="absolute"
