@@ -190,9 +190,7 @@ export function AppProvider({tabId, ...props}) {
         coinbase,
         toHexString(signature, true)
       )
-      const isActualKeySaved = savedKey && savedKey.epoch === epoch.epoch
       if (
-        isActualKeySaved &&
         !isManualRemoteNode &&
         (apiKeyState === apiKeyStates.NONE ||
           apiKeyState === apiKeyStates.OFFLINE ||

@@ -99,7 +99,6 @@ export default function Offline() {
   const [step, setStep] = useState(steps.INITIAL)
 
   const [savedApiKey, setSavedApiKey] = useState()
-  const [isSavedKeyActual, setIsSavedKeyActual] = useState(false)
 
   const [submitting, setSubmitting] = useState(false)
 
@@ -215,7 +214,6 @@ export default function Offline() {
           toHexString(signature, true)
         )
         setSavedApiKey(savedKey)
-        setIsSavedKeyActual(savedKey && savedKey.epoch === epoch)
       } catch (e) {
         setError({type: errorType.NONE})
       }
@@ -261,10 +259,10 @@ export default function Offline() {
   useEffect(() => {
     if (identity?.state === IdentityStatus.Candidate) {
       setState(options.CANDIDATE)
-    } else if (savedApiKey && isSavedKeyActual) {
+    } else if (savedApiKey) {
       setState(options.RESTORE)
     }
-  }, [identity, savedApiKey, isSavedKeyActual])
+  }, [identity, savedApiKey])
 
   const waiting = submitting || isPurchasing
 
@@ -361,26 +359,24 @@ export default function Offline() {
                   <Flex mt={[2, 4]}>
                     <RadioGroup w={['100%', 'auto']}>
                       <Stack direction="column" spacing={[1, 3]}>
-                        {isSavedKeyActual &&
-                          savedApiKey &&
-                          savedApiKey.url !== apiKey.url && (
-                            <ChooseItemRadio
-                              variant={variantRadio}
-                              px={[4, 0]}
-                              isChecked={state === options.RESTORE}
-                              onChange={() => setState(options.RESTORE)}
-                              alignItems={['center', 'flex-start']}
-                            >
-                              <Flex direction="column" mt={['auto', '-2px']}>
-                                <Text color="white">
-                                  {t('Restore connection')}
-                                </Text>
-                                <Text color="muted" fontSize="sm">
-                                  {savedApiKey.url}
-                                </Text>
-                              </Flex>
-                            </ChooseItemRadio>
-                          )}
+                        {savedApiKey && savedApiKey.url !== apiKey.url && (
+                          <ChooseItemRadio
+                            variant={variantRadio}
+                            px={[4, 0]}
+                            isChecked={state === options.RESTORE}
+                            onChange={() => setState(options.RESTORE)}
+                            alignItems={['center', 'flex-start']}
+                          >
+                            <Flex direction="column" mt={['auto', '-2px']}>
+                              <Text color="white">
+                                {t('Restore connection')}
+                              </Text>
+                              <Text color="muted" fontSize="sm">
+                                {savedApiKey.url}
+                              </Text>
+                            </Flex>
+                          </ChooseItemRadio>
+                        )}
                         {identity?.state === IdentityStatus.Candidate && (
                           <ChooseItemRadio
                             variant={variantRadio}

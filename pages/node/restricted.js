@@ -78,7 +78,6 @@ export default function Restricted() {
   const {isPurchasing, savePurchase} = useApikeyPurchasing()
 
   const [savedApiKey, setSavedApiKey] = useState()
-  const [isSavedKeyActual, setIsSavedKeyActual] = useState(false)
 
   const size = useBreakpointValue(['lg', 'md'])
   const variantRadio = useBreakpointValue(['mobileDark', 'dark'])
@@ -149,7 +148,6 @@ export default function Restricted() {
           toHexString(signature, true)
         )
         setSavedApiKey(savedKey)
-        setIsSavedKeyActual(savedKey && savedKey.epoch === epoch)
       } catch (e) {}
     }
     checkSaved()
@@ -166,12 +164,12 @@ export default function Restricted() {
   useEffect(() => {
     if (identityState === IdentityStatus.Candidate) {
       setState(options.CANDIDATE)
-    } else if (savedApiKey && isSavedKeyActual) {
+    } else if (savedApiKey) {
       setState(options.RESTORE)
     } else if ((provider && !provider.slots) || isError) {
       setState(options.BUY)
     }
-  }, [identityState, isError, provider, savedApiKey, isSavedKeyActual])
+  }, [identityState, isError, provider, savedApiKey])
 
   const waiting = submitting || isPurchasing
 
@@ -294,26 +292,24 @@ export default function Restricted() {
                   <Flex mt={[2, 4]}>
                     <RadioGroup w={['100%', 'auto']}>
                       <Stack direction="column" spacing={[1, 3]}>
-                        {isSavedKeyActual &&
-                          savedApiKey &&
-                          savedApiKey.url !== apiKey.url && (
-                            <ChooseItemRadio
-                              variant={variantRadio}
-                              px={[4, 0]}
-                              isChecked={state === options.RESTORE}
-                              onChange={() => setState(options.RESTORE)}
-                              alignItems={['center', 'flex-start']}
-                            >
-                              <Flex direction="column" mt={['auto', '-2px']}>
-                                <Text color="white">
-                                  {t('Restore connection')}
-                                </Text>
-                                <Text color="muted" fontSize="sm">
-                                  {savedApiKey.url}
-                                </Text>
-                              </Flex>
-                            </ChooseItemRadio>
-                          )}
+                        {savedApiKey && savedApiKey.url !== apiKey.url && (
+                          <ChooseItemRadio
+                            variant={variantRadio}
+                            px={[4, 0]}
+                            isChecked={state === options.RESTORE}
+                            onChange={() => setState(options.RESTORE)}
+                            alignItems={['center', 'flex-start']}
+                          >
+                            <Flex direction="column" mt={['auto', '-2px']}>
+                              <Text color="white">
+                                {t('Restore connection')}
+                              </Text>
+                              <Text color="muted" fontSize="sm">
+                                {savedApiKey.url}
+                              </Text>
+                            </Flex>
+                          </ChooseItemRadio>
+                        )}
                         {identityState === IdentityStatus.Candidate && (
                           <ChooseItemRadio
                             variant={variantRadio}
