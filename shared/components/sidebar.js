@@ -355,18 +355,34 @@ function ActionPanel({onClose}) {
   if (!epoch) {
     return (
       <Stack spacing={[2, '1px']} mt={6}>
-        <Skeleton
-          h={[20, '55px']}
-          borderTopRadius="6px"
-          startColor="gray.100"
-          endColor="gray.300"
-        />
-        <Skeleton
-          h={[20, '55px']}
-          borderBottomRadius="6px"
-          startColor="gray.100"
-          endColor="gray.300"
-        />
+        <Block
+          title={t('My current task')}
+          roundedTop="md"
+          roundedBottom={['md', 'none']}
+        >
+          <Skeleton
+            h={[4, '13px']}
+            mt={[1, '3.5px']}
+            mb={[1, '3px']}
+            borderRadius="6px"
+            startColor="gray.50"
+            endColor="gray.100"
+          />
+        </Block>
+        <Block
+          title={t('Next validation')}
+          roundedBottom="md"
+          roundedTop={['md', 'none']}
+        >
+          <Skeleton
+            h={[4, '13px']}
+            mt={[1, '3.5px']}
+            mb={[1, '3px']}
+            borderRadius="6px"
+            startColor="gray.50"
+            endColor="gray.100"
+          />
+        </Block>
       </Stack>
     )
   }
