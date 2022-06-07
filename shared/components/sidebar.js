@@ -364,9 +364,9 @@ function ActionPanel({onClose}) {
             h={[4, '13px']}
             mt={[1, '3.5px']}
             mb={[1, '3px']}
-            borderRadius="6px"
-            startColor="gray.50"
-            endColor="gray.100"
+            borderRadius="sm"
+            startColor="#72767A"
+            endColor="#6A6E72"
           />
         </Block>
         <Block
@@ -378,9 +378,9 @@ function ActionPanel({onClose}) {
             h={[4, '13px']}
             mt={[1, '3.5px']}
             mb={[1, '3px']}
-            borderRadius="6px"
-            startColor="gray.50"
-            endColor="gray.100"
+            borderRadius="sm"
+            startColor="#72767A"
+            endColor="#6A6E72"
           />
         </Block>
       </Stack>
