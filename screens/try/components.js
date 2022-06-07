@@ -333,7 +333,7 @@ export function CertificateCard({
           <PrimaryButton
             size={size}
             w={['100%', 'auto']}
-            isDisabled={isStarted}
+            isDisabled={isStarted || !epochState}
             onClick={() => onScheduleClick()}
             isLoading={waiting}
             loadingText={t('Scheduling...')}

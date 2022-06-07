@@ -22,6 +22,7 @@ import {
   ListItem,
   Link as ChakraLink,
   CloseButton,
+  Skeleton,
   Portal,
   useBreakpointValue,
   Box,
@@ -352,7 +353,38 @@ function ActionPanel({onClose}) {
   }, [currentOnboarding, onClose])
 
   if (!epoch) {
-    return null
+    return (
+      <Stack spacing={[2, '1px']} mt={6}>
+        <Block
+          title={t('My current task')}
+          roundedTop="md"
+          roundedBottom={['md', 'none']}
+        >
+          <Skeleton
+            h={[4, '13px']}
+            mt={[1, '3.5px']}
+            mb={[1, '3px']}
+            borderRadius="sm"
+            startColor="#72767A"
+            endColor="#6A6E72"
+          />
+        </Block>
+        <Block
+          title={t('Next validation')}
+          roundedBottom="md"
+          roundedTop={['md', 'none']}
+        >
+          <Skeleton
+            h={[4, '13px']}
+            mt={[1, '3.5px']}
+            mb={[1, '3px']}
+            borderRadius="sm"
+            startColor="#72767A"
+            endColor="#6A6E72"
+          />
+        </Block>
+      </Stack>
+    )
   }
 
   const eitherOnboardingState = (...states) =>
