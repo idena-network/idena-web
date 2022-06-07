@@ -17,14 +17,17 @@ import {isVercelProduction, ntp, openExternalUrl} from '../utils/utils'
 import {Toast} from '../components/components'
 import {useEpoch} from './epoch-context'
 import {
+  apiKeyStates,
   useSettings,
   useSettingsDispatch,
   useSettingsState,
 } from './settings-context'
-import {getKeyById, getProvider} from '../api'
+import {checkSavedKey, getKeyById, getProvider} from '../api'
 import {useIdentity} from './identity-context'
 import {useAuthState} from './auth-context'
 import {restrictedModalMachine} from '../machines'
+import {signMessage} from '../utils/crypto'
+import {hexToUint8Array, toHexString} from '../utils/buffers'
 
 const AppContext = React.createContext()
 
@@ -40,9 +43,10 @@ export function AppProvider({tabId, ...props}) {
   const epoch = useEpoch()
 
   const [{state}] = useIdentity()
-  const [{apiKeyState}] = useSettings()
+  const [{apiKeyState, isManualRemoteNode}] = useSettings()
+  const {saveConnection} = useSettingsDispatch()
 
-  const {auth} = useAuthState()
+  const {auth, coinbase, privateKey} = useAuthState()
 
   useEffect(() => {
     const refLink = router.query.ref
@@ -179,6 +183,24 @@ export function AppProvider({tabId, ...props}) {
     },
   })
 
+  const checkRestoredKey = async () => {
+    try {
+      const signature = signMessage(hexToUint8Array(coinbase), privateKey)
+      const savedKey = await checkSavedKey(
+        coinbase,
+        toHexString(signature, true)
+      )
+      if (
+        !isManualRemoteNode &&
+        (apiKeyState === apiKeyStates.NONE ||
+          apiKeyState === apiKeyStates.OFFLINE ||
+          apiKeyState === apiKeyStates.RESTRICTED)
+      ) {
+        saveConnection(savedKey.url, savedKey.key, false)
+      }
+    } catch (e) {}
+  }
+
   useEffect(() => {
     send('NEW_API_KEY_STATE', {apiKeyState})
   }, [apiKeyState, send])
@@ -194,6 +216,10 @@ export function AppProvider({tabId, ...props}) {
       send('CLEAR')
     }
   }, [auth, send, state])
+
+  useEffect(() => {
+    checkRestoredKey()
+  }, [apiKeyState, coinbase, privateKey, epoch])
 
   return <AppContext.Provider {...props} value={null} />
 }

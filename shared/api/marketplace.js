@@ -15,6 +15,12 @@ export function checkKey(key) {
     .then(x => x.data)
 }
 
+export function checkSavedKey(coinbase, signature) {
+  return api()
+    .post('/api/key/restore', {coinbase, signature})
+    .then(x => x.data)
+}
+
 export function getProviders() {
   return api()
     .get('/api/provider/list')

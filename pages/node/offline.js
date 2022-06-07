@@ -37,6 +37,8 @@ import {
   getRawTx,
   activateKey,
   checkProvider,
+  checkSavedKey,
+  fetchEpoch,
 } from '../../shared/api'
 
 import {PrimaryButton} from '../../shared/components/button'
@@ -48,6 +50,7 @@ import {Transaction} from '../../shared/models/transaction'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {
   apiKeyStates,
+  useSettingsDispatch,
   useSettingsState,
 } from '../../shared/providers/settings-context'
 import {IdentityStatus} from '../../shared/types'
@@ -66,6 +69,7 @@ const options = {
   ACTIVATE: 2,
   CANDIDATE: 3,
   RESTRICTED: 4,
+  RESTORE: 5,
 }
 
 const steps = {
@@ -83,6 +87,7 @@ const errorType = {
 export default function Offline() {
   const {t} = useTranslation()
   const {apiKeyState, apiKey, url} = useSettingsState()
+  const {saveConnection} = useSettingsDispatch()
   const {coinbase, privateKey} = useAuthState()
   const router = useRouter()
 
@@ -92,6 +97,8 @@ export default function Offline() {
   const [error, setError] = useState({type: errorType.NONE})
   const [state, setState] = useState(options.BUY)
   const [step, setStep] = useState(steps.INITIAL)
+
+  const [savedApiKey, setSavedApiKey] = useState()
 
   const [submitting, setSubmitting] = useState(false)
 
@@ -190,9 +197,26 @@ export default function Offline() {
       case options.RESTRICTED: {
         return onOpen()
       }
+      case options.RESTORE: {
+        return saveConnection(savedApiKey.url, savedApiKey.key, false)
+      }
       default:
     }
   }
+
+  useEffect(() => {
+    async function checkSaved() {
+      try {
+        const signature = signMessage(hexToUint8Array(coinbase), privateKey)
+        const savedKey = await checkSavedKey(
+          coinbase,
+          toHexString(signature, true)
+        )
+        setSavedApiKey(savedKey)
+      } catch (e) {}
+    }
+    checkSaved()
+  }, [apiKey, coinbase, privateKey])
 
   useEffect(() => {
     if (
@@ -232,8 +256,10 @@ export default function Offline() {
   useEffect(() => {
     if (identity?.state === IdentityStatus.Candidate) {
       setState(options.CANDIDATE)
+    } else if (savedApiKey) {
+      setState(options.RESTORE)
     }
-  }, [identity])
+  }, [identity, savedApiKey])
 
   const waiting = submitting || isPurchasing
 
@@ -292,6 +318,7 @@ export default function Offline() {
               borderRadius="lg"
               px={[6, 10]}
               py={7}
+              w={['100%', 'auto']}
             >
               {step === steps.INITIAL && (
                 <Flex direction="column" alignItems="center" mt={6}>
@@ -327,8 +354,26 @@ export default function Offline() {
                     </Text>
                   </Flex>
                   <Flex mt={[2, 4]}>
-                    <RadioGroup>
-                      <Stack direction="column" spacing={3}>
+                    <RadioGroup w={['100%', 'auto']}>
+                      <Stack direction="column" spacing={[1, 3]}>
+                        {savedApiKey && savedApiKey.url !== apiKey.url && (
+                          <ChooseItemRadio
+                            variant={variantRadio}
+                            px={[4, 0]}
+                            isChecked={state === options.RESTORE}
+                            onChange={() => setState(options.RESTORE)}
+                            alignItems={['center', 'flex-start']}
+                          >
+                            <Flex direction="column" mt={['auto', '-2px']}>
+                              <Text color="white">
+                                {t('Restore connection')}
+                              </Text>
+                              <Text color="muted" fontSize="sm">
+                                {savedApiKey.url}
+                              </Text>
+                            </Flex>
+                          </ChooseItemRadio>
+                        )}
                         {identity?.state === IdentityStatus.Candidate && (
                           <ChooseItemRadio
                             variant={variantRadio}
