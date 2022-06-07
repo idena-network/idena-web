@@ -141,7 +141,6 @@ export default function Restricted() {
   useEffect(() => {
     async function checkSaved() {
       try {
-        const {epoch} = await fetchEpoch(true)
         const signature = signMessage(hexToUint8Array(coinbase), privateKey)
         const savedKey = await checkSavedKey(
           coinbase,

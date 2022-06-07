@@ -207,19 +207,16 @@ export default function Offline() {
   useEffect(() => {
     async function checkSaved() {
       try {
-        const {epoch} = await fetchEpoch(true)
         const signature = signMessage(hexToUint8Array(coinbase), privateKey)
         const savedKey = await checkSavedKey(
           coinbase,
           toHexString(signature, true)
         )
         setSavedApiKey(savedKey)
-      } catch (e) {
-        setError({type: errorType.NONE})
-      }
+      } catch (e) {}
     }
     checkSaved()
-  }, [apiKey])
+  }, [apiKey, coinbase, privateKey])
 
   useEffect(() => {
     if (
