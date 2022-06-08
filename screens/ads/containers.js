@@ -1099,7 +1099,7 @@ export function PublishAdDrawer({ad, onPublish, ...props}) {
               <InlineAdStatGroup labelWidth="24">
                 <InlineAdStat
                   label={t('Competitors')}
-                  value={competitorCount}
+                  value={String(competitorCount)}
                 />
                 <InlineAdStat
                   label={t('Max bid')}
@@ -1207,7 +1207,7 @@ export function BurnDrawer({ad, onBurn, ...props}) {
               <InlineAdStatGroup labelWidth="24">
                 <InlineAdStat
                   label={t('Competitors')}
-                  value={competitorCount}
+                  value={String(competitorCount)}
                 />
                 <InlineAdStat
                   label={t('Max bid')}
