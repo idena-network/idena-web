@@ -688,7 +688,7 @@ export const AdForm = React.forwardRef(function AdForm(
               <AdMediaInput
                 name="thumb"
                 value={thumb}
-                label={t('Upload thumb')}
+                label={t('Upload thumbnail')}
                 description={t('80x80px, no more than 1 Mb')}
                 fallbackSrc="/static/upload-thumbnail-icn.svg"
                 maybeError={fieldErrors.thumb}
