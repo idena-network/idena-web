@@ -90,6 +90,7 @@ import {
   mapVotingStatus,
   effectiveBalance,
   getUrls,
+  sumAccountableVotes,
 } from './utils'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useBalance} from '../../shared/hooks/use-balance'
@@ -157,9 +158,6 @@ export function VotingCard({votingRef, ...props}) {
     VotingStatus.Archived,
     VotingStatus.Terminated
   )
-
-  const accountableVoteCount =
-    votes?.reduce((agg, curr) => agg + curr?.count, 0) ?? 0
 
   return (
     <Box position="relative" {...props}>
@@ -303,7 +301,12 @@ export function VotingCard({votingRef, ...props}) {
                 <Text as="span" color="muted">
                   {t('Deadline')}:
                 </Text>{' '}
-                <Text as="span">{new Date(finishDate).toLocaleString()}</Text>
+                <Text as="span">
+                  {new Date(finishDate).toLocaleString(i18n.language, {
+                    dateStyle: 'short',
+                    timeStyle: 'short',
+                  })}
+                </Text>
               </Text>
               <Divider
                 orientation="vertical"
@@ -325,9 +328,14 @@ export function VotingCard({votingRef, ...props}) {
                 )}
                 <Text as="span">
                   {t('{{count}} votes', {
-                    count: eitherIdleState(VotingStatus.Open)
+                    count: eitherIdleState(
+                      VotingStatus.Pending,
+                      VotingStatus.Open,
+                      VotingStatus.Voting,
+                      VotingStatus.Voted
+                    )
                       ? voteProofsCount
-                      : accountableVoteCount,
+                      : sumAccountableVotes(votes),
                   })}{' '}
                   {eitherIdleState(VotingStatus.Counting) &&
                     t('out of {{count}}', {count: voteProofsCount})}
@@ -985,9 +993,6 @@ export function VotingResult({votingService, ...props}) {
 
   const max = Math.max(...votes.map(({count}) => count))
 
-  const accountableVoteCount =
-    votes?.reduce((agg, curr) => agg + curr?.count, 0) ?? 0
-
   return (
     <Stack {...props}>
       {options.map(({id, value}) => {
@@ -1001,7 +1006,7 @@ export function VotingResult({votingService, ...props}) {
             isMine={id === selectedOption}
             didVote={selectedOption > -1}
             isWinner={didDetermineWinner && currentValue === max}
-            votesCount={accountableVoteCount}
+            votesCount={sumAccountableVotes(votes)}
           />
         )
       })}
