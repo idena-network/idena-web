@@ -31,6 +31,7 @@ import {
   FormControl,
   RadioGroup,
   Radio,
+  HStack,
 } from '@chakra-ui/react'
 import dayjs from 'dayjs'
 import {
@@ -46,10 +47,10 @@ import {
   DialogBody,
   DialogFooter,
   DialogHeader,
-  Drawer,
   DrawerBody,
   DrawerFooter,
   DrawerHeader,
+  ExternalLink,
   FormLabel,
   Input,
   Tooltip,
@@ -101,6 +102,8 @@ import {
   UserIcon,
   UserTickIcon,
 } from '../../shared/components/icons'
+import {AdDrawer} from '../ads/containers'
+import {AdImage} from '../ads/components'
 
 export function VotingCard({votingRef, ...props}) {
   const router = useRouter()
@@ -280,10 +283,7 @@ export function VotingCard({votingRef, ...props}) {
                   placement="top"
                   zIndex="tooltip"
                 >
-                  {/* TODO: pretending to be a Box until https://github.com/chakra-ui/chakra-ui/pull/2272 caused by https://github.com/facebook/react/issues/11972 */}
-                  <PrimaryButton as={Box} isDisabled>
-                    {t('Vote')}
-                  </PrimaryButton>
+                  <PrimaryButton isDisabled>{t('Vote')}</PrimaryButton>
                 </Tooltip>
               ))}
             {eitherIdleState(
@@ -402,7 +402,7 @@ export function AddFundDrawer({
   })
 
   return (
-    <Drawer {...props}>
+    <AdDrawer isMining={isLoading} {...props}>
       <OracleDrawerHeader icon={<AddFundIcon />}>
         {t('Add fund')}
       </OracleDrawerHeader>
@@ -459,7 +459,7 @@ export function AddFundDrawer({
           </PrimaryButton>
         </OracleDrawerBody>
       </Box>
-    </Drawer>
+    </AdDrawer>
   )
 }
 
@@ -484,7 +484,7 @@ export function VoteDrawer({
   const toDna = toLocaleDna(i18n.language)
 
   return (
-    <Drawer isCloseable={!isLoading} {...props}>
+    <AdDrawer isMining={isLoading} isCloseable={!isLoading} {...props}>
       <OracleDrawerHeader
         icon={<SendOutIcon color="blue.500" />}
         colorScheme="blue"
@@ -536,7 +536,7 @@ export function VoteDrawer({
           {t('Send')}
         </PrimaryButton>
       </DrawerFooter>
-    </Drawer>
+    </AdDrawer>
   )
 }
 
@@ -562,7 +562,7 @@ export function ReviewVotingDrawer({
   const toDna = toLocaleDna(i18n.language)
 
   return (
-    <Drawer isCloseable={!isLoading} {...props}>
+    <AdDrawer isMining={isLoading} isCloseable={!isLoading} {...props}>
       <OracleDrawerHeader>{t('Create Oracle Voting')}</OracleDrawerHeader>
       <OracleDrawerBody
         as="form"
@@ -661,7 +661,7 @@ export function ReviewVotingDrawer({
           {t('Confirm')}
         </PrimaryButton>
       </OracleDrawerBody>
-    </Drawer>
+    </AdDrawer>
   )
 }
 
@@ -1093,7 +1093,7 @@ export function LaunchDrawer({
   })
 
   return (
-    <Drawer isCloseable={!isLoading} {...props}>
+    <AdDrawer isMining={isLoading} isCloseable={!isLoading} {...props}>
       <OracleDrawerHeader>{t('Launch Oracle Voting')}</OracleDrawerHeader>
       <OracleDrawerBody
         as="form"
@@ -1143,7 +1143,7 @@ export function LaunchDrawer({
           {t('Launch')}
         </PrimaryButton>
       </OracleDrawerBody>
-    </Drawer>
+    </AdDrawer>
   )
 }
 
@@ -1157,38 +1157,42 @@ export function ProlongDrawer({
   const {t, i18n} = useTranslation()
 
   return (
-    <Drawer isCloseable={!isLoading} {...props}>
+    <AdDrawer isMining={isLoading} isCloseable={!isLoading} {...props}>
       <OracleDrawerHeader>{t('Prolong Oracle Voting')}</OracleDrawerHeader>
-      <OracleDrawerBody
-        as="form"
-        onSubmit={e => {
-          e.preventDefault()
-          onProlong()
-        }}
-      >
-        <Text color="muted" fontSize="md">
-          {t('Prolong the voting in order to select a new voting committee')}
-        </Text>
+      <DrawerBody>
+        <Stack spacing="5">
+          <Text color="muted" fontSize="md">
+            {t('Prolong the voting in order to select a new voting committee')}
+          </Text>
 
-        <OracleFormControl label={t('Transfer from')}>
-          <Input name="fromInput" defaultValue={from} isDisabled />
-          <OracleFormHelper
-            label={t('Available')}
-            value={toLocaleDna(i18n.language)(available)}
-          />
-        </OracleFormControl>
-
+          <form
+            id="prolong"
+            onSubmit={e => {
+              e.preventDefault()
+              onProlong()
+            }}
+          >
+            <OracleFormControl label={t('Transfer from')}>
+              <Input name="fromInput" defaultValue={from} isDisabled />
+              <OracleFormHelper
+                label={t('Available')}
+                value={toLocaleDna(i18n.language)(available)}
+              />
+            </OracleFormControl>
+          </form>
+        </Stack>
+      </DrawerBody>
+      <DrawerFooter>
         <PrimaryButton
+          type="submit"
+          form="prolong"
           isLoading={isLoading}
           loadingText={t('Prolonging')}
-          type="submit"
-          mt={3}
-          ml="auto"
         >
           {t('Prolong')}
         </PrimaryButton>
-      </OracleDrawerBody>
-    </Drawer>
+      </DrawerFooter>
+    </AdDrawer>
   )
 }
 
@@ -1440,9 +1444,9 @@ export function FinishDrawer({
   const {t, i18n} = useTranslation()
 
   return (
-    <Drawer isCloseable={!isLoading} {...props}>
+    <AdDrawer isMining={isLoading} isCloseable={!isLoading} {...props}>
       <OracleDrawerHeader>
-        {hasWinner ? t('Distribute rewards') : t('Refund Oracle Voting')}
+        {hasWinner ? t('Finish voting') : t('Claim refunds')}
       </OracleDrawerHeader>
       <OracleDrawerBody
         as="form"
@@ -1475,7 +1479,7 @@ export function FinishDrawer({
           {hasWinner ? t('Distribute rewards') : t('Refund')}
         </PrimaryButton>
       </OracleDrawerBody>
-    </Drawer>
+    </AdDrawer>
   )
 }
 
@@ -1488,36 +1492,40 @@ export function TerminateDrawer({
   const {t} = useTranslation()
 
   return (
-    <Drawer isCloseable={!isLoading} {...props}>
+    <AdDrawer isMining={isLoading} isCloseable={!isLoading} {...props}>
       <OracleDrawerHeader>{t('Terminate Oracle Voting')}</OracleDrawerHeader>
-      <OracleDrawerBody
-        as="form"
-        onSubmit={e => {
-          e.preventDefault()
-          onTerminate()
-        }}
-      >
-        <Text color="muted" fontSize="md">
-          {t(
-            'Terminate the contract to clean-up its state and refund 50% of the stake to the owner'
-          )}
-        </Text>
+      <DrawerBody>
+        <Stack spacing="5">
+          <Text color="muted" fontSize="md">
+            {t(
+              'Terminate the contract to clean-up its state and refund 50% of the stake to the owner'
+            )}
+          </Text>
 
-        <OracleFormControl label={t('Smart contract address')}>
-          <Input defaultValue={contractAddress} isDisabled />
-        </OracleFormControl>
-
+          <form
+            id="terminate"
+            onSubmit={e => {
+              e.preventDefault()
+              onTerminate()
+            }}
+          >
+            <OracleFormControl label={t('Smart contract address')}>
+              <Input defaultValue={contractAddress} isDisabled />
+            </OracleFormControl>
+          </form>
+        </Stack>
+      </DrawerBody>
+      <DrawerFooter>
         <PrimaryButton
+          type="submit"
+          form="terminate"
           isLoading={isLoading}
           loadingText={t('Terminating')}
-          type="submit"
-          mt={3}
-          ml="auto"
         >
           {t('Terminate')}
         </PrimaryButton>
-      </OracleDrawerBody>
-    </Drawer>
+      </DrawerFooter>
+    </AdDrawer>
   )
 }
 
@@ -1640,5 +1648,64 @@ export function NewOraclePresetDialog({onChoosePreset, onCancel, ...props}) {
         </PrimaryButton>
       </DialogFooter>
     </Dialog>
+  )
+}
+
+export function OracleAdDescription({ad}) {
+  const {t} = useTranslation()
+
+  return (
+    <Stack spacing="7" bg="white" rounded="lg" p="6" pt="4">
+      <Stack spacing="2">
+        <Stack spacing="1">
+          <Text fontWeight={500}>{ad.title}</Text>
+          <Text color="muted">{ad.desc}</Text>
+        </Stack>
+        <Stack alignItems="flex-start" spacing={4}>
+          <ExternalLink
+            href={ad.url}
+            fontWeight={500}
+            withArrow={false}
+            textProps={{wordBreak: 'break-all', whiteSpace: 'normal'}}
+          >
+            {ad.url}
+          </ExternalLink>
+        </Stack>
+      </Stack>
+      <HStack spacing="6">
+        <HStack spacing="4">
+          <AdImage src={ad.media} w="10" objectFit="cover" />
+          <Box>
+            <Text>{t('Media')}</Text>
+            <Text fontSize="sm" color="muted">
+              {t('640x640px')}
+            </Text>
+          </Box>
+        </HStack>
+        <HStack spacing="4">
+          <AdImage src={ad.thumb} w="10" objectFit="cover" />
+          <Box>
+            <Text>{t('Thumbnail')}</Text>
+            <Text fontSize="sm" color="muted">
+              {t('80x80 px')}
+            </Text>
+          </Box>
+        </HStack>
+      </HStack>
+    </Stack>
+  )
+}
+
+export function MaliciousAdOverlay({children}) {
+  return (
+    <Box position="relative" filter="blur(2px)">
+      <Box
+        position="absolute"
+        inset={0}
+        backdropFilter="blur(2px)"
+        zIndex="banner"
+      />
+      {children}
+    </Box>
   )
 }

@@ -1,6 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 import api from './api-client'
 import {strip} from '../utils/obj'
+import {callRpc} from '../utils/utils'
 
 export async function sendInvite({to, amount}) {
   const {data} = await api().post('/', {
@@ -234,4 +235,9 @@ export async function fetchWordsSeed() {
   const {result, error} = data
   if (error) throw new Error(error.message)
   return result
+}
+
+export async function fetchNetworkSize() {
+  const {networkSize} = await callRpc('dna_globalState')
+  return networkSize
 }

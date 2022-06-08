@@ -91,3 +91,56 @@ message ProtoTerminateContractAttachment {
     repeated bytes args = 1;
     uint32 clientType = 2;
 }
+
+message ProtoProfile {
+  message ProtoProfileAd {
+    string cid = 1;
+    string target = 2;
+    string contract = 3;
+    string author = 4;
+  }
+  
+  repeated ProtoProfileAd ads = 1;
+}
+
+message ProtoAd {
+  string title = 1;
+  string desc = 2;
+  string url = 3;
+  bytes thumb = 4;
+  bytes media = 5;
+  uint32 version = 6;
+  ProtoAdVotingParams votingParams = 7;
+}
+
+message ProtoAdVotingParams {
+  uint32 votingDuration = 1;
+  uint32 publicVotingDuration = 2;
+  uint32 quorum = 3;
+  uint32 committeeSize = 4;
+}
+
+message ProtoAdTarget {
+  string language = 1;
+  int32 age = 2;
+  string os = 3;
+  int32 stake = 4;
+}
+
+message ProtoAdBurnKey {
+  string cid = 1;
+  string target = 2;
+}
+
+message ProtoStoreToIpfsAttachment {
+  bytes cid = 1;
+  uint32 size = 2;
+}
+
+message ProtoChangeProfileAttachment {
+  bytes cid = 1;
+}
+
+message ProtoBurnAttachment {
+  string key = 1;
+}

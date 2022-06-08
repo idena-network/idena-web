@@ -61,9 +61,11 @@ import {useScroll} from '../../shared/hooks/use-scroll'
 import {
   AddUserIcon,
   ChevronRightIcon,
+  AdsIcon,
   CopyIcon,
   DeleteIcon,
   OpenExplorerIcon,
+  OracleIcon,
   PhotoIcon,
   TestValidationIcon,
 } from '../../shared/components/icons'
@@ -560,6 +562,40 @@ export default function ProfilePage() {
                   borderRadius="10px"
                 >
                   <TestValidationIcon
+                    color="blue.500"
+                    boxSize={5}
+                    mt={['6px', 0]}
+                    ml={['6px', 0]}
+                  />
+                </Box>
+              </WideLink>
+              <WideLink
+                label={t('New voting')}
+                onClick={() => router.push('/oracles/new')}
+              >
+                <Box
+                  boxSize={[8, 5]}
+                  backgroundColor={['brandBlue.10', 'initial']}
+                  borderRadius="10px"
+                >
+                  <OracleIcon
+                    color="blue.500"
+                    boxSize={5}
+                    mt={['6px', 0]}
+                    ml={['6px', 0]}
+                  />
+                </Box>
+              </WideLink>
+              <WideLink
+                label={t('New ad')}
+                onClick={() => router.push('/adn/new')}
+              >
+                <Box
+                  boxSize={[8, 5]}
+                  backgroundColor={['brandBlue.10', 'initial']}
+                  borderRadius="10px"
+                >
+                  <AdsIcon
                     color="blue.500"
                     boxSize={5}
                     mt={['6px', 0]}

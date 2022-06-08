@@ -1,4 +1,4 @@
-import {Flex, useDisclosure} from '@chakra-ui/react'
+import {Flex, useBoolean, useDisclosure} from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import * as React from 'react'
 import {useTranslation} from 'react-i18next'
@@ -18,15 +18,15 @@ import {useFailToast, useSuccessToast} from '../shared/hooks/use-toast'
 export default function ContactsPage() {
   const {t} = useTranslation()
 
-  const {query} = useRouter()
+  const router = useRouter()
 
   const [selectedContact, setSelectedContact] = React.useState(null)
 
+  const sendInviteDisclosure = useDisclosure()
   const {
-    isOpen: isOpenSendInviteDrawer,
-    onOpen: onOpenSendInviteDrawer,
-    onClose: onCloseNewContactDrawer,
-  } = useDisclosure()
+    onOpen: onOpenInviteDrawer,
+    onClose: onCloseInviteDrawer,
+  } = sendInviteDisclosure
 
   const {
     isOpen: isOpenEditContactDrawer,
@@ -41,11 +41,23 @@ export default function ContactsPage() {
   } = useDisclosure()
 
   React.useEffect(() => {
-    if (query.new !== undefined) onOpenSendInviteDrawer()
-  }, [onOpenSendInviteDrawer, query.new])
+    if (router.query.new !== undefined) {
+      onOpenInviteDrawer()
+    }
+  }, [onOpenInviteDrawer, router])
 
   const successToast = useSuccessToast()
   const failToast = useFailToast()
+
+  const [isMining, setIsMining] = useBoolean()
+
+  const handleInviteMined = React.useCallback(() => {
+    if (router.query.new !== undefined) {
+      router.push('/contacts')
+    }
+    onCloseInviteDrawer()
+    setIsMining.off()
+  }, [onCloseInviteDrawer, router, setIsMining])
 
   return (
     <InviteProvider>
@@ -55,7 +67,7 @@ export default function ContactsPage() {
             <ContactListSidebar
               selectedContactId={selectedContact?.id}
               onSelectContact={setSelectedContact}
-              onNewContact={onOpenSendInviteDrawer}
+              onNewContact={onOpenInviteDrawer}
             />
             <Flex flex={1} py={6} px={20}>
               {selectedContact ? (
@@ -65,10 +77,9 @@ export default function ContactsPage() {
                   onRemoveContact={() => {
                     setSelectedContact(null)
                   }}
-                  onRecoverContact={contact => {
-                    setSelectedContact(contact)
-                  }}
+                  onRecoverContact={setSelectedContact}
                   onKillContact={onOpenKillContactDrawer}
+                  onInviteMined={handleInviteMined}
                 />
               ) : (
                 <NoContactDataPlaceholder>
@@ -79,16 +90,12 @@ export default function ContactsPage() {
           </Flex>
 
           <IssueInviteDrawer
-            inviteeAddress={query.address}
-            isOpen={isOpenSendInviteDrawer}
-            onClose={onCloseNewContactDrawer}
+            {...sendInviteDisclosure}
+            inviteeAddress={router.query.address}
+            isMining={isMining}
             onIssue={invite => {
-              successToast({
-                title: t('Invitation code created'),
-                description: invite.hash,
-              })
               setSelectedContact(invite)
-              onCloseNewContactDrawer()
+              setIsMining.on()
             }}
             onIssueFail={error => {
               failToast({

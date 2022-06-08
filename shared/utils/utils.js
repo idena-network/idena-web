@@ -183,3 +183,27 @@ const mobileClientType = parseInt(
 )
 
 export const webClientType = isMobile ? mobileClientType : browserClientType
+
+export function pick(obj, keys) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([k]) => keys.includes(k))
+  )
+}
+
+export function omit(obj, keys) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([k]) => !keys.includes(k))
+  )
+}
+
+export const prependHex = hex => (hex?.startsWith('0x') ? hex : `0x${hex}`)
+
+export function hexToObject(hex) {
+  try {
+    return JSON.parse(
+      new TextDecoder().decode(Buffer.from(hex.substring(2), 'hex'))
+    )
+  } catch {
+    return {}
+  }
+}

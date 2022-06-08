@@ -16,6 +16,8 @@ import {useTestValidationState} from '../providers/test-validation-context'
 import {EpochPeriod} from '../types'
 import {useInterval} from '../hooks/use-interval'
 import {DeferredVotes} from '../../screens/oracles/components'
+import {useRotatingAds} from '../../screens/ads/hooks'
+import {AdBanner} from '../../screens/ads/containers'
 
 export default function Layout({
   showHamburger = true,
@@ -48,7 +50,7 @@ export default function Layout({
   )
 }
 
-function NormalApp({children, canRedirect = true}) {
+function NormalApp({children, canRedirect = true, skipBanner}) {
   const router = useRouter()
 
   const epoch = useEpoch()
@@ -64,13 +66,19 @@ function NormalApp({children, canRedirect = true}) {
     if (shouldStartValidation(epoch, identity)) router.push('/validation')
   }, 1000)
 
+  const isOffline = settings.apiKeyState === apiKeyStates.OFFLINE
+
   React.useEffect(() => {
     if (!canRedirect) return
-    if (settings.apiKeyState === apiKeyStates.OFFLINE) {
+    if (isOffline) {
       router.push('/node/offline')
     } else if (currentTrainingValidation?.period === EpochPeriod.ShortSession)
       router.push('/try/validation')
-  }, [canRedirect, currentTrainingValidation, router, settings.apiKeyState])
+  }, [canRedirect, currentTrainingValidation, isOffline, router])
+
+  const ads = useRotatingAds()
+
+  const hasRotatingAds = ads.length > 0
 
   return (
     <Flex
@@ -80,6 +88,8 @@ function NormalApp({children, canRedirect = true}) {
       h={['auto', '100vh']}
       overflowY="auto"
     >
+      {hasRotatingAds && !skipBanner && !isOffline && <AdBanner />}
+
       {children}
 
       {currentTrainingValidation && (

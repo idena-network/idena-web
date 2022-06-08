@@ -6,6 +6,7 @@ import urlRegex from 'url-regex-safe'
 import {TxType, VotingStatus} from '../../shared/types'
 import {
   callRpc,
+  hexToObject,
   roundToPrecision,
   toLocaleDna,
   webClientType,
@@ -143,13 +144,8 @@ export async function fetchContractBalanceUpdates({
 }
 
 export async function fetchNetworkSize() {
-  const {result, error} = await (
-    await fetch(apiUrl('onlineidentities/count'))
-  ).json()
-
-  if (error) throw new Error(error.message)
-
-  return result
+  const {networkSize} = await callRpc('dna_globalState')
+  return networkSize
 }
 
 export async function fetchVoting({id, contractHash = id, address}) {
@@ -358,19 +354,10 @@ function stringToHex(str) {
   return Buffer.from(new TextEncoder().encode(str)).toString('hex')
 }
 
-export function hexToObject(hex) {
-  try {
-    return JSON.parse(
-      new TextDecoder().decode(Buffer.from(hex.substring(2), 'hex'))
-    )
-  } catch {
-    return {}
-  }
-}
-
 export function buildContractDeploymentArgs({
   title,
   desc,
+  adCid,
   startDate,
   votingDuration,
   publicVotingDuration,
@@ -389,6 +376,7 @@ export function buildContractDeploymentArgs({
         title,
         desc,
         options: stripOptions(options),
+        adCid,
       })}`,
     },
     {

@@ -66,6 +66,7 @@ import {
   WalletIcon,
   TimerIcon,
   OracleIcon,
+  AdsIcon,
 } from './icons'
 import {TodoVotingCountBadge} from '../../screens/oracles/components'
 import useUnreadOraclesCount from '../hooks/use-unread-oracles-count'
@@ -272,7 +273,12 @@ function Nav({onClose}) {
               </TodoVotingCountBadge>
             ) : null
           }
-        ></NavItem>
+        />
+        <NavItem
+          href="/adn/list"
+          icon={<AdsIcon boxSize={[8, 5]} />}
+          text={t('Ads')}
+        />
         <NavItem
           href="/settings"
           icon={<SettingsIcon boxSize={[8, 5]} />}
@@ -497,6 +503,7 @@ function ActionPanel({onClose}) {
                 <Menu autoSelect={false} mr={1}>
                   <MenuButton
                     rounded="md"
+                    _hover={{bg: 'unset'}}
                     _expanded={{bg: 'brandGray.500'}}
                     _focus={{outline: 0}}
                     position="absolute"

@@ -63,6 +63,7 @@ import {
   InfoIcon,
   PlusSolidIcon,
 } from '../../shared/components/icons'
+import {AdDrawer} from '../ads/containers'
 
 export function ContactListSidebar({
   selectedContactId,
@@ -296,6 +297,7 @@ export function ContactCard({
   onRemoveContact,
   onRecoverContact,
   onKillContact,
+  onInviteMined,
 }) {
   const {
     t,
@@ -323,6 +325,12 @@ export function ContactCard({
   const {onCopy: onCopyKey, hasCopied} = useClipboard(key)
 
   const successToast = useSuccessToast()
+
+  React.useEffect(() => {
+    if (state === IdentityStatus.Invite) {
+      onInviteMined()
+    }
+  }, [onInviteMined, state])
 
   const isInviteExpired =
     state === IdentityStatus.Undefined && !canKill && !mining && !activated
@@ -449,6 +457,7 @@ export function ContactCard({
 
 export function IssueInviteDrawer({
   inviteeAddress,
+  isMining,
   onIssue,
   onIssueFail,
   ...props
@@ -467,7 +476,7 @@ export function IssueInviteDrawer({
   const [isSubmitting, setIsSubmitting] = React.useState()
 
   return (
-    <Drawer {...props}>
+    <AdDrawer isMining={isMining} {...props}>
       <DrawerHeader>
         <ContactDrawerHeader address={dummyAddress}>
           {t('Invite new person')}
@@ -481,6 +490,7 @@ export function IssueInviteDrawer({
         </Text>
         <Stack
           as="form"
+          id="issueInvite"
           spacing={5}
           onSubmit={async e => {
             e.preventDefault()
@@ -501,6 +511,7 @@ export function IssueInviteDrawer({
                 firstName,
                 lastName,
               })
+
               setIsSubmitting(false)
 
               onIssue(invite)
@@ -520,7 +531,7 @@ export function IssueInviteDrawer({
               <Input id="lastName" />
             </FormControl>
           </Stack>
-          <Box>
+          <Stack align="flex-start">
             <Button
               background="transparent"
               color="brandGray.500"
@@ -539,23 +550,32 @@ export function IssueInviteDrawer({
                 transition="all 0.2s ease-in-out"
               />
             </Button>
-            <Collapse in={isOpenAdvancedOptions} mt={4}>
-              <FormControl>
-                <FormLabel htmlFor="address">{t('Address')}</FormLabel>
-                <Input
-                  id="address"
-                  defaultValue={inviteeAddress}
-                  placeholder="Invitee address"
-                />
-              </FormControl>
-            </Collapse>
-          </Box>
-          <PrimaryButton ml="auto" type="submit" isLoading={isSubmitting}>
-            {t('Create invitation')}
-          </PrimaryButton>
+            <Box w="full">
+              <Collapse in={isOpenAdvancedOptions}>
+                <FormControl>
+                  <FormLabel htmlFor="address">{t('Address')}</FormLabel>
+                  <Input
+                    id="address"
+                    defaultValue={inviteeAddress}
+                    placeholder="Invitee address"
+                  />
+                </FormControl>
+              </Collapse>
+            </Box>
+          </Stack>
         </Stack>
       </DrawerBody>
-    </Drawer>
+      <DrawerFooter>
+        <PrimaryButton
+          type="submit"
+          form="issueInvite"
+          isLoading={isSubmitting || isMining}
+          loadingText={t('Mining...')}
+        >
+          {t('Create invitation')}
+        </PrimaryButton>
+      </DrawerFooter>
+    </AdDrawer>
   )
 }
 export function EditContactDrawer({contact, onRename, ...props}) {

@@ -245,6 +245,7 @@ export const uiTheme = {
   sizes: {
     ...chakraTheme.sizes,
     sm: rem(360),
+    mdx: '30rem',
   },
   radii: {
     ...chakraTheme.radii,
@@ -513,6 +514,11 @@ export const uiTheme = {
       },
     },
     Modal: {
+      baseStyle: {
+        overlay: {
+          bg: 'xblack.080',
+        },
+      },
       variants: {
         mobile: {
           dialogContainer: {alignItems: 'flex-end'},
@@ -557,6 +563,129 @@ export const uiTheme = {
             py: 2,
             lineHeight: 'inherit',
           },
+        },
+      },
+    },
+    Menu: {
+      baseStyle: {
+        button: {
+          borderRadius: 'md',
+          h: 8,
+          w: 6,
+          _hover: {bg: 'gray.50'},
+          _expanded: {bg: 'gray.50'},
+        },
+        list: {
+          border: 'none',
+          borderRadius: 'lg',
+          py: 2,
+          minW: '145px',
+          shadow:
+            '0 4px 6px 0 rgba(83, 86, 92, 0.24), 0 0 2px 0 rgba(83, 86, 92, 0.2)',
+          '&:focus:not([data-focus-visible-added])': {
+            shadow:
+              '0 4px 6px 0 rgba(83, 86, 92, 0.24), 0 0 2px 0 rgba(83, 86, 92, 0.2)',
+          },
+        },
+        item: {
+          fontWeight: 500,
+          px: 3,
+          py: '1.5',
+          _hover: {bg: 'gray.50'},
+          _focus: {bg: 'gray.50'},
+        },
+        divider: {
+          borderColor: 'gray.100',
+          borderWidth: 1,
+          my: '2',
+        },
+      },
+    },
+    Drawer: {
+      baseStyle: {
+        overlay: {
+          bg: 'xblack.080',
+        },
+        footer: {
+          borderTopWidth: 1,
+          borderTopColor: 'gray.100',
+          py: 3,
+          paddingX: 4,
+          justify: 'flex-end',
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: 0,
+        },
+      },
+    },
+    NumberInput: {
+      sizes: {
+        md: {
+          field: {
+            h: 8,
+            px: 3,
+          },
+        },
+      },
+      variants: {
+        outline: {
+          field: {
+            borderColor: 'gray.100',
+            _hover: {
+              borderColor: 'gray.100',
+            },
+            _placeholder: {
+              color: 'muted',
+            },
+            _disabled: {
+              bg: 'gray.50',
+              color: 'muted',
+              '-webkit-text-fill-color': '#96999E',
+              opacity: 1,
+            },
+          },
+        },
+      },
+    },
+    Textarea: {
+      sizes: {
+        md: {
+          px: 3,
+          py: 2,
+          minH: '16',
+        },
+      },
+      variants: {
+        outline: {
+          borderColor: 'gray.100',
+          _hover: {
+            borderColor: 'gray.100',
+          },
+          _placeholder: {
+            color: 'muted',
+          },
+        },
+      },
+    },
+    Select: {
+      sizes: {
+        md: {
+          field: {
+            px: '2',
+          },
+        },
+      },
+    },
+    FormError: {
+      baseStyle: {
+        text: {
+          fontSize: 'md',
+          lineHeight: '4',
+        },
+        icon: {
+          boxSize: '3',
+          marginEnd: '1',
         },
       },
     },

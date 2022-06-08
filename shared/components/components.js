@@ -1,5 +1,7 @@
 /* eslint-disable react/prop-types */
 import React, {useState} from 'react'
+// eslint-disable-next-line import/no-extraneous-dependencies
+import ReactDOM from 'react-dom'
 import {
   Code,
   Drawer as ChakraDrawer,
@@ -31,7 +33,6 @@ import {
   Box,
   Button,
   FormControl,
-  useTheme,
   Divider,
   Text,
   Link,
@@ -41,13 +42,25 @@ import {
   InputGroup,
   InputRightAddon,
   Badge as ChakraBadge,
+  Menu as ChakraMenu,
+  MenuButton,
+  MenuList,
+  Center,
+  HStack,
+  useToken,
 } from '@chakra-ui/react'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
 import NextLink from 'next/link'
 import dynamic from 'next/dynamic'
 import {rem} from '../theme'
-import {ChevronRightIcon, GtranslateIcon, InfoIcon} from './icons'
+import {
+  ChevronDownIcon,
+  ChevronRightIcon,
+  GtranslateIcon,
+  InfoIcon,
+  MoreIcon,
+} from './icons'
 import {openExternalUrl} from '../utils/utils'
 import {Heading} from './typo'
 import {FlatButton, IconButton} from './button'
@@ -73,27 +86,61 @@ export function Drawer({isCloseable = true, children, ...props}) {
   const drawerSize = useBreakpointValue(['full', 'xs'])
   const closeButtonSize = useBreakpointValue(['lg', 'md'])
 
+  const drawerPromotion = React.useState()
+
   return (
-    <ChakraDrawer placement="right" {...props}>
-      <DrawerOverlay bg="xblack.080" />
-      <DrawerContent
-        px={8}
-        pt={[4, 12]}
-        pb={4}
-        size={drawerSize}
-        maxW={maxWidth}
-      >
-        {isCloseable && (
-          <DrawerCloseButton
-            size={closeButtonSize}
-            color={['brandBlue.100', 'initial']}
-          />
-        )}
-        {children}
-      </DrawerContent>
-    </ChakraDrawer>
+    <DrawerPromotionContext.Provider value={drawerPromotion}>
+      <ChakraDrawer placement="right" {...props}>
+        <DrawerOverlay bg="xblack.080" />
+        <DrawerContent
+          px={8}
+          pt={[4, 12]}
+          pb={4}
+          size={drawerSize}
+          maxW={maxWidth}
+        >
+          {isCloseable && (
+            <DrawerCloseButton
+              size={closeButtonSize}
+              color={['brandBlue.100', 'initial']}
+            />
+          )}
+          {children}
+        </DrawerContent>
+        <DrawerPromotion
+          left={maxWidth > 0 ? `calc(50% - ${maxWidth / 2}px)` : '50%'}
+        />
+      </ChakraDrawer>
+    </DrawerPromotionContext.Provider>
   )
 }
+
+const DrawerPromotionContext = React.createContext([])
+
+export function DrawerPromotion(props) {
+  const [, setDrawerPromotion] = React.useContext(DrawerPromotionContext)
+
+  return (
+    <Center
+      ref={setDrawerPromotion}
+      position="absolute"
+      top="50%"
+      left="50%"
+      transform="translate(-50%,-50%)"
+      zIndex="modal"
+      {...props}
+    />
+  )
+}
+
+export function DrawerPromotionPortal({children}) {
+  const [drawerPromotion] = React.useContext(DrawerPromotionContext)
+
+  return drawerPromotion
+    ? ReactDOM.createPortal(children, drawerPromotion)
+    : null
+}
+
 export function DrawerHeader(props) {
   return <ChakraDrawerHeader p={0} mb={3} {...props} />
 }
@@ -103,7 +150,7 @@ export function DrawerBody(props) {
 }
 
 export function DrawerFooter(props) {
-  return <ChakraDrawerFooter p={0} {...props} />
+  return <ChakraDrawerFooter {...props} />
 }
 
 export function FormLabel(props) {
@@ -131,8 +178,12 @@ export function Input(props) {
 }
 
 export function Select(props) {
+  const iconSize = useToken('space', '5')
   return (
     <ChakraSelect
+      icon={<ChevronDownIcon />}
+      iconColor="muted"
+      iconSize={iconSize}
       borderColor="gray.100"
       fontSize="md"
       lineHeight="short"
@@ -141,7 +192,7 @@ export function Select(props) {
         color: 'muted',
       }}
       _disabled={{
-        bg: 'gray.50',
+        bg: 'gray.100',
         color: 'muted',
       }}
       {...props}
@@ -190,7 +241,12 @@ export function PasswordInput({width, ...props}) {
   )
 }
 
-export function Avatar({address, size = ['88px', '80px'], ...props}) {
+export function Avatar({
+  address,
+  boxSize,
+  size = boxSize || ['88px', '80px'],
+  ...props
+}) {
   return address ? (
     <ChakraAvatar
       boxSize={size}
@@ -200,7 +256,7 @@ export function Avatar({address, size = ['88px', '80px'], ...props}) {
       {...props}
     />
   ) : (
-    <Box w={size} h={size} bg="gray.50" rounded={['mobile', 'lg']}></Box>
+    <Box boxSize={size} bg="gray.50" rounded={['mobile', 'lg']}></Box>
   )
 }
 
@@ -231,7 +287,7 @@ export function Toast({
   status = 'info',
   actionContent,
   actionColor = status === 'error' ? 'red.500' : 'brandBlue.500',
-  color = status === 'error' ? 'red.500' : 'brandBlue.500',
+  color,
   onAction,
   duration,
   ...props
@@ -241,7 +297,7 @@ export function Toast({
       status={status}
       bg="white"
       boxShadow="0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)"
-      color="brandGray.500"
+      color={color || 'brandGray.500'}
       fontSize="md"
       pl={4}
       pr={actionContent ? 2 : 5}
@@ -252,7 +308,11 @@ export function Toast({
       rounded="lg"
       {...props}
     >
-      <AlertIcon name={icon} size={5} color={color || 'blue.500'} />
+      <AlertIcon
+        name={icon}
+        size={5}
+        color={color || (status === 'error' ? 'red.500' : 'blue.500')}
+      />
       <Flex direction="column" align="flex-start" maxW={['90vw', 'sm']}>
         <AlertTitle fontWeight={500} lineHeight="base">
           {title}
@@ -380,11 +440,10 @@ export function QrScanner({isOpen, onScan, onClose}) {
 }
 
 export function Skeleton(props) {
-  const {colors} = useTheme()
   return (
     <ChakraSkeleton
-      startColor={colors.gray[100]}
-      endColor={colors.gray[300]}
+      startColor="gray.50"
+      endColor="gray.100"
       w="full"
       {...props}
     />
@@ -420,7 +479,13 @@ export function SmallText(props) {
   return <Text color="muted" fontSize="sm" {...props} />
 }
 
-export function ExternalLink({href, children, ...props}) {
+export function ExternalLink({
+  href,
+  withArrow = true,
+  textProps,
+  children,
+  ...props
+}) {
   return (
     <Button
       variant="link"
@@ -437,10 +502,17 @@ export function ExternalLink({href, children, ...props}) {
       }}
       {...props}
     >
-      <Text as="span" lineHeight="4">
+      <Text
+        as="span"
+        lineHeight="4"
+        textAlign="start"
+        maxW="full"
+        isTruncated
+        {...textProps}
+      >
         {children || href}
+        {withArrow && <ChevronRightIcon boxSize={4} />}
       </Text>
-      <ChevronRightIcon boxSize={4} />
     </Button>
   )
 }
@@ -456,7 +528,7 @@ export const TextLink = React.forwardRef(
   )
 )
 
-export function SuccessAlert({children, ...props}) {
+export function SuccessAlert({icon, children, ...props}) {
   return (
     <Alert
       status="success"
@@ -469,7 +541,7 @@ export function SuccessAlert({children, ...props}) {
       py={2}
       {...props}
     >
-      <AlertIcon name="info" color="green.500" size={5} mr={3} />
+      {icon || <AlertIcon color="green.500" boxSize={5} mr={3} />}
       {children}
     </Alert>
   )
@@ -633,6 +705,52 @@ export function Badge(props) {
       py={1 / 2}
       h={4}
       minW={4}
+      {...props}
+    />
+  )
+}
+
+export function Menu({children, ...props}) {
+  return (
+    <ChakraMenu autoSelect={false} placement="bottom-end" {...props}>
+      <MenuButton>
+        <MoreIcon boxSize={5} color="muted" />
+      </MenuButton>
+      <MenuList>{children}</MenuList>
+    </ChakraMenu>
+  )
+}
+
+export const HDivider = React.forwardRef(function HDivider(props, ref) {
+  return <Divider ref={ref} borderColor="gray.100" my={0} {...props} />
+})
+
+const FilterContext = React.createContext()
+
+export function FilterButtonList({value, onChange, children, ...props}) {
+  return (
+    <HStack {...props}>
+      <FilterContext.Provider value={{value, onChange}}>
+        {children}
+      </FilterContext.Provider>
+    </HStack>
+  )
+}
+
+export function FilterButton({value, onClick, ...props}) {
+  const {
+    value: currentValue,
+    onChange: onChangeCurrentValue,
+  } = React.useContext(FilterContext)
+
+  return (
+    <Button
+      variant="tab"
+      isActive={value === currentValue}
+      onClick={e => {
+        onChangeCurrentValue(value)
+        if (onClick) onClick(e)
+      }}
       {...props}
     />
   )
