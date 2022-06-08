@@ -137,7 +137,7 @@ export const adVotingDefaults = {
   votingDuration: 4320,
   publicVotingDuration: 4320,
   winnerThreshold: 51,
-  quorum: 3,
+  quorum: 1,
   committeeSize: 300,
   ownerFee: 0,
   shouldStartImmediately: true,
