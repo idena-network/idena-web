@@ -17,6 +17,7 @@ import {
   callRpc,
   HASH_IN_MEMPOOL,
   hexToObject,
+  isVercelProduction,
   prependHex,
 } from '../../shared/utils/utils'
 import {isValidUrl} from '../dna/utils'
@@ -363,6 +364,8 @@ export const clampCommiteeSize = async committeeSize =>
   Math.min(committeeSize, await fetchNetworkSize())
 
 export const validateAdVoting = ({ad, voting}) => {
+  if (!isVercelProduction) return true
+
   if (ad?.votingParams) {
     const areSameVotingParams = [
       'votingDuration',
