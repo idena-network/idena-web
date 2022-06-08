@@ -1446,7 +1446,7 @@ export function FinishDrawer({
   return (
     <AdDrawer isMining={isLoading} isCloseable={!isLoading} {...props}>
       <OracleDrawerHeader>
-        {hasWinner ? t('Distribute rewards') : t('Refund Oracle Voting')}
+        {hasWinner ? t('Finish voting') : t('Claim refunds')}
       </OracleDrawerHeader>
       <OracleDrawerBody
         as="form"
