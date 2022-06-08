@@ -134,10 +134,8 @@ const buildAdReviewVotingOption = option => ({
 
 export const adVotingDefaults = {
   title: 'Is this ad appropriate?',
-  // votingDuration: 4320,
-  // publicVotingDuration: 4320,
-  votingDuration: 3 * 3,
-  publicVotingDuration: 3 * 3,
+  votingDuration: 4320,
+  publicVotingDuration: 4320,
   winnerThreshold: 51,
   quorum: 3,
   committeeSize: 300,
