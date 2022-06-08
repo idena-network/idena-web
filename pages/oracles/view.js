@@ -536,7 +536,12 @@ export default function ViewVotingPage() {
                               </>
                             ) : (
                               t('{{count}} votes', {
-                                count: eitherIdleState(VotingStatus.Open)
+                                count: eitherIdleState(
+                                  VotingStatus.Pending,
+                                  VotingStatus.Open,
+                                  VotingStatus.Voting,
+                                  VotingStatus.Voted
+                                )
                                   ? voteProofsCount
                                   : accountableVoteCount,
                               })
