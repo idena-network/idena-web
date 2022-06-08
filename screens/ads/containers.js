@@ -535,6 +535,7 @@ function AdPromotion({cid, title, desc, url, media, author}) {
                 href={url}
                 fontWeight="semibold"
                 display="flex"
+                maxW="80"
                 textProps={{h: '4', lineHeight: '4'}}
               >
                 {url}
@@ -902,7 +903,7 @@ export function ReviewAdDrawer({
             </Text>
           </Stack>
           <Stack spacing={6} bg="gray.50" p={6} rounded="lg">
-            <Stack isInline spacing={5}>
+            <Stack isInline spacing={5} align="flex-start">
               <AdImage src={adImageThumbSrc(ad)} w="10" />
               <Box>
                 <Text fontWeight={500}>{ad.title}</Text>
