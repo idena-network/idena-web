@@ -525,6 +525,7 @@ export default function ViewVotingPage() {
                           )}
 
                           <Text as="span">
+                            {/* eslint-disable-next-line no-nested-ternary */}
                             {eitherIdleState(VotingStatus.Counting) ? (
                               <>
                                 {t('{{count}} published votes', {
@@ -534,16 +535,18 @@ export default function ViewVotingPage() {
                                   count: voteProofsCount,
                                 })}
                               </>
-                            ) : (
+                            ) : eitherIdleState(
+                                VotingStatus.Pending,
+                                VotingStatus.Open,
+                                VotingStatus.Voting,
+                                VotingStatus.Voted
+                              ) ? (
                               t('{{count}} votes', {
-                                count: eitherIdleState(
-                                  VotingStatus.Pending,
-                                  VotingStatus.Open,
-                                  VotingStatus.Voting,
-                                  VotingStatus.Voted
-                                )
-                                  ? voteProofsCount
-                                  : accountableVoteCount,
+                                count: voteProofsCount,
+                              })
+                            ) : (
+                              t('{{count}} published votes', {
+                                count: accountableVoteCount,
                               })
                             )}
                           </Text>
