@@ -349,8 +349,7 @@ export function usePersistedAds(options) {
 
       return Promise.all(
         ads.map(async ({status, contract, thumb, media, ...ad}) => {
-          const voting =
-            status === AdStatus.Reviewing ? await getAdVoting(contract) : null
+          const voting = contract ? await getAdVoting(contract) : null
 
           return {
             ...ad,
@@ -363,7 +362,7 @@ export function usePersistedAds(options) {
             contract,
             status:
               // eslint-disable-next-line no-nested-ternary
-              status === AdStatus.Reviewing
+              voting
                 ? // eslint-disable-next-line no-nested-ternary
                   isApprovedVoting(voting)
                   ? AdStatus.Approved
