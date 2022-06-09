@@ -177,7 +177,7 @@ export const isApprovedVoting = voting =>
   voting.title === adVotingDefaults.title
 
 export const isRejectedVoting = voting =>
-  isFinalVoting(voting) && !isApprovedAd(voting)
+  isFinalVoting(voting) && isRejectedAd(voting)
 
 const isFinalVoting = voting =>
   [VotingStatus.Archived, VotingStatus.Terminated].includes(voting?.status)
@@ -186,6 +186,12 @@ const isApprovedAd = voting =>
   isValidAdOption(
     voting?.options?.find(option => option?.id === voting?.result),
     AdVotingOption.Approve
+  )
+
+const isRejectedAd = voting =>
+  isValidAdOption(
+    voting?.options?.find(option => option?.id === voting?.result),
+    AdVotingOption.Reject
   )
 
 export const isValidAdOption = (option, targetValue) =>

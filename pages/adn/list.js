@@ -187,6 +187,7 @@ export default function AdListPage() {
         cid,
         contract,
         author: coinbase,
+        status: AdStatus.Reviewing,
       })
       refetchPersistedAds()
     },
