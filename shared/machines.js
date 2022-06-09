@@ -1,7 +1,6 @@
 import {Machine, assign, createMachine} from 'xstate'
 import dayjs from 'dayjs'
 import {IdentityStatus} from './types'
-import {isVercelProduction} from './utils/utils'
 import {apiKeyStates} from './providers/settings-context'
 
 export const createTimerMachine = duration =>
@@ -67,7 +66,7 @@ const RestrictedTypes = {
 }
 
 const initialContext = {
-  storage: {epoch: 0, dontShow: false},
+  storage: {epoch: -1, dontShow: false},
 }
 
 export const restrictedModalMachine = createMachine(
@@ -127,7 +126,8 @@ export const restrictedModalMachine = createMachine(
       },
       NEW_EPOCH: [
         {
-          cond: ({storage}, {epoch}) => !storage || storage.epoch !== epoch,
+          cond: ({storage}, {epoch}) =>
+            storage.epoch >= 0 && storage.epoch !== epoch,
           actions: [
             assign({
               epoch: (_, {epoch}) => epoch,
@@ -156,8 +156,7 @@ export const restrictedModalMachine = createMachine(
   },
   {
     delays: {
-      CHECK_INTERVAL: () =>
-        isVercelProduction ? 15 * 60 * 1000 : 3 * 60 * 1000,
+      CHECK_INTERVAL: () => 15 * 60 * 1000,
     },
     guards: {
       neetToRedirect: ({
