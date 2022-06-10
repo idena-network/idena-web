@@ -565,6 +565,7 @@ export function SendDrawer(props) {
                 name="amount"
                 defaultValue={state.amount}
                 min={0}
+                step="any"
                 variant={variant}
                 size={size}
               />
