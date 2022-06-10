@@ -1,8 +1,7 @@
-import React, {useState, useEffect} from 'react'
+import React, {useState, useEffect, useContext} from 'react'
 import {useToast} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
-import {useMachine} from '@xstate/react'
 import cookie from 'cookie-cutter'
 import {useInterval} from '../hooks/use-interval'
 
@@ -12,7 +11,6 @@ import {
   didArchiveFlips,
   markFlipsArchived,
 } from '../../screens/flips/utils'
-import {loadPersistentState, persistState} from '../utils/persist'
 import {isVercelProduction, ntp, openExternalUrl} from '../utils/utils'
 import {Toast} from '../components/components'
 import {useEpoch} from './epoch-context'
@@ -23,11 +21,10 @@ import {
   useSettingsState,
 } from './settings-context'
 import {checkSavedKey, getKeyById, getProvider} from '../api'
-import {useIdentity} from './identity-context'
 import {useAuthState} from './auth-context'
-import {restrictedModalMachine} from '../machines'
 import {signMessage} from '../utils/crypto'
 import {hexToUint8Array, toHexString} from '../utils/buffers'
+import {useExpired} from '../hooks/use-expired'
 
 const AppContext = React.createContext()
 
@@ -42,11 +39,12 @@ export function AppProvider({tabId, ...props}) {
 
   const epoch = useEpoch()
 
-  const [{state}] = useIdentity()
   const [{apiKeyState, isManualRemoteNode}] = useSettings()
   const {saveConnection} = useSettingsDispatch()
 
-  const {auth, coinbase, privateKey} = useAuthState()
+  const {coinbase, privateKey} = useAuthState()
+
+  const {updateRestrictedNotNow, resetRestrictedModal} = useExpired()
 
   useEffect(() => {
     const refLink = router.query.ref
@@ -156,70 +154,48 @@ export function AppProvider({tabId, ...props}) {
     apiKeyId && apiKeyData?.provider ? 3000 : null
   )
 
-  const [, send] = useMachine(restrictedModalMachine, {
-    actions: {
-      onRedirect: () => {
-        // need to redirect to /home, because "Not now" button on restricted page
-        // uses history api to go back, we do not need to go back to import
-        if (router.pathname === '/key/import') {
-          router.push('/home')
+  useEffect(() => {
+    const checkRestoredKey = async () => {
+      try {
+        const signature = signMessage(hexToUint8Array(coinbase), privateKey)
+        const savedKey = await checkSavedKey(
+          coinbase,
+          toHexString(signature, true)
+        )
+        if (
+          !isManualRemoteNode &&
+          (apiKeyState === apiKeyStates.NONE ||
+            apiKeyState === apiKeyStates.OFFLINE ||
+            apiKeyState === apiKeyStates.RESTRICTED)
+        ) {
+          saveConnection(savedKey.url, savedKey.key, false)
         }
-        router.push('/node/restricted')
-      },
-      persistModalState: ({storage}) => {
-        persistState('restricted-modal', storage)
-      },
-    },
-    services: {
-      getExternalData: () => cb => {
-        cb({
-          type: 'DATA',
-          data: {
-            pathname: router.pathname,
-            storage: loadPersistentState('restricted-modal'),
-          },
-        })
-      },
-    },
-  })
-
-  const checkRestoredKey = async () => {
-    try {
-      const signature = signMessage(hexToUint8Array(coinbase), privateKey)
-      const savedKey = await checkSavedKey(
-        coinbase,
-        toHexString(signature, true)
-      )
-      if (
-        !isManualRemoteNode &&
-        (apiKeyState === apiKeyStates.NONE ||
-          apiKeyState === apiKeyStates.OFFLINE ||
-          apiKeyState === apiKeyStates.RESTRICTED)
-      ) {
-        saveConnection(savedKey.url, savedKey.key, false)
-      }
-    } catch (e) {}
-  }
-
-  useEffect(() => {
-    send('NEW_API_KEY_STATE', {apiKeyState})
-  }, [apiKeyState, send])
-
-  useEffect(() => {
-    if (epoch) send('NEW_EPOCH', {epoch: epoch.epoch})
-  }, [epoch, send])
-
-  useEffect(() => {
-    if (auth) {
-      send('RESTART', {identityState: state})
-    } else {
-      send('CLEAR')
+        // eslint-disable-next-line no-empty
+      } catch (e) {}
     }
-  }, [auth, send, state])
 
-  useEffect(() => {
     checkRestoredKey()
-  }, [apiKeyState, coinbase, privateKey, epoch])
+  }, [
+    apiKeyState,
+    coinbase,
+    privateKey,
+    epoch,
+    isManualRemoteNode,
+    saveConnection,
+  ])
 
-  return <AppContext.Provider {...props} value={null} />
+  return (
+    <AppContext.Provider
+      {...props}
+      value={{updateRestrictedNotNow, resetRestrictedModal}}
+    />
+  )
+}
+
+export function useAppContext() {
+  const context = useContext(AppContext)
+  if (context === undefined) {
+    throw new Error('useEpoch must be used within a EpochProvider')
+  }
+  return context
 }

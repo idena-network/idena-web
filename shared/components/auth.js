@@ -26,6 +26,7 @@ import {FlatButton, PrimaryButton, SecondaryButton} from './button'
 import {SubHeading} from './typo'
 import {useDnaAppLink} from '../../screens/dna/hooks'
 import {LaptopIcon} from './icons'
+import {useAppContext} from '../providers/app-context'
 
 function RestoreKey() {
   const [warning, showWarning] = useState(false)
@@ -34,6 +35,7 @@ function RestoreKey() {
   const {coinbase} = useSettingsState()
   const size = useBreakpointValue(['lg', 'md'])
   const [error, setError] = useState()
+  const {resetRestrictedModal} = useAppContext()
 
   const [dnaAppUrl, {dismiss: dimissDnaAppLink}] = useDnaAppLink()
 
@@ -98,6 +100,7 @@ function RestoreKey() {
               try {
                 e.preventDefault()
                 setError(null)
+                resetRestrictedModal()
                 login(password)
               } catch (err) {
                 setError(t('Password is invalid. Try again.'))
