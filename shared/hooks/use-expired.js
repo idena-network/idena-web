@@ -50,18 +50,10 @@ export function useExpired() {
     '/flips/edit',
   ].includes(router.pathname)
 
-  console.log(
-    identityReadyToRedirect,
-    epoch,
-    isRestrictedAccess,
-    isRedirectAllowed
-  )
-
   const needRedirect = !state.storage.dontShow || state.storage.epoch !== epoch
 
   useInterval(
     () => {
-      console.log(dayjs().diff(dayjs(state.storage.lastTime), 's'))
       if (
         state.storage?.lastTime &&
         dayjs().diff(dayjs(state.storage.lastTime), 's') <
