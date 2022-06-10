@@ -3,7 +3,6 @@ import {
   Checkbox,
   Flex,
   Button,
-  Heading,
   RadioGroup,
   Stack,
   Text,
@@ -18,7 +17,6 @@ import {BuySharedNodeForm, ChooseItemRadio} from '../../screens/node/components'
 import {GetProviderPrice} from '../../screens/node/utils'
 import {
   checkSavedKey,
-  fetchEpoch,
   getAvailableProviders,
   getCandidateKey,
   getProvider,
@@ -30,6 +28,7 @@ import {Avatar, TextLink} from '../../shared/components/components'
 import Layout from '../../shared/components/layout'
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
 import {useFailToast} from '../../shared/hooks/use-toast'
+import {useAppContext} from '../../shared/providers/app-context'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {
@@ -40,7 +39,6 @@ import {
 import {IdentityStatus} from '../../shared/types'
 import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
 import {signMessage} from '../../shared/utils/crypto'
-import {loadPersistentState, persistState} from '../../shared/utils/persist'
 
 const options = {
   PROLONG: 0,
@@ -64,6 +62,8 @@ export default function Restricted() {
   const router = useRouter()
   const {t} = useTranslation()
 
+  const {updateRestrictedNotNow} = useAppContext()
+
   const [step, setStep] = useState(steps.INITIAL)
 
   const [state, setState] = useState(options.PROLONG)
@@ -83,13 +83,10 @@ export default function Restricted() {
   const variantRadio = useBreakpointValue(['mobileDark', 'dark'])
   const variantSecondary = useBreakpointValue(['primaryFlat', 'secondary'])
 
-  const persistCheckbox = () => {
-    const current = loadPersistentState('restricted-modal')
-    persistState('restricted-modal', {...current, dontShow})
-  }
-
   const notNow = persist => {
-    if (persist) persistCheckbox()
+    if (persist) {
+      updateRestrictedNotNow(dontShow)
+    }
     router.back()
   }
 
@@ -147,6 +144,7 @@ export default function Restricted() {
           toHexString(signature, true)
         )
         setSavedApiKey(savedKey)
+        // eslint-disable-next-line no-empty
       } catch (e) {}
     }
     checkSaved()

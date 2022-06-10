@@ -18,6 +18,7 @@ import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
 import {useSettingsState} from '../../shared/providers/settings-context'
 import {privateKeyToAddress} from '../../shared/utils/crypto'
 import {sendSignIn} from '../../shared/utils/analytics'
+import {useAppContext} from '../../shared/providers/app-context'
 
 export default function ImportKey() {
   const size = useBreakpointValue(['lg', 'md'])
@@ -35,6 +36,7 @@ export default function ImportKey() {
   const [isScanningQr, setIsScanningQr] = useState(false)
   const router = useRouter()
   const {setRestrictedKey} = useApikeyPurchasing()
+  const {resetRestrictedModal} = useAppContext()
 
   const addKey = () => {
     const key = decryptKey(state.key, state.password)
@@ -46,6 +48,7 @@ export default function ImportKey() {
       }
       sendSignIn(privateKeyToAddress(key))
       router.push('/home')
+      resetRestrictedModal()
     } else {
       setError(t('Key or password is invalid. Try again.'))
     }
