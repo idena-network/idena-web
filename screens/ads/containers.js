@@ -117,7 +117,7 @@ import db from '../../shared/utils/db'
 import {AdTarget} from '../../shared/models/adKey'
 import {AdBurnKey} from '../../shared/models/adBurnKey'
 import {useIdentity} from '../../shared/providers/identity-context'
-import {pick} from '../../shared/utils/utils'
+import {pick, useIsDesktop} from '../../shared/utils/utils'
 
 export function AdBanner() {
   const {t} = useTranslation()
@@ -397,6 +397,8 @@ export function AdListItem({
 }
 
 export function AdDrawer({isMining = true, children, ...props}) {
+  const isDesktop = useIsDesktop()
+
   const ads = useRotatingAds()
 
   const hasRotatingAds = ads.length > 0
@@ -409,7 +411,7 @@ export function AdDrawer({isMining = true, children, ...props}) {
     <Drawer {...props}>
       {children}
 
-      {isMining && hasRotatingAds && (
+      {isDesktop && isMining && hasRotatingAds && (
         <DrawerPromotionPortal>
           <Stack spacing="4">
             <HStack spacing="16">
