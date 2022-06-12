@@ -138,8 +138,8 @@ export function AdBanner() {
     >
       <AdBannerContent ad={activeAd} />
       <HStack spacing="10">
-        <AdBannerAuthor ad={activeAd} />
-        <Menu>
+        <AdBannerAuthor ad={activeAd} display={['none', 'flex']} />
+        <Menu zIndex="popover">
           {false && (
             <MenuItem
               icon={<AdsIcon boxSize={5} color="blue.500" />}
@@ -164,22 +164,16 @@ export function AdBanner() {
 function AdBannerContent({ad}) {
   return (
     <LinkBox as={HStack} spacing={2}>
-      <Skeleton isLoaded={Boolean(ad?.thumb)}>
-        <AdImage src={ad?.thumb} w={10} />
-      </Skeleton>
-      <Stack spacing="0.5" fontWeight={500}>
-        <Skeleton isLoaded={Boolean(ad?.title)} minH={4} w="md">
-          <LinkOverlay href={ad?.url} target="_blank">
-            <Text lineHeight={4} isTruncated>
-              {ad?.title}
-            </Text>
-          </LinkOverlay>
-        </Skeleton>
-        <Skeleton isLoaded={Boolean(ad?.desc)} minH={4} minW="lg">
-          <Text fontSize="sm" color="muted" lineHeight={4} isTruncated>
-            {ad?.desc}
+      <AdImage src={ad?.thumb} w={10} />
+      <Stack spacing="0.5" fontWeight={500} maxW={['2xs', 'lg']}>
+        <LinkOverlay href={ad?.url} target="_blank">
+          <Text lineHeight={4} isTruncated>
+            {ad?.title}
           </Text>
-        </Skeleton>
+        </LinkOverlay>
+        <Text fontSize="sm" color="muted" lineHeight={4} isTruncated>
+          {ad?.desc}
+        </Text>
       </Stack>
     </LinkBox>
   )
