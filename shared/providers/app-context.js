@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useContext} from 'react'
+import React, {useState, useEffect, useContext, useCallback} from 'react'
 import {useToast} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
@@ -154,35 +154,28 @@ export function AppProvider({tabId, ...props}) {
     apiKeyId && apiKeyData?.provider ? 3000 : null
   )
 
-  useEffect(() => {
-    const checkRestoredKey = async () => {
-      try {
-        const signature = signMessage(hexToUint8Array(coinbase), privateKey)
-        const savedKey = await checkSavedKey(
-          coinbase,
-          toHexString(signature, true)
-        )
-        if (
-          !isManualRemoteNode &&
-          (apiKeyState === apiKeyStates.NONE ||
-            apiKeyState === apiKeyStates.OFFLINE ||
-            apiKeyState === apiKeyStates.RESTRICTED)
-        ) {
-          saveConnection(savedKey.url, savedKey.key, false)
-        }
-        // eslint-disable-next-line no-empty
-      } catch (e) {}
-    }
+  const checkRestoredKey = useCallback(async () => {
+    try {
+      const signature = signMessage(hexToUint8Array(coinbase), privateKey)
+      const savedKey = await checkSavedKey(
+        coinbase,
+        toHexString(signature, true)
+      )
+      if (
+        !isManualRemoteNode &&
+        (apiKeyState === apiKeyStates.NONE ||
+          apiKeyState === apiKeyStates.OFFLINE ||
+          apiKeyState === apiKeyStates.RESTRICTED)
+      ) {
+        saveConnection(savedKey.url, savedKey.key, false)
+      }
+      // eslint-disable-next-line no-empty
+    } catch (e) {}
+  }, [apiKeyState, coinbase, isManualRemoteNode, privateKey, saveConnection])
 
+  useEffect(() => {
     checkRestoredKey()
-  }, [
-    apiKeyState,
-    coinbase,
-    privateKey,
-    epoch,
-    isManualRemoteNode,
-    saveConnection,
-  ])
+  }, [checkRestoredKey])
 
   return (
     <AppContext.Provider

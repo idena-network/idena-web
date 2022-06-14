@@ -248,33 +248,48 @@ function SettingsProvider({children}) {
 
   useInterval(performCheck, API_KEY_CHECK_INTERVAL)
 
-  const saveEncryptedKey = (coinbase, key) => {
-    dispatch({type: SAVE_ENCRYPTED_KEY, data: {coinbase, key}})
-  }
+  const saveEncryptedKey = useCallback(
+    (coinbase, key) => {
+      dispatch({type: SAVE_ENCRYPTED_KEY, data: {coinbase, key}})
+    },
+    [dispatch]
+  )
 
-  const removeEncryptedKey = () => {
+  const removeEncryptedKey = useCallback(() => {
     dispatch({type: CLEAR_ENCRYPTED_KEY})
-  }
+  }, [dispatch])
 
-  const saveConnection = (url, key, isManual) => {
-    dispatch({type: SAVE_CONNECTION, data: {url, key, isManual}})
-  }
+  const saveConnection = useCallback(
+    (url, key, isManual) => {
+      dispatch({type: SAVE_CONNECTION, data: {url, key, isManual}})
+    },
+    [dispatch]
+  )
 
-  const saveRestrictedConnection = () => {
+  const saveRestrictedConnection = useCallback(() => {
     dispatch({type: SAVE_RESTRICTED_CONNECTION})
-  }
+  }, [dispatch])
 
-  const addPurchase = (apiKeyId, provider) => {
-    dispatch({type: ADD_PURCHASE, data: {apiKeyId, provider}})
-  }
+  const addPurchase = useCallback(
+    (apiKeyId, provider) => {
+      dispatch({type: ADD_PURCHASE, data: {apiKeyId, provider}})
+    },
+    [dispatch]
+  )
 
-  const addPurchasedKey = (url, key, epoch, provider) => {
-    dispatch({type: ADD_PURCHASED_KEY, data: {url, key, epoch, provider}})
-  }
+  const addPurchasedKey = useCallback(
+    (url, key, epoch, provider) => {
+      dispatch({type: ADD_PURCHASED_KEY, data: {url, key, epoch, provider}})
+    },
+    [dispatch]
+  )
 
-  const setLanguage = language => {
-    dispatch({type: SET_LANGUAGE, data: {language}})
-  }
+  const setLanguage = useCallback(
+    language => {
+      dispatch({type: SET_LANGUAGE, data: {language}})
+    },
+    [dispatch]
+  )
 
   return (
     <SettingsStateContext.Provider value={state}>
