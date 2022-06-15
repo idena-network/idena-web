@@ -12,6 +12,7 @@ import {Profile} from '../../shared/models/profile'
 import {StoreToIpfsAttachment} from '../../shared/models/storeToIpfsAttachment'
 import {Transaction} from '../../shared/models/transaction'
 import {TxType, VotingStatus} from '../../shared/types'
+import db from '../../shared/utils/db'
 import {
   areSameCaseInsensitive,
   callRpc,
@@ -82,47 +83,22 @@ export const compareNullish = (field, targetField, condition) =>
 export const selectProfileHash = data => data.profileHash
 
 export async function getAdVoting(address) {
-  const adVotingCache = retrievePersistedAdVotings() ?? new Map()
+  const persistedAdVoting = await db
+    .table('adVotings')
+    .get(address)
+    .catch(() => null)
 
-  if (adVotingCache.has(address)) {
-    return adVotingCache.get(address)
+  if (persistedAdVoting) {
+    return persistedAdVoting
   }
 
   const voting = await fetchAdVoting(address)
 
   if (isFinalVoting(voting)) {
-    adVotingCache.set(address, voting)
-
-    persistAdVotings(adVotingCache)
-
-    return adVotingCache.get(address)
+    await db.table('adVotings').put({...voting, address})
   }
 
   return voting
-}
-
-function retrievePersistedAdVotings() {
-  if (typeof window !== 'undefined') {
-    try {
-      const persistedAdVotings = localStorage.getItem('adVotings')
-      if (persistedAdVotings) {
-        return new Map(JSON.parse(persistedAdVotings))
-      }
-    } catch {
-      console.error('error retrieving persisted ad votings')
-      return null
-    }
-  }
-}
-
-function persistAdVotings(votings) {
-  if (typeof window !== 'undefined') {
-    try {
-      localStorage.setItem('adVotings', JSON.stringify(Array.from(votings)))
-    } catch {
-      console.error('error retrieving persisted ad votings')
-    }
-  }
 }
 
 async function fetchAdVoting(address) {
