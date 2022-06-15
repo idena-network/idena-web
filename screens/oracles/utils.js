@@ -143,11 +143,6 @@ export async function fetchContractBalanceUpdates({
   )
 }
 
-export async function fetchNetworkSize() {
-  const {networkSize} = await callRpc('dna_globalState')
-  return networkSize
-}
-
 export async function fetchVoting({id, contractHash = id, address}) {
   const {result, error} = await (
     await fetch(

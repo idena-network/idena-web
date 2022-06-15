@@ -13,7 +13,6 @@ import {
   fetchOracleRewardsEstimates,
   votingStatuses,
   fetchContractBalanceUpdates,
-  fetchNetworkSize,
   stripOptions,
   hasValuableOptions,
   fetchVoting,
@@ -43,6 +42,7 @@ import {dnaSign, privateKeyToAddress} from '../../shared/utils/crypto'
 import {sendDna} from '../../shared/api/utils'
 import {toHexString} from '../../shared/utils/buffers'
 import {AdVotingOption, AdVotingOptionId} from '../ads/types'
+import {fetchNetworkSize} from '../../shared/api/dna'
 
 export const votingListMachine = createMachine(
   {

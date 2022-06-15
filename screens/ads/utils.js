@@ -81,9 +81,9 @@ export const compareNullish = (field, targetField, condition) =>
 
 export const selectProfileHash = data => data.profileHash
 
-const adVotingCache = new Map()
-
 export async function getAdVoting(address) {
+  const adVotingCache = retrievePersistedAdVotings() ?? new Map()
+
   if (adVotingCache.has(address)) {
     return adVotingCache.get(address)
   }
@@ -91,10 +91,38 @@ export async function getAdVoting(address) {
   const voting = await fetchAdVoting(address)
 
   if (isFinalVoting(voting)) {
-    return adVotingCache.set(address, voting).get(address)
+    adVotingCache.set(address, voting)
+
+    persistAdVotings(adVotingCache)
+
+    return adVotingCache.get(address)
   }
 
   return voting
+}
+
+function retrievePersistedAdVotings() {
+  if (typeof window !== 'undefined') {
+    try {
+      const persistedAdVotings = localStorage.getItem('adVotings')
+      if (persistedAdVotings) {
+        return new Map(JSON.parse(persistedAdVotings))
+      }
+    } catch {
+      console.error('error retrieving persisted ad votings')
+      return null
+    }
+  }
+}
+
+function persistAdVotings(votings) {
+  if (typeof window !== 'undefined') {
+    try {
+      localStorage.setItem('adVotings', JSON.stringify(Array.from(votings)))
+    } catch {
+      console.error('error retrieving persisted ad votings')
+    }
+  }
 }
 
 async function fetchAdVoting(address) {
@@ -148,11 +176,10 @@ export const adVotingDefaults = {
   ],
 }
 
-export const buildAdReviewVoting = async ({title, adCid}) => ({
+export const buildAdReviewVoting = ({title, adCid}) => ({
   ...adVotingDefaults,
   desc: title,
   adCid,
-  committeeSize: await clampCommiteeSize(adVotingDefaults.committeeSize),
 })
 
 export const calculateMinOracleReward = async () =>
@@ -363,9 +390,6 @@ export async function sendToIpfs(hex, {from, privateKey}) {
     hash,
   }
 }
-
-export const clampCommiteeSize = async committeeSize =>
-  Math.min(committeeSize, await fetchNetworkSize())
 
 export const validateAdVoting = ({ad, voting}) => {
   if (!isVercelProduction) return true
