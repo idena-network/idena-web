@@ -248,7 +248,8 @@ export function NumberInput({
         const {id, value} = target
         if (!target.checkValidity()) {
           const clampedValue = clampValue(min, max, Number(value))
-          onChange({
+          // eslint-disable-next-line no-unused-expressions
+          onChange?.({
             target: {
               id,
               value: clampedValue,
