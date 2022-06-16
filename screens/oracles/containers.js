@@ -1118,7 +1118,6 @@ export function LaunchDrawer({
           <DnaInput
             name="balanceInput"
             defaultValue={Math.max(requiredBalance - balance, 0)}
-            step="any"
           />
           <OracleFormHelper
             label={t('Minimum deposit required')}
