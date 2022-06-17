@@ -94,15 +94,7 @@ export async function getAdVoting(address) {
 
   const voting = await fetchAdVoting(address)
 
-  const isCompleteVoting =
-    voting?.result !== null &&
-    Boolean(voting?.title) &&
-    Boolean(voting?.desc) &&
-    Boolean(voting?.adCid) &&
-    Boolean(voting?.options) &&
-    voting?.options?.length > 0
-
-  if (isFinalVoting(voting) && isCompleteVoting) {
+  if (isFinalVoting(voting) && voting?.isFetched) {
     await db.table('adVotings').put({...voting, address})
   }
 
@@ -112,14 +104,24 @@ export async function getAdVoting(address) {
 async function fetchAdVoting(address) {
   const readContractKey = createContractDataReader(address)
 
-  return {
-    status: mapToVotingStatus(
-      await readContractKey('state', 'byte').catch(e => {
+  try {
+    const [state, fact, result] = await Promise.all([
+      readContractKey('state', 'byte').catch(e => {
         if (e.message === 'data is nil') return VotingStatus.Terminated
-      })
-    ),
-    ...hexToObject(await readContractKey('fact', 'hex').catch(() => null)),
-    result: await readContractKey('result', 'byte').catch(() => null),
+        throw e
+      }),
+      readContractKey('fact', 'hex'),
+      readContractKey('result', 'byte'),
+    ])
+
+    return {
+      status: mapToVotingStatus(state),
+      ...hexToObject(fact),
+      result,
+      isFetched: true,
+    }
+  } catch (e) {
+    console.error(e)
   }
 }
 
