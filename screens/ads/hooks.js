@@ -30,7 +30,6 @@ import {
   selectProfileHash,
   sendSignedTx,
   sendToIpfs,
-  clampCommiteeSize,
   adVotingDefaults,
   isTargetedAd,
 } from './utils'
@@ -62,6 +61,7 @@ export function useRotatingAds(limit = 3) {
     addresses.map(address => ({
       queryKey: ['dna_identity', [address]],
       queryFn: rpcFetcher,
+      staleTime: 5 * 60 * 1000,
       notifyOnChangeProps: ['data', 'error'],
       select: selectProfileHash,
     }))
@@ -88,6 +88,7 @@ export function useRotatingAds(limit = 3) {
         queryKey: ['profileAdVoting', ad?.contract],
         queryFn: () => getAdVoting(ad?.contract),
         enabled: Boolean(ad?.contract),
+        staleTime: 5 * 60 * 1000,
         select: data => ({...data, cid: ad?.cid}),
       }))
   )
@@ -95,6 +96,8 @@ export function useRotatingAds(limit = 3) {
   const approvedProfileAdVotings = profileAdVotings?.filter(({data}) =>
     isApprovedVoting(data)
   )
+
+  const queryClient = useQueryClient()
 
   const decodedProfileAds = useQueries(
     burntCoins
@@ -109,7 +112,15 @@ export function useRotatingAds(limit = 3) {
         return {
           queryKey: ['decodedRotatingAd', [cid]],
           queryFn: async () => ({
-            ...decodeAd(await callRpc('ipfs_get', cid).catch(() => '')),
+            ...decodeAd(
+              await queryClient
+                .fetchQuery({
+                  queryKey: ['ipfs_get', [cid]],
+                  queryFn: rpcFetcher,
+                  staleTime: Infinity,
+                })
+                .catch(() => '')
+            ),
             cid,
             author: address,
             amount: Number(amount),
@@ -216,8 +227,8 @@ export function useCompetingAds(cid, target) {
 
 export function useBurntCoins(options) {
   return useRpc('bcn_burntCoins', [], {
-    staleTime: (BLOCK_TIME / 2) * 1000,
-    notifyOnChangeProps: ['data'],
+    staleTime: 5 * 60 * 1000,
+    notifyOnChangeProps: 'tracked',
     ...options,
   })
 }
@@ -248,12 +259,14 @@ export function useApprovedBurntCoins() {
           const identity = await queryClient.fetchQuery({
             queryKey: ['dna_identity', [burn.address]],
             queryFn: rpcFetcher,
+            staleTime: 5 * 60 * 1000,
           })
 
           if (identity.profileHash) {
             const profile = await queryClient.fetchQuery({
               queryKey: ['ipfs_get', [identity.profileHash]],
               queryFn: rpcFetcher,
+              staleTime: Infinity,
             })
 
             const {ads} = decodeProfile(profile)
@@ -289,11 +302,21 @@ export function useProfileAds() {
     notifyOnChangeProps: 'tracked',
   })
 
+  const queryClient = useQueryClient()
+
   const decodedProfileAds = useQueries(
     profile?.ads?.map(({cid, target, ...ad}) => ({
       queryKey: ['decodedProfileAd', [cid]],
       queryFn: async () => ({
-        ...decodeAd(await callRpc('ipfs_get', cid).catch(() => '')),
+        ...decodeAd(
+          await queryClient
+            .fetchQuery({
+              queryKey: ['ipfs_get', [cid]],
+              queryFn: rpcFetcher,
+              staleTime: Infinity,
+            })
+            .catch(() => '')
+        ),
         ...decodeAdTarget(target),
         cid,
         ...ad,
@@ -397,7 +420,7 @@ export function useIpfsAd(cid, options) {
     enabled: Boolean(cid),
     select: decodeAd,
     staleTime: Infinity,
-    notifyOnChangeProps: ['data'],
+    notifyOnChangeProps: 'tracked',
     ...options,
   })
 }
@@ -448,7 +471,7 @@ function useDeployAdContract({onBeforeSubmit, onSubmit, onError}) {
 
   return useMutation(
     async ad => {
-      const unpublishedVoting = await buildAdReviewVoting({title: ad.title})
+      const unpublishedVoting = buildAdReviewVoting({title: ad.title})
 
       const {cid} = await sendToIpfs(
         encodeAd({
@@ -759,12 +782,8 @@ export function useStartVotingAmount(committeeSize) {
   return useQuery(
     ['useStartVotingAmount', committeeSize],
     // eslint-disable-next-line no-shadow
-    async ({queryKey: [, committeeSize]}) => {
-      const minOracleReward = await calculateMinOracleReward()
-      const clampedCommitteeSize = await clampCommiteeSize(committeeSize)
-
-      return minOracleReward * clampedCommitteeSize
-    }
+    async ({queryKey: [, committeeSize]}) =>
+      (await calculateMinOracleReward()) * committeeSize
   )
 }
 

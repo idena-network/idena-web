@@ -12,6 +12,7 @@ import {Profile} from '../../shared/models/profile'
 import {StoreToIpfsAttachment} from '../../shared/models/storeToIpfsAttachment'
 import {Transaction} from '../../shared/models/transaction'
 import {TxType, VotingStatus} from '../../shared/types'
+import db from '../../shared/utils/db'
 import {
   areSameCaseInsensitive,
   callRpc,
@@ -81,17 +82,20 @@ export const compareNullish = (field, targetField, condition) =>
 
 export const selectProfileHash = data => data.profileHash
 
-const adVotingCache = new Map()
-
 export async function getAdVoting(address) {
-  if (adVotingCache.has(address)) {
-    return adVotingCache.get(address)
+  const persistedAdVoting = await db
+    .table('adVotings')
+    .get(address)
+    .catch(() => null)
+
+  if (persistedAdVoting) {
+    return persistedAdVoting
   }
 
   const voting = await fetchAdVoting(address)
 
   if (isFinalVoting(voting)) {
-    return adVotingCache.set(address, voting).get(address)
+    await db.table('adVotings').put({...voting, address})
   }
 
   return voting
@@ -148,11 +152,10 @@ export const adVotingDefaults = {
   ],
 }
 
-export const buildAdReviewVoting = async ({title, adCid}) => ({
+export const buildAdReviewVoting = ({title, adCid}) => ({
   ...adVotingDefaults,
   desc: title,
   adCid,
-  committeeSize: await clampCommiteeSize(adVotingDefaults.committeeSize),
 })
 
 export const calculateMinOracleReward = async () =>
@@ -363,9 +366,6 @@ export async function sendToIpfs(hex, {from, privateKey}) {
     hash,
   }
 }
-
-export const clampCommiteeSize = async committeeSize =>
-  Math.min(committeeSize, await fetchNetworkSize())
 
 export const validateAdVoting = ({ad, voting}) => {
   if (!isVercelProduction) return true
