@@ -187,7 +187,7 @@ export function DnaInput(props) {
 
   return (
     <ChainedInputGroup>
-      <ChainedNumberInput min={0} {...props} />
+      <ChainedNumberInput min={0} step="any" {...props} />
       <ChainedInputAddon isDisabled={isDisabled}>iDNA</ChainedInputAddon>
     </ChainedInputGroup>
   )
@@ -248,7 +248,8 @@ export function NumberInput({
         const {id, value} = target
         if (!target.checkValidity()) {
           const clampedValue = clampValue(min, max, Number(value))
-          onChange({
+          // eslint-disable-next-line no-unused-expressions
+          onChange?.({
             target: {
               id,
               value: clampedValue,
