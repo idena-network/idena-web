@@ -281,7 +281,7 @@ export function useApprovedBurntCoins() {
         })
       ),
     enabled: burntCoinsStatus === 'success',
-    select: data => data.filter(Boolean),
+    select: React.useCallback(data => data.filter(Boolean), []),
     notifyOnChangeProps: 'tracked',
   })
 }

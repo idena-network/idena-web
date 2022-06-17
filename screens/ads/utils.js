@@ -94,7 +94,15 @@ export async function getAdVoting(address) {
 
   const voting = await fetchAdVoting(address)
 
-  if (isFinalVoting(voting)) {
+  const isCompleteVoting =
+    voting?.result !== null &&
+    Boolean(voting?.title) &&
+    Boolean(voting?.desc) &&
+    Boolean(voting?.adCid) &&
+    Boolean(voting?.options) &&
+    voting?.options?.length > 0
+
+  if (isFinalVoting(voting) && isCompleteVoting) {
     await db.table('adVotings').put({...voting, address})
   }
 
