@@ -99,11 +99,11 @@ function ProviderStatusLabel({status, blocksLeft, fontSize, color}) {
 
 async function getProviderStatus(url, lastBlock) {
   try {
-    await race({promise: checkProvider(url), timeout: 1000})
+    await race({promise: checkProvider(url), timeout: 10000})
 
     const syncing = await race({
       promise: checkProviderSyncing(url),
-      timeout: 1000,
+      timeout: 10000,
     })
 
     const blocksCount = lastBlock - syncing?.currentBlock
