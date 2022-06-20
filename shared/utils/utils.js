@@ -207,3 +207,18 @@ export function hexToObject(hex) {
     return {}
   }
 }
+
+export function race({promise, timeout, error}) {
+  let timer = null
+
+  return Promise.race([
+    new Promise((_, reject) => {
+      timer = setTimeout(reject, timeout, error)
+      return timer
+    }),
+    promise.then(value => {
+      clearTimeout(timer)
+      return value
+    }),
+  ])
+}
