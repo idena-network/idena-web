@@ -22,16 +22,12 @@ import {
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {rem} from 'polished'
-import {useMemo, useState} from 'react'
+import {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
 import {BuySharedNodeForm} from '../../screens/node/components'
 import {getLastBlock} from '../../shared/api/indexer'
-import {
-  checkProvider,
-  checkProviderSyncing,
-  getProviders,
-} from '../../shared/api/marketplace'
+import {checkProviderSyncing, getProviders} from '../../shared/api/marketplace'
 import {GetProviderPrice} from '../../screens/node/utils'
 import {Page, PageTitleNew} from '../../screens/app/components'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
@@ -41,8 +37,10 @@ import {SYNCING_DIFF} from '../../shared/providers/settings-context'
 import {fetchIdentity} from '../../shared/api'
 import {Drawer, RoundedTh, Skeleton} from '../../shared/components/components'
 import {AngleArrowBackIcon, SoftStarIcon} from '../../shared/components/icons'
-import {race, useIsDesktop} from '../../shared/utils/utils'
+import {useIsDesktop} from '../../shared/utils/utils'
 import {shuffle} from '../../shared/utils/arr'
+
+const MAX_DURATION = 99999
 
 const ProviderStatus = {
   Loading: 0,
@@ -95,26 +93,6 @@ function ProviderStatusLabel({status, blocksLeft, fontSize, color}) {
       )}
     </>
   )
-}
-
-async function getProviderStatus(url, lastBlock) {
-  try {
-    await race({promise: checkProvider(url), timeout: 10000})
-
-    const syncing = await race({
-      promise: checkProviderSyncing(url),
-      timeout: 10000,
-    })
-
-    const blocksCount = lastBlock - syncing?.currentBlock
-
-    if (blocksCount > SYNCING_DIFF)
-      return {status: ProviderStatus.OutOfSync, blocksLeft: blocksCount}
-
-    return {status: ProviderStatus.Success}
-  } catch {
-    return {status: ProviderStatus.Error}
-  }
 }
 
 function ProviderInfoRow({title, children, ...props}) {
@@ -223,6 +201,27 @@ function ProviderInfoDrawer({p, identity, onClose, onSubmit, ...props}) {
   )
 }
 
+function mergeProviders(prev, provider) {
+  if (prev.find(x => x.id === provider.id)) return prev
+
+  const success = prev.filter(x => x.status === ProviderStatus.Success)
+  const outOfSync = prev.filter(x => x.status === ProviderStatus.OutOfSync)
+  const error = prev.filter(
+    x => ![ProviderStatus.Success, ProviderStatus.OutOfSync].includes(x.status)
+  )
+  if (provider.status === ProviderStatus.Success) success.push(provider)
+  else if (provider.status === ProviderStatus.OutOfSync)
+    outOfSync.push(provider)
+  else error.push(provider)
+
+  success.sort((a, b) => {
+    if (a.duration === b.duration) return a.id > b.id
+    return a.duration - b.duration
+  })
+
+  return [...success, ...outOfSync, ...error]
+}
+
 export default function Rent() {
   const router = useRouter()
   const {t} = useTranslation()
@@ -232,6 +231,8 @@ export default function Rent() {
   const buySharedNodeDisclosure = useDisclosure()
 
   const [state, setState] = useState(0)
+
+  const [checkedProviders, setCheckedProviders] = useState([])
 
   const {
     data: indexerData,
@@ -251,32 +252,46 @@ export default function Rent() {
     }
   )
 
-  const {data: providers, isFetching} = useQuery(
-    ['providers'],
-    () =>
-      getProviders().then(async data =>
-        Promise.all(
-          data
-            .filter(x => Boolean(x.slots))
-            .map(async provider => {
-              const status = await getProviderStatus(
-                provider.data.url,
-                indexerData?.height || 0
-              )
+  const {data: providers, isFetching} = useQuery(['providers'], getProviders, {
+    initialData: [],
+    enabled: !!indexerIsFetched,
+    refetchOnWindowFocus: false,
+  })
 
-              return {
+  const indexerLastBlock = indexerData?.height || 0
+
+  useEffect(() => {
+    async function updateStatus() {
+      const shuffled = shuffle(providers.filter(x => Boolean(x.slots)))
+      shuffled.forEach(provider => {
+        checkProviderSyncing(provider.data.url)
+          .then(response =>
+            setCheckedProviders(prev => {
+              const blocksLeft = indexerLastBlock - response?.currentBlock
+              return mergeProviders(prev, {
                 ...provider,
-                ...status,
-              }
+                duration: response.duration,
+                blocksLeft,
+                status:
+                  blocksLeft > SYNCING_DIFF
+                    ? ProviderStatus.OutOfSync
+                    : ProviderStatus.Success,
+              })
             })
-        )
-      ),
-    {
-      initialData: [],
-      enabled: !!indexerIsFetched,
-      refetchOnWindowFocus: false,
+          )
+          .catch(() =>
+            setCheckedProviders(prev =>
+              mergeProviders(prev, {
+                ...provider,
+                duration: MAX_DURATION,
+                status: ProviderStatus.Error,
+              })
+            )
+          )
+      })
     }
-  )
+    if (providers.length) updateStatus()
+  }, [indexerLastBlock, providers])
 
   const isLoading = indexerIsFetching || identityIsFetching || isFetching
 
@@ -288,19 +303,7 @@ export default function Rent() {
     onClose: onCloseRentDetailDrawer,
   } = useDisclosure()
 
-  const sortedProviders = useMemo(
-    () => [
-      ...shuffle(providers.filter(x => x.status === ProviderStatus.Success)),
-      ...providers.filter(x => x.status === ProviderStatus.OutOfSync),
-      ...providers.filter(
-        x =>
-          ![ProviderStatus.Success, ProviderStatus.OutOfSync].includes(x.status)
-      ),
-    ],
-    [providers]
-  )
-
-  const selectedProvider = sortedProviders.length && sortedProviders[state]
+  const selectedProvider = checkedProviders.length && checkedProviders[state]
 
   return (
     <Layout canRedirect={false}>
@@ -333,6 +336,7 @@ export default function Rent() {
                   <RoundedTh>{t('Node URL')}</RoundedTh>
                   <RoundedTh>{t('Owner')}</RoundedTh>
                   <RoundedTh>{t('Location')}</RoundedTh>
+                  <RoundedTh>{t('Latency, sec')}</RoundedTh>
                   <RoundedTh textAlign="right">
                     {t('Slots available')}
                   </RoundedTh>
@@ -345,12 +349,12 @@ export default function Rent() {
                 {isLoading
                   ? new Array(10).fill(0).map((_, idx) => (
                       <Tr key={idx}>
-                        <Td colSpan={6} px={0}>
+                        <Td colSpan={7} px={0}>
                           <Skeleton h={[32, 8]} />
                         </Td>
                       </Tr>
                     ))
-                  : sortedProviders.map((p, idx) => (
+                  : checkedProviders.map((p, idx) => (
                       <Tr key={idx}>
                         <Td display={['none', 'table-cell']}>
                           <Radio
@@ -414,10 +418,12 @@ export default function Rent() {
                                 mt={4}
                                 w="50%"
                               >
-                                <Text>{t('Slots available')}</Text>
+                                <Text>{t('Latency, sec')}</Text>
                                 <Flex>
                                   <Text color="gray.500" mr={1}>
-                                    {p.slots}
+                                    {p.status === ProviderStatus.Error
+                                      ? '—'
+                                      : (p.duration / 1000).toFixed(3)}
                                   </Text>
                                   <Text display="none">/ FILL_SLOTS</Text>
                                 </Flex>
@@ -456,6 +462,11 @@ export default function Rent() {
                         </Td>
                         <Td display={['none', 'table-cell']}>
                           {p.data.location}
+                        </Td>
+                        <Td display={['none', 'table-cell']}>
+                          {p.status === ProviderStatus.Error
+                            ? '—'
+                            : (p.duration / 1000).toFixed(3)}
                         </Td>
                         <Td display={['none', 'table-cell']} textAlign="right">
                           {p.slots}

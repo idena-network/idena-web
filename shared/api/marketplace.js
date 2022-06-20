@@ -76,7 +76,20 @@ export async function checkProvider(url) {
 }
 
 export async function checkProviderSyncing(url) {
-  const {data} = await axios.create({baseURL: url}).post('/', {
+  const instance = axios.create({baseURL: url})
+  instance.interceptors.request.use(config => {
+    config.headers['request-startTime'] = new Date().getTime()
+    return config
+  })
+
+  instance.interceptors.response.use(response => {
+    const start = response.config.headers['request-startTime']
+    const end = new Date().getTime()
+    const milliseconds = end - start
+    response.headers['request-duration'] = milliseconds
+    return response
+  })
+  const {data, headers} = await instance.post('/', {
     method: 'bcn_syncing',
     params: [],
     id: 1,
@@ -84,7 +97,7 @@ export async function checkProviderSyncing(url) {
   })
   const {result, error} = data
   if (error) throw new Error(error)
-  return result
+  return {...result, duration: headers['request-duration']}
 }
 
 async function safeCheckProvider(provider) {
