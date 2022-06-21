@@ -237,13 +237,13 @@ export default function Rent() {
   const {
     data: indexerData,
     isFetched: indexerIsFetched,
-    isFetching: indexerIsFetching,
+    isLoading: indexerIsLoading,
   } = useQuery(['last-block'], () => getLastBlock(), {
     retry: false,
     refetchOnWindowFocus: false,
   })
 
-  const {data: identity, isFetching: identityIsFetching} = useQuery(
+  const {data: identity, isLoading: identityIsLoading} = useQuery(
     ['fetch-identity', coinbase],
     () => fetchIdentity(coinbase, true),
     {
@@ -252,11 +252,15 @@ export default function Rent() {
     }
   )
 
-  const {data: providers, isFetching} = useQuery(['providers'], getProviders, {
-    initialData: [],
-    enabled: !!indexerIsFetched,
-    refetchOnWindowFocus: false,
-  })
+  const {data: providers, isLoading: providersIsLoading} = useQuery(
+    ['providers'],
+    getProviders,
+    {
+      initialData: [],
+      enabled: !!indexerIsFetched,
+      refetchOnWindowFocus: false,
+    }
+  )
 
   const indexerLastBlock = indexerData?.height || 0
 
@@ -293,7 +297,7 @@ export default function Rent() {
     if (providers.length) updateStatus()
   }, [indexerLastBlock, providers])
 
-  const isLoading = indexerIsFetching || identityIsFetching || isFetching
+  const isLoading = indexerIsLoading || identityIsLoading || providersIsLoading
 
   const isDesktop = useIsDesktop()
 
