@@ -22,16 +22,12 @@ import {
 } from '@chakra-ui/react'
 import {useRouter} from 'next/router'
 import {rem} from 'polished'
-import {useState} from 'react'
+import {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
 import {BuySharedNodeForm} from '../../screens/node/components'
 import {getLastBlock} from '../../shared/api/indexer'
-import {
-  checkProvider,
-  checkProviderSyncing,
-  getProviders,
-} from '../../shared/api/marketplace'
+import {checkProviderSyncing, getProviders} from '../../shared/api/marketplace'
 import {GetProviderPrice} from '../../screens/node/utils'
 import {Page, PageTitleNew} from '../../screens/app/components'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
@@ -39,58 +35,40 @@ import Layout from '../../shared/components/layout'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {SYNCING_DIFF} from '../../shared/providers/settings-context'
 import {fetchIdentity} from '../../shared/api'
-import {Drawer, RoundedTh} from '../../shared/components/components'
+import {Drawer, RoundedTh, Skeleton} from '../../shared/components/components'
 import {AngleArrowBackIcon, SoftStarIcon} from '../../shared/components/icons'
+import {useIsDesktop} from '../../shared/utils/utils'
+import {shuffle} from '../../shared/utils/arr'
 
-function ProviderStatus({url, fontSize, color}) {
+const MAX_DURATION = 99999
+
+const ProviderStatus = {
+  Loading: 0,
+  Success: 1,
+  Error: 2,
+  OutOfSync: 3,
+}
+
+function ProviderStatusLabel({status, blocksLeft, fontSize, color}) {
   const {t} = useTranslation()
-
-  const {isLoading, isError, isSuccess} = useQuery(
-    ['provider-status', url],
-    () => checkProvider(url),
-    {retry: false, refetchOnWindowFocus: false}
-  )
-
-  const {isSuccess: isSuccessSyncing, data: syncingData} = useQuery(
-    ['provider-status-syncing', url],
-    () => checkProviderSyncing(url),
-    {retry: false, refetchOnWindowFocus: false}
-  )
-
-  const {data: indexerData, isSuccess: indexerIsSuccess} = useQuery(
-    ['last-block'],
-    () => getLastBlock(),
-    {
-      retry: false,
-      refetchOnWindowFocus: false,
-    }
-  )
-
-  const blocksCount = indexerData?.height - syncingData?.currentBlock
-
-  const outOfSync =
-    isSuccess &&
-    isSuccessSyncing &&
-    indexerIsSuccess &&
-    blocksCount > SYNCING_DIFF
 
   return (
     <>
-      {isLoading && (
+      {status === ProviderStatus.Loading && (
         <Flex>
           <Text color={color || 'muted'} fontSize={[fontSize || 'md', 'sm']}>
             {t('Connecting...')}
           </Text>
         </Flex>
       )}
-      {isError && (
+      {status === ProviderStatus.Error && (
         <Flex>
           <Text color={color || 'muted'} fontSize={[fontSize || 'md', 'sm']}>
             {t('Not available')}
           </Text>
         </Flex>
       )}
-      {isSuccess && !outOfSync && (
+      {status === ProviderStatus.Success && (
         <Flex>
           <Text
             color={color || 'green.500'}
@@ -100,14 +78,14 @@ function ProviderStatus({url, fontSize, color}) {
           </Text>
         </Flex>
       )}
-      {isSuccess && outOfSync && (
+      {status === ProviderStatus.OutOfSync && (
         <Flex>
           <Text
             color={color || 'warning.500'}
             fontSize={[fontSize || 'md', 'sm']}
           >
             {t('Synchronizing: {{blocksCount}} blocks left', {
-              blocksCount,
+              blocksCount: blocksLeft,
               nsSeparator: '|',
             })}
           </Text>
@@ -153,7 +131,11 @@ function ProviderInfoDrawer({p, identity, onClose, onSubmit, ...props}) {
             <Text fontSize="base" fontWeight="bold" color="gray.500">
               {p.data.url}
             </Text>
-            <ProviderStatus url={p.data.url} fontSize="mdx" />
+            <ProviderStatusLabel
+              status={p.status}
+              blocksLeft={p.blocksLeft}
+              fontSize="mdx"
+            />
           </Flex>
         </DrawerHeader>
         <DrawerBody pt={0} px={8}>
@@ -219,6 +201,27 @@ function ProviderInfoDrawer({p, identity, onClose, onSubmit, ...props}) {
   )
 }
 
+function mergeProviders(prev, provider) {
+  if (prev.find(x => x.id === provider.id)) return prev
+
+  const success = prev.filter(x => x.status === ProviderStatus.Success)
+  const outOfSync = prev.filter(x => x.status === ProviderStatus.OutOfSync)
+  const error = prev.filter(
+    x => ![ProviderStatus.Success, ProviderStatus.OutOfSync].includes(x.status)
+  )
+  if (provider.status === ProviderStatus.Success) success.push(provider)
+  else if (provider.status === ProviderStatus.OutOfSync)
+    outOfSync.push(provider)
+  else error.push(provider)
+
+  success.sort((a, b) => {
+    if (a.duration === b.duration) return a.id > b.id
+    return a.duration - b.duration
+  })
+
+  return [...success, ...outOfSync, ...error]
+}
+
 export default function Rent() {
   const router = useRouter()
   const {t} = useTranslation()
@@ -229,17 +232,74 @@ export default function Rent() {
 
   const [state, setState] = useState(0)
 
-  const {data: providers} = useQuery(['providers'], getProviders, {
-    initialData: [],
+  const [checkedProviders, setCheckedProviders] = useState([])
+
+  const {
+    data: indexerData,
+    isFetched: indexerIsFetched,
+    isLoading: indexerIsLoading,
+  } = useQuery(['last-block'], () => getLastBlock(), {
+    retry: false,
+    refetchOnWindowFocus: false,
   })
 
-  const {data: identity} = useQuery(
+  const {data: identity, isLoading: identityIsLoading} = useQuery(
     ['fetch-identity', coinbase],
     () => fetchIdentity(coinbase, true),
     {
       enabled: !!coinbase,
+      refetchOnWindowFocus: false,
     }
   )
+
+  const {data: providers, isLoading: providersIsLoading} = useQuery(
+    ['providers'],
+    getProviders,
+    {
+      initialData: [],
+      enabled: !!indexerIsFetched,
+      refetchOnWindowFocus: false,
+    }
+  )
+
+  const indexerLastBlock = indexerData?.height || 0
+
+  useEffect(() => {
+    async function updateStatus() {
+      const shuffled = shuffle(providers.filter(x => Boolean(x.slots)))
+      shuffled.forEach(provider => {
+        checkProviderSyncing(provider.data.url)
+          .then(response =>
+            setCheckedProviders(prev => {
+              const blocksLeft = indexerLastBlock - response?.currentBlock
+              return mergeProviders(prev, {
+                ...provider,
+                duration: response.duration,
+                blocksLeft,
+                status:
+                  blocksLeft > SYNCING_DIFF
+                    ? ProviderStatus.OutOfSync
+                    : ProviderStatus.Success,
+              })
+            })
+          )
+          .catch(() =>
+            setCheckedProviders(prev =>
+              mergeProviders(prev, {
+                ...provider,
+                duration: MAX_DURATION,
+                status: ProviderStatus.Error,
+              })
+            )
+          )
+      })
+    }
+    if (providers.length) updateStatus()
+  }, [indexerLastBlock, providers])
+
+  const isLoading = indexerIsLoading || identityIsLoading || providersIsLoading
+
+  const isDesktop = useIsDesktop()
 
   const {
     isOpen: isOpenRentDetailDrawer,
@@ -247,11 +307,7 @@ export default function Rent() {
     onClose: onCloseRentDetailDrawer,
   } = useDisclosure()
 
-  const sortedProviders = providers
-    .filter(x => Boolean(x.slots))
-    .sort((a, b) => b.slots - a.slots)
-
-  const selectedProvider = sortedProviders.length && sortedProviders[state]
+  const selectedProvider = checkedProviders.length && checkedProviders[state]
 
   return (
     <Layout canRedirect={false}>
@@ -284,6 +340,7 @@ export default function Rent() {
                   <RoundedTh>{t('Node URL')}</RoundedTh>
                   <RoundedTh>{t('Owner')}</RoundedTh>
                   <RoundedTh>{t('Location')}</RoundedTh>
+                  <RoundedTh>{t('Latency, sec')}</RoundedTh>
                   <RoundedTh textAlign="right">
                     {t('Slots available')}
                   </RoundedTh>
@@ -293,121 +350,141 @@ export default function Rent() {
                 </Tr>
               </Thead>
               <Tbody>
-                {identity &&
-                  sortedProviders.map((p, idx) => (
-                    <Tr>
-                      <Td display={['none', 'table-cell']}>
-                        <Radio
-                          isChecked={state === idx}
-                          onClick={() => setState(idx)}
-                          borderColor="#d2d4d9"
-                        />
-                      </Td>
-                      <Td
-                        borderBottom={['solid 0px', 'solid 1px #e8eaed']}
-                        px={[0, 3]}
-                        py={[1, 2]}
-                      >
-                        <Flex
-                          direction="column"
-                          border={['solid 1px', 'initial']}
-                          borderColor={['gray.100', 'inherit']}
-                          borderRadius={['8px', 0]}
-                          p={[4, 0]}
-                          onClick={() => {
-                            setState(idx)
-                            onOpenRentDetailDrawer()
-                          }}
+                {isLoading
+                  ? new Array(10).fill(0).map((_, idx) => (
+                      <Tr key={idx}>
+                        <Td colSpan={7} px={0}>
+                          <Skeleton h={[32, 8]} />
+                        </Td>
+                      </Tr>
+                    ))
+                  : checkedProviders.map((p, idx) => (
+                      <Tr key={idx}>
+                        <Td display={['none', 'table-cell']}>
+                          <Radio
+                            isChecked={state === idx}
+                            onClick={() => setState(idx)}
+                            borderColor="#d2d4d9"
+                          />
+                        </Td>
+                        <Td
+                          borderBottom={['solid 0px', 'solid 1px #e8eaed']}
+                          px={[0, 3]}
+                          py={[1, 2]}
                         >
-                          <Flex justifyContent="flex-start">
-                            <Flex direction="column" maxW={['100%', 'initial']}>
-                              <Text
-                                fontSize={['mdx', 'md']}
-                                fontWeight={[500, 400]}
-                                isTruncated
-                              >
-                                {p.data.url}
-                              </Text>
-                              <ProviderStatus url={p.data.url}></ProviderStatus>
-                            </Flex>
-                            <Flex display="none">
-                              <Text
-                                fontSize="mdx"
-                                fontWeight={500}
-                                color="gray.064"
-                              >
-                                FILL_RATING
-                              </Text>
-                              <SoftStarIcon mt="3px" ml="3px" h={4} w={4} />
-                            </Flex>
-                          </Flex>
                           <Flex
-                            display={['flex', 'none']}
-                            justifyContent="flex-start"
+                            direction="column"
+                            border={['solid 1px', 'initial']}
+                            borderColor={['gray.100', 'inherit']}
+                            borderRadius={['8px', 0]}
+                            p={[4, 0]}
+                            onClick={() => {
+                              setState(idx)
+                              if (!isDesktop) onOpenRentDetailDrawer()
+                            }}
                           >
-                            <Flex
-                              direction="column"
-                              fontSize="base"
-                              color="gray.064"
-                              mt={4}
-                              w="50%"
-                            >
-                              <Text>{t('Slots available')}</Text>
-                              <Flex>
-                                <Text color="gray.500" mr={1}>
-                                  {p.slots}
+                            <Flex justifyContent="flex-start">
+                              <Flex
+                                direction="column"
+                                maxW={['100%', 'initial']}
+                              >
+                                <Text
+                                  fontSize={['mdx', 'md']}
+                                  fontWeight={[500, 400]}
+                                  isTruncated
+                                >
+                                  {p.data.url}
                                 </Text>
-                                <Text display="none">/ FILL_SLOTS</Text>
+                                <ProviderStatusLabel
+                                  status={p.status}
+                                  blocksLeft={p.blocksLeft}
+                                ></ProviderStatusLabel>
+                              </Flex>
+                              <Flex display="none">
+                                <Text
+                                  fontSize="mdx"
+                                  fontWeight={500}
+                                  color="gray.064"
+                                >
+                                  FILL_RATING
+                                </Text>
+                                <SoftStarIcon mt="3px" ml="3px" h={4} w={4} />
                               </Flex>
                             </Flex>
                             <Flex
-                              direction="column"
-                              fontSize="base"
-                              color="gray.064"
-                              mt={4}
-                              w="50%"
+                              display={['flex', 'none']}
+                              justifyContent="flex-start"
                             >
-                              <Text>Price</Text>
-                              <Flex>
-                                <Text color="gray.500">
-                                  {GetProviderPrice(
-                                    p.data,
-                                    identity?.state,
-                                    identity?.age
-                                  )}{' '}
-                                  iDNA
-                                </Text>
+                              <Flex
+                                direction="column"
+                                fontSize="base"
+                                color="gray.064"
+                                mt={4}
+                                w="50%"
+                              >
+                                <Text>{t('Latency, sec')}</Text>
+                                <Flex>
+                                  <Text color="gray.500" mr={1}>
+                                    {p.status === ProviderStatus.Error
+                                      ? '—'
+                                      : (p.duration / 1000).toFixed(3)}
+                                  </Text>
+                                  <Text display="none">/ FILL_SLOTS</Text>
+                                </Flex>
+                              </Flex>
+                              <Flex
+                                direction="column"
+                                fontSize="base"
+                                color="gray.064"
+                                mt={4}
+                                w="50%"
+                              >
+                                <Text>Price</Text>
+                                <Flex>
+                                  <Text color="gray.500">
+                                    {GetProviderPrice(
+                                      p.data,
+                                      identity?.state,
+                                      identity?.age
+                                    )}{' '}
+                                    iDNA
+                                  </Text>
+                                </Flex>
                               </Flex>
                             </Flex>
                           </Flex>
-                        </Flex>
-                      </Td>
-                      <Td display={['none', 'table-cell']}>
-                        <Link
-                          target="_blank"
-                          rel="noreferrer"
-                          color="brandBlue.100"
-                          href={`https://t.me/${p.data.ownerName}`}
-                        >
-                          {p.data.ownerName}
-                        </Link>
-                      </Td>
-                      <Td display={['none', 'table-cell']}>
-                        {p.data.location}
-                      </Td>
-                      <Td display={['none', 'table-cell']} textAlign="right">
-                        {p.slots}
-                      </Td>
-                      <Td display={['none', 'table-cell']} textAlign="right">
-                        {GetProviderPrice(
-                          p.data,
-                          identity?.state,
-                          identity?.age
-                        )}{' '}
-                        iDNA
-                      </Td>
-                    </Tr>
-                  ))}
+                        </Td>
+                        <Td display={['none', 'table-cell']}>
+                          <Link
+                            target="_blank"
+                            rel="noreferrer"
+                            color="brandBlue.100"
+                            href={`https://t.me/${p.data.ownerName}`}
+                          >
+                            {p.data.ownerName}
+                          </Link>
+                        </Td>
+                        <Td display={['none', 'table-cell']}>
+                          {p.data.location}
+                        </Td>
+                        <Td display={['none', 'table-cell']}>
+                          {p.status === ProviderStatus.Error
+                            ? '—'
+                            : (p.duration / 1000).toFixed(3)}
+                        </Td>
+                        <Td display={['none', 'table-cell']} textAlign="right">
+                          {p.slots}
+                        </Td>
+                        <Td display={['none', 'table-cell']} textAlign="right">
+                          {GetProviderPrice(
+                            p.data,
+                            identity?.state,
+                            identity?.age
+                          )}{' '}
+                          iDNA
+                        </Td>
+                      </Tr>
+                    ))}
               </Tbody>
             </Table>
           </Box>
