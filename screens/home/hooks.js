@@ -332,6 +332,7 @@ export function useStakingApy() {
   const {data: prevEpochData} = useQuery({
     queryKey: ['epoch', epoch?.epoch - 1],
     queryFn: fetcher,
+    enabled: Boolean(epoch),
     staleTime: Infinity,
     notifyOnChangeProps: 'tracked',
   })
