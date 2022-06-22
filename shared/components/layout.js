@@ -19,6 +19,7 @@ import {DeferredVotes} from '../../screens/oracles/components'
 import {useRotatingAds} from '../../screens/ads/hooks'
 import {AdBanner} from '../../screens/ads/containers'
 import {useHamburgerTop} from '../hooks/use-hamburger-top'
+import {useIsDesktop} from '../utils/utils'
 
 export default function Layout({
   showHamburger = true,
@@ -77,6 +78,8 @@ function NormalApp({children, canRedirect = true, skipBanner, hasRotatingAds}) {
       router.push('/try/validation')
   }, [canRedirect, currentTrainingValidation, isOffline, router])
 
+  const isDesktop = useIsDesktop()
+
   return (
     <Flex
       as="section"
@@ -85,7 +88,7 @@ function NormalApp({children, canRedirect = true, skipBanner, hasRotatingAds}) {
       h={['auto', '100vh']}
       overflowY="auto"
     >
-      {hasRotatingAds && !skipBanner && !isOffline && <AdBanner />}
+      {hasRotatingAds && !skipBanner && !isOffline && isDesktop && <AdBanner />}
 
       {children}
 
