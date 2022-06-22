@@ -43,6 +43,8 @@ import {
   PopoverBody,
   PopoverArrow,
   useMediaQuery,
+  LinkBox,
+  LinkOverlay,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
@@ -64,6 +66,8 @@ import {
   Dialog,
   TextLink,
   ErrorAlert,
+  SuccessAlert,
+  ExternalLink,
 } from '../../shared/components/components'
 import {
   FlatButton,
@@ -87,6 +91,7 @@ import {activateMiningMachine} from './machines'
 import {fetchBalance} from '../../shared/api/wallet'
 import {
   ChevronRightIcon,
+  InfoIcon,
   LaptopIcon,
   TelegramIcon,
   TestValidationIcon,
@@ -103,6 +108,9 @@ import {DnaInput} from '../oracles/components'
 import {BLOCK_TIME} from '../oracles/utils'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import {AdDrawer} from '../ads/containers'
+import {useFormatDna, useRotateAds, useRotatingAds} from '../ads/hooks'
+import {AdImage} from '../ads/components'
+import {useLanguage} from '../../shared/hooks/use-language'
 
 export function UserInlineCard({
   identity: {address, state, age, penalty},
@@ -1932,4 +1940,93 @@ export function StakingAlert(props) {
       )}
     </ErrorAlert>
   ) : null
+}
+
+export function AdCarousel() {
+  const {t} = useTranslation()
+
+  const ads = useRotatingAds()
+
+  const {currentIndex, prev, next, setCurrentIndex} = useRotateAds()
+
+  const currentAd = ads[currentIndex]
+
+  const formatDna = useFormatDna()
+
+  const {lng} = useLanguage()
+
+  return (
+    <Stack>
+      <Box
+        bg="white"
+        borderRadius="lg"
+        boxShadow="0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)"
+        pt="6"
+        px="28px"
+        pb="4"
+      >
+        <Heading as="h3" fontSize="lg" fontWeight={500} isTruncated>
+          {currentAd?.title ?? 'Lorem ipsum dolor sit amet'}
+        </Heading>
+        <Text color="muted" fontSize="mdx" mt="2">
+          {currentAd?.desc ??
+            'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.'}
+        </Text>
+        <Box mt="3">
+          <ExternalLink
+            href={currentAd?.url}
+            fontSize="base"
+            fontWeight={500}
+            justifyContent="start"
+          >
+            {currentAd?.url ?? 'url'}
+          </ExternalLink>
+        </Box>
+        <LinkBox mt="5">
+          <LinkOverlay href={currentAd?.url} isExternal>
+            <AdImage
+              src={
+                currentAd?.media ??
+                'https://cdn.pixabay.com/photo/2022/06/18/18/05/skateboard-7270418_1280.jpg'
+              }
+              w="full"
+            />
+          </LinkOverlay>
+        </LinkBox>
+        <Stack spacing={0} mt="4" fontSize="base" divider={<Divider />}>
+          <Stack spacing="1.5" py="2">
+            <Text fontWeight={500}>{t('Sponsored by')}</Text>
+            <HStack spacing="1" align="center">
+              <Avatar address={currentAd?.author ?? 'author'} boxSize={4} />
+              <Text as="span" color="muted" isTruncated>
+                {currentAd?.author ?? 'author'}
+              </Text>
+            </HStack>
+          </Stack>
+          <Stack spacing="1.5" py="2">
+            <Text fontWeight={500}>
+              {t('Burnt, {{time}}', {
+                time: new Intl.RelativeTimeFormat(lng, {
+                  style: 'short',
+                }).format(24, 'hour'),
+              })}
+            </Text>
+            <Text color="muted">{formatDna(0)}</Text>
+          </Stack>
+        </Stack>
+      </Box>
+      <Center as={HStack} spacing="0.5" h="6">
+        <Box w="6" h="0.5" bg="gray.500" borderRadius={1} />
+        <Box w="6" h="0.5" bg="gray.030" borderRadius={1} />
+      </Center>
+      <Box>
+        <SuccessAlert
+          icon={<InfoIcon color="green.500" boxSize={5} mr={3} />}
+          fontSize="md"
+        >
+          {t('Watching ads makes your coin valuable!')}
+        </SuccessAlert>
+      </Box>
+    </Stack>
+  )
 }

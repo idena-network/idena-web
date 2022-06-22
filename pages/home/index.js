@@ -37,6 +37,7 @@ import {
   ReplenishStakeDrawer,
   StakingAlert,
   ProfileTagList,
+  AdCarousel,
 } from '../../screens/home/components'
 import Layout from '../../shared/components/layout'
 import {IdentityStatus, OnboardingStep} from '../../shared/types'
@@ -75,7 +76,7 @@ import {useStakingApy, useValidationResults} from '../../screens/home/hooks'
 import {ValidationReportSummary} from '../../screens/validation-report/components'
 import {useAppContext} from '../../shared/providers/app-context'
 
-export default function ProfilePage() {
+export default function HomePage() {
   const queryClient = useQueryClient()
 
   const {
@@ -485,8 +486,11 @@ export default function ProfilePage() {
                   </Stack>
                 </UserStatList>
               )}
+              <StakingAlert mt="2" />
             </Stack>
-            <StakingAlert mt="2" />
+            <Box mt="6">
+              <AdCarousel />
+            </Box>
           </Box>
 
           <Stack spacing={[0, 10]} flexShrink={0} w={['100%', 200]}>
