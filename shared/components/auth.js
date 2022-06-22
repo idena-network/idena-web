@@ -35,7 +35,7 @@ function RestoreKey() {
   const {coinbase} = useSettingsState()
   const size = useBreakpointValue(['lg', 'md'])
   const [error, setError] = useState()
-  const {resetRestrictedModal} = useAppContext()
+  const [, {resetRestrictedModal}] = useAppContext()
 
   const [dnaAppUrl, {dismiss: dimissDnaAppLink}] = useDnaAppLink()
 

@@ -25,6 +25,7 @@ import {useAuthState} from './auth-context'
 import {signMessage} from '../utils/crypto'
 import {hexToUint8Array, toHexString} from '../utils/buffers'
 import {useExpired} from '../hooks/use-expired'
+import {useIdenaBot} from '../hooks/hooks'
 
 const AppContext = React.createContext()
 
@@ -45,6 +46,11 @@ export function AppProvider({tabId, ...props}) {
   const {coinbase, privateKey} = useAuthState()
 
   const {updateRestrictedNotNow, resetRestrictedModal} = useExpired()
+
+  const [
+    idenaBotConnected,
+    {persist: persistIdenaBot, skip: skipIdenaBot},
+  ] = useIdenaBot()
 
   useEffect(() => {
     const refLink = router.query.ref
@@ -180,7 +186,15 @@ export function AppProvider({tabId, ...props}) {
   return (
     <AppContext.Provider
       {...props}
-      value={{updateRestrictedNotNow, resetRestrictedModal}}
+      value={[
+        {idenaBotConnected},
+        {
+          updateRestrictedNotNow,
+          resetRestrictedModal,
+          persistIdenaBot,
+          skipIdenaBot,
+        },
+      ]}
     />
   )
 }

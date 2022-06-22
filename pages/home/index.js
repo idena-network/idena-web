@@ -71,12 +71,9 @@ import {
 } from '../../shared/components/icons'
 import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
 import {isValidDnaUrl} from '../../screens/dna/utils'
-import {
-  useIdenaBot,
-  useStakingApy,
-  useValidationResults,
-} from '../../screens/home/hooks'
+import {useStakingApy, useValidationResults} from '../../screens/home/hooks'
 import {ValidationReportSummary} from '../../screens/validation-report/components'
+import {useAppContext} from '../../shared/providers/app-context'
 
 export default function ProfilePage() {
   const queryClient = useQueryClient()
@@ -203,7 +200,7 @@ export default function ProfilePage() {
     IdentityStatus.Newbie,
   ].includes(state)
 
-  const [didConnectIdenaBot, connectIdenaBot] = useIdenaBot()
+  const [{idenaBotConnected}, {persistIdenaBot, skipIdenaBot}] = useAppContext()
 
   const shouldStartIdenaJourney = currentOnboarding.matches(
     OnboardingStep.StartTraining
@@ -231,8 +228,10 @@ export default function ProfilePage() {
   const stakingApy = useStakingApy()
 
   return (
-    <Layout canRedirect={!dnaUrl} didConnectIdenaBot={didConnectIdenaBot}>
-      {!didConnectIdenaBot && <MyIdenaBotAlert onConnect={connectIdenaBot} />}
+    <Layout canRedirect={!dnaUrl} didConnectIdenaBot={idenaBotConnected}>
+      {!idenaBotConnected && (
+        <MyIdenaBotAlert onConnect={persistIdenaBot} onSkip={skipIdenaBot} />
+      )}
 
       <Page pt="10">
         <Stack
