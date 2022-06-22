@@ -88,6 +88,7 @@ import {fetchBalance} from '../../shared/api/wallet'
 import {
   ChevronRightIcon,
   LaptopIcon,
+  TelegramIcon,
   TestValidationIcon,
   UserIcon,
   WalletIcon,
@@ -1327,7 +1328,7 @@ export function KillForm({isOpen, onClose}) {
   )
 }
 
-export function MyIdenaBotAlert({onConnect}) {
+export function MyIdenaBotAlert({onConnect, onSkip}) {
   const {t} = useTranslation()
 
   const [{state}] = useIdentity()
@@ -1354,14 +1355,36 @@ export function MyIdenaBotAlert({onConnect}) {
         cursor="pointer"
         fontWeight={500}
         rounded="md"
-        p={3}
+        h={10}
         mt={2}
         mx={2}
         w="auto"
         onClick={myIdenaBotDisclosure.onOpen}
       >
-        {t(`Subscribe to @MyIdenaBot to get personalized notifications based on
+        <Flex flexGrow={1}>
+          <Flex flexGrow={1} alignItems="center" justifyContent="center">
+            <Box ml={6}>
+              <TelegramIcon boxSize={6} mr={1} />
+              {t(`Subscribe to @MyIdenaBot to get personalized notifications based on
         your status`)}
+            </Box>
+          </Flex>
+          <Flex ml="auto">
+            <FlatButton
+              width={12}
+              pl={2}
+              height={10}
+              color="white"
+              onClick={e => {
+                e.stopPropagation()
+                onSkip()
+              }}
+              _hover={{color: 'white'}}
+            >
+              {t('Close')}
+            </FlatButton>
+          </Flex>
+        </Flex>
       </Alert>
 
       <Dialog

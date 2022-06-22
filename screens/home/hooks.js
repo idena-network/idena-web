@@ -1,9 +1,7 @@
-import {useMachine} from '@xstate/react'
 import dayjs from 'dayjs'
 import React, {useEffect, useReducer, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useMutation, useQuery} from 'react-query'
-import {assign, createMachine} from 'xstate'
 import {
   activateKey,
   getAvailableProviders,
@@ -31,56 +29,6 @@ import {
 import {loadPersistentState} from '../../shared/utils/persist'
 import {toPercent, validateInvitationCode} from '../../shared/utils/utils'
 import {apiUrl} from '../oracles/utils'
-
-const idenaBotMachine = createMachine({
-  context: {
-    connected: undefined,
-  },
-  initial: 'loading',
-  states: {
-    loading: {
-      invoke: {
-        src: 'loadConnectionStatus',
-      },
-      on: {
-        CONNECTED: 'connected',
-        DISCONNECTED: 'disconnected',
-      },
-    },
-    connected: {
-      entry: [assign({connected: true}), 'persist'],
-    },
-    disconnected: {
-      on: {CONNECT: 'connected'},
-    },
-  },
-})
-
-export function useIdenaBot() {
-  const [current, send] = useMachine(idenaBotMachine, {
-    services: {
-      loadConnectionStatus: () => cb => {
-        try {
-          cb(
-            JSON.parse(localStorage.getItem('connectIdenaBot'))
-              ? 'CONNECTED'
-              : 'DISCONNECTED'
-          )
-        } catch (e) {
-          console.error(e)
-          cb('DISCONNECTED')
-        }
-      },
-    },
-    actions: {
-      persist: ({connected}) => {
-        localStorage.setItem('connectIdenaBot', connected)
-      },
-    },
-  })
-
-  return [current.context.connected, () => send('CONNECT')]
-}
 
 export function useInviteActivation() {
   const failToast = useFailToast()

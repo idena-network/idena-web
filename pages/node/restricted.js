@@ -62,7 +62,7 @@ export default function Restricted() {
   const router = useRouter()
   const {t} = useTranslation()
 
-  const {updateRestrictedNotNow} = useAppContext()
+  const [, {updateRestrictedNotNow}] = useAppContext()
 
   const [step, setStep] = useState(steps.INITIAL)
 
@@ -129,7 +129,7 @@ export default function Restricted() {
     ['get-provider-by-id', apiKeyData && apiKeyData.provider],
     () => getProvider(apiKeyData && apiKeyData.provider),
     {
-      enabled: apiKeyData && !!apiKeyData.provider,
+      enabled: !!apiKeyData && !!apiKeyData.provider,
       retry: false,
       refetchOnWindowFocus: false,
     }

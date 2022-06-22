@@ -36,7 +36,7 @@ export default function ImportKey() {
   const [isScanningQr, setIsScanningQr] = useState(false)
   const router = useRouter()
   const {setRestrictedKey} = useApikeyPurchasing()
-  const {resetRestrictedModal} = useAppContext()
+  const [, {resetRestrictedModal}] = useAppContext()
 
   const addKey = () => {
     const key = decryptKey(state.key, state.password)
