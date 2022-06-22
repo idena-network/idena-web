@@ -185,6 +185,14 @@ function SettingsProvider({children}) {
           })
         }
 
+        // do not check manual api key
+        if (state.isManualRemoteNode) {
+          return dispatch({
+            type: SET_API_KEY_STATE,
+            data: {apiKeyState: apiKeyStates.EXTERNAL},
+          })
+        }
+
         // check node is syncing only in production
         if (isVercelProduction)
           if (await softCheckIsSyncing()) {
@@ -240,7 +248,13 @@ function SettingsProvider({children}) {
         data: {apiKeyState: apiKeyStates.OFFLINE},
       })
     }
-  }, [dispatch, state.apiKey, state.initialized, state.url])
+  }, [
+    dispatch,
+    state.apiKey,
+    state.initialized,
+    state.isManualRemoteNode,
+    state.url,
+  ])
 
   useEffect(() => {
     performCheck()
