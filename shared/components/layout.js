@@ -26,6 +26,8 @@ export default function Layout({
   didConnectIdenaBot,
   ...props
 }) {
+  const router = useRouter()
+
   const {auth} = useAuthState()
 
   const sidebarDisclosure = useDisclosure()

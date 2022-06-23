@@ -1,6 +1,6 @@
 /* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/prop-types */
-import React, {forwardRef, useEffect, useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {
   Stack,
   Heading,
@@ -68,6 +68,7 @@ import {
   ErrorAlert,
   SuccessAlert,
   ExternalLink,
+  HDivider,
 } from '../../shared/components/components'
 import {
   FlatButton,
@@ -108,9 +109,10 @@ import {DnaInput} from '../oracles/components'
 import {BLOCK_TIME} from '../oracles/utils'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import {AdDrawer} from '../ads/containers'
-import {useFormatDna, useRotateAds, useRotatingAds} from '../ads/hooks'
+import {useBurntCoins, useFormatDna, useRotateAds} from '../ads/hooks'
 import {AdImage} from '../ads/components'
 import {useLanguage} from '../../shared/hooks/use-language'
+import {AdBurnKey} from '../../shared/models/adBurnKey'
 
 export function UserInlineCard({
   identity: {address, state, age, penalty},
@@ -1582,7 +1584,8 @@ function IdenaBotFeatureList({features, listSeparator = ';'}) {
   )
 }
 
-export const GetInvitationTab = forwardRef(
+// eslint-disable-next-line react/display-name
+export const GetInvitationTab = React.forwardRef(
   ({iconSelected, icon, title, ...props}, ref) => {
     const isMobile = useBreakpointValue([true, false])
     const tabProps = useTab({...props, ref})
@@ -1942,18 +1945,25 @@ export function StakingAlert(props) {
   ) : null
 }
 
-export function AdCarousel() {
+export function AdCarousel({ads}) {
   const {t} = useTranslation()
 
-  const ads = useRotatingAds()
+  const {lng} = useLanguage()
 
-  const {currentIndex, prev, next, setCurrentIndex} = useRotateAds()
+  const {currentIndex, setCurrentIndex} = useRotateAds()
 
   const currentAd = ads[currentIndex]
 
-  const formatDna = useFormatDna()
+  const {data: burntCoins} = useBurntCoins()
 
-  const {lng} = useLanguage()
+  const orderedBurntCoins =
+    burntCoins
+      ?.sort((a, b) => b.amount - a.amount)
+      .map(burn => ({...burn, ...AdBurnKey.fromHex(burn?.key)})) ?? []
+
+  const maybeBurn = orderedBurntCoins.find(burn => burn.cid === currentAd?.cid)
+
+  const formatDna = useFormatDna()
 
   return (
     <Stack>
@@ -1966,11 +1976,10 @@ export function AdCarousel() {
         pb="4"
       >
         <Heading as="h3" fontSize="lg" fontWeight={500} isTruncated>
-          {currentAd?.title ?? 'Lorem ipsum dolor sit amet'}
+          {currentAd?.title}
         </Heading>
         <Text color="muted" fontSize="mdx" mt="2">
-          {currentAd?.desc ??
-            'Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo.'}
+          {currentAd?.desc}
         </Text>
         <Box mt="3">
           <ExternalLink
@@ -1978,32 +1987,31 @@ export function AdCarousel() {
             fontSize="base"
             fontWeight={500}
             justifyContent="start"
+            maxW="64"
           >
-            {currentAd?.url ?? 'url'}
+            {currentAd?.url}
           </ExternalLink>
         </Box>
         <LinkBox mt="5">
           <LinkOverlay href={currentAd?.url} isExternal>
-            <AdImage
-              src={
-                currentAd?.media ??
-                'https://cdn.pixabay.com/photo/2022/06/18/18/05/skateboard-7270418_1280.jpg'
-              }
-              w="full"
-            />
+            <AdImage src={currentAd?.media} w="full" />
           </LinkOverlay>
         </LinkBox>
-        <Stack spacing={0} mt="4" fontSize="base" divider={<Divider />}>
-          <Stack spacing="1.5" py="2">
+        <Stack spacing="1" mt="4" fontSize="base" divider={<HDivider />}>
+          <Stack spacing="1" pt="2" pb="2.5">
             <Text fontWeight={500}>{t('Sponsored by')}</Text>
-            <HStack spacing="1" align="center">
-              <Avatar address={currentAd?.author ?? 'author'} boxSize={4} />
-              <Text as="span" color="muted" isTruncated>
-                {currentAd?.author ?? 'author'}
+            <HStack spacing="1" align="baseline">
+              <Avatar
+                address={currentAd?.author}
+                boxSize="6"
+                borderRadius="lg"
+              />
+              <Text as="span" color="muted" isTruncated lineHeight="22px">
+                {currentAd?.author}
               </Text>
             </HStack>
           </Stack>
-          <Stack spacing="1.5" py="2">
+          <Stack spacing="1" pt="2" pb="2.5">
             <Text fontWeight={500}>
               {t('Burnt, {{time}}', {
                 time: new Intl.RelativeTimeFormat(lng, {
@@ -2011,13 +2019,22 @@ export function AdCarousel() {
                 }).format(24, 'hour'),
               })}
             </Text>
-            <Text color="muted">{formatDna(0)}</Text>
+            <Text color="muted">{formatDna(maybeBurn?.amount ?? 0)}</Text>
           </Stack>
         </Stack>
       </Box>
       <Center as={HStack} spacing="0.5" h="6">
-        <Box w="6" h="0.5" bg="gray.500" borderRadius={1} />
-        <Box w="6" h="0.5" bg="gray.030" borderRadius={1} />
+        {ads.map((_, idx) => (
+          <Box
+            w="6"
+            h="0.5"
+            bg={idx === currentIndex ? 'gray.500' : 'gray.030'}
+            borderRadius={1}
+            onClick={() => {
+              setCurrentIndex(idx)
+            }}
+          />
+        ))}
       </Center>
       <Box>
         <SuccessAlert
