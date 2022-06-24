@@ -1720,26 +1720,29 @@ export function ProfileTagList() {
     <Wrap spacing={[0, '1']} direction={['column', 'row']} w={['full']}>
       {age > 0 && (
         <WrapItem>
-          <ProfileTag label={t('Age')} value={age} />
+          <SimpleProfileTag label={t('Age')} value={age} />
         </WrapItem>
       )}
 
       {Number.isFinite(score) && (
         <WrapItem>
           {isMobile ? (
-            <ProfileTag
-              label={t('Score')}
-              value={toPercent(score)}
-              cursor="help"
-            />
+            <ProfileTag>
+              <Flex align="center" justify="space-between">
+                <ProfileTagLabel>{t('Score')}</ProfileTagLabel>
+                <TextLink href="/validation-report" display="inline-flex">
+                  {t('Validation report')}
+                </TextLink>
+              </Flex>
+              <ProfileTagValue>{toPercent(score)}</ProfileTagValue>
+            </ProfileTag>
           ) : (
             <Popover placement="top" arrowShadowColor="transparent">
               <PopoverTrigger>
-                <ProfileTag
+                <SimpleProfileTag
                   label={t('Score')}
                   value={toPercent(score)}
                   cursor="help"
-                  color={['muted', 'inherit']}
                 />
               </PopoverTrigger>
               <PopoverContent border="none" fontSize="sm" w="max-content">
@@ -1783,82 +1786,116 @@ export function ProfileTagList() {
 
       {penalty > 0 && (
         <WrapItem>
-          <ProfileTag
-            label={t('Mining penalty')}
-            value={formatDna(penalty)}
-            bg="red.012"
-            color="red.500"
-          />
+          <ProfileTag bg={[null, 'red.012']}>
+            <ProfileTagLabel color="red.500">
+              {t('Mining penalty')}
+            </ProfileTagLabel>
+            <ProfileTagValue color="red.500">
+              {formatDna(penalty)}
+            </ProfileTagValue>
+          </ProfileTag>
         </WrapItem>
       )}
 
       {inviteScore && (
         <WrapItem>
-          <ProfileTagPopover>
-            <ProfileTagPopoverTrigger>
-              <ProfileTag
-                label={t('Invitation rewards')}
-                value={toPercent(inviteScore)}
-                cursor="help"
-                bg={
-                  // eslint-disable-next-line no-nested-ternary
-                  inviteScore < 0.75
-                    ? 'red.010'
-                    : inviteScore < 0.99
-                    ? 'orange.010'
-                    : 'green.010'
-                }
-                color={
-                  // eslint-disable-next-line no-nested-ternary
-                  inviteScore < 0.75
-                    ? 'red.500'
-                    : inviteScore < 0.99
-                    ? 'orange.500'
-                    : 'green.500'
-                }
-              />
-            </ProfileTagPopoverTrigger>
-            <ProfileTagPopoverContent>
-              <Stack spacing="2px" w={40}>
-                <Text color="xwhite.040" lineHeight="base">
-                  {t(
-                    'You will get {{invitationRewardRatio}} of the invitation rewards if your invite is activated now',
-                    {invitationRewardRatio: toPercent(inviteScore)}
-                  )}
-                </Text>
-                <TextLink href="/contacts" color="white" lineHeight="base">
+          {isMobile ? (
+            <ProfileTag>
+              <Flex align="center" justify="space-between">
+                <ProfileTagLabel>{t('Invitation rewards')}</ProfileTagLabel>
+                <TextLink href="/contacts" display="inline-flex">
                   {t('Check invites')}
-                  <ChevronRightIcon />
                 </TextLink>
-              </Stack>
-            </ProfileTagPopoverContent>
-          </ProfileTagPopover>
+              </Flex>
+              <ProfileTagValue>{toPercent(inviteScore)}</ProfileTagValue>
+            </ProfileTag>
+          ) : (
+            <ProfileTagPopover>
+              <ProfileTagPopoverTrigger>
+                <ProfileTag
+                  cursor="help"
+                  bg={
+                    // eslint-disable-next-line no-nested-ternary
+                    inviteScore < 0.75
+                      ? 'red.010'
+                      : inviteScore < 0.99
+                      ? 'orange.010'
+                      : 'green.010'
+                  }
+                  color={
+                    // eslint-disable-next-line no-nested-ternary
+                    inviteScore < 0.75
+                      ? 'red.500'
+                      : inviteScore < 0.99
+                      ? 'orange.500'
+                      : 'green.500'
+                  }
+                >
+                  <ProfileTagLabel>{t('Invitation rewards')}</ProfileTagLabel>
+                  <ProfileTagValue>{toPercent(inviteScore)}</ProfileTagValue>
+                </ProfileTag>
+              </ProfileTagPopoverTrigger>
+              <ProfileTagPopoverContent>
+                <Stack spacing="2px" w={40}>
+                  <Text color="xwhite.040" lineHeight="base">
+                    {t(
+                      'You will get {{invitationRewardRatio}} of the invitation rewards if your invite is activated now',
+                      {invitationRewardRatio: toPercent(inviteScore)}
+                    )}
+                  </Text>
+                  <TextLink href="/contacts" color="white" lineHeight="base">
+                    {t('Check invites')}
+                    <ChevronRightIcon />
+                  </TextLink>
+                </Stack>
+              </ProfileTagPopoverContent>
+            </ProfileTagPopover>
+          )}
         </WrapItem>
       )}
     </Wrap>
   )
 }
 
-export const ProfileTag = React.forwardRef(function ProfileTag(
+function ProfileTag({children, ...props}) {
+  return (
+    <Tag
+      bg={[null, 'gray.016']}
+      borderRadius={[null, 'xl']}
+      borderBottomWidth={[1, 0]}
+      borderBottomColor="gray.100"
+      color="gray.500"
+      fontSize={['base', 'sm']}
+      px={[null, '3']}
+      pt={['2', 0]}
+      pb={['2.5', 0]}
+      w={['full', null]}
+      {...props}
+    >
+      <Stack direction={['column', 'row']} spacing={['1.5', '1']} w={['full']}>
+        {children}
+      </Stack>
+    </Tag>
+  )
+}
+
+function ProfileTagLabel(props) {
+  return <Text {...props} />
+}
+
+function ProfileTagValue(props) {
+  return <Text color={['muted', 'inherit']} {...props} />
+}
+
+const SimpleProfileTag = React.forwardRef(function SimpleProfileTag(
   {label, value, ...props},
   ref
 ) {
   return (
-    <Tag
-      ref={ref}
-      bg="gray.016"
-      borderRadius="xl"
-      fontSize="sm"
-      px="3"
-      minH="6"
-      h="6"
-      {...props}
-    >
-      <Stack direction={['column', 'row']} spacing={['1.5', '1']} w="full">
-        <Text>{label}</Text>
-        <Text>{value}</Text>
-      </Stack>
-    </Tag>
+    <ProfileTag ref={ref} {...props}>
+      <ProfileTagLabel>{label}</ProfileTagLabel>
+      <ProfileTagValue>{value}</ProfileTagValue>
+    </ProfileTag>
   )
 })
 
