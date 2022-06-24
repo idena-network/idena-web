@@ -2009,7 +2009,7 @@ export function AdCarousel() {
         <Stack spacing="1" mt="4" fontSize="base" divider={<HDivider />}>
           <Stack spacing="1" pt="2" pb="2.5">
             <Text fontWeight={500}>{t('Sponsored by')}</Text>
-            <HStack spacing="1" align="baseline">
+            <HStack spacing="1" align="center">
               <Avatar
                 address={currentAd?.author}
                 boxSize="6"
