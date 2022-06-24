@@ -38,6 +38,7 @@ import {
   StakingAlert,
   ProfileTagList,
   AdCarousel,
+  SpoilInviteDrawer,
 } from '../../screens/home/components'
 import Layout from '../../shared/components/layout'
 import {IdentityStatus, OnboardingStep} from '../../shared/types'
@@ -74,6 +75,7 @@ import {
   OracleIcon,
   PhotoIcon,
   TestValidationIcon,
+  PooIcon,
 } from '../../shared/components/icons'
 import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
 import {isValidDnaUrl} from '../../screens/dna/utils'
@@ -237,6 +239,8 @@ export default function HomePage() {
   const ads = useRotatingAds()
 
   const isDesktop = useIsDesktop()
+
+  const spoilInviteDisclosure = useDisclosure()
 
   return (
     <Layout canRedirect={!dnaUrl} didConnectIdenaBot={idenaBotConnected}>
@@ -656,6 +660,23 @@ export default function HomePage() {
                 </Box>
               </WideLink>
               <WideLink
+                label={t('Spoil invite')}
+                onClick={spoilInviteDisclosure.onOpen}
+              >
+                <Box
+                  boxSize={[8, 5]}
+                  backgroundColor={['brandBlue.10', 'initial']}
+                  borderRadius="10px"
+                >
+                  <PooIcon
+                    color="blue.500"
+                    boxSize="5"
+                    mt={['6px', 0]}
+                    ml={['6px', 0]}
+                  />
+                </Box>
+              </WideLink>
+              <WideLink
                 label={t('Terminate')}
                 onClick={onOpenKillForm}
                 isDisabled={!canTerminate}
@@ -694,6 +715,14 @@ export default function HomePage() {
             [onCloseReplenishStakeDisclosure, t, toast]
           )}
           onError={failToast}
+        />
+
+        <SpoilInviteDrawer
+          {...spoilInviteDisclosure}
+          onSuccess={() => {
+            successToast(t('Invitation is successfully spoiled'))
+          }}
+          onFail={failToast}
         />
       </Page>
     </Layout>

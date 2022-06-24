@@ -81,6 +81,7 @@ import {IdentityStatus, NodeType} from '../../shared/types'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {
   callRpc,
+  dummyAddress,
   eitherState,
   mapIdentityToFriendlyStatus,
   openExternalUrl,
@@ -2065,5 +2066,69 @@ export function AdCarousel() {
         </SuccessAlert>
       </Box>
     </Stack>
+  )
+}
+
+export function SpoilInviteDrawer({onSuccess, onFail, ...props}) {
+  const {t} = useTranslation()
+  return (
+    <Drawer {...props}>
+      <DrawerHeader mb={0}>
+        <Center flexDirection="column">
+          <Avatar address={dummyAddress} />
+          <Heading
+            fontSize="lg"
+            fontWeight={500}
+            color="gray.500"
+            mt="4"
+            mb={0}
+          >
+            {t('Spoil invitation code')}
+          </Heading>
+        </Center>
+      </DrawerHeader>
+      <DrawerBody mt="6">
+        <Text fontSize="md" mb={6}>
+          {t(
+            `Spoil invitations that are shared publicly. This will encourage people to share invitations privately and prevent bots from collecting invitation codes.`
+          )}
+        </Text>
+        <Stack spacing="6">
+          <form
+            id="spoilInvite"
+            onSubmit={async e => {
+              e.preventDefault()
+
+              try {
+                // eslint-disable-next-line no-unused-expressions
+                onSuccess?.(
+                  await callRpc('dna_activateInviteToRandAddr', {
+                    key: new FormData(e.target).get('key'),
+                  })
+                )
+              } catch (error) {
+                // eslint-disable-next-line no-unused-expressions
+                onFail?.(error)
+              }
+            }}
+          >
+            <FormControl>
+              <FormLabel>{t('Invitation code')}</FormLabel>
+              <Input name="key" placeholder={t('Invitation code to spoil')} />
+            </FormControl>
+          </form>
+          <Text fontSize="md">
+            {t(
+              `When you click 'Spoil' the invitation code will be activated by a random address and wasted.`
+            )}
+          </Text>
+        </Stack>
+      </DrawerBody>
+      <DrawerFooter>
+        <PrimaryButton type="submit" form="spoilInvite">
+          {t('Spoil invite')}
+        </PrimaryButton>
+      </DrawerFooter>
+    </Drawer>
   )
 }
