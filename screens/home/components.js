@@ -1,5 +1,3 @@
-/* eslint-disable react/destructuring-assignment */
-/* eslint-disable react/prop-types */
 import React, {useEffect, useState} from 'react'
 import {
   Stack,
@@ -46,6 +44,8 @@ import {
   LinkBox,
   LinkOverlay,
   CloseButton,
+  Wrap,
+  WrapItem,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
@@ -105,7 +105,12 @@ import {
   OnboardingPopoverContent,
   OnboardingPopoverContentIconRow,
 } from '../../shared/components/onboarding'
-import {useInviteActivation, useReplenishStake, useStakingAlert} from './hooks'
+import {
+  useInviteActivation,
+  useInviteScore,
+  useReplenishStake,
+  useStakingAlert,
+} from './hooks'
 import {useTotalValidationScore} from '../validation-report/hooks'
 import {DnaInput} from '../oracles/components'
 import {BLOCK_TIME} from '../oracles/utils'
@@ -1695,64 +1700,47 @@ export function GetInvitationCopyButton({value, ...props}) {
 }
 
 export function ProfileTagList() {
-  const {t, i18n} = useTranslation()
+  const {t} = useTranslation()
 
   const [
     {age, penalty, totalShortFlipPoints, totalQualifiedFlips},
   ] = useIdentity()
+
   const epoch = useEpoch()
 
   const score = useTotalValidationScore()
 
-  const formatDna = toLocaleDna(i18n.language, {maximumFractionDigits: 5})
+  const inviteScore = useInviteScore()
+
+  const formatDna = useFormatDna({maximumFractionDigits: 5})
 
   const [isMobile] = useMediaQuery('(max-width: 480px)')
 
   return (
-    <Stack spacing={[0, '1']} direction={['column', 'row']} w={['full']}>
+    <Wrap spacing={[0, '1']} direction={['column', 'row']} w={['full']}>
       {age > 0 && (
-        <ProfileTag>
-          <Stack direction={['column', 'row']} spacing={['1.5', '1']}>
-            <Text>{t('Age')}</Text>
-            <Text color={['muted', 'inherit']}>{age}</Text>
-          </Stack>
-        </ProfileTag>
+        <WrapItem>
+          <ProfileTag label={t('Age')} value={age} />
+        </WrapItem>
       )}
 
       {Number.isFinite(score) && (
-        <>
+        <WrapItem>
           {isMobile ? (
-            <ProfileTag>
-              <Stack
-                direction={['column', 'row']}
-                spacing={['1.5', '1']}
-                w="full"
-              >
-                <Flex align="center" justify="space-between">
-                  <Text>{t('Score')}</Text>
-                  <TextLink
-                    href="/validation-report"
-                    display={['inline-flex', 'none']}
-                  >
-                    {t('Validation report')}
-                  </TextLink>
-                </Flex>
-                <Text color={['muted', 'inherit']}>{toPercent(score)}</Text>
-              </Stack>
-            </ProfileTag>
+            <ProfileTag
+              label={t('Score')}
+              value={toPercent(score)}
+              cursor="help"
+            />
           ) : (
             <Popover placement="top" arrowShadowColor="transparent">
               <PopoverTrigger>
-                <ProfileTag cursor="help">
-                  <Stack
-                    direction={['column', 'row']}
-                    spacing={['1.5', '1']}
-                    w="full"
-                  >
-                    <Text>{t('Score')}</Text>
-                    <Text color={['muted', 'inherit']}>{toPercent(score)}</Text>
-                  </Stack>
-                </ProfileTag>
+                <ProfileTag
+                  label={t('Score')}
+                  value={toPercent(score)}
+                  cursor="help"
+                  color={['muted', 'inherit']}
+                />
               </PopoverTrigger>
               <PopoverContent border="none" fontSize="sm" w="max-content">
                 <PopoverArrow bg="graphite.500" />
@@ -1790,37 +1778,120 @@ export function ProfileTagList() {
               </PopoverContent>
             </Popover>
           )}
-        </>
+        </WrapItem>
       )}
 
       {penalty > 0 && (
-        <ProfileTag bg={[null, 'red.012']} color="red.500">
-          <Stack direction={['column', 'row']} spacing={['1.5', '1']}>
-            <Text>{t('Mining penalty')}</Text>
-            <Text color={['inherit']}>{formatDna(penalty)}</Text>
-          </Stack>
-        </ProfileTag>
+        <WrapItem>
+          <ProfileTag
+            label={t('Mining penalty')}
+            value={formatDna(penalty)}
+            bg="red.012"
+            color="red.500"
+          />
+        </WrapItem>
       )}
-    </Stack>
+
+      {inviteScore && (
+        <WrapItem>
+          <ProfileTagPopover>
+            <ProfileTagPopoverTrigger>
+              <ProfileTag
+                label={t('Invitation rewards')}
+                value={toPercent(inviteScore)}
+                cursor="help"
+                bg={
+                  // eslint-disable-next-line no-nested-ternary
+                  inviteScore < 0.75
+                    ? 'red.010'
+                    : inviteScore < 0.99
+                    ? 'orange.010'
+                    : 'green.010'
+                }
+                color={
+                  // eslint-disable-next-line no-nested-ternary
+                  inviteScore < 0.75
+                    ? 'red.500'
+                    : inviteScore < 0.99
+                    ? 'orange.500'
+                    : 'green.500'
+                }
+              />
+            </ProfileTagPopoverTrigger>
+            <ProfileTagPopoverContent>
+              <Stack spacing="2px" w={40}>
+                <Text color="xwhite.040" lineHeight="base">
+                  {t(
+                    'You will get {{invitationRewardRatio}} of the invitation rewards if your invite is activated now',
+                    {invitationRewardRatio: toPercent(inviteScore)}
+                  )}
+                </Text>
+                <TextLink href="/contacts" color="white" lineHeight="base">
+                  {t('Check invites')}
+                  <ChevronRightIcon />
+                </TextLink>
+              </Stack>
+            </ProfileTagPopoverContent>
+          </ProfileTagPopover>
+        </WrapItem>
+      )}
+    </Wrap>
   )
 }
 
-export const ProfileTag = React.forwardRef(function ProfileTag(props, ref) {
+export const ProfileTag = React.forwardRef(function ProfileTag(
+  {label, value, ...props},
+  ref
+) {
   return (
     <Tag
       ref={ref}
-      bg={[null, 'gray.016']}
-      borderRadius={[null, 'xl']}
-      borderBottomWidth={[1, 0]}
-      borderBottomColor="gray.100"
-      fontSize={['base', 'sm']}
-      px={[null, '3']}
-      pt={['2', 0]}
-      pb={['2.5', 0]}
+      bg="gray.016"
+      borderRadius="xl"
+      fontSize="sm"
+      px="3"
+      minH="6"
+      h="6"
       {...props}
-    />
+    >
+      <Stack direction={['column', 'row']} spacing={['1.5', '1']} w="full">
+        <Text>{label}</Text>
+        <Text>{value}</Text>
+      </Stack>
+    </Tag>
   )
 })
+
+export function ProfileTagPopover(props) {
+  return <Popover placement="top" arrowShadowColor="transparent" {...props} />
+}
+
+function ProfileTagPopoverTrigger({children}) {
+  return (
+    <PopoverTrigger>
+      <Box>{children}</Box>
+    </PopoverTrigger>
+  )
+}
+
+function ProfileTagPopoverContent({children}) {
+  return (
+    <PopoverContent
+      border="none"
+      fontSize="sm"
+      w="fit-content"
+      zIndex="popover"
+      _focus={{
+        outline: 'none',
+      }}
+    >
+      <PopoverArrow bg="graphite.500" />
+      <PopoverBody bg="graphite.500" borderRadius="sm" p="2" pt="1">
+        {children}
+      </PopoverBody>
+    </PopoverContent>
+  )
+}
 
 export function ReplenishStakeDrawer({onSuccess, onError, ...props}) {
   const {t, i18n} = useTranslation()
