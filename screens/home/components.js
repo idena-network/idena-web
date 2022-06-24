@@ -50,6 +50,7 @@ import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
 import {useQuery} from 'react-query'
 import {useRouter} from 'next/router'
+import {useSwipeable} from 'react-swipeable'
 import {
   Avatar,
   Tooltip,
@@ -1950,7 +1951,7 @@ export function AdCarousel({ads}) {
 
   const {lng} = useLanguage()
 
-  const {currentIndex, setCurrentIndex} = useRotateAds()
+  const {currentIndex, setCurrentIndex, prev, next} = useRotateAds()
 
   const currentAd = ads[currentIndex]
 
@@ -1965,6 +1966,13 @@ export function AdCarousel({ads}) {
 
   const formatDna = useFormatDna()
 
+  const swipeProps = useSwipeable({
+    onSwipedLeft: next,
+    onSwipedRight: prev,
+    preventDefaultTouchmoveEvent: true,
+    trackMouse: true,
+  })
+
   return (
     <Stack>
       <Box
@@ -1974,6 +1982,7 @@ export function AdCarousel({ads}) {
         pt="6"
         px="28px"
         pb="4"
+        {...swipeProps}
       >
         <Heading as="h3" fontSize="lg" fontWeight={500} isTruncated>
           {currentAd?.title}
