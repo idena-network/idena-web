@@ -46,6 +46,7 @@ import {
   toLocaleDna,
   eitherState,
   openExternalUrl,
+  useIsDesktop,
 } from '../../shared/utils/utils'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
@@ -230,6 +231,8 @@ export default function HomePage() {
   const stakingApy = useStakingApy()
 
   const ads = useRotatingAds()
+
+  const isDesktop = useIsDesktop()
 
   return (
     <Layout canRedirect={!dnaUrl} didConnectIdenaBot={idenaBotConnected}>
@@ -491,8 +494,8 @@ export default function HomePage() {
               )}
               <StakingAlert mt="2" />
             </Stack>
-            {ads?.length > 0 && (
-              <Box mt="6">
+            {ads?.length > 0 && !isDesktop && (
+              <Box display={['block', 'none']} mt="6">
                 <AdCarousel ads={ads} />
               </Box>
             )}
