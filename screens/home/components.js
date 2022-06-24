@@ -1946,12 +1946,12 @@ export function StakingAlert(props) {
   ) : null
 }
 
-export function AdCarousel({ads}) {
+export function AdCarousel() {
   const {t} = useTranslation()
 
   const {lng} = useLanguage()
 
-  const {currentIndex, setCurrentIndex, prev, next} = useRotateAds()
+  const {ads, currentIndex, setCurrentIndex, prev, next} = useRotateAds()
 
   const currentAd = ads[currentIndex]
 

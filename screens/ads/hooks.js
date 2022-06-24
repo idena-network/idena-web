@@ -165,6 +165,7 @@ export function useRotateAds(maybeTiming) {
   )
 
   return {
+    ads,
     currentIndex,
     prev() {
       setCurrentIndex((currentIndex - 1 + ads.length) % ads.length)
