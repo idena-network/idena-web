@@ -9,6 +9,7 @@ import {
   AlertIcon,
   AlertTitle,
   Box,
+  Flex,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
@@ -48,6 +49,8 @@ import {ExclamationMarkIcon, GlobeIcon} from '../../shared/components/icons'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {getRawTx, sendRawTx} from '../../shared/api'
 import {dnaSign} from '../../shared/utils/crypto'
+import {TxType} from '../../shared/types'
+import {useFormatDna} from '../ads/hooks'
 
 export function DnaSignInDialog({
   token,
@@ -363,20 +366,19 @@ export function DnaRawDialog({
   onCompleteSend,
   ...props
 }) {
-  const {
-    t,
-    i18n: {language},
-  } = useTranslation()
+  const {t} = useTranslation()
 
   const {privateKey} = useAuthState()
 
-  const {amount, to} = React.useMemo(() => {
+  const parsedTx = React.useMemo(() => {
     if (tx) {
       const {amount: txAmount, ...restTx} = new Transaction().fromHex(tx)
       return {amount: +txAmount / 10 ** 18, ...restTx}
     }
-    return {amount: null, to: null}
+    return {type: null, amount: null, to: null, maxFee: null}
   }, [tx])
+
+  const {type, amount, to, maxFee} = parsedTx
 
   const [confirmationAmount, setConfirmationAmount] = React.useState()
 
@@ -397,7 +399,7 @@ export function DnaRawDialog({
 
   const [isSubmitting, setIsSubmitting] = React.useState()
 
-  const dna = toLocaleDna(language)
+  const formatDna = useFormatDna()
 
   return (
     <DnaDialog title={t('Confirm transaction')} {...props}>
@@ -408,31 +410,43 @@ export function DnaRawDialog({
             {t('Attention! This is irreversible operation')}
           </DnaDialogAlert>
           <Stack spacing="px" borderRadius="lg" overflow="hidden">
-            <MediaDnaDialogStat label={t('To')} value={to}>
-              <DnaDialogAvatar address={to} />
-            </MediaDnaDialogStat>
-            <DnaDialogStat>
-              <DnaDialogStatLabel>{t('Amount')}</DnaDialogStatLabel>
-              <DnaDialogStatValue
-                color={isExceededBalance ? 'red.500' : 'brandGray.500'}
-              >
-                {isExceededBalance ? (
-                  <HStack spacing={1}>
-                    <Text as="span">{dna(amount)}</Text>
-                    <Tooltip
-                      label={t('The amount is larger than your balance')}
-                    >
-                      <ExclamationMarkIcon boxSize={4} color="red.500" />
-                    </Tooltip>
-                  </HStack>
-                ) : (
-                  dna(amount)
-                )}
-              </DnaDialogStatValue>
-            </DnaDialogStat>
+            <SimpleDnaDialogStat
+              label={t('Transaction type')}
+              value={Object.entries(TxType).find(([, v]) => v === type)[0]}
+            />
+
+            {to && <SimpleDnaDialogStat label={t('To')} value={to} />}
+
+            <Flex align="center" justify="space-between">
+              <DnaDialogStat>
+                <DnaDialogStatLabel>{t('Amount')}</DnaDialogStatLabel>
+                <DnaDialogStatValue
+                  color={isExceededBalance ? 'red.500' : 'brandGray.500'}
+                >
+                  {isExceededBalance ? (
+                    <HStack spacing={1}>
+                      <Text as="span">{formatDna(amount)}</Text>
+                      <Tooltip
+                        label={t('The amount is larger than your balance')}
+                      >
+                        <ExclamationMarkIcon boxSize={4} color="red.500" />
+                      </Tooltip>
+                    </HStack>
+                  ) : (
+                    formatDna(amount)
+                  )}
+                </DnaDialogStatValue>
+              </DnaDialogStat>
+
+              <SimpleDnaDialogStat
+                label={t('Max fee')}
+                value={formatDna(maxFee / 10 ** 18)}
+              />
+            </Flex>
+
             <SimpleDnaDialogStat
               label={t('Available balance')}
-              value={dna(balance)}
+              value={formatDna(balance)}
             />
             <DnaDialogStat>
               <DnaDialogStatLabel>
