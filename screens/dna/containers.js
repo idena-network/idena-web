@@ -399,7 +399,7 @@ export function DnaRawDialog({
 
   const [isSubmitting, setIsSubmitting] = React.useState()
 
-  const formatDna = useFormatDna()
+  const formatDna = useFormatDna({maximumFractionDigits: 5})
 
   return (
     <DnaDialog title={t('Confirm transaction')} {...props}>
