@@ -37,6 +37,7 @@ import {
   ReplenishStakeDrawer,
   StakingAlert,
   ProfileTagList,
+  AdCarousel,
 } from '../../screens/home/components'
 import Layout from '../../shared/components/layout'
 import {IdentityStatus, OnboardingStep} from '../../shared/types'
@@ -45,6 +46,7 @@ import {
   toLocaleDna,
   eitherState,
   openExternalUrl,
+  useIsDesktop,
 } from '../../shared/utils/utils'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
@@ -74,8 +76,9 @@ import {isValidDnaUrl} from '../../screens/dna/utils'
 import {useStakingApy, useValidationResults} from '../../screens/home/hooks'
 import {ValidationReportSummary} from '../../screens/validation-report/components'
 import {useAppContext} from '../../shared/providers/app-context'
+import {useRotatingAds} from '../../screens/ads/hooks'
 
-export default function ProfilePage() {
+export default function HomePage() {
   const queryClient = useQueryClient()
 
   const {
@@ -227,6 +230,10 @@ export default function ProfilePage() {
 
   const stakingApy = useStakingApy()
 
+  const ads = useRotatingAds()
+
+  const isDesktop = useIsDesktop()
+
   return (
     <Layout canRedirect={!dnaUrl} didConnectIdenaBot={idenaBotConnected}>
       {!idenaBotConnected && (
@@ -237,7 +244,7 @@ export default function ProfilePage() {
         <Stack
           w={['100%', '480px']}
           direction={['column', 'row']}
-          spacing={[0, 10]}
+          spacing={['6', 10]}
         >
           <Box>
             <Stack
@@ -485,56 +492,61 @@ export default function ProfilePage() {
                   </Stack>
                 </UserStatList>
               )}
+              <StakingAlert mt="2" />
             </Stack>
-            <StakingAlert mt="2" />
+            {ads?.length > 0 && !isDesktop && (
+              <Box display={['block', 'none']} mt="6">
+                <AdCarousel ads={ads} />
+              </Box>
+            )}
           </Box>
 
           <Stack spacing={[0, 10]} flexShrink={0} w={['100%', 200]}>
-            <Box minH={62} mt={[1, 6]}>
-              <OnboardingPopover
-                isOpen={eitherOnboardingState(
-                  onboardingShowingStep(OnboardingStep.ActivateMining)
-                )}
-              >
-                <PopoverTrigger>
-                  <Box
-                    bg="white"
-                    position={
-                      eitherOnboardingState(
-                        onboardingShowingStep(OnboardingStep.ActivateMining)
-                      )
-                        ? 'relative'
-                        : 'initial'
-                    }
-                    borderRadius={['mdx', 'md']}
-                    p={[0, 2]}
-                    m={[0, -2]}
-                    zIndex={2}
+            {eitherOnboardingState(
+              onboardingShowingStep(OnboardingStep.ActivateMining)
+            ) && (
+              <Box minH={62} mt={[1, 6]}>
+                <OnboardingPopover isOpen>
+                  <PopoverTrigger>
+                    <Box
+                      bg="white"
+                      position={
+                        eitherOnboardingState(
+                          onboardingShowingStep(OnboardingStep.ActivateMining)
+                        )
+                          ? 'relative'
+                          : 'initial'
+                      }
+                      borderRadius={['mdx', 'md']}
+                      p={[0, 2]}
+                      m={[0, -2]}
+                      zIndex={2}
+                    >
+                      {address && privateKey && canMine && (
+                        <ActivateMiningForm
+                          privateKey={privateKey}
+                          isOnline={online}
+                          delegatee={delegatee}
+                          delegationEpoch={delegationEpoch}
+                          pendingUndelegation={pendingUndelegation}
+                          onShow={nextOnboardingTask}
+                        />
+                      )}
+                    </Box>
+                  </PopoverTrigger>
+                  <OnboardingPopoverContent
+                    title={t('Activate mining status')}
+                    onDismiss={nextOnboardingTask}
                   >
-                    {address && privateKey && canMine && (
-                      <ActivateMiningForm
-                        privateKey={privateKey}
-                        isOnline={online}
-                        delegatee={delegatee}
-                        delegationEpoch={delegationEpoch}
-                        pendingUndelegation={pendingUndelegation}
-                        onShow={nextOnboardingTask}
-                      />
-                    )}
-                  </Box>
-                </PopoverTrigger>
-                <OnboardingPopoverContent
-                  title={t('Activate mining status')}
-                  onDismiss={nextOnboardingTask}
-                >
-                  <Text>
-                    {t(
-                      `To become a validator of Idena blockchain you can activate your mining status. Keep your node online to mine iDNA coins.`
-                    )}
-                  </Text>
-                </OnboardingPopoverContent>
-              </OnboardingPopover>
-            </Box>
+                    <Text>
+                      {t(
+                        `To become a validator of Idena blockchain you can activate your mining status. Keep your node online to mine iDNA coins.`
+                      )}
+                    </Text>
+                  </OnboardingPopoverContent>
+                </OnboardingPopover>
+              </Box>
+            )}
             <Stack spacing={[0, 1]} align="flex-start">
               <WideLink
                 display={['initial', 'none']}

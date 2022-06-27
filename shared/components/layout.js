@@ -18,30 +18,34 @@ import {useInterval} from '../hooks/use-interval'
 import {DeferredVotes} from '../../screens/oracles/components'
 import {useRotatingAds} from '../../screens/ads/hooks'
 import {AdBanner} from '../../screens/ads/containers'
+import {useHamburgerTop} from '../hooks/use-hamburger-top'
+import {useIsDesktop} from '../utils/utils'
 
 export default function Layout({
   showHamburger = true,
   didConnectIdenaBot,
   ...props
 }) {
-  const {asPath} = useRouter()
+  const router = useRouter()
 
   const {auth} = useAuthState()
 
   const sidebarDisclosure = useDisclosure()
+
+  const ads = useRotatingAds()
+  const hasRotatingAds = ads?.length > 0
+
+  const hamburgerTop = useHamburgerTop({hasRotatingAds, didConnectIdenaBot})
 
   return (
     <LayoutContainer>
       {auth ? (
         <>
           {showHamburger && (
-            <Hamburger
-              onClick={sidebarDisclosure.onOpen}
-              top={didConnectIdenaBot || !asPath.startsWith('/home') ? 4 : 24}
-            />
+            <Hamburger onClick={sidebarDisclosure.onOpen} top={hamburgerTop} />
           )}
           <Sidebar {...sidebarDisclosure} />
-          <NormalApp {...props} />
+          <NormalApp hasRotatingAds={hasRotatingAds} {...props} />
         </>
       ) : (
         <Auth />
@@ -50,7 +54,7 @@ export default function Layout({
   )
 }
 
-function NormalApp({children, canRedirect = true, skipBanner}) {
+function NormalApp({children, canRedirect = true, skipBanner, hasRotatingAds}) {
   const router = useRouter()
 
   const epoch = useEpoch()
@@ -76,9 +80,7 @@ function NormalApp({children, canRedirect = true, skipBanner}) {
       router.push('/try/validation')
   }, [canRedirect, currentTrainingValidation, isOffline, router])
 
-  const ads = useRotatingAds()
-
-  const hasRotatingAds = ads.length > 0
+  const isDesktop = useIsDesktop()
 
   return (
     <Flex
@@ -88,7 +90,7 @@ function NormalApp({children, canRedirect = true, skipBanner}) {
       h={['auto', '100vh']}
       overflowY="auto"
     >
-      {hasRotatingAds && !skipBanner && !isOffline && <AdBanner />}
+      {hasRotatingAds && !skipBanner && !isOffline && isDesktop && <AdBanner />}
 
       {children}
 

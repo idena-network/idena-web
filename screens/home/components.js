@@ -1,6 +1,6 @@
 /* eslint-disable react/destructuring-assignment */
 /* eslint-disable react/prop-types */
-import React, {forwardRef, useEffect, useState} from 'react'
+import React, {useEffect, useState} from 'react'
 import {
   Stack,
   Heading,
@@ -43,11 +43,14 @@ import {
   PopoverBody,
   PopoverArrow,
   useMediaQuery,
+  LinkBox,
+  LinkOverlay,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
 import {useQuery} from 'react-query'
 import {useRouter} from 'next/router'
+import {useSwipeable} from 'react-swipeable'
 import {
   Avatar,
   Tooltip,
@@ -64,6 +67,9 @@ import {
   Dialog,
   TextLink,
   ErrorAlert,
+  SuccessAlert,
+  ExternalLink,
+  HDivider,
 } from '../../shared/components/components'
 import {
   FlatButton,
@@ -87,6 +93,7 @@ import {activateMiningMachine} from './machines'
 import {fetchBalance} from '../../shared/api/wallet'
 import {
   ChevronRightIcon,
+  InfoIcon,
   LaptopIcon,
   TelegramIcon,
   TestValidationIcon,
@@ -103,6 +110,10 @@ import {DnaInput} from '../oracles/components'
 import {BLOCK_TIME} from '../oracles/utils'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import {AdDrawer} from '../ads/containers'
+import {useBurntCoins, useFormatDna, useRotateAds} from '../ads/hooks'
+import {AdImage} from '../ads/components'
+import {useLanguage} from '../../shared/hooks/use-language'
+import {AdBurnKey} from '../../shared/models/adBurnKey'
 
 export function UserInlineCard({
   identity: {address, state, age, penalty},
@@ -1574,7 +1585,8 @@ function IdenaBotFeatureList({features, listSeparator = ';'}) {
   )
 }
 
-export const GetInvitationTab = forwardRef(
+// eslint-disable-next-line react/display-name
+export const GetInvitationTab = React.forwardRef(
   ({iconSelected, icon, title, ...props}, ref) => {
     const isMobile = useBreakpointValue([true, false])
     const tabProps = useTab({...props, ref})
@@ -1932,4 +1944,115 @@ export function StakingAlert(props) {
       )}
     </ErrorAlert>
   ) : null
+}
+
+export function AdCarousel() {
+  const {t} = useTranslation()
+
+  const {lng} = useLanguage()
+
+  const {ads, currentIndex, setCurrentIndex, prev, next} = useRotateAds()
+
+  const currentAd = ads[currentIndex]
+
+  const {data: burntCoins} = useBurntCoins()
+
+  const orderedBurntCoins =
+    burntCoins
+      ?.sort((a, b) => b.amount - a.amount)
+      .map(burn => ({...burn, ...AdBurnKey.fromHex(burn?.key)})) ?? []
+
+  const maybeBurn = orderedBurntCoins.find(burn => burn.cid === currentAd?.cid)
+
+  const formatDna = useFormatDna()
+
+  const swipeProps = useSwipeable({
+    onSwipedLeft: next,
+    onSwipedRight: prev,
+    preventDefaultTouchmoveEvent: true,
+    trackMouse: true,
+  })
+
+  return (
+    <Stack>
+      <Box
+        bg="white"
+        borderRadius="lg"
+        boxShadow="0 3px 12px 0 rgba(83, 86, 92, 0.1), 0 2px 3px 0 rgba(83, 86, 92, 0.2)"
+        pt="6"
+        px="28px"
+        pb="4"
+        {...swipeProps}
+      >
+        <Heading as="h3" fontSize="lg" fontWeight={500} isTruncated>
+          {currentAd?.title}
+        </Heading>
+        <Text color="muted" fontSize="mdx" mt="2">
+          {currentAd?.desc}
+        </Text>
+        <Box mt="3">
+          <ExternalLink
+            href={currentAd?.url}
+            fontSize="base"
+            fontWeight={500}
+            justifyContent="start"
+            maxW="64"
+          >
+            {currentAd?.url}
+          </ExternalLink>
+        </Box>
+        <LinkBox mt="5">
+          <LinkOverlay href={currentAd?.url} isExternal>
+            <AdImage src={currentAd?.media} w="full" />
+          </LinkOverlay>
+        </LinkBox>
+        <Stack spacing="1" mt="4" fontSize="base" divider={<HDivider />}>
+          <Stack spacing="1" pt="2" pb="2.5">
+            <Text fontWeight={500}>{t('Sponsored by')}</Text>
+            <HStack spacing="1" align="center">
+              <Avatar
+                address={currentAd?.author}
+                boxSize="6"
+                borderRadius="lg"
+              />
+              <Text as="span" color="muted" isTruncated lineHeight="22px">
+                {currentAd?.author}
+              </Text>
+            </HStack>
+          </Stack>
+          <Stack spacing="1" pt="2" pb="2.5">
+            <Text fontWeight={500}>
+              {t('Burnt, {{time}}', {
+                time: new Intl.RelativeTimeFormat(lng, {
+                  style: 'short',
+                }).format(24, 'hour'),
+              })}
+            </Text>
+            <Text color="muted">{formatDna(maybeBurn?.amount ?? 0)}</Text>
+          </Stack>
+        </Stack>
+      </Box>
+      <Center as={HStack} spacing="0.5" h="6">
+        {ads.map((_, idx) => (
+          <Box
+            w="6"
+            h="0.5"
+            bg={idx === currentIndex ? 'gray.500' : 'gray.030'}
+            borderRadius={1}
+            onClick={() => {
+              setCurrentIndex(idx)
+            }}
+          />
+        ))}
+      </Center>
+      <Box>
+        <SuccessAlert
+          icon={<InfoIcon color="green.500" boxSize={5} mr={3} />}
+          fontSize="md"
+        >
+          {t('Watching ads makes your coin valuable!')}
+        </SuccessAlert>
+      </Box>
+    </Stack>
+  )
 }

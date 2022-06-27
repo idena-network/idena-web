@@ -710,13 +710,13 @@ export function Badge(props) {
   )
 }
 
-export function Menu({children, ...props}) {
+export function Menu({children, zIndex, ...props}) {
   return (
     <ChakraMenu autoSelect={false} placement="bottom-end" {...props}>
       <MenuButton>
         <MoreIcon boxSize={5} color="muted" />
       </MenuButton>
-      <MenuList>{children}</MenuList>
+      <MenuList zIndex={zIndex}>{children}</MenuList>
     </ChakraMenu>
   )
 }
