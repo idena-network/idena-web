@@ -67,25 +67,25 @@ export function useDeferredVotes() {
     return estimateCallContract(privateKey, voteData)
   }
 
-  const sendVote = async vote => {
+  const estimateProlong = async contractHash => {
+    try {
+      await estimateCallContract(privateKey, {
+        method: 'prolongVoting',
+        contractHash,
+      })
+      return true
+    } catch (e) {
+      return false
+    }
+  }
+
+  const sendVote = async (vote, skipToast) => {
     function showError(message) {
       failToast(
         `${t('Can not send scheduled transaction:', {
           nsSeparator: '|',
         })} ${message}`
       )
-    }
-
-    async function canProlong(contractHash) {
-      try {
-        await estimateCallContract(privateKey, {
-          method: 'prolongVoting',
-          contractHash,
-        })
-        return true
-      } catch (e) {
-        return false
-      }
     }
 
     try {
@@ -136,20 +136,21 @@ export function useDeferredVotes() {
           } catch (err) {
             console.error(err)
           } finally {
-            showError(e.message)
+            if (!skipToast) showError(e.message)
           }
           break
         }
         case 'too late to accept open vote':
         case 'quorum is not reachable': {
-          if (await canProlong(vote.contractHash)) {
-            failToast({
-              title: t('Can not cast public vote. Please, prolong voting'),
-              onAction: () => {
-                router.push(`/oracles/view?id=${vote.contractHash}`)
-              },
-              actionContent: t('Open voting'),
-            })
+          if (await estimateProlong(vote.contractHash)) {
+            if (!skipToast)
+              failToast({
+                title: t('Can not cast public vote. Please, prolong voting'),
+                onAction: () => {
+                  router.push(`/oracles/view?id=${vote.contractHash}`)
+                },
+                actionContent: t('Open voting'),
+              })
 
             const readContractData = createContractDataReader(vote.contractHash)
 
@@ -163,7 +164,7 @@ export function useDeferredVotes() {
             })
             queryClient.invalidateQueries('useDeferredVotes')
           } else {
-            showError(e.message)
+            if (!skipToast) showError(e.message)
             deleteVote(vote.id)
           }
           break
@@ -188,7 +189,7 @@ export function useDeferredVotes() {
       all: deferredVotes,
       isReady: isFetched && isBlockFetched,
     },
-    {addVote, sendVote, estimateSendVote, deleteVote},
+    {addVote, sendVote, estimateSendVote, estimateProlong, deleteVote},
   ]
 }
 
@@ -230,6 +231,7 @@ export function useOracleActions(id) {
     ['oracle-actions', id],
     () => loadActions(id, privateKey),
     {
+      retry: false,
       enabled: !!id && !!privateKey,
     }
   )
