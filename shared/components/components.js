@@ -567,6 +567,26 @@ export function ErrorAlert({children, ...props}) {
   )
 }
 
+export function WarningAlert({children, ...props}) {
+  return (
+    <Alert
+      status="warning"
+      bg="warning.010"
+      borderWidth="1px"
+      borderColor="warning.050"
+      fontSize="md"
+      fontWeight={500}
+      rounded="md"
+      px={3}
+      py={2}
+      {...props}
+    >
+      <InfoIcon color="warning.500" boxSize={5} mr={3} />
+      {children}
+    </Alert>
+  )
+}
+
 export function Spinner({size = 8}) {
   const spin = keyframes`
   from { transform: rotate(0deg); }

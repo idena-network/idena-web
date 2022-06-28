@@ -35,6 +35,8 @@ import {
   DialogHeader,
   DialogBody,
   DialogFooter,
+  ErrorAlert,
+  WarningAlert,
 } from '../../shared/components/components'
 import {
   clampValue,
@@ -611,6 +613,7 @@ export function ReviewNewPendingVoteDialog({
     ['bcn_estimateRawTx', vote?.contractHash],
     () => estimateSendVote(vote),
     {
+      retry: false,
       enabled: !!vote && !!auth,
       refetchOnWindowFocus: false,
       initialData: {txFee: ''},
@@ -681,12 +684,32 @@ export function ReviewNewPendingVoteDialog({
   )
 }
 
+const DeferredVoteErrorType = {
+  NONE: 0,
+  EARLY: 1,
+  LATE: 2,
+  NOQUORUM: 3,
+}
+
+function getDeferredVoteErrorType(error) {
+  switch (error) {
+    case 'too early to accept open vote':
+      return DeferredVoteErrorType.EARLY
+    case 'too late to accept open vote':
+      return DeferredVoteErrorType.LATE
+    case 'quorum is not reachable':
+      return DeferredVoteErrorType.NOQUORUM
+    default:
+      return DeferredVoteErrorType.NONE
+  }
+}
+
 export function DeferredVotes() {
   const interval = isVercelProduction ? 5 * 60 * 1000 : 60 * 1000
 
   const [
     {votes: pendingVotes, isReady},
-    {estimateSendVote, sendVote},
+    {estimateSendVote, estimateProlong, sendVote},
   ] = useDeferredVotes()
   const {t} = useTranslation()
 
@@ -715,7 +738,7 @@ export function DeferredVotes() {
 
   const send = async () => {
     try {
-      await sendVote(currentVote)
+      await sendVote(currentVote, true)
     } catch (e) {
       failToast(e.message)
     } finally {
@@ -723,10 +746,21 @@ export function DeferredVotes() {
     }
   }
 
-  const {data: txFeeData} = useQuery(
+  const {data: txFeeData, error} = useQuery(
     ['bcn_estimateRawTx', currentVote?.contractHash],
     () => estimateSendVote(currentVote),
     {
+      retry: false,
+      enabled: !!currentVote,
+      refetchOnWindowFocus: false,
+    }
+  )
+
+  const {data: canProlong} = useQuery(
+    ['bcn_estimateProlong', currentVote?.contractHash],
+    () => estimateProlong(currentVote?.contractHash),
+    {
+      retry: false,
       enabled: !!currentVote,
       refetchOnWindowFocus: false,
     }
@@ -754,6 +788,8 @@ export function DeferredVotes() {
   const size = useBreakpointValue(['mdx', 'md'])
   const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
   const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
+
+  const errorType = getDeferredVoteErrorType(error?.message)
 
   return (
     <Dialog isOpen={isOpen} onClose={onClose}>
@@ -806,6 +842,32 @@ export function DeferredVotes() {
             value={txFeeData?.txFee ? dna(txFeeData?.txFee) : ''}
           />
         </Stack>
+        <Box mt={4}>
+          {(errorType === DeferredVoteErrorType.EARLY ||
+            ([
+              DeferredVoteErrorType.LATE,
+              DeferredVoteErrorType.NOQUORUM,
+            ].includes(errorType) &&
+              canProlong)) && (
+            <WarningAlert>
+              {t(
+                'Can not send the scheduled transaction yet. Please reschedule it.'
+              )}
+            </WarningAlert>
+          )}
+          {errorType === DeferredVoteErrorType.LATE && !canProlong && (
+            <ErrorAlert>
+              {t(
+                "It's too late to send the scheduled transaction. Please delete it."
+              )}
+            </ErrorAlert>
+          )}
+          {errorType === DeferredVoteErrorType.NOQUORUM && !canProlong && (
+            <ErrorAlert>
+              {t('Scheduled transaction is no longer valid. Please delete it.')}
+            </ErrorAlert>
+          )}
+        </Box>
       </DialogBody>
       <DialogFooter justify={['center', 'auto']}>
         <Button
@@ -831,7 +893,20 @@ export function DeferredVotes() {
           w={['100%', 'auto']}
           order={[1, 2]}
         >
-          {t('Send')}
+          {(errorType === DeferredVoteErrorType.EARLY ||
+            ([
+              DeferredVoteErrorType.LATE,
+              DeferredVoteErrorType.NOQUORUM,
+            ].includes(errorType) &&
+              canProlong)) &&
+            t('Reschedule')}
+          {[
+            DeferredVoteErrorType.LATE,
+            DeferredVoteErrorType.NOQUORUM,
+          ].includes(errorType) &&
+            !canProlong &&
+            t('Delete')}
+          {errorType === DeferredVoteErrorType.NONE && t('Send')}
         </Button>
       </DialogFooter>
     </Dialog>
