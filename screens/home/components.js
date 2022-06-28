@@ -1366,38 +1366,34 @@ export function MyIdenaBotAlert({onConnect, onSkip}) {
         cursor="pointer"
         fontWeight={500}
         rounded="md"
-        h={10}
         mt={2}
         mx={2}
         w="auto"
         onClick={myIdenaBotDisclosure.onOpen}
       >
-        <Flex flexGrow={1}>
-          <Flex flexGrow={1} alignItems="center" justifyContent="center">
-            <Box ml={6}>
-              <TelegramIcon boxSize={6} mr={1} />
-              {t(`Subscribe to @MyIdenaBot to get personalized notifications based on
+        <Flex flexGrow={1} justifyContent="center" position="relative">
+          <Box mr={[12, 0]}>
+            <TelegramIcon boxSize={6} mr={1} />
+            {t(`Subscribe to @MyIdenaBot to get personalized notifications based on
         your status`)}
-            </Box>
-          </Flex>
-          <Flex ml="auto">
-            <FlatButton
-              width={12}
-              pl={2}
-              height={10}
-              color="white"
-              onClick={e => {
-                e.stopPropagation()
-                onSkip()
-              }}
-              _hover={{color: 'white'}}
-            >
-              {t('Close')}
-            </FlatButton>
-          </Flex>
+          </Box>
+          <FlatButton
+            p={2}
+            position="absolute"
+            right={0}
+            top={0}
+            height="100%"
+            color="white"
+            onClick={e => {
+              e.stopPropagation()
+              onSkip()
+            }}
+            _hover={{color: 'white'}}
+          >
+            {t('Close')}
+          </FlatButton>
         </Flex>
       </Alert>
-
       <Dialog
         title="Subscribe to @MyIdenaBot"
         size={size}
