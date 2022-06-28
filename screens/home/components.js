@@ -1739,11 +1739,13 @@ export function ProfileTagList() {
           ) : (
             <Popover placement="top" arrowShadowColor="transparent">
               <PopoverTrigger>
-                <SimpleProfileTag
-                  label={t('Score')}
-                  value={toPercent(score)}
-                  cursor="help"
-                />
+                <Box>
+                  <SimpleProfileTag
+                    label={t('Score')}
+                    value={toPercent(score)}
+                    cursor="help"
+                  />
+                </Box>
               </PopoverTrigger>
               <PopoverContent border="none" fontSize="sm" w="max-content">
                 <PopoverArrow bg="graphite.500" />
