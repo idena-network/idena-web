@@ -5,7 +5,7 @@ export function useHamburgerTop({didConnectIdenaBot}) {
   const {asPath} = useRouter()
 
   return React.useMemo(
-    () => (didConnectIdenaBot || !asPath.startsWith('/home') ? '4' : '28'),
+    () => (didConnectIdenaBot || !asPath.startsWith('/home') ? '4' : '20'),
     [asPath, didConnectIdenaBot]
   )
 }

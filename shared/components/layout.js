@@ -26,8 +26,6 @@ export default function Layout({
   didConnectIdenaBot,
   ...props
 }) {
-  const router = useRouter()
-
   const {auth} = useAuthState()
 
   const sidebarDisclosure = useDisclosure()
@@ -35,7 +33,7 @@ export default function Layout({
   const ads = useRotatingAds()
   const hasRotatingAds = ads?.length > 0
 
-  const hamburgerTop = useHamburgerTop({hasRotatingAds, didConnectIdenaBot})
+  const hamburgerTop = useHamburgerTop({didConnectIdenaBot})
 
   return (
     <LayoutContainer>

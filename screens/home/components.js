@@ -45,6 +45,7 @@ import {
   useMediaQuery,
   LinkBox,
   LinkOverlay,
+  CloseButton,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
@@ -1355,6 +1356,8 @@ export function MyIdenaBotAlert({onConnect, onSkip}) {
 
   const size = useBreakpointValue(['sm', 'md'])
 
+  const isDesktop = useIsDesktop()
+
   return (
     <>
       <Alert
@@ -1372,26 +1375,38 @@ export function MyIdenaBotAlert({onConnect, onSkip}) {
         onClick={myIdenaBotDisclosure.onOpen}
       >
         <Flex flexGrow={1} justifyContent="center" position="relative">
-          <Box mr={[12, 0]}>
-            <TelegramIcon boxSize={6} mr={1} />
+          <Box mr={[5, 0]}>
+            <TelegramIcon boxSize={6} mr={1} display={['none', 'initial']} />
             {t(`Subscribe to @MyIdenaBot to get personalized notifications based on
         your status`)}
           </Box>
-          <FlatButton
-            p={2}
-            position="absolute"
-            right={0}
-            top={0}
-            height="100%"
-            color="white"
-            onClick={e => {
-              e.stopPropagation()
-              onSkip()
-            }}
-            _hover={{color: 'white'}}
-          >
-            {t('Close')}
-          </FlatButton>
+          {isDesktop ? (
+            <FlatButton
+              p={2}
+              position="absolute"
+              right={0}
+              top={0}
+              height="100%"
+              color="white"
+              onClick={e => {
+                e.stopPropagation()
+                onSkip()
+              }}
+              _hover={{color: 'white'}}
+            >
+              {t('Close')}
+            </FlatButton>
+          ) : (
+            <CloseButton
+              position="absolute"
+              right={-3}
+              top={-2}
+              onClick={e => {
+                e.stopPropagation()
+                onSkip()
+              }}
+            />
+          )}
         </Flex>
       </Alert>
       <Dialog
