@@ -45,6 +45,7 @@ import {
   useMediaQuery,
   LinkBox,
   LinkOverlay,
+  CloseButton,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
@@ -1355,6 +1356,8 @@ export function MyIdenaBotAlert({onConnect, onSkip}) {
 
   const size = useBreakpointValue(['sm', 'md'])
 
+  const isDesktop = useIsDesktop()
+
   return (
     <>
       <Alert
@@ -1366,25 +1369,24 @@ export function MyIdenaBotAlert({onConnect, onSkip}) {
         cursor="pointer"
         fontWeight={500}
         rounded="md"
-        h={10}
         mt={2}
         mx={2}
         w="auto"
         onClick={myIdenaBotDisclosure.onOpen}
       >
-        <Flex flexGrow={1}>
-          <Flex flexGrow={1} alignItems="center" justifyContent="center">
-            <Box ml={6}>
-              <TelegramIcon boxSize={6} mr={1} />
-              {t(`Subscribe to @MyIdenaBot to get personalized notifications based on
+        <Flex flexGrow={1} justifyContent="center" position="relative">
+          <Box mr={[5, 0]}>
+            <TelegramIcon boxSize={6} mr={1} display={['none', 'initial']} />
+            {t(`Subscribe to @MyIdenaBot to get personalized notifications based on
         your status`)}
-            </Box>
-          </Flex>
-          <Flex ml="auto">
+          </Box>
+          {isDesktop ? (
             <FlatButton
-              width={12}
-              pl={2}
-              height={10}
+              p={2}
+              position="absolute"
+              right={0}
+              top={0}
+              height="100%"
               color="white"
               onClick={e => {
                 e.stopPropagation()
@@ -1394,10 +1396,19 @@ export function MyIdenaBotAlert({onConnect, onSkip}) {
             >
               {t('Close')}
             </FlatButton>
-          </Flex>
+          ) : (
+            <CloseButton
+              position="absolute"
+              right={-3}
+              top={-2}
+              onClick={e => {
+                e.stopPropagation()
+                onSkip()
+              }}
+            />
+          )}
         </Flex>
       </Alert>
-
       <Dialog
         title="Subscribe to @MyIdenaBot"
         size={size}
