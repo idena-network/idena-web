@@ -721,6 +721,7 @@ export default function HomePage() {
           {...spoilInviteDisclosure}
           onSuccess={() => {
             successToast(t('Invitation is successfully spoiled'))
+            spoilInviteDisclosure.onClose()
           }}
           onFail={failToast}
         />
