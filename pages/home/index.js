@@ -52,7 +52,11 @@ import {useIdentity} from '../../shared/providers/identity-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {fetchBalance} from '../../shared/api/wallet'
 import {useAuthState} from '../../shared/providers/auth-context'
-import {ExternalLink, TextLink} from '../../shared/components/components'
+import {
+  ExternalLink,
+  MobileApiStatus,
+  TextLink,
+} from '../../shared/components/components'
 import {useOnboarding} from '../../shared/providers/onboarding-context'
 import {
   OnboardingPopover,
@@ -240,7 +244,8 @@ export default function HomePage() {
         <MyIdenaBotAlert onConnect={persistIdenaBot} onSkip={skipIdenaBot} />
       )}
 
-      <Page pt="10">
+      <Page pt="10" position="relative">
+        <MobileApiStatus top={4} left={4} />
         <Stack
           w={['100%', '480px']}
           direction={['column', 'row']}

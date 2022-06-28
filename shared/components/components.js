@@ -53,6 +53,7 @@ import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
 import NextLink from 'next/link'
 import dynamic from 'next/dynamic'
+import {useTranslation} from 'react-i18next'
 import {rem} from '../theme'
 import {
   ChevronDownIcon,
@@ -64,6 +65,10 @@ import {
 import {openExternalUrl} from '../utils/utils'
 import {Heading} from './typo'
 import {FlatButton, IconButton} from './button'
+import {ApiKeyStates, useSettingsState} from '../providers/settings-context'
+import {useEpoch} from '../providers/epoch-context'
+import {useIdentity} from '../providers/identity-context'
+import {IdentityStatus} from '../types'
 
 export function FloatDebug({children, ...props}) {
   return (
@@ -754,4 +759,111 @@ export function FilterButton({value, onClick, ...props}) {
       {...props}
     />
   )
+}
+
+const StatusLabel = {
+  None: 0,
+  Online: 1,
+  Restricted: 2,
+  Offline: 3,
+}
+
+export function ApiStatus(props) {
+  const settings = useSettingsState()
+  const {t} = useTranslation()
+  const epoch = useEpoch()
+  const [{state: identityState}] = useIdentity()
+
+  let bg = 'xwhite.010'
+  let color = 'gray.300'
+  let text = t('Loading...')
+  let status = StatusLabel.None
+
+  const undefinedOrInvite = [
+    IdentityStatus.Undefined,
+    IdentityStatus.Invite,
+  ].includes(identityState)
+
+  if (settings.apiKeyState === ApiKeyStates.OFFLINE) {
+    bg = 'red.020'
+    color = 'red.500'
+    text = t('Offline')
+    status = StatusLabel.Offline
+  } else if (
+    settings.apiKeyState === ApiKeyStates.RESTRICTED &&
+    !undefinedOrInvite
+  ) {
+    bg = 'warning.020'
+    color = 'warning.500'
+    text = t('Restricted')
+    status = StatusLabel.Restricted
+  } else if (
+    settings.apiKeyState === ApiKeyStates.ONLINE ||
+    settings.apiKeyState === ApiKeyStates.EXTERNAL ||
+    (settings.apiKeyState === ApiKeyStates.RESTRICTED && undefinedOrInvite)
+  ) {
+    bg = 'green.020'
+    color = 'green.500'
+    text = t('Online')
+    status = StatusLabel.Online
+  }
+
+  const restrictedOrOnline = [
+    StatusLabel.Restricted,
+    StatusLabel.Online,
+  ].includes(status)
+
+  return (
+    <Flex position={['absolute', 'initial']} {...props}>
+      <Tooltip
+        label={
+          status === StatusLabel.Restricted
+            ? t(
+                'You cannot use the shared node for the upcoming validation ceremony.'
+              )
+            : t(
+                'Access to the shared node will be expired after the validation ceremony {{date}}',
+                {
+                  date: epoch
+                    ? new Date(epoch.nextValidation).toLocaleString()
+                    : '',
+                }
+              )
+        }
+        placement="right"
+        zIndex="tooltip"
+        bg="graphite.500"
+        width={200}
+        isDisabled={!restrictedOrOnline || undefinedOrInvite}
+      >
+        <Flex bg={bg} borderRadius="xl" px={3} py={[1, 1 / 2]} fontSize={13}>
+          {status === StatusLabel.Restricted ? (
+            <Flex align="baseline">
+              <TextLink
+                href="/node/restricted"
+                color={color}
+                fontWeight={500}
+                lineHeight={rem(18)}
+                _hover={{
+                  textDecoration: 'none',
+                }}
+              >
+                {text}
+              </TextLink>
+            </Flex>
+          ) : (
+            <Flex align="baseline">
+              <Text color={color} fontWeight={500} lineHeight={rem(18)}>
+                {text}
+              </Text>
+            </Flex>
+          )}
+        </Flex>
+      </Tooltip>
+    </Flex>
+  )
+}
+
+export function MobileApiStatus(props) {
+  return <ApiStatus display={['initial', 'none']} {...props} />
 }

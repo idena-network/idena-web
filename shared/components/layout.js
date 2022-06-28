@@ -9,7 +9,7 @@ import {ValidationToast} from '../../screens/validation/components'
 import {Hamburger, LayoutContainer} from '../../screens/app/components'
 import {useAuthState} from '../providers/auth-context'
 import Auth from './auth'
-import {apiKeyStates, useSettingsState} from '../providers/settings-context'
+import {ApiKeyStates, useSettingsState} from '../providers/settings-context'
 import {useIdentity} from '../providers/identity-context'
 import {useEpoch} from '../providers/epoch-context'
 import {useTestValidationState} from '../providers/test-validation-context'
@@ -68,7 +68,7 @@ function NormalApp({children, canRedirect = true, skipBanner, hasRotatingAds}) {
     if (shouldStartValidation(epoch, identity)) router.push('/validation')
   }, 1000)
 
-  const isOffline = settings.apiKeyState === apiKeyStates.OFFLINE
+  const isOffline = settings.apiKeyState === ApiKeyStates.OFFLINE
 
   React.useEffect(() => {
     if (!canRedirect) return

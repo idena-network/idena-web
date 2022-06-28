@@ -15,15 +15,18 @@ import {
   useDisclosure,
   HStack,
 } from '@chakra-ui/react'
-import {useRouter} from 'next/router'
 
 import {Page, PageTitleNew} from '../screens/app/components'
 import Layout from '../shared/components/layout'
 import {useAuthState} from '../shared/providers/auth-context'
 import {IconButton} from '../shared/components/button'
-import {Avatar, Badge, VDivider} from '../shared/components/components'
 import {
-  AngleArrowBackIcon,
+  Avatar,
+  Badge,
+  MobileApiStatus,
+  VDivider,
+} from '../shared/components/components'
+import {
   OpenExplorerIcon,
   ReceiveIcon,
   SendOutIcon,
@@ -42,7 +45,6 @@ import {useBalance} from '../shared/hooks/use-balance'
 
 export default function Index() {
   const {t} = useTranslation()
-  const router = useRouter()
 
   const {coinbase} = useAuthState()
 
@@ -53,27 +55,14 @@ export default function Index() {
     isLoading,
   } = useBalance()
 
-  // const [isReceiveFormOpen, setIsReceiveFormOpen] = useState(false)
   const receiveDrawerDisclosure = useDisclosure()
 
-  // const [isTransferFormOpen, setIsTransferFormOpen] = useState(false)
   const sendDrawerDisclosure = useDisclosure()
 
   return (
     <Layout>
       <Page pt={[4, 6]}>
-        <AngleArrowBackIcon
-          stroke="#578FFF"
-          display={['block', 'none']}
-          position="absolute"
-          left={4}
-          top={4}
-          h="28px"
-          w="28px"
-          onClick={() => {
-            router.push('/home')
-          }}
-        />
+        <MobileApiStatus left={4} />
         <PageTitleNew>{t('Wallets')}</PageTitleNew>
         <Flex w="100%" flexFlow="row wrap">
           <Flex flexBasis={['100%', '50%']} order={1}>

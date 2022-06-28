@@ -69,6 +69,7 @@ import {
   lowerCase,
   openExternalUrl,
   toLocaleDna,
+  toLocaleNumber,
 } from '../../shared/utils/utils'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import {useAuthState} from '../../shared/providers/auth-context'
@@ -644,6 +645,9 @@ function TransactionRow({
 }
 
 function RowStatus({direction, isMining, type, walletName, tx, ...props}) {
+  const {i18n} = useTranslation()
+  const toDna = toLocaleDna(i18n.language, {maximumFractionDigits: 3})
+
   function getColor(dir) {
     switch (dir) {
       case 'Sent':
@@ -714,7 +718,7 @@ function RowStatus({direction, isMining, type, walletName, tx, ...props}) {
           >
             {type}
           </Box>
-          <Box display={['block', 'none']}>{tx.amount} iDNA</Box>
+          <Box display={['block', 'none']}>{toDna(tx.amount)}</Box>
         </Flex>
         <Flex justify={['space-between', 'flex-start']}>
           <Box display={['block', 'none']}>
@@ -745,7 +749,9 @@ function RowStatus({direction, isMining, type, walletName, tx, ...props}) {
 
 export function WalletTransactions({address}) {
   const LIMIT = 10
-  const {t} = useTranslation()
+  const {t, i18n} = useTranslation()
+
+  const toNumber = toLocaleNumber(i18n.language, {maximumFractionDigits: 4})
 
   const fetchTxs = ({pageParam = null}) =>
     getTxs(address, LIMIT, pageParam).then(result => {
@@ -867,7 +873,9 @@ export function WalletTransactions({address}) {
                     >
                       <Box color={tx.signAmount < 0 ? 'red.500' : 'gray.500'}>
                         {(tx.type === 'kill' && t('See in Explorer...')) ||
-                          (tx.amount === '0' ? '\u2013' : tx.signAmount)}
+                          (tx.amount === '0'
+                            ? '\u2013'
+                            : toNumber(tx.signAmount))}
                       </Box>
                     </TransactionsTd>
 
@@ -876,7 +884,7 @@ export function WalletTransactions({address}) {
                       textAlign="right"
                     >
                       {(!tx.isMining &&
-                        (tx.fee === '0' ? '\u2013' : tx.fee)) || (
+                        (tx.fee === '0' ? '\u2013' : toNumber(tx.fee))) || (
                         <div>
                           <div> {tx.maxFee} </div>
                           <TableHint>{t('Fee limit')}</TableHint>
@@ -1116,9 +1124,9 @@ function TransactionMenu({tx}) {
 }
 
 function TransactionDetailDrawer({tx, direction, onClose, ...props}) {
-  const {t} = useTranslation()
+  const {t, i18n} = useTranslation()
 
-  const dna = toLocaleDna(undefined, {maximumFractionDigits: 4})
+  const dna = toLocaleDna(i18n.language, {maximumFractionDigits: 4})
 
   const [, {sendVote, deleteVote}] = useDeferredVotes()
 
@@ -1211,8 +1219,8 @@ function TransactionDetailDrawer({tx, direction, onClose, ...props}) {
             <TransactionRow
               title={t('Fee')}
               value={
-                (!tx.isMining && (tx.fee === '0' ? '\u2013' : tx.fee)) ||
-                tx.maxFee ||
+                (!tx.isMining && (tx.fee === '0' ? '\u2013' : dna(tx.fee))) ||
+                (tx.maxFee && dna(tx.maxFee)) ||
                 'n/a'
               }
             />

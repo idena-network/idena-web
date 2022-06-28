@@ -32,7 +32,7 @@ export default function EditAdPage() {
   const previewDisclosure = useDisclosure()
 
   return (
-    <Layout>
+    <Layout showHamburger={false}>
       <Page px={0} py={0} overflow="hidden">
         <Box flex={1} w="full" px={20} py={6} overflowY="auto">
           <PageHeader>

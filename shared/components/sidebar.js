@@ -32,8 +32,8 @@ import {rem} from '../theme'
 import {pluralize} from '../utils/string'
 import {parsePersistedValidationState} from '../../screens/validation/utils'
 import {useAuthDispatch} from '../providers/auth-context'
-import {apiKeyStates, useSettingsState} from '../providers/settings-context'
-import {TextLink, Tooltip} from './components'
+import {ApiKeyStates, useSettingsState} from '../providers/settings-context'
+import {ApiStatus, TextLink, Tooltip} from './components'
 import {EpochPeriod, IdentityStatus, OnboardingStep} from '../types'
 import {useIdentity} from '../providers/identity-context'
 import {useEpoch} from '../providers/epoch-context'
@@ -80,7 +80,7 @@ function Sidebar({isOpen, onClose}) {
       height="100vh"
       overflowY="auto"
       width={['100%', 200]}
-      px={[10, 4]}
+      px={4}
       py={[4, 2]}
       zIndex={[8, 2]}
       position={['fixed', 'relative']}
@@ -88,126 +88,18 @@ function Sidebar({isOpen, onClose}) {
       display={[isOpen ? 'flex' : 'none', 'flex']}
     >
       <Flex justifyContent="space-between" alignItems="center">
-        <ApiStatus />
+        <ApiStatus position="relative" />
         <CloseButton
           onClick={onClose}
           boxSize={4}
           visibility={['visible', 'hidden']}
         />
       </Flex>
-
-      <Logo />
-      <Nav onClose={onClose} />
-      <ActionPanel onClose={onClose} />
-    </Flex>
-  )
-}
-
-const StatusLabel = {
-  None: 0,
-  Online: 1,
-  Restricted: 2,
-  Offline: 3,
-}
-
-function ApiStatus() {
-  const settings = useSettingsState()
-  const {t} = useTranslation()
-  const epoch = useEpoch()
-  const [{state: identityState}] = useIdentity()
-
-  let bg = 'xwhite.010'
-  let color = 'gray.300'
-  let text = t('Loading...')
-  let status = StatusLabel.None
-
-  const undefinedOrInvite = [
-    IdentityStatus.Undefined,
-    IdentityStatus.Invite,
-  ].includes(identityState)
-
-  if (settings.apiKeyState === apiKeyStates.OFFLINE) {
-    bg = 'red.020'
-    color = 'red.500'
-    text = t('Offline')
-    status = StatusLabel.Offline
-  } else if (
-    settings.apiKeyState === apiKeyStates.RESTRICTED &&
-    !undefinedOrInvite
-  ) {
-    bg = 'warning.020'
-    color = 'warning.500'
-    text = t('Restricted')
-    status = StatusLabel.Restricted
-  } else if (
-    settings.apiKeyState === apiKeyStates.ONLINE ||
-    settings.apiKeyState === apiKeyStates.EXTERNAL ||
-    (settings.apiKeyState === apiKeyStates.RESTRICTED && undefinedOrInvite)
-  ) {
-    bg = 'green.020'
-    color = 'green.500'
-    text = t('Online')
-    status = StatusLabel.Online
-  }
-
-  const restrictedOrOnline = [
-    StatusLabel.Restricted,
-    StatusLabel.Online,
-  ].includes(status)
-
-  return (
-    <Flex>
-      <Tooltip
-        label={
-          status === StatusLabel.Restricted
-            ? t(
-                'You cannot use the shared node for the upcoming validation ceremony.'
-              )
-            : t(
-                'Access to the shared node will be expired after the validation ceremony {{date}}',
-                {
-                  date: epoch
-                    ? new Date(epoch.nextValidation).toLocaleString()
-                    : '',
-                }
-              )
-        }
-        placement="right"
-        zIndex="tooltip"
-        bg="graphite.500"
-        width={200}
-        isDisabled={!restrictedOrOnline || undefinedOrInvite}
-      >
-        <Flex
-          bg={bg}
-          borderRadius="xl"
-          px={3}
-          py={[1, 1 / 2]}
-          fontSize={[16, 13]}
-        >
-          {status === StatusLabel.Restricted ? (
-            <Flex align="baseline">
-              <TextLink
-                href="/node/restricted"
-                color={color}
-                fontWeight={500}
-                lineHeight={rem(18)}
-                _hover={{
-                  textDecoration: 'none',
-                }}
-              >
-                {text}
-              </TextLink>
-            </Flex>
-          ) : (
-            <Flex align="baseline">
-              <Text color={color} fontWeight={500} lineHeight={rem(18)}>
-                {text}
-              </Text>
-            </Flex>
-          )}
-        </Flex>
-      </Tooltip>
+      <Flex direction="column" px={[6, 0]}>
+        <Logo />
+        <Nav onClose={onClose} />
+        <ActionPanel onClose={onClose} />
+      </Flex>
     </Flex>
   )
 }
@@ -254,6 +146,7 @@ function Nav({onClose}) {
         ></NavItem>
         <NavItem
           href="/flips/list"
+          baseHref="/flips"
           icon={<GalleryIcon boxSize={[8, 5]} />}
           text={t('Flips')}
         ></NavItem>
@@ -264,6 +157,7 @@ function Nav({onClose}) {
         ></NavItem>
         <NavItem
           href="/oracles/list"
+          baseHref="/oracles"
           icon={<OracleIcon boxSize={[8, 5]} />}
           text={t('Oracle voting')}
           badge={
@@ -276,6 +170,7 @@ function Nav({onClose}) {
         />
         <NavItem
           href="/adn/list"
+          baseHref="/adn"
           icon={<AdsIcon boxSize={[8, 5]} />}
           text={t('Ads')}
         />
@@ -299,9 +194,9 @@ function Nav({onClose}) {
 }
 
 // eslint-disable-next-line react/prop-types
-function NavItem({href, icon, text, onClick, badge}) {
+function NavItem({href, baseHref, icon, text, onClick, badge}) {
   const router = useRouter()
-  const active = router.pathname === href
+  const active = href && router.pathname.startsWith(baseHref || href)
   return (
     <ListItem>
       <NextLink href={href}>

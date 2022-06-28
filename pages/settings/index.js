@@ -95,21 +95,7 @@ function Settings() {
   }
 
   return (
-    <SettingsLayout>
-      <Box display={['block', 'none']}>
-        <AngleArrowBackIcon
-          stroke="#578FFF"
-          position="absolute"
-          left={4}
-          top={4}
-          h="28px"
-          w="28px"
-          onClick={() => {
-            router.push('/')
-          }}
-        />
-        <PageTitleNew mt={-2}>{t('Settings')}</PageTitleNew>
-      </Box>
+    <SettingsLayout title={t('Settings')}>
       <Language display={['none', 'block']} />
       <ExportPK
         display={['none', 'block']}

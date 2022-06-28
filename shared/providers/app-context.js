@@ -15,7 +15,7 @@ import {isVercelProduction, ntp, openExternalUrl} from '../utils/utils'
 import {Toast} from '../components/components'
 import {useEpoch} from './epoch-context'
 import {
-  apiKeyStates,
+  ApiKeyStates,
   useSettings,
   useSettingsDispatch,
   useSettingsState,
@@ -169,9 +169,9 @@ export function AppProvider({tabId, ...props}) {
       )
       if (
         !isManualRemoteNode &&
-        (apiKeyState === apiKeyStates.NONE ||
-          apiKeyState === apiKeyStates.OFFLINE ||
-          apiKeyState === apiKeyStates.RESTRICTED)
+        (apiKeyState === ApiKeyStates.NONE ||
+          apiKeyState === ApiKeyStates.OFFLINE ||
+          apiKeyState === ApiKeyStates.RESTRICTED)
       ) {
         saveConnection(savedKey.url, savedKey.key, false)
       }

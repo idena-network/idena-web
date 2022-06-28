@@ -11,12 +11,11 @@ import {
   Stack,
   useBreakpointValue,
 } from '@chakra-ui/react'
-import {useRouter} from 'next/router'
 import SettingsLayout from './layout'
 import {
   useSettingsState,
   useSettingsDispatch,
-  apiKeyStates,
+  ApiKeyStates,
 } from '../../shared/providers/settings-context'
 import {useNotificationDispatch} from '../../shared/providers/notification-context'
 import {
@@ -27,14 +26,9 @@ import {
 import {PrimaryButton} from '../../shared/components/button'
 import {checkKey, getProvider} from '../../shared/api'
 import {Link} from '../../shared/components'
-import {
-  AngleArrowBackIcon,
-  ChevronDownIcon,
-} from '../../shared/components/icons'
-import {PageTitleNew} from '../../screens/app/components'
+import {ChevronDownIcon} from '../../shared/components/icons'
 
 function Settings() {
-  const router = useRouter()
   const {t} = useTranslation()
   const {addNotification} = useNotificationDispatch()
   const settingsState = useSettingsState()
@@ -70,32 +64,18 @@ function Settings() {
       } catch (e) {}
     }
 
-    if (settingsState.apiKeyState === apiKeyStates.OFFLINE) check()
+    if (settingsState.apiKeyState === ApiKeyStates.OFFLINE) check()
   }, [settingsState.apiKeyState, settingsState.url, settingsState.apiKey])
 
   return (
-    <SettingsLayout>
-      <Box display={['block', 'none']}>
-        <AngleArrowBackIcon
-          stroke="#578FFF"
-          position="absolute"
-          left={4}
-          top={4}
-          h="28px"
-          w="28px"
-          onClick={() => {
-            router.push('/settings')
-          }}
-        />
-        <PageTitleNew mt={-2}>{t('Node')}</PageTitleNew>
-      </Box>
+    <SettingsLayout title={t('Node')}>
       <Stack
         spacing={5}
         mt={[3, 8]}
         width={['100%', '480px']}
         position="relative"
       >
-        {settingsState.apiKeyState === apiKeyStates.RESTRICTED && (
+        {settingsState.apiKeyState === ApiKeyStates.RESTRICTED && (
           <Alert
             status="error"
             bg="red.010"
@@ -112,7 +92,7 @@ function Settings() {
             )}
           </Alert>
         )}
-        {settingsState.apiKeyState === apiKeyStates.OFFLINE &&
+        {settingsState.apiKeyState === ApiKeyStates.OFFLINE &&
           !!settingsState.url &&
           !!settingsState.apiKey && (
             <Alert
@@ -219,7 +199,7 @@ function Settings() {
           />
         </FormControl>
 
-        {settingsState.apiKeyState === apiKeyStates.ONLINE && (
+        {settingsState.apiKeyState === ApiKeyStates.ONLINE && (
           <Alert
             status="warning"
             bg="warning.020"
