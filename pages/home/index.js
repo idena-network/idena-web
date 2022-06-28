@@ -245,7 +245,7 @@ export default function HomePage() {
       )}
 
       <Page pt="10" position="relative">
-        <MobileApiStatus top={4} left={4} />
+        <MobileApiStatus top={idenaBotConnected ? 4 : 5 / 2} left={4} />
         <Stack
           w={['100%', '480px']}
           direction={['column', 'row']}
