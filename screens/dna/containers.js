@@ -370,23 +370,20 @@ export function DnaRawDialog({
 
   const {privateKey} = useAuthState()
 
-  const parsedTx = React.useMemo(() => {
-    if (tx) {
-      const {
-        amount: txAmount,
-        maxFee: txMaxFee,
-        ...restTx
-      } = new Transaction().fromHex(tx)
-      return {
-        amount: +txAmount / 10 ** 18,
-        maxFee: txMaxFee / 10 ** 18,
-        ...restTx,
-      }
-    }
-    return {type: null, amount: null, to: null, maxFee: null}
-  }, [tx])
+  const parsedTx = React.useMemo(
+    () =>
+      tx
+        ? new Transaction().fromHex(tx)
+        : {type: null, amount: null, to: null, maxFee: null},
+    [tx]
+  )
 
-  const {type, amount, to, maxFee} = parsedTx
+  const toDna = num => +num / 10 ** 18
+
+  const {type, to, amount: parsedAmount, maxFee: parsedMaxFee} = parsedTx
+
+  const amount = toDna(parsedAmount)
+  const maxFee = toDna(parsedMaxFee)
 
   const [confirmationAmount, setConfirmationAmount] = React.useState()
 
