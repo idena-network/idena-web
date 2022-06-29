@@ -1,5 +1,5 @@
 import {
-  apiKeyStates,
+  ApiKeyStates,
   useSettingsDispatch,
   useSettingsState,
 } from '../providers/settings-context'
@@ -15,9 +15,9 @@ export default function useApikeyPurchasing() {
   return {
     isPurchasing: !!apiKeyId,
     needToPurchase: [
-      apiKeyStates.NONE,
-      apiKeyStates.OFFLINE,
-      apiKeyStates.RESTRICTED,
+      ApiKeyStates.NONE,
+      ApiKeyStates.OFFLINE,
+      ApiKeyStates.RESTRICTED,
     ].includes(apiKeyState),
     savePurchase: addPurchase,
     setRestrictedKey,

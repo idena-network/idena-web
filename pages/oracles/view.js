@@ -224,7 +224,7 @@ export default function ViewVotingPage() {
 
   return (
     <>
-      <Layout>
+      <Layout showHamburger={false}>
         <Page pt={8}>
           <Stack spacing={10}>
             <VotingSkeleton isLoaded={isLoaded} h={6}>

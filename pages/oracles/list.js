@@ -11,7 +11,7 @@ import {
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
-import {Toast} from '../../shared/components/components'
+import {MobileApiStatus, Toast} from '../../shared/components/components'
 import {votingListMachine} from '../../screens/oracles/machines'
 import {
   VotingCardSkeleton,
@@ -37,7 +37,7 @@ import {
 } from '../../screens/oracles/utils'
 import Layout from '../../shared/components/layout'
 import {IdentityStatus} from '../../shared/types'
-import {Page, PageTitle} from '../../screens/app/components'
+import {Page, PageTitleNew} from '../../screens/app/components'
 import IconLink from '../../shared/components/icon-link'
 import {PlusSolidIcon, UserIcon} from '../../shared/components/icons'
 import {useAuthState} from '../../shared/providers/auth-context'
@@ -86,8 +86,9 @@ export default function VotingListPage() {
 
   return (
     <Layout>
-      <Page ref={pageRef}>
-        <PageTitle mb={4}>{t('Oracle voting')}</PageTitle>
+      <Page ref={pageRef} pt={[4, 6]}>
+        <MobileApiStatus left={4} />
+        <PageTitleNew mb={4}>{t('Oracle voting')}</PageTitleNew>
         <Stack isInline spacing={20} w="full" flex={1}>
           <Stack spacing={8}>
             <VotingSkeleton isLoaded={!current.matches('preload')}>

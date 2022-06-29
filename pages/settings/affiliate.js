@@ -20,19 +20,14 @@ import {
   Input,
   ExternalLink,
 } from '../../shared/components/components'
-import {
-  AngleArrowBackIcon,
-  OpenExplorerIcon,
-} from '../../shared/components/icons'
+import {OpenExplorerIcon} from '../../shared/components/icons'
 import {FlatButton} from '../../shared/components/button'
-import {PageTitleNew} from '../../screens/app/components'
 import {useIsDesktop} from '../../shared/utils/utils'
 import {WideLink} from '../../screens/home/components'
 import {useAuthState} from '../../shared/providers/auth-context'
 
 export default function Affiliate() {
   const {t} = useTranslation()
-  const router = useRouter()
   const {coinbase} = useAuthState()
 
   const refLink = `app.idena.io?ref=${coinbase}`
@@ -44,22 +39,7 @@ export default function Affiliate() {
   ])
 
   return (
-    <SettingsLayout>
-      <AngleArrowBackIcon
-        stroke="#578FFF"
-        display={['block', 'none']}
-        position="absolute"
-        left={4}
-        top={4}
-        h="28px"
-        w="28px"
-        onClick={() => {
-          router.push('/settings')
-        }}
-      />
-      <PageTitleNew mt={-2} display={['block', 'none']}>
-        {t('Affilate program')}
-      </PageTitleNew>
+    <SettingsLayout title={t('Affilate program')}>
       <Flex direction="column" mt={10} w={['100%', '480px']}>
         <SubHeading fontSize={['20px', 'lg']} mb={4}>
           {t('Idena affiliate program')}

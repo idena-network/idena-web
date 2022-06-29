@@ -49,7 +49,7 @@ import {useFailToast} from '../../shared/hooks/use-toast'
 import {Transaction} from '../../shared/models/transaction'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {
-  apiKeyStates,
+  ApiKeyStates,
   useSettingsDispatch,
   useSettingsState,
 } from '../../shared/providers/settings-context'
@@ -220,8 +220,8 @@ export default function Offline() {
 
   useEffect(() => {
     if (
-      apiKeyState === apiKeyStates.ONLINE ||
-      apiKeyState === apiKeyStates.EXTERNAL
+      apiKeyState === ApiKeyStates.ONLINE ||
+      apiKeyState === ApiKeyStates.EXTERNAL
     )
       router.push('/home')
   }, [apiKeyState, router])

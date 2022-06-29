@@ -11,7 +11,7 @@ import {
   LoadingAdList,
 } from '../../screens/ads/components'
 import Layout from '../../shared/components/layout'
-import {Page, PageTitle} from '../../screens/app/components'
+import {Page, PageTitleNew} from '../../screens/app/components'
 import {
   BlockAdStat,
   AdListItem,
@@ -35,6 +35,7 @@ import {
   DrawerBody,
   FilterButton,
   FilterButtonList,
+  MobileApiStatus,
   Skeleton,
   VDivider,
 } from '../../shared/components/components'
@@ -221,8 +222,9 @@ export default function AdListPage() {
 
   return (
     <Layout>
-      <Page>
-        <PageTitle>{t('My Ads')}</PageTitle>
+      <Page pt={[4, 6]}>
+        <MobileApiStatus left={4} />
+        <PageTitleNew>{t('My Ads')}</PageTitleNew>
 
         <HStack spacing={20} pb="2" pt="1">
           <BlockAdStat label="My balance" w="2xs">

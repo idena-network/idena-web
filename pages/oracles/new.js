@@ -135,7 +135,7 @@ function NewVotingPage() {
   const dna = toLocaleDna(i18n)
 
   return (
-    <Layout>
+    <Layout showHamburger={false}>
       <Page px={0} py={0}>
         <Box px={20} py={6} w="full" overflowY="auto">
           <Flex justify="space-between" align="center">

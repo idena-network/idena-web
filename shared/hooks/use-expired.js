@@ -3,7 +3,7 @@ import {useRouter} from 'next/router'
 import {useEffect, useState} from 'react'
 import {useEpoch} from '../providers/epoch-context'
 import {useIdentity} from '../providers/identity-context'
-import {apiKeyStates, useSettings} from '../providers/settings-context'
+import {ApiKeyStates, useSettings} from '../providers/settings-context'
 import {IdentityStatus} from '../types'
 import {loadPersistentState, persistState} from '../utils/persist'
 import {useInterval} from './use-interval'
@@ -40,7 +40,7 @@ export function useExpired() {
 
   const epoch = epochState?.epoch
 
-  const isRestrictedAccess = apiKeyState === apiKeyStates.RESTRICTED
+  const isRestrictedAccess = apiKeyState === ApiKeyStates.RESTRICTED
 
   const isRedirectAllowed = ![
     '/node/restricted',

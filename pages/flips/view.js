@@ -89,7 +89,7 @@ export default function ViewFlipPage() {
   if (!id) return null
 
   return (
-    <Layout>
+    <Layout showHamburger={false}>
       <Page px={0} py={0}>
         <Flex
           direction="column"

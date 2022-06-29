@@ -32,7 +32,7 @@ import {useAppContext} from '../../shared/providers/app-context'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {
-  apiKeyStates,
+  ApiKeyStates,
   useSettings,
   useSettingsDispatch,
 } from '../../shared/providers/settings-context'
@@ -152,8 +152,8 @@ export default function Restricted() {
 
   useEffect(() => {
     if (
-      apiKeyState === apiKeyStates.ONLINE ||
-      apiKeyState === apiKeyStates.EXTERNAL
+      apiKeyState === ApiKeyStates.ONLINE ||
+      apiKeyState === ApiKeyStates.EXTERNAL
     )
       router.push('/home')
   }, [apiKeyState, router])

@@ -15,7 +15,7 @@ import {
   Button,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
-import {Page, PageTitle} from '../../screens/app/components'
+import {Page, PageTitleNew} from '../../screens/app/components'
 import {
   FlipCardTitle,
   FlipCardSubtitle,
@@ -56,6 +56,7 @@ import {
   RewardIcon,
 } from '../../shared/components/icons'
 import IconLink from '../../shared/components/icon-link'
+import {MobileApiStatus} from '../../shared/components/components'
 
 export default function FlipListPage() {
   const {t} = useTranslation()
@@ -154,8 +155,9 @@ export default function FlipListPage() {
 
   return (
     <Layout>
-      <Page>
-        <PageTitle>{t('My Flips')}</PageTitle>
+      <Page pt={[4, 6]}>
+        <MobileApiStatus display={['initial', 'none']} left={4} />
+        <PageTitleNew>{t('My Flips')}</PageTitleNew>
         <Flex justify="space-between" align="center" alignSelf="stretch" mb={8}>
           <Stack spacing={2} isInline>
             <Button

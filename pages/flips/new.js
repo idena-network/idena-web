@@ -151,7 +151,7 @@ export default function NewFlipPage() {
   })
 
   return (
-    <Layout>
+    <Layout showHamburger={false}>
       <Page px={0} py={0}>
         <Flex
           direction="column"

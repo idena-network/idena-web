@@ -27,7 +27,7 @@ const SET_LANGUAGE = 'SET_LANGUAGE'
 const RESTRICTED_NODE_URL = process.env.NEXT_PUBLIC_RESTRICTED_NODE_URL
 const RESTRICTED_NODE_KEY = process.env.NEXT_PUBLIC_RESTRICTED_NODE_KEY
 
-export const apiKeyStates = {
+export const ApiKeyStates = {
   NONE: 0,
   OFFLINE: 1,
   ONLINE: 2,
@@ -66,7 +66,7 @@ function settingsReducer(state, action) {
       delete s.apiKeyId
       return {
         ...s,
-        apiKeyState: apiKeyStates.RESTRICTED,
+        apiKeyState: ApiKeyStates.RESTRICTED,
         url: RESTRICTED_NODE_URL,
         apiKey: RESTRICTED_NODE_KEY,
       }
@@ -101,7 +101,7 @@ function settingsReducer(state, action) {
           ...state.apiKeyData,
           ...action.data,
         },
-        apiKeyState: apiKeyStates.ONLINE,
+        apiKeyState: ApiKeyStates.ONLINE,
         url: action.data.url || state.url,
         apiKeyId: null,
       }
@@ -181,7 +181,7 @@ function SettingsProvider({children}) {
         if (isRestrictedAccess(state.url, state.apiKey)) {
           return dispatch({
             type: SET_API_KEY_STATE,
-            data: {apiKeyState: apiKeyStates.RESTRICTED},
+            data: {apiKeyState: ApiKeyStates.RESTRICTED},
           })
         }
 
@@ -189,7 +189,7 @@ function SettingsProvider({children}) {
         if (state.isManualRemoteNode) {
           return dispatch({
             type: SET_API_KEY_STATE,
-            data: {apiKeyState: apiKeyStates.EXTERNAL},
+            data: {apiKeyState: ApiKeyStates.EXTERNAL},
           })
         }
 
@@ -198,7 +198,7 @@ function SettingsProvider({children}) {
           if (await softCheckIsSyncing()) {
             return dispatch({
               type: SET_API_KEY_STATE,
-              data: {apiKeyState: apiKeyStates.OFFLINE},
+              data: {apiKeyState: ApiKeyStates.OFFLINE},
             })
           }
 
@@ -208,26 +208,26 @@ function SettingsProvider({children}) {
             dispatch({
               type: SET_API_KEY_STATE,
               data: {
-                apiKeyState: apiKeyStates.RESTRICTED,
+                apiKeyState: ApiKeyStates.RESTRICTED,
                 apiKeyData: result,
               },
             })
           } else {
             dispatch({
               type: SET_API_KEY_STATE,
-              data: {apiKeyState: apiKeyStates.ONLINE, apiKeyData: result},
+              data: {apiKeyState: ApiKeyStates.ONLINE, apiKeyData: result},
             })
           }
         } else {
           dispatch({
             type: SET_API_KEY_STATE,
-            data: {apiKeyState: apiKeyStates.EXTERNAL},
+            data: {apiKeyState: ApiKeyStates.EXTERNAL},
           })
         }
       } catch (e) {
         dispatch({
           type: SET_API_KEY_STATE,
-          data: {apiKeyState: apiKeyStates.OFFLINE},
+          data: {apiKeyState: ApiKeyStates.OFFLINE},
         })
       }
     }
@@ -236,8 +236,8 @@ function SettingsProvider({children}) {
         type: SET_API_KEY_STATE,
         data: {
           apiKeyState: isRestrictedAccess()
-            ? apiKeyStates.RESTRICTED
-            : apiKeyStates.ONLINE,
+            ? ApiKeyStates.RESTRICTED
+            : ApiKeyStates.ONLINE,
         },
       })
     } else if (state.url && state.apiKey) {
@@ -245,7 +245,7 @@ function SettingsProvider({children}) {
     } else {
       dispatch({
         type: SET_API_KEY_STATE,
-        data: {apiKeyState: apiKeyStates.OFFLINE},
+        data: {apiKeyState: ApiKeyStates.OFFLINE},
       })
     }
   }, [

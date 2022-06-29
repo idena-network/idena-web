@@ -140,7 +140,7 @@ export default function EditFlipPage() {
   })
 
   return (
-    <Layout>
+    <Layout showHamburger={false}>
       <Page px={0} py={0}>
         <Flex
           direction="column"
