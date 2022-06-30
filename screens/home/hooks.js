@@ -11,6 +11,7 @@ import {
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
 import {useBalance} from '../../shared/hooks/use-balance'
 import {usePersistence} from '../../shared/hooks/use-persistent-state'
+import useSyncing from '../../shared/hooks/use-syncing'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import useTx from '../../shared/hooks/use-tx'
 import {Transaction} from '../../shared/models/transaction'
@@ -29,6 +30,7 @@ import {
 import {loadPersistentState} from '../../shared/utils/persist'
 import {toPercent, validateInvitationCode} from '../../shared/utils/utils'
 import {apiUrl} from '../oracles/utils'
+import db from '../../shared/utils/db'
 
 export function useInviteActivation() {
   const failToast = useFailToast()
@@ -304,4 +306,39 @@ export function useStakingApy() {
       return (epy / epochDays) * 366
     }
   }, [epoch, prevEpochData, stake, stakingData, validationRewardsSummaryData])
+}
+
+export function useInviteScore() {
+  const {
+    data: {highestBlock},
+  } = useSyncing()
+
+  const epoch = useEpoch()
+
+  const [{canInvite}] = useIdentity()
+
+  const {data: pendingInvites} = useQuery({
+    queryKey: ['persistedInvites'],
+    queryFn: () => db.table('invites').toArray(),
+    select: data =>
+      data.filter(
+        ({activated, terminatedHash, deletedAt}) =>
+          !activated && !terminatedHash && !deletedAt
+      ),
+    notifyOnChangeProps: 'tracked',
+  })
+
+  return React.useMemo(() => {
+    const hasPendingInvites = canInvite || pendingInvites?.length > 0
+
+    if (epoch && highestBlock && hasPendingInvites) {
+      const endBlock =
+        highestBlock + dayjs(epoch?.nextValidation).diff(dayjs(), 'minute') * 3
+
+      const t =
+        (highestBlock - epoch?.startBlock) / (endBlock - epoch?.startBlock)
+
+      return Math.max(1 - t ** 4 * 0.5, 0)
+    }
+  }, [canInvite, epoch, highestBlock, pendingInvites])
 }
