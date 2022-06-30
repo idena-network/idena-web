@@ -361,12 +361,72 @@ export default function HomePage() {
                 </Button>
               </UserStatList>
 
-              {Boolean(state) && state !== IdentityStatus.Undefined && (
-                <UserStatList title={t('Stake')}>
-                  <Stack direction={['column', 'row']} spacing={['5', 0]}>
-                    <Stack spacing={['5', '3']} flex={1}>
-                      <Stack spacing="5px">
-                        <UserStat>
+              <Stack spacing="2">
+                {Boolean(state) && state !== IdentityStatus.Undefined && (
+                  <UserStatList title={t('Stake')}>
+                    <Stack direction={['column', 'row']} spacing={['5', 0]}>
+                      <Stack spacing={['5', '3']} flex={1}>
+                        <Stack spacing="5px">
+                          <UserStat>
+                            <Flex
+                              direction={['row', 'column']}
+                              justify={['space-between', 'flex-start']}
+                            >
+                              <UserStatLabel
+                                color={[null, 'muted']}
+                                fontSize={['mdx', 'md']}
+                                fontWeight={[400, 500]}
+                                lineHeight="4"
+                              >
+                                {t('Balance')}
+                              </UserStatLabel>
+                              <UserStatValue
+                                fontSize={['mdx', 'md']}
+                                lineHeight="4"
+                                mt={[null, '3px']}
+                              >
+                                {toDna(
+                                  state === IdentityStatus.Newbie
+                                    ? (stake - (replenishedStake ?? 0)) * 0.25
+                                    : stake
+                                )}
+                              </UserStatValue>
+                            </Flex>
+                          </UserStat>
+                          <Button
+                            display={['none', 'inline-flex']}
+                            variant="link"
+                            color="blue.500"
+                            fontWeight={500}
+                            lineHeight="4"
+                            w="fit-content"
+                            _hover={{
+                              background: 'transparent',
+                              textDecoration: 'underline',
+                            }}
+                            _focus={{
+                              outline: 'none',
+                            }}
+                            onClick={replenishStakeDisclosure.onOpen}
+                          >
+                            {t('Add stake')}
+                            <ChevronRightIcon boxSize="4" />
+                          </Button>
+                        </Stack>
+                        {stake > 0 && state === IdentityStatus.Newbie && (
+                          <AnnotatedUserStatistics
+                            annotation={t(
+                              'You need to get Verified status to get the locked funds into the normal wallet'
+                            )}
+                            label={t('Locked')}
+                            value={toDna(
+                              (stake - (replenishedStake ?? 0)) * 0.75
+                            )}
+                          />
+                        )}
+                      </Stack>
+                      <Stack spacing="5px" flex={1}>
+                        <UserStat flex={0}>
                           <Flex
                             direction={['row', 'column']}
                             justify={['space-between', 'flex-start']}
@@ -377,127 +437,69 @@ export default function HomePage() {
                               fontWeight={[400, 500]}
                               lineHeight="4"
                             >
-                              {t('Balance')}
+                              {t('APY')}
                             </UserStatLabel>
                             <UserStatValue
                               fontSize={['mdx', 'md']}
                               lineHeight="4"
                               mt={[null, '3px']}
                             >
-                              {toDna(
-                                state === IdentityStatus.Newbie
-                                  ? (stake - (replenishedStake ?? 0)) * 0.25
-                                  : stake
-                              )}
+                              {stakingApy > 0 ? toPercent(stakingApy) : '--'}
                             </UserStatValue>
                           </Flex>
                         </UserStat>
-                        <Button
-                          display={['none', 'inline-flex']}
-                          variant="link"
-                          color="blue.500"
-                          fontWeight={500}
-                          lineHeight="4"
-                          w="fit-content"
-                          _hover={{
-                            background: 'transparent',
-                            textDecoration: 'underline',
-                          }}
-                          _focus={{
-                            outline: 'none',
-                          }}
-                          onClick={replenishStakeDisclosure.onOpen}
-                        >
-                          {t('Add stake')}
-                          <ChevronRightIcon boxSize="4" />
-                        </Button>
-                      </Stack>
-                      {stake > 0 && state === IdentityStatus.Newbie && (
-                        <AnnotatedUserStatistics
-                          annotation={t(
-                            'You need to get Verified status to get the locked funds into the normal wallet'
-                          )}
-                          label={t('Locked')}
-                          value={toDna(
-                            (stake - (replenishedStake ?? 0)) * 0.75
-                          )}
-                        />
-                      )}
-                    </Stack>
-                    <Stack spacing="5px" flex={1}>
-                      <UserStat flex={0}>
-                        <Flex
-                          direction={['row', 'column']}
-                          justify={['space-between', 'flex-start']}
-                        >
-                          <UserStatLabel
-                            color={[null, 'muted']}
-                            fontSize={['mdx', 'md']}
-                            fontWeight={[400, 500]}
-                            lineHeight="4"
-                          >
-                            {t('APY')}
-                          </UserStatLabel>
-                          <UserStatValue
-                            fontSize={['mdx', 'md']}
-                            lineHeight="4"
-                            mt={[null, '3px']}
-                          >
-                            {stakingApy > 0 ? toPercent(stakingApy) : '--'}
-                          </UserStatValue>
-                        </Flex>
-                      </UserStat>
-                      <ExternalLink
-                        href={`https://idena.io/staking?amount=${Math.floor(
-                          state === IdentityStatus.Newbie
-                            ? (stake - (replenishedStake ?? 0)) * 0.25
-                            : stake
-                        )}`}
-                        display={['none', 'inline-flex']}
-                      >
-                        {t('Staking calculator')}
-                      </ExternalLink>
-                    </Stack>
-                  </Stack>
-
-                  <Stack display={['inline-flex', 'none']}>
-                    <Button
-                      onClick={replenishStakeDisclosure.onOpen}
-                      w="100%"
-                      h={10}
-                      fontSize="15px"
-                      variant="outline"
-                      color="blue.500"
-                      border="none"
-                      borderColor="transparent"
-                    >
-                      {t('Add stake')}
-                    </Button>
-
-                    <Button
-                      onClick={() => {
-                        openExternalUrl(
-                          `https://idena.io/staking?amount=${Math.floor(
+                        <ExternalLink
+                          href={`https://idena.io/staking?amount=${Math.floor(
                             state === IdentityStatus.Newbie
                               ? (stake - (replenishedStake ?? 0)) * 0.25
                               : stake
-                          )}`
-                        )
-                      }}
-                      w="100%"
-                      h={10}
-                      fontSize="15px"
-                      variant="outline"
-                      color="blue.500"
-                      border="none"
-                      borderColor="transparent"
-                    >
-                      {t('Staking calculator')}
-                    </Button>
-                  </Stack>
-                </UserStatList>
-              )}
-              <StakingAlert mt="2" />
+                          )}`}
+                          display={['none', 'inline-flex']}
+                        >
+                          {t('Staking calculator')}
+                        </ExternalLink>
+                      </Stack>
+                    </Stack>
+
+                    <Stack display={['inline-flex', 'none']}>
+                      <Button
+                        onClick={replenishStakeDisclosure.onOpen}
+                        w="100%"
+                        h={10}
+                        fontSize="15px"
+                        variant="outline"
+                        color="blue.500"
+                        border="none"
+                        borderColor="transparent"
+                      >
+                        {t('Add stake')}
+                      </Button>
+
+                      <Button
+                        onClick={() => {
+                          openExternalUrl(
+                            `https://idena.io/staking?amount=${Math.floor(
+                              state === IdentityStatus.Newbie
+                                ? (stake - (replenishedStake ?? 0)) * 0.25
+                                : stake
+                            )}`
+                          )
+                        }}
+                        w="100%"
+                        h={10}
+                        fontSize="15px"
+                        variant="outline"
+                        color="blue.500"
+                        border="none"
+                        borderColor="transparent"
+                      >
+                        {t('Staking calculator')}
+                      </Button>
+                    </Stack>
+                  </UserStatList>
+                )}
+                <StakingAlert />
+              </Stack>
             </Stack>
             {ads?.length > 0 && !isDesktop && (
               <Box display={['block', 'none']} mt="6">
@@ -507,11 +509,13 @@ export default function HomePage() {
           </Box>
 
           <Stack spacing={[0, 10]} flexShrink={0} w={['100%', 200]}>
-            {eitherOnboardingState(
-              onboardingShowingStep(OnboardingStep.ActivateMining)
-            ) && (
+            {address && privateKey && canMine && (
               <Box minH={62} mt={[1, 6]}>
-                <OnboardingPopover isOpen>
+                <OnboardingPopover
+                  isOpen={eitherOnboardingState(
+                    onboardingShowingStep(OnboardingStep.ActivateMining)
+                  )}
+                >
                   <PopoverTrigger>
                     <Box
                       bg="white"
@@ -527,16 +531,14 @@ export default function HomePage() {
                       m={[0, -2]}
                       zIndex={2}
                     >
-                      {address && privateKey && canMine && (
-                        <ActivateMiningForm
-                          privateKey={privateKey}
-                          isOnline={online}
-                          delegatee={delegatee}
-                          delegationEpoch={delegationEpoch}
-                          pendingUndelegation={pendingUndelegation}
-                          onShow={nextOnboardingTask}
-                        />
-                      )}
+                      <ActivateMiningForm
+                        privateKey={privateKey}
+                        isOnline={online}
+                        delegatee={delegatee}
+                        delegationEpoch={delegationEpoch}
+                        pendingUndelegation={pendingUndelegation}
+                        onShow={nextOnboardingTask}
+                      />
                     </Box>
                   </PopoverTrigger>
                   <OnboardingPopoverContent
