@@ -7,11 +7,15 @@ export class AdBurnKey {
   }
 
   static fromHex(hex) {
-    return new AdBurnKey(
-      root.ProtoAdBurnKey.deserializeBinary(
-        Buffer.from(stripHexPrefix(hex), 'hex')
-      ).toObject()
-    )
+    try {
+      return new AdBurnKey(
+        root.ProtoAdBurnKey.deserializeBinary(
+          Buffer.from(stripHexPrefix(hex), 'hex')
+        ).toObject()
+      )
+    } catch {
+      return new AdBurnKey({cid: null, target: null})
+    }
   }
 
   toHex() {
