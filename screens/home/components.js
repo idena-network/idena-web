@@ -77,10 +77,11 @@ import {
   PrimaryButton,
   SecondaryButton,
 } from '../../shared/components/button'
-import {IdentityStatus, NodeType} from '../../shared/types'
+import {IdentityStatus, NodeType, TxType} from '../../shared/types'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {
   callRpc,
+  dummyAddress,
   eitherState,
   mapIdentityToFriendlyStatus,
   openExternalUrl,
@@ -120,6 +121,13 @@ import {useBurntCoins, useFormatDna, useRotateAds} from '../ads/hooks'
 import {AdImage} from '../ads/components'
 import {useLanguage} from '../../shared/hooks/use-language'
 import {AdBurnKey} from '../../shared/models/adBurnKey'
+import {
+  generatePrivateKey,
+  privateKeyToAddress,
+  privateKeyToPublicKey,
+} from '../../shared/utils/crypto'
+import {getRawTx, sendRawTx} from '../../shared/api'
+import {Transaction} from '../../shared/models/transaction'
 
 export function UserInlineCard({
   identity: {address, state, age, penalty},
@@ -2175,5 +2183,86 @@ export function AdCarousel() {
         </SuccessAlert>
       </Box>
     </Stack>
+  )
+}
+
+export function SpoilInviteDrawer({onSuccess, onFail, ...props}) {
+  const {t} = useTranslation()
+
+  return (
+    <Drawer {...props}>
+      <DrawerHeader mb={0}>
+        <Center flexDirection="column">
+          <Avatar address={dummyAddress} />
+          <Heading
+            fontSize="lg"
+            fontWeight={500}
+            color="gray.500"
+            mt="4"
+            mb={0}
+          >
+            {t('Spoil invitation code')}
+          </Heading>
+        </Center>
+      </DrawerHeader>
+      <DrawerBody mt="6">
+        <Text fontSize="md" mb={6}>
+          {t(
+            `Spoil invitations that are shared publicly. This will encourage people to share invitations privately and prevent bots from collecting invitation codes.`
+          )}
+        </Text>
+        <Stack spacing="6">
+          <form
+            id="spoilInvite"
+            onSubmit={async e => {
+              e.preventDefault()
+
+              const code = new FormData(e.target).get('code').trim()
+
+              const randomPrivateKey = generatePrivateKey()
+
+              try {
+                const hash = await sendRawTx(
+                  new Transaction()
+                    .fromHex(
+                      await getRawTx(
+                        TxType.ActivationTx,
+                        privateKeyToAddress(code),
+                        privateKeyToAddress(randomPrivateKey),
+                        0,
+                        0,
+                        privateKeyToPublicKey(randomPrivateKey)
+                      )
+                    )
+                    .sign(code)
+                    .toHex(true)
+                )
+
+                // eslint-disable-next-line no-unused-expressions
+                onSuccess?.(hash)
+              } catch (error) {
+                // eslint-disable-next-line no-unused-expressions
+                onFail?.(error)
+              }
+            }}
+          >
+            <FormControl>
+              <FormLabel>{t('Invitation code')}</FormLabel>
+              <Input name="code" placeholder={t('Invitation code to spoil')} />
+            </FormControl>
+          </form>
+          <Text fontSize="md">
+            {t(
+              `When you click 'Spoil' the invitation code will be activated by a random address and wasted.`
+            )}
+          </Text>
+        </Stack>
+      </DrawerBody>
+      <DrawerFooter>
+        <PrimaryButton type="submit" form="spoilInvite">
+          {t('Spoil invite')}
+        </PrimaryButton>
+      </DrawerFooter>
+    </Drawer>
   )
 }
