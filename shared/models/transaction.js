@@ -28,7 +28,10 @@ export class Transaction {
     this.nonce = protoTxData.getNonce()
     this.epoch = protoTxData.getEpoch()
     this.type = protoTxData.getType()
-    this.to = toHexString(protoTxData.getTo(), true)
+    this.to =
+      protoTxData.getTo() && protoTxData.getTo()?.length > 0
+        ? toHexString(protoTxData.getTo(), true)
+        : null
     this.amount = new BN(protoTxData.getAmount())
     this.maxFee = new BN(protoTxData.getMaxfee())
     this.tips = new BN(protoTxData.getTips())
