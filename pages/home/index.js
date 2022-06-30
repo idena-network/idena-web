@@ -365,7 +365,7 @@ export default function HomePage() {
                 </Button>
               </UserStatList>
 
-              <Stack spacing="2">
+              <Stack spacing="2" w="full">
                 {Boolean(state) && state !== IdentityStatus.Undefined && (
                   <UserStatList title={t('Stake')}>
                     <Stack direction={['column', 'row']} spacing={['5', 0]}>
