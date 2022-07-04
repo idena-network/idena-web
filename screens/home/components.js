@@ -945,15 +945,17 @@ export function ActivateMiningDrawer({
                   )}
                 </ErrorAlert>
               ) : (
-                <ErrorAlert>
-                  <Text>
-                    {t(
-                      'You can lose your stake, all your mining and validation rewards if you delegate your mining status.'
-                    )}
-                  </Text>
-                  <Text>
-                    {t('You can disable delegation at the next epoch only.')}
-                  </Text>
+                <ErrorAlert alignItems="start" pb="3">
+                  <Stack>
+                    <Text>
+                      {t(
+                        'You can lose your stake, all your mining and validation rewards if you delegate your mining status.'
+                      )}
+                    </Text>
+                    <Text>
+                      {t('You can disable delegation at the next epoch only.')}
+                    </Text>
+                  </Stack>
                 </ErrorAlert>
               )}
             </Stack>

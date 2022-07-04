@@ -566,7 +566,7 @@ export function ErrorAlert({children, ...props}) {
       py={2}
       {...props}
     >
-      <InfoIcon color="red.500" boxSize={5} mr={3} />
+      <InfoIcon color="red.500" boxSize="5" mr={3} />
       {children}
     </Alert>
   )
