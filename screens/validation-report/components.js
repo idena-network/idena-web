@@ -7,6 +7,7 @@ import {
   CloseButton,
   Divider,
   Flex,
+  Heading,
   IconButton,
   Stack,
   Stat,
@@ -24,6 +25,7 @@ import {useRouter} from 'next/router'
 import React from 'react'
 import {useTranslation} from 'react-i18next'
 import {
+  Avatar,
   Dialog,
   DialogBody,
   DialogFooter,
@@ -39,7 +41,12 @@ import {
 } from '../../shared/components/icons'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {IdentityStatus} from '../../shared/types'
-import {openExternalUrl, toLocaleDna, toPercent} from '../../shared/utils/utils'
+import {
+  mapIdentityToFriendlyStatus,
+  openExternalUrl,
+  toLocaleDna,
+  toPercent,
+} from '../../shared/utils/utils'
 import {useValidationReportSummary} from './hooks'
 import {ValidationResult} from './types'
 
@@ -660,5 +667,45 @@ export function TableFlipReportsDesc({
     </TableDescText>
   ) : (
     <TableDescText>{t('Report all flips that break the rules')}</TableDescText>
+  )
+}
+
+export function UserCard({identity: {address, state}, ...props}) {
+  return (
+    <Stack
+      direction="row"
+      spacing={6}
+      align="center"
+      width={['full', '480px']}
+      wordBreak={['break-all', 'normal']}
+      {...props}
+    >
+      <Avatar
+        address={address}
+        size="80px"
+        bg={['gray.50', 'white']}
+        borderWidth={[0, 1]}
+        borderColor="gray.016"
+        borderRadius={['24px', 'lg']}
+      />
+      <Stack spacing={[0, '1.5']} w="full">
+        <Stack spacing={1}>
+          <Heading as="h2" fontSize="lg" fontWeight={500} lineHeight="short">
+            {mapIdentityToFriendlyStatus(state)}
+          </Heading>
+          <Heading
+            as="h3"
+            fontSize="mdx"
+            fontWeight="normal"
+            color="muted"
+            lineHeight="shorter"
+            w="full"
+            pr={[4, 0]}
+          >
+            {address}
+          </Heading>
+        </Stack>
+      </Stack>
+    </Stack>
   )
 }

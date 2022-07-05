@@ -16,7 +16,7 @@ import {useQuery, useQueryClient} from 'react-query'
 import {useRouter} from 'next/router'
 import {Page} from '../../screens/app/components'
 import {
-  UserInlineCard,
+  UserProfileCard,
   UserStatList,
   UserStatistics,
   ActivateMiningForm,
@@ -36,7 +36,6 @@ import {
   UserStatValue,
   ReplenishStakeDrawer,
   StakingAlert,
-  ProfileTagList,
   AdCarousel,
   SpoilInviteDrawer,
 } from '../../screens/home/components'
@@ -262,9 +261,10 @@ export default function HomePage() {
               align={['center', 'initial']}
               ref={activateInviteRef}
             >
-              <UserInlineCard identity={identity} h={['auto', 24]} mb={[8, 0]}>
-                <ProfileTagList />
-              </UserInlineCard>
+              <UserProfileCard
+                identity={identity}
+                my={[4, 0]}
+              ></UserProfileCard>
 
               {canActivateInvite && (
                 <Box w={['100%', 'initial']} pb={[8, 0]}>
