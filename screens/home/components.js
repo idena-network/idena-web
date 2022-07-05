@@ -145,6 +145,7 @@ export function UserInlineCard({
       align="center"
       width={['full', '480px']}
       wordBreak={['break-all', 'normal']}
+      mt={[4, 0]}
       {...props}
     >
       <Avatar
