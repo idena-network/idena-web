@@ -140,8 +140,8 @@ export function UserInlineCard({
 
   return (
     <Stack
-      direction={['column', 'row']}
-      spacing={[8, 6]}
+      direction="row"
+      spacing={6}
       align="center"
       width={['full', '480px']}
       wordBreak={['break-all', 'normal']}
@@ -149,17 +149,14 @@ export function UserInlineCard({
     >
       <Avatar
         address={address}
-        size={[
-          ['160px', '160px'],
-          ['88px', '80px'],
-        ]}
+        size="80px"
         bg={['gray.50', 'white']}
         borderWidth={[0, 1]}
         borderColor="gray.016"
-        borderRadius={['48px', 'lg']}
+        borderRadius={['24px', 'lg']}
       />
       <Stack spacing={[hasChildren ? '8' : 0, '1.5']} w="full">
-        <Stack spacing={1} align={['center', 'initial']}>
+        <Stack spacing={1}>
           <Heading as="h2" fontSize="lg" fontWeight={500} lineHeight="short">
             {mapIdentityToFriendlyStatus(state)}
           </Heading>
@@ -167,10 +164,10 @@ export function UserInlineCard({
             as="h3"
             fontSize="mdx"
             fontWeight="normal"
-            textAlign={['center', 'initial']}
             color="muted"
             lineHeight="shorter"
-            w={['48', 'full']}
+            w="full"
+            pr={[4, 0]}
           >
             {address}
           </Heading>
