@@ -5,7 +5,7 @@ import {useTranslation} from 'react-i18next'
 import {Page} from '../../screens/app/components'
 import {CertificateCard} from '../../screens/try/components'
 import {GetNextUTCValidationDate} from '../../screens/try/utils'
-import {Avatar} from '../../shared/components/components'
+import {Avatar, MobileApiStatus} from '../../shared/components/components'
 import Layout from '../../shared/components/layout'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {CertificateType} from '../../shared/types'
@@ -17,13 +17,14 @@ export default function Try() {
 
   return (
     <Layout>
-      <Page p={0}>
+      <Page pt={[4, 0]}>
+        <MobileApiStatus display={['initial', 'none']} left={4} />
         <Flex
           direction="column"
           flex={1}
           alignSelf="stretch"
-          px={[8, 0]}
           pb={[6, 10]}
+          pt={[2, 0]}
         >
           <Flex
             align="center"
@@ -56,6 +57,7 @@ export default function Try() {
               </Stack>
             </Stack>
             <CloseButton
+              display={['none', 'initial']}
               alignSelf="flex-start"
               onClick={() => {
                 router.push('/home')
