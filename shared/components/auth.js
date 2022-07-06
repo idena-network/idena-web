@@ -315,7 +315,7 @@ AuthLayout.Small = function({children}) {
 function DnaAppUrl({url, onOpenInApp}) {
   const {t} = useTranslation()
   return (
-    <HStack align="center" spacing={3} color="muted" px={2} py={1.5} mb={6}>
+    <HStack align="center" spacing={3} color="white" px={2} py={1.5} mb={6}>
       <LaptopIcon name="laptop" boxSize={5} />
       <Link href={url} onClick={onOpenInApp}>
         {t('Open in Idena app')}
