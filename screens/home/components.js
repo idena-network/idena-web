@@ -129,55 +129,49 @@ import {
 import {getRawTx, sendRawTx} from '../../shared/api'
 import {Transaction} from '../../shared/models/transaction'
 
-export function UserInlineCard({
-  identity: {address, state, age, penalty},
-  children,
-  ...props
-}) {
-  const score = useTotalValidationScore()
-
-  const hasChildren = age > 0 || penalty > 0 || Number.isFinite(score)
+export function UserProfileCard({identity: {address, state}, ...props}) {
+  const isDesktop = useIsDesktop()
 
   return (
-    <Stack
-      direction={['column', 'row']}
-      spacing={[8, 6]}
-      align="center"
-      width={['full', '480px']}
-      wordBreak={['break-all', 'normal']}
-      {...props}
-    >
-      <Avatar
-        address={address}
-        size={[
-          ['160px', '160px'],
-          ['88px', '80px'],
-        ]}
-        bg={['gray.50', 'white']}
-        borderWidth={[0, 1]}
-        borderColor="gray.016"
-        borderRadius={['48px', 'lg']}
-      />
-      <Stack spacing={[hasChildren ? '8' : 0, '1.5']} w="full">
-        <Stack spacing={1} align={['center', 'initial']}>
-          <Heading as="h2" fontSize="lg" fontWeight={500} lineHeight="short">
-            {mapIdentityToFriendlyStatus(state)}
-          </Heading>
-          <Heading
-            as="h3"
-            fontSize="mdx"
-            fontWeight="normal"
-            textAlign={['center', 'initial']}
-            color="muted"
-            lineHeight="shorter"
-            w={['48', 'full']}
-          >
-            {address}
-          </Heading>
+    <Box {...props}>
+      <Stack
+        direction="row"
+        spacing={6}
+        width={['full', '480px']}
+        wordBreak={['break-all', 'normal']}
+        h={['auto', 24]}
+        align="center"
+      >
+        <Avatar
+          address={address}
+          size="80px"
+          bg={['gray.50', 'white']}
+          borderWidth={[0, 1]}
+          borderColor="gray.016"
+          borderRadius={['24px', 'lg']}
+        />
+        <Stack spacing={3 / 2} w="full">
+          <Stack spacing={1}>
+            <Heading as="h2" fontSize="lg" fontWeight={500} lineHeight="short">
+              {mapIdentityToFriendlyStatus(state)}
+            </Heading>
+            <Heading
+              as="h3"
+              fontSize="mdx"
+              fontWeight="normal"
+              color="muted"
+              lineHeight="shorter"
+              w="full"
+              pr={[4, 0]}
+            >
+              {address}
+            </Heading>
+          </Stack>
+          {isDesktop && <ProfileTagList />}
         </Stack>
-        {children}
       </Stack>
-    </Stack>
+      {!isDesktop && <ProfileTagList />}
+    </Box>
   )
 }
 
@@ -1724,8 +1718,17 @@ export function ProfileTagList() {
 
   const [isMobile] = useMediaQuery('(max-width: 480px)')
 
+  const hasAnyTag =
+    age > 0 || penalty > 0 || Number.isFinite(score) || inviteScore > 0
+
   return (
-    <Wrap spacing={[0, '1']} direction={['column', 'row']} w={['full']}>
+    <Wrap
+      spacing={[0, '1']}
+      direction={['column', 'row']}
+      w={['full']}
+      mt={[hasAnyTag ? 4 : 0, 0]}
+      mb={[hasAnyTag ? 3 : 0, 0]}
+    >
       {age > 0 && (
         <WrapItem>
           <SimpleProfileTag label={t('Age')} value={age} />

@@ -16,13 +16,13 @@ import {
 import router from 'next/router'
 import {useTranslation} from 'react-i18next'
 import {Page, PageTitleNew} from '../screens/app/components'
-import {UserInlineCard} from '../screens/home/components'
 import {
   TableFlipReportsDesc,
   TableFlipsDesc,
   TableHiddenDescRow,
   TableInvitationsDesc,
   TableValidationDesc,
+  UserCard,
   ValidationReportBlockOverview,
   ValidationReportCategoryLabel,
   ValidationReportColumn,
@@ -151,7 +151,7 @@ export default function ValidationReport() {
             </Skeleton>
           </Box>
           <Box py={2} display={['none', 'block']}>
-            <UserInlineCard identity={{address, state}} />
+            <UserCard identity={{address, state}} />
           </Box>
           <Stack isInline={!isMobile} spacing={[4, 10]}>
             <ValidationReportBlockOverview>
