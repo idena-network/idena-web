@@ -41,6 +41,7 @@ import {useAuthState} from '../../shared/providers/auth-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {
+  ApiKeyStates,
   useSettings,
   useSettingsDispatch,
 } from '../../shared/providers/settings-context'
@@ -63,7 +64,7 @@ const steps = {
 }
 
 export default function Restricted() {
-  const [{apiKeyData, apiKey}] = useSettings()
+  const [{apiKeyState, apiKeyData, apiKey}] = useSettings()
   const {saveConnection} = useSettingsDispatch()
   const {coinbase, privateKey} = useAuthState()
   const [{state: identityState}] = useIdentity()
@@ -172,13 +173,13 @@ export default function Restricted() {
     checkSaved()
   }, [apiKey, coinbase, privateKey])
 
-  // useEffect(() => {
-  //   if (
-  //     apiKeyState === ApiKeyStates.ONLINE ||
-  //     apiKeyState === ApiKeyStates.EXTERNAL
-  //   )
-  //     router.push('/home')
-  // }, [apiKeyState, router])
+  useEffect(() => {
+    if (
+      apiKeyState === ApiKeyStates.ONLINE ||
+      apiKeyState === ApiKeyStates.EXTERNAL
+    )
+      router.push('/home')
+  }, [apiKeyState, router])
 
   useEffect(() => {
     if (identityState === IdentityStatus.Candidate) {
