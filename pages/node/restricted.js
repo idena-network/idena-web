@@ -8,12 +8,19 @@ import {
   Text,
   useBreakpointValue,
   useDisclosure,
+  Box,
 } from '@chakra-ui/react'
+import dayjs from 'dayjs'
 import {useRouter} from 'next/router'
 import React, {useEffect, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
-import {BuySharedNodeForm, ChooseItemRadio} from '../../screens/node/components'
+import {
+  BuySharedNodeForm,
+  ChooseItemRadio,
+  NotNowDialog,
+  ValidationCountdown,
+} from '../../screens/node/components'
 import {GetProviderPrice} from '../../screens/node/utils'
 import {
   checkSavedKey,
@@ -27,12 +34,13 @@ import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {Avatar, TextLink} from '../../shared/components/components'
 import Layout from '../../shared/components/layout'
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
+import {FORCE_SHOW_BEFORE_VALIDATION_MINUTES} from '../../shared/hooks/use-expired'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import {useAppContext} from '../../shared/providers/app-context'
 import {useAuthState} from '../../shared/providers/auth-context'
+import {useEpoch} from '../../shared/providers/epoch-context'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {
-  ApiKeyStates,
   useSettings,
   useSettingsDispatch,
 } from '../../shared/providers/settings-context'
@@ -51,25 +59,28 @@ const options = {
 const steps = {
   INITIAL: 0,
   CONNECT: 1,
+  VALIDATION: 2,
 }
 
 export default function Restricted() {
-  const [{apiKeyState, apiKeyData, apiKey}] = useSettings()
+  const [{apiKeyData, apiKey}] = useSettings()
   const {saveConnection} = useSettingsDispatch()
   const {coinbase, privateKey} = useAuthState()
   const [{state: identityState}] = useIdentity()
   const auth = useAuthState()
   const router = useRouter()
   const {t} = useTranslation()
+  const epochState = useEpoch()
 
   const [, {updateRestrictedNotNow}] = useAppContext()
 
   const [step, setStep] = useState(steps.INITIAL)
-
   const [state, setState] = useState(options.PROLONG)
   const [dontShow, setDontShow] = useState(false)
 
   const buySharedNodeDisclosure = useDisclosure()
+
+  const notNowDisclosure = useDisclosure()
 
   const [submitting, setSubmitting] = useState(false)
 
@@ -83,10 +94,11 @@ export default function Restricted() {
   const variantRadio = useBreakpointValue(['mobileDark', 'dark'])
   const variantSecondary = useBreakpointValue(['primaryFlat', 'secondary'])
 
-  const notNow = persist => {
-    if (persist) {
-      updateRestrictedNotNow(dontShow)
+  const notNow = forceDialog => {
+    if (dontShow || forceDialog) {
+      return notNowDisclosure.onOpen()
     }
+
     router.back()
   }
 
@@ -136,6 +148,16 @@ export default function Restricted() {
   )
 
   useEffect(() => {
+    if (
+      epochState &&
+      dayjs(epochState.nextValidation).diff(dayjs(), 'minute') <
+        FORCE_SHOW_BEFORE_VALIDATION_MINUTES
+    ) {
+      setStep(steps.VALIDATION)
+    }
+  }, [epochState])
+
+  useEffect(() => {
     async function checkSaved() {
       try {
         const signature = signMessage(hexToUint8Array(coinbase), privateKey)
@@ -150,13 +172,13 @@ export default function Restricted() {
     checkSaved()
   }, [apiKey, coinbase, privateKey])
 
-  useEffect(() => {
-    if (
-      apiKeyState === ApiKeyStates.ONLINE ||
-      apiKeyState === ApiKeyStates.EXTERNAL
-    )
-      router.push('/home')
-  }, [apiKeyState, router])
+  // useEffect(() => {
+  //   if (
+  //     apiKeyState === ApiKeyStates.ONLINE ||
+  //     apiKeyState === ApiKeyStates.EXTERNAL
+  //   )
+  //     router.push('/home')
+  // }, [apiKeyState, router])
 
   useEffect(() => {
     if (identityState === IdentityStatus.Candidate) {
@@ -223,7 +245,7 @@ export default function Restricted() {
             <Flex
               direction="column"
               mt={6}
-              bg="gray.500"
+              bg="xwhite.010"
               borderRadius="lg"
               px={[6, 10]}
               py={7}
@@ -240,13 +262,18 @@ export default function Restricted() {
                   <Flex mt={4}>
                     <Text fontSize="mdx" color="muted" textAlign="center">
                       {t(
-                        'You can use all functions of the app except validation. Please connect to a shared node if you want to participate in the upcoming validation using the web app. '
+                        'Restricted access does not allow you to participate in the upcoming validation. To get full access please connect to a shared node.'
                       )}
                     </Text>
                   </Flex>
                   <Flex justifyContent="center" mt={4}>
-                    <PrimaryButton onClick={() => setStep(steps.CONNECT)}>
-                      {t('Connect')}
+                    <PrimaryButton
+                      onClick={() => {
+                        setDontShow(false)
+                        setStep(steps.CONNECT)
+                      }}
+                    >
+                      {t('Get full access')}
                     </PrimaryButton>
                   </Flex>
                   <Flex
@@ -266,12 +293,41 @@ export default function Restricted() {
                       </Checkbox>
                     </Flex>
                     <Flex>
-                      <SecondaryButton onClick={() => notNow(true)}>
+                      <SecondaryButton onClick={() => notNow(false)}>
                         {t('Not now')}
                       </SecondaryButton>
                     </Flex>
                   </Flex>
                 </Flex>
+              )}
+              {step === steps.VALIDATION && (
+                <Stack spacing={4} mt={6} mb={4}>
+                  <Flex>
+                    <Text color="white" fontSize="lg">
+                      {t('Restricted access')}
+                    </Text>
+                  </Flex>
+
+                  <Text fontSize="mdx" color="muted">
+                    {t(
+                      'Restricted access does not allow you to participate in the upcoming validation. To get full access please connect to a shared node.'
+                    )}{' '}
+                    {t('Left before validation:')}
+                  </Text>
+                  <Box pt={4}>
+                    <ValidationCountdown />
+                  </Box>
+                  <Flex justifyContent="flex-end">
+                    <PrimaryButton
+                      onClick={() => {
+                        setDontShow(false)
+                        setStep(steps.CONNECT)
+                      }}
+                    >
+                      {t('Get full access')}
+                    </PrimaryButton>
+                  </Flex>
+                </Stack>
               )}
               {step === steps.CONNECT && (
                 <>
@@ -375,7 +431,7 @@ export default function Restricted() {
                         order={[2, 1]}
                         size={size}
                         w={['100%', 'auto']}
-                        onClick={() => notNow(false)}
+                        onClick={() => notNow(true)}
                         mr={[0, 2]}
                         mt={[2, 0]}
                       >
@@ -429,6 +485,13 @@ export default function Restricted() {
           to={provider.data.address}
         />
       )}
+      <NotNowDialog
+        {...notNowDisclosure}
+        onContinue={() => {
+          updateRestrictedNotNow(dontShow)
+          router.back()
+        }}
+      />
     </Layout>
   )
 }

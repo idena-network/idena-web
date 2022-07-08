@@ -10,6 +10,8 @@ import {useInterval} from './use-interval'
 
 const SHOW_RESTRICTED_INTERVAL_SEC = 60 * 15
 
+export const FORCE_SHOW_BEFORE_VALIDATION_MINUTES = 60
+
 export function useExpired() {
   const epochState = useEpoch()
   const [{state: identityState}] = useIdentity()
@@ -17,7 +19,7 @@ export function useExpired() {
   const router = useRouter()
 
   const [state, setState] = useState({
-    storage: {dontShow: false, epoch: -1, lastTime: null},
+    storage: {dontShow: false, epoch: -1, lastTime: null, forceEpoch: -1},
     init: false,
   })
 
@@ -48,14 +50,19 @@ export function useExpired() {
     '/try/validation',
     '/flips/new',
     '/flips/edit',
+    '/adn/new',
+    '/adn/edit',
+    '/oracles/new',
   ].includes(router.pathname)
 
   const needRedirect = !state.storage.dontShow || state.storage.epoch !== epoch
 
   useInterval(
     () => {
+      if (!state.storage) return
+
       if (
-        state.storage?.lastTime &&
+        state.storage.lastTime &&
         dayjs().diff(dayjs(state.storage.lastTime), 's') <
           SHOW_RESTRICTED_INTERVAL_SEC
       ) {
@@ -67,7 +74,7 @@ export function useExpired() {
         storage: {...prevState.storage, lastTime: dayjs().valueOf()},
       }))
 
-      router.push('/node/restricted')
+      return router.push('/node/restricted')
     },
     state.init &&
       epoch >= 0 &&
@@ -80,6 +87,31 @@ export function useExpired() {
     true
   )
 
+  useInterval(
+    () => {
+      if (!state.storage) return
+
+      if (
+        dayjs(epochState.nextValidation).diff(dayjs(), 'minute') <
+          FORCE_SHOW_BEFORE_VALIDATION_MINUTES &&
+        state.storage.forceEpoch !== epoch
+      ) {
+        setState(prevState => ({
+          ...prevState,
+          storage: {
+            ...prevState.storage,
+            lastTime: dayjs()
+              .subtract(1, 'day')
+              .valueOf(),
+            dontShow: false,
+            forceEpoch: epoch,
+          },
+        }))
+      }
+    },
+    epoch >= 0 ? 1000 : null
+  )
+
   const updateRestrictedNotNow = dontShow => {
     setState(prevState => ({
       ...prevState,
@@ -90,7 +122,13 @@ export function useExpired() {
   const resetRestrictedModal = () => {
     setState(prevState => ({
       ...prevState,
-      storage: {...prevState.storage, lastTime: dayjs().subtract(1, 'day')},
+      storage: {
+        ...prevState.storage,
+        lastTime: dayjs()
+          .subtract(1, 'day')
+          .valueOf(),
+        forceEpoch: null,
+      },
     }))
   }
 

@@ -10,12 +10,20 @@ import {
   Link,
   Alert,
   useBreakpointValue,
+  Text,
+  Button,
 } from '@chakra-ui/react'
-import {useState} from 'react'
+import {useMachine} from '@xstate/react'
+import dayjs from 'dayjs'
+import {useMemo, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {getRawTx, buyKey} from '../../shared/api'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {
+  Dialog,
+  DialogBody,
+  DialogFooter,
+  DialogHeader,
   DrawerBody,
   DrawerFooter,
   DrawerHeader,
@@ -26,9 +34,12 @@ import {SendOutIcon} from '../../shared/components/icons'
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
 import useRpc from '../../shared/hooks/use-rpc'
 import {useFailToast} from '../../shared/hooks/use-toast'
+import {createTimerMachine} from '../../shared/machines'
 import {Transaction} from '../../shared/models/transaction'
 import {useAuthState} from '../../shared/providers/auth-context'
+import {useEpoch} from '../../shared/providers/epoch-context'
 import {privateKeyToPublicKey} from '../../shared/utils/crypto'
+import {useIsDesktop} from '../../shared/utils/utils'
 import {AdDrawer} from '../ads/containers'
 
 export function BuySharedNodeForm({
@@ -327,5 +338,97 @@ export function KeyExpiredAlert({url, apiKey}) {
         </Flex>
       </Flex>
     </ErrorAlert>
+  )
+}
+
+export function NotNowDialog({isOpen, onClose, onContinue}) {
+  const {t} = useTranslation()
+
+  const size = useBreakpointValue(['mdx', 'md'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
+  const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
+
+  const isDesktop = useIsDesktop()
+
+  return (
+    <Dialog isOpen={isOpen} onClose={onClose} size="md">
+      <DialogHeader>{t('You may fail validation.')}</DialogHeader>
+      <DialogBody>
+        <Text color="muted">
+          {t('Restricted access does not allow validating on this device.')}
+        </Text>
+      </DialogBody>
+      <DialogFooter>
+        <Stack isInline={isDesktop} flex={1}>
+          <Button
+            onClick={onContinue}
+            variant={variantSecondary}
+            size={size}
+            w={['100%', 'auto']}
+            color={['gray.500', 'blue.500']}
+          >
+            {t('Continue with restricted access')}
+          </Button>
+          <Button
+            onClick={onClose}
+            variant={variantPrimary}
+            size={size}
+            w={['100%', 'auto']}
+          >
+            {t('Cancel')}
+          </Button>
+        </Stack>
+      </DialogFooter>
+    </Dialog>
+  )
+}
+
+function CountdownPart({title, value}) {
+  return (
+    <Stack spacing={3} alignItems="center">
+      <Flex
+        w={20}
+        h={20}
+        bg="gray.500"
+        borderRadius="md"
+        justifyContent="center"
+        alignItems="center"
+      >
+        <Text color="white" fontSize="28px">
+          {value}
+        </Text>
+      </Flex>
+      <Text color="muted">{title}</Text>
+    </Stack>
+  )
+}
+
+export function ValidationCountdown(props) {
+  const epoch = useEpoch()
+  const {t} = useTranslation()
+
+  const duration = useMemo(
+    () => dayjs(epoch?.nextValidation).diff(dayjs(), 's'),
+    [epoch.nextValidation]
+  )
+
+  const [state] = useMachine(
+    useMemo(() => createTimerMachine(duration), [duration])
+  )
+
+  const {elapsed} = state.context
+  const remaining = duration - elapsed
+
+  return (
+    <Stack spacing={3} isInline {...props}>
+      <CountdownPart
+        title={t('minutes')}
+        value={state.matches('running') ? Math.floor(remaining / 60) : '00'}
+      />
+      <CountdownPart
+        title={t('seconds')}
+        value={state.matches('running') ? Math.floor(remaining % 60) : '00'}
+      />
+    </Stack>
   )
 }
