@@ -1150,6 +1150,8 @@ export function ValidationToast({
 }
 
 export function ValidationSoonToast({validationStart, isTestValidation}) {
+  const router = useRouter()
+
   const timerMachine = React.useMemo(
     () => createTimerMachine(dayjs(validationStart).diff(dayjs(), 's')),
     [validationStart]
@@ -1177,6 +1179,10 @@ export function ValidationSoonToast({validationStart, isTestValidation}) {
             ? t('Idena training validation will start soon')
             : t('Idena validation will start soon')
         }
+        actionName="Show countdown"
+        action={() => {
+          router.push('/validation/lottery')
+        }}
       />
     </Snackbar>
   )
@@ -1268,8 +1274,14 @@ export function ValidationRunningToast({currentPeriod, validationStart}) {
             ? `Waiting for the end of ${currentPeriod}`
             : `Idena validation is in progress`
         }
-        action={done ? null : () => router.push('/validation')}
-        actionName={t('Validate')}
+        action={() => {
+          if (done) {
+            router.push('/validation/after')
+          } else {
+            router.push('/validation')
+          }
+        }}
+        actionName={done ? t('Show countdown') : t('Validate')}
       />
     </Snackbar>
   )
@@ -1277,6 +1289,9 @@ export function ValidationRunningToast({currentPeriod, validationStart}) {
 
 export function AfterLongSessionToast() {
   const {t} = useTranslation()
+
+  const router = useRouter()
+
   return (
     <Snackbar>
       <Notification
@@ -1288,6 +1303,10 @@ export function AfterLongSessionToast() {
         title={t(
           'Please wait. The network is reaching consensus on validated identities'
         )}
+        action={() => {
+          router.push('/validation/after')
+        }}
+        actionName="Show status"
       />
     </Snackbar>
   )

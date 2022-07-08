@@ -374,6 +374,7 @@ export const createValidationMachine = ({
         translations: {},
         reports: new Set(),
         isTraining,
+        submitHash: null,
       },
       states: {
         shortSession: {
@@ -1233,6 +1234,7 @@ export const createValidationMachine = ({
                               actions: [
                                 assign({
                                   longAnswersSubmitted: true,
+                                  submitHash: (_, {data}) => data,
                                 }),
                                 log('Long answers sent'),
                                 send('FORCE_SUBMIT_SHORT_ANSWERS'),

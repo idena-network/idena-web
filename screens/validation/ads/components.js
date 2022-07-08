@@ -2,7 +2,6 @@ import {TriangleUpIcon} from '@chakra-ui/icons'
 import {
   Box,
   Button,
-  Center,
   Heading,
   HStack,
   IconButton,
@@ -21,58 +20,12 @@ import {
   SuccessAlert,
 } from '../../../shared/components/components'
 import {InfoIcon} from '../../../shared/components/icons'
-import {useInterval} from '../../../shared/hooks/use-interval'
 import {useLanguage} from '../../../shared/hooks/use-language'
 import {AdBurnKey} from '../../../shared/models/adBurnKey'
 import {AdImage} from '../../ads/components'
 import {useBurntCoins, useFormatDna, useRotateAds} from '../../ads/hooks'
 
-export function LotteryCountdown({duration}) {
-  const [state, tick] = React.useReducer(
-    prevState => ({
-      elapsed: prevState.elapsed - 1,
-      delay: prevState.elapsed > 1 ? prevState.delay : null,
-    }),
-    {elapsed: duration / 1000, delay: 1000}
-  )
-
-  useInterval(tick, state.delay)
-
-  const elapsedSecondsInMinute = state.elapsed % 60
-  const elapsedMinutes = Math.round(
-    (state.elapsed - elapsedSecondsInMinute) / 60
-  )
-
-  return (
-    <HStack spacing="3">
-      <CountdownTimeCard value={elapsedMinutes} unit="minutes" />
-      <CountdownTimeCard value={elapsedSecondsInMinute} unit="seconds" />
-    </HStack>
-  )
-}
-
-function CountdownTimeCard({value, unit, ...props}) {
-  return (
-    <Stack spacing="3" align="center" {...props}>
-      <Center
-        bg="gray.500"
-        borderRadius="lg"
-        fontSize="2xl"
-        fontWeight={500}
-        w="20"
-        h="72px"
-        sx={{fontVariantNumeric: 'tabular-nums'}}
-      >
-        {String(value).padStart(2, '0')}
-      </Center>
-      <Text as="span" color="muted" fontSize="md">
-        {unit}
-      </Text>
-    </Stack>
-  )
-}
-
-export function LotteryAdPromotion(props) {
+export function ValidationAdPromotion(props) {
   const {t} = useTranslation()
 
   const {lng} = useLanguage()

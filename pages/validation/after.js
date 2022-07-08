@@ -6,22 +6,38 @@ import {
   Heading,
   Stack,
   Text,
+  useBoolean,
 } from '@chakra-ui/react'
 import dayjs from 'dayjs'
 import NextLink from 'next/link'
 import React from 'react'
 import {useTranslation} from 'react-i18next'
+import {State} from 'xstate'
+import {useTrackTx} from '../../screens/ads/hooks'
 import {ValidationAdPromotion} from '../../screens/validation/ads/components'
 import {ValidationCountdown} from '../../screens/validation/pending/components'
+import {loadValidationState} from '../../screens/validation/utils'
 import {ApiStatus} from '../../shared/components/components'
+import useNodeTiming from '../../shared/hooks/use-node-timing'
 import {useEpoch} from '../../shared/providers/epoch-context'
 
-export default function LotteryPage() {
+export default function AfterValidationPage() {
   const {t} = useTranslation()
 
-  const epoch = useEpoch()
+  const validationStateDefinition = loadValidationState()
+  const validationState = validationStateDefinition
+    ? State.create(validationStateDefinition).done
+    : {done: false, submitHash: null}
 
-  const msUntilValidation = dayjs(epoch?.nextValidation).diff(dayjs())
+  const [isPending, setIsPending] = useBoolean(validationState?.done)
+
+  useTrackTx(validationState?.submitHash, {onMined: setIsPending.off})
+
+  const epoch = useEpoch()
+  const timing = useNodeTiming()
+  const validationEnd = dayjs(epoch?.nextValidation)
+    .add(timing?.shortSession, 'second')
+    .add(timing?.longSession, 'second')
 
   return (
     <Box color="white" fontSize="md" position="relative" w="full">
@@ -44,15 +60,17 @@ export default function LotteryPage() {
           <Stack spacing="6" w={['xs', '2xl']}>
             <Stack spacing="2">
               <Heading fontSize="lg" fontWeight={500}>
-                {t('Idena validation will start soon')}
+                {t('Waiting for the end of the long session')}
               </Heading>
               <Text color="xwhite.050" fontSize="mdx">
-                {t(
-                  'Get ready! Make sure you have a stable internet connection'
-                )}
+                {isPending
+                  ? t('Please wait. You answers are being submitted...')
+                  : t('You answers are successfully submitted')}
               </Text>
             </Stack>
-            <ValidationCountdown duration={Math.max(msUntilValidation, 0)} />
+            <ValidationCountdown
+              duration={Math.max(validationEnd.diff(dayjs()), 0)}
+            />
           </Stack>
           <ValidationAdPromotion />
         </Stack>
