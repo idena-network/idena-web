@@ -1183,6 +1183,7 @@ export function ValidationSoonToast({validationStart, isTestValidation}) {
         action={() => {
           router.push('/validation/lottery')
         }}
+        actionColor="white"
       />
     </Snackbar>
   )

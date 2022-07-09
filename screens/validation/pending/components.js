@@ -13,7 +13,7 @@ export function ValidationCountdown({duration}) {
 
   useInterval(tick, state.delay)
 
-  const elapsedSecondsInMinute = state.elapsed % 60
+  const elapsedSecondsInMinute = Math.round(state.elapsed % 60)
   const elapsedMinutes = Math.round(
     (state.elapsed - elapsedSecondsInMinute) / 60
   )

@@ -24,14 +24,24 @@ import {useEpoch} from '../../shared/providers/epoch-context'
 export default function AfterValidationPage() {
   const {t} = useTranslation()
 
-  const validationStateDefinition = loadValidationState()
-  const validationState = validationStateDefinition
-    ? State.create(validationStateDefinition).done
-    : {done: false, submitHash: null}
+  const [submitHash, setSubmitHash] = React.useState()
 
-  const [isPending, setIsPending] = useBoolean(validationState?.done)
+  const [isPending, {off: setIsPendingOff}] = useBoolean(true)
 
-  useTrackTx(validationState?.submitHash, {onMined: setIsPending.off})
+  React.useEffect(() => {
+    const validationStateDefinition = loadValidationState()
+    const validationState = validationStateDefinition
+      ? State.create(validationStateDefinition).done
+      : {done: false, submitHash: null}
+
+    if (validationState?.done) {
+      setIsPendingOff()
+    }
+
+    setSubmitHash('validationState?.submitHash')
+  }, [setIsPendingOff])
+
+  useTrackTx(submitHash, {onMined: setIsPendingOff})
 
   const epoch = useEpoch()
   const timing = useNodeTiming()
