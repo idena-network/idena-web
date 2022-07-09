@@ -92,6 +92,7 @@ export function Notification({
                     type === NotificationType.Error
                       ? theme.colors.danger
                       : actionColor,
+                  fontWeight: 500,
                   lineHeight: rem(20),
                   ...padding(0),
                 }}

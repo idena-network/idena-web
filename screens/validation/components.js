@@ -1308,6 +1308,7 @@ export function AfterLongSessionToast() {
           router.push('/validation/after')
         }}
         actionName="Show status"
+        actionColor="white"
       />
     </Snackbar>
   )

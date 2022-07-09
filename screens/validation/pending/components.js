@@ -8,7 +8,7 @@ export function ValidationCountdown({duration}) {
       elapsed: prevState.elapsed - 1,
       delay: prevState.elapsed > 1 ? prevState.delay : null,
     }),
-    {elapsed: duration / 1000, delay: 1000}
+    {elapsed: duration / 1000, delay: duration > 1000 ? 1000 : null}
   )
 
   useInterval(tick, state.delay)
