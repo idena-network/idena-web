@@ -27,6 +27,7 @@ import {hexToUint8Array, toHexString} from '../utils/buffers'
 import {useExpired} from '../hooks/use-expired'
 import {useIdenaBot} from '../hooks/hooks'
 import {checkRestoringConnection} from '../../screens/node/utils'
+import {useValidationStatusToast} from '../../screens/validation/hooks/use-status-toast'
 
 const AppContext = React.createContext()
 
@@ -184,6 +185,8 @@ export function AppProvider({tabId, ...props}) {
   useEffect(() => {
     checkRestoredKey()
   }, [checkRestoredKey])
+
+  useValidationStatusToast()
 
   return (
     <AppContext.Provider

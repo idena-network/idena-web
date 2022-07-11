@@ -12,11 +12,10 @@ import dayjs from 'dayjs'
 import NextLink from 'next/link'
 import React from 'react'
 import {useTranslation} from 'react-i18next'
-import {State} from 'xstate'
 import {useTrackTx} from '../../screens/ads/hooks'
-import {ValidationAdPromotion} from '../../screens/validation/ads/components'
-import {ValidationCountdown} from '../../screens/validation/pending/components'
-import {loadValidationState} from '../../screens/validation/utils'
+import {ValidationAdPromotion} from '../../screens/validation/components/ads'
+import {ValidationCountdown} from '../../screens/validation/components/countdown'
+import {useValidationState} from '../../screens/validation/hooks/use-validation-state'
 import {ApiStatus} from '../../shared/components/components'
 import useNodeTiming from '../../shared/hooks/use-node-timing'
 import {useEpoch} from '../../shared/providers/epoch-context'
@@ -24,27 +23,19 @@ import {useEpoch} from '../../shared/providers/epoch-context'
 export default function AfterValidationPage() {
   const {t} = useTranslation()
 
-  const [submitHash, setSubmitHash] = React.useState()
+  const [{isPending}, setIsPending] = useBoolean()
 
-  const [isPending, {off: setIsPendingOff}] = useBoolean(true)
+  const {data: validationState} = useValidationState()
 
-  React.useEffect(() => {
-    const validationStateDefinition = loadValidationState()
-    const validationState = validationStateDefinition
-      ? State.create(validationStateDefinition).done
-      : {done: false, submitHash: null}
-
-    if (validationState?.done) {
-      setIsPendingOff()
-    }
-
-    setSubmitHash('validationState?.submitHash')
-  }, [setIsPendingOff])
-
-  useTrackTx(submitHash, {onMined: setIsPendingOff})
+  useTrackTx(validationState?.submitHash, {
+    onMined: () => {
+      setIsPending.off()
+    },
+  })
 
   const epoch = useEpoch()
   const timing = useNodeTiming()
+
   const validationEnd = dayjs(epoch?.nextValidation)
     .add(timing?.shortSession, 'second')
     .add(timing?.longSession, 'second')
@@ -78,9 +69,7 @@ export default function AfterValidationPage() {
                   : t('You answers are successfully submitted')}
               </Text>
             </Stack>
-            <ValidationCountdown
-              duration={Math.max(validationEnd.diff(dayjs()), 0)}
-            />
+            <ValidationCountdown duration={validationEnd.diff(dayjs())} />
           </Stack>
           <ValidationAdPromotion />
         </Stack>

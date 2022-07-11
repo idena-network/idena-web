@@ -1,8 +1,8 @@
-import {Machine, assign} from 'xstate'
+import {assign, createMachine} from 'xstate'
 import dayjs from 'dayjs'
 
 export const createTimerMachine = duration =>
-  Machine({
+  createMachine({
     initial: 'running',
     context: {
       elapsed: 0,

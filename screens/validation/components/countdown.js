@@ -1,27 +1,14 @@
 import {Center, HStack, Stack, Text} from '@chakra-ui/react'
 import React from 'react'
-import {useInterval} from '../../../shared/hooks/use-interval'
+import {useTimer} from '../../../shared/hooks/use-timer'
 
 export function ValidationCountdown({duration}) {
-  const [state, tick] = React.useReducer(
-    prevState => ({
-      elapsed: prevState.elapsed - 1,
-      delay: prevState.elapsed > 1 ? prevState.delay : null,
-    }),
-    {elapsed: duration / 1000, delay: duration > 1000 ? 1000 : null}
-  )
-
-  useInterval(tick, state.delay)
-
-  const elapsedSecondsInMinute = Math.round(state.elapsed % 60)
-  const elapsedMinutes = Math.round(
-    (state.elapsed - elapsedSecondsInMinute) / 60
-  )
+  const [{remainingSeconds}] = useTimer(duration)
 
   return (
     <HStack spacing="3">
-      <CountdownItem value={elapsedMinutes} unit="minutes" />
-      <CountdownItem value={elapsedSecondsInMinute} unit="seconds" />
+      <CountdownItem value={Math.floor(remainingSeconds / 60)} unit="minutes" />
+      <CountdownItem value={Math.floor(remainingSeconds % 60)} unit="seconds" />
     </HStack>
   )
 }

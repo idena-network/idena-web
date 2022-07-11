@@ -30,7 +30,7 @@ import {useSwipeable} from 'react-swipeable'
 import {useMachine} from '@xstate/react'
 import {Trans, useTranslation} from 'react-i18next'
 import dayjs from 'dayjs'
-import {useRouter} from 'next/router'
+import router, {useRouter} from 'next/router'
 import {State} from 'xstate'
 import useHover from '@react-hook/hover'
 import {Box, Fill, Absolute} from '../../shared/components'
@@ -47,6 +47,7 @@ import {
   DrawerFooter,
   Drawer,
   DrawerBody,
+  Toast,
 } from '../../shared/components/components'
 import {
   availableReportsNumber,
@@ -87,6 +88,7 @@ import {
 import {TEST_SHORT_SESSION_INTERVAL_SEC} from '../../shared/providers/test-validation-context'
 import {use100vh} from '../../shared/hooks/use-100vh'
 import {useIsDesktop} from '../../shared/utils/utils'
+import {useTimer} from '../../shared/hooks/use-timer'
 
 const Scroll = require('react-scroll')
 
@@ -991,22 +993,13 @@ export function Timer(props) {
 }
 
 export function TimerClock({duration, color}) {
-  const [state, send] = useMachine(
-    useMemo(() => createTimerMachine(duration), [duration])
-  )
-
-  React.useEffect(() => {
-    send('DURATION_UPDATE', {duration})
-  }, [duration, send])
-
-  const {elapsed} = state.context
-  const remaining = duration - elapsed
+  const [{remaining, isStopped, isRunning}] = useTimer(duration)
 
   return (
     <Box style={{fontVariantNumeric: 'tabular-nums', minWidth: rem(37)}}>
       <Text color={color} fontSize={['16px', '13px']} fontWeight={500}>
-        {state.matches('stopped') && '00:00'}
-        {state.matches('running') &&
+        {isStopped && '00:00'}
+        {isRunning &&
           [Math.floor(remaining / 60), remaining % 60]
             .map(t => t.toString().padStart(2, 0))
             .join(':')}
@@ -1120,6 +1113,8 @@ export function ValidationToast({
   epoch: {currentPeriod, nextValidation},
   isTestValidation,
 }) {
+  const {t} = useTranslation()
+
   switch (currentPeriod) {
     case EpochPeriod.FlipLottery:
       return (
@@ -1130,20 +1125,29 @@ export function ValidationToast({
       )
     case EpochPeriod.ShortSession:
     case EpochPeriod.LongSession:
+    case EpochPeriod.AfterLongSession:
       return isTestValidation ? (
         <TestValidationRunningToast
           key={currentPeriod}
           validationStart={nextValidation}
         />
       ) : (
-        <ValidationRunningToast
-          key={currentPeriod}
-          currentPeriod={currentPeriod}
-          validationStart={nextValidation}
-        />
+        <Snackbar>
+          <Toast
+            title={t('"Waiting for the end of the long session"')}
+            actionContent={t('"Show countdown"')}
+            onAction={() => {
+              router.push('/validation/after')
+            }}
+          />
+        </Snackbar>
+        // <ValidationRunningToast
+        //   key={currentPeriod}
+        //   currentPeriod={currentPeriod}
+        //   validationStart={nextValidation}
+        // />
       )
-    case EpochPeriod.AfterLongSession:
-      return <AfterLongSessionToast />
+    // return <AfterLongSessionToast />
     default:
       return null
   }
@@ -1152,16 +1156,22 @@ export function ValidationToast({
 export function ValidationSoonToast({validationStart, isTestValidation}) {
   const router = useRouter()
 
-  const timerMachine = React.useMemo(
-    () => createTimerMachine(dayjs(validationStart).diff(dayjs(), 's')),
-    [validationStart]
-  )
+  const duration = React.useMemo(() => dayjs(validationStart).diff(dayjs()), [
+    validationStart,
+  ])
 
-  const [
-    {
-      context: {duration},
-    },
-  ] = useMachine(timerMachine)
+  const [{remaining}] = useTimer(duration)
+
+  // const timerMachine = React.useMemo(
+  //   () => createTimerMachine(dayjs(validationStart).diff(dayjs(), 's')),
+  //   [validationStart]
+  // )
+
+  // const [
+  //   {
+  //     context: {duration},
+  //   },
+  // ] = useMachine(timerMachine)
 
   const {t} = useTranslation()
 
@@ -1173,7 +1183,7 @@ export function ValidationSoonToast({validationStart, isTestValidation}) {
         iconColor={theme.colors.white}
         pinned
         type={NotificationType.Info}
-        title={<TimerClock duration={duration} color={theme.colors.white} />}
+        title={remaining}
         body={
           isTestValidation
             ? t('Idena training validation will start soon')
@@ -1244,21 +1254,27 @@ export function ValidationRunningToast({currentPeriod, validationStart}) {
 
   const {t} = useTranslation()
 
-  const timerMachine = React.useMemo(
-    () =>
-      createTimerMachine(
-        dayjs(validationStart)
-          .add(sessionDuration, 's')
-          .diff(dayjs(), 's')
-      ),
-    [validationStart, sessionDuration]
-  )
+  // const timerMachine = React.useMemo(
+  //   () =>
+  //     createTimerMachine(
+  //       dayjs(validationStart)
+  //         .add(sessionDuration, 's')
+  //         .diff(dayjs(), 's')
+  //     ),
+  //   [validationStart, sessionDuration]
+  // )
 
-  const [
-    {
-      context: {duration},
-    },
-  ] = useMachine(timerMachine)
+  // const [
+  //   {
+  //     context: {duration},
+  //   },
+  // ] = useMachine(timerMachine)
+
+  const duration = React.useMemo(() => dayjs(validationStart).diff(dayjs()), [
+    validationStart,
+  ])
+
+  const [{remaining}] = useTimer(duration)
 
   return (
     <Snackbar>
@@ -1269,7 +1285,7 @@ export function ValidationRunningToast({currentPeriod, validationStart}) {
         actionColor={theme.colors.white}
         pinned
         type={NotificationType.Info}
-        title={<TimerClock duration={duration} color={theme.colors.white} />}
+        title={remaining}
         body={
           done
             ? `Waiting for the end of ${currentPeriod}`
@@ -1301,9 +1317,7 @@ export function AfterLongSessionToast() {
         iconColor={theme.colors.white}
         pinned
         type={NotificationType.Info}
-        title={t(
-          'Please wait. The network is reaching consensus on validated identities'
-        )}
+        title={t('Waiting for the Idena validation results')}
         action={() => {
           router.push('/validation/after')
         }}

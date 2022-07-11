@@ -5,7 +5,6 @@ import {Flex, useDisclosure} from '@chakra-ui/react'
 import Sidebar from './sidebar'
 import Notifications from './notifications'
 import {shouldStartValidation} from '../../screens/validation/utils'
-import {ValidationToast} from '../../screens/validation/components'
 import {Hamburger, LayoutContainer} from '../../screens/app/components'
 import {useAuthState} from '../providers/auth-context'
 import Auth from './auth'
@@ -92,11 +91,13 @@ function NormalApp({children, canRedirect = true, skipBanner, hasRotatingAds}) {
 
       {children}
 
-      {currentTrainingValidation && (
+      {/* {currentTrainingValidation && (
         <ValidationToast epoch={testValidationEpoch} isTestValidation />
       )}
-      {epoch && <ValidationToast epoch={epoch} identity={identity} />}
+      {epoch && <ValidationToast epoch={epoch} identity={identity} />} */}
+
       <Notifications />
+
       <DeferredVotes />
     </Flex>
   )
