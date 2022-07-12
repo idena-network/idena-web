@@ -115,7 +115,12 @@ export function useExpired() {
   const updateRestrictedNotNow = dontShow => {
     setState(prevState => ({
       ...prevState,
-      storage: {dontShow, epoch, lastTime: dayjs().valueOf()},
+      storage: {
+        ...prevState.storage,
+        dontShow,
+        epoch,
+        lastTime: dayjs().valueOf(),
+      },
     }))
   }
 
