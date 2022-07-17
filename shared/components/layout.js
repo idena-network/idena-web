@@ -19,7 +19,10 @@ import {useRotatingAds} from '../../screens/ads/hooks'
 import {AdBanner} from '../../screens/ads/containers'
 import {useHamburgerTop} from '../hooks/use-hamburger-top'
 import {useIsDesktop} from '../utils/utils'
-import {useValidationStatusToast} from '../../screens/validation/hooks/use-status-toast'
+import {
+  useTestValidationStatusToast,
+  useValidationStatusToast,
+} from '../../screens/validation/hooks/use-status-toast'
 
 export default function Layout({
   showHamburger = true,
@@ -59,10 +62,7 @@ function NormalApp({children, canRedirect = true, skipBanner, hasRotatingAds}) {
   const [identity] = useIdentity()
   const settings = useSettingsState()
 
-  const {
-    current: currentTrainingValidation,
-    epoch: testValidationEpoch,
-  } = useTestValidationState()
+  const {current: currentTrainingValidation} = useTestValidationState()
 
   useInterval(() => {
     if (shouldStartValidation(epoch, identity)) router.push('/validation')
@@ -82,6 +82,8 @@ function NormalApp({children, canRedirect = true, skipBanner, hasRotatingAds}) {
 
   useValidationStatusToast()
 
+  useTestValidationStatusToast()
+
   return (
     <Flex
       as="section"
@@ -93,11 +95,6 @@ function NormalApp({children, canRedirect = true, skipBanner, hasRotatingAds}) {
       {hasRotatingAds && !skipBanner && !isOffline && isDesktop && <AdBanner />}
 
       {children}
-
-      {/* {currentTrainingValidation && (
-        <ValidationToast epoch={testValidationEpoch} isTestValidation />
-      )}
-      {epoch && <ValidationToast epoch={epoch} identity={identity} />} */}
 
       <Notifications />
 

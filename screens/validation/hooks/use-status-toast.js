@@ -8,6 +8,7 @@ import {useTranslation} from 'react-i18next'
 import {createMachine} from 'xstate'
 import {assign, choose} from 'xstate/lib/actions'
 import {useEpoch} from '../../../shared/providers/epoch-context'
+import {useTestValidationState} from '../../../shared/providers/test-validation-context'
 import {EpochPeriod} from '../../../shared/types'
 import {ValidatonStatusToast} from '../components/status-toast'
 
@@ -104,6 +105,78 @@ export function useValidationStatusToast() {
     },
     onNone: closeValidationToasts,
   })
+}
+
+export function useTestValidationStatusToast() {
+  const {t} = useTranslation()
+
+  const router = useRouter()
+
+  const toast = useToast()
+
+  const {
+    current: currentTrainingValidation,
+    epoch: testValidationEpoch,
+  } = useTestValidationState()
+
+  const closeToast = React.useCallback(
+    id => {
+      if (toast.isActive(id)) {
+        toast.close(id)
+      }
+    },
+    [toast]
+  )
+
+  React.useEffect(() => {
+    if (currentTrainingValidation) {
+      const isTrainingValidationSoon =
+        testValidationEpoch?.currentPeriod !== EpochPeriod.FlipLottery
+
+      if (isTrainingValidationSoon) {
+        closeToast('testValidationRunning')
+      } else {
+        closeToast('testValidationSoon')
+      }
+
+      toast({
+        id: isTrainingValidationSoon
+          ? 'testValidationSoon'
+          : 'testValidationRunning',
+        duration: null,
+        render: () => (
+          <ValidatonStatusToast
+            title={
+              isTrainingValidationSoon
+                ? t('Idena training validation will start soon')
+                : t('Idena training validation is in progress')
+            }
+            colorScheme={isTrainingValidationSoon ? 'red' : 'green'}
+          >
+            <Button
+              variant="unstyled"
+              onClick={() => {
+                router.push(
+                  isTrainingValidationSoon
+                    ? '/try/validation/lottery'
+                    : '/try/validation/after'
+                )
+              }}
+            >
+              {t('Show countdown')}
+            </Button>
+          </ValidatonStatusToast>
+        ),
+      })
+    }
+  }, [
+    closeToast,
+    currentTrainingValidation,
+    router,
+    t,
+    testValidationEpoch,
+    toast,
+  ])
 }
 
 export function useTrackEpochPeriod({
