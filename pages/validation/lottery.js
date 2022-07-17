@@ -28,10 +28,6 @@ export default function LotteryPage() {
 
   useAutoStartValidation()
 
-  const msUntilValidation = dayjs(
-    epoch.nextValidation || epoch.validationStart
-  ).diff(dayjs())
-
   return (
     <Box color="white" fontSize="md" position="relative" w="full">
       <Flex
@@ -65,7 +61,7 @@ export default function LotteryPage() {
               <ValidationCountdown
                 duration={
                   epoch.currentPeriod === EpochPeriod.FlipLottery
-                    ? msUntilValidation
+                    ? dayjs(epoch.nextValidation).diff(dayjs())
                     : 0
                 }
               />

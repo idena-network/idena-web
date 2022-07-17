@@ -68,9 +68,9 @@ export default function AfterValidationPage() {
         justifyContent="space-between"
         alignItems="center"
         position="absolute"
-        top="3"
-        left="3"
-        right="3"
+        top="2"
+        left="4"
+        right="4"
       >
         <ApiStatus position="relative" />
         <NextLink href="/home" passHref>

@@ -25,7 +25,7 @@ function CountdownItem({value, unit, ...props}) {
         h="72px"
         sx={{fontVariantNumeric: 'tabular-nums'}}
       >
-        {String(value).padStart(2, '0')}
+        {String(Math.max(value, 0)).padStart(2, '0')}
       </Center>
       <Text as="span" color="muted" fontSize="md">
         {unit}

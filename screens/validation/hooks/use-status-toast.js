@@ -8,10 +8,8 @@ import {useTranslation} from 'react-i18next'
 import {createMachine} from 'xstate'
 import {assign, choose} from 'xstate/lib/actions'
 import {useEpoch} from '../../../shared/providers/epoch-context'
-import {useIdentity} from '../../../shared/providers/identity-context'
 import {EpochPeriod} from '../../../shared/types'
 import {ValidatonStatusToast} from '../components/status-toast'
-import {canValidate} from '../utils'
 
 export function useValidationStatusToast() {
   const {t} = useTranslation()
@@ -19,8 +17,6 @@ export function useValidationStatusToast() {
   const router = useRouter()
 
   const toast = useToast()
-
-  const [identity] = useIdentity()
 
   const closeValidationToasts = useCloseValidationStatusToast()
 
@@ -48,16 +44,14 @@ export function useValidationStatusToast() {
             title={t('Idena validation will start soon')}
             colorScheme="red"
           >
-            {canValidate(identity) && (
-              <Button
-                variant="unstyled"
-                onClick={() => {
-                  router.push('/validation/lottery')
-                }}
-              >
-                {t('Show countdown')}
-              </Button>
-            )}
+            <Button
+              variant="unstyled"
+              onClick={() => {
+                router.push('/validation/lottery')
+              }}
+            >
+              {t('Show countdown')}
+            </Button>
           </ValidatonStatusToast>
         ),
       })
@@ -73,16 +67,14 @@ export function useValidationStatusToast() {
             title={t('Waiting for the end of the long session')}
             colorScheme="green"
           >
-            {canValidate(identity) && (
-              <Button
-                variant="unstyled"
-                onClick={() => {
-                  router.push('/validation/after')
-                }}
-              >
-                {t('Show countdown')}
-              </Button>
-            )}
+            <Button
+              variant="unstyled"
+              onClick={() => {
+                router.push('/validation/after')
+              }}
+            >
+              {t('Show countdown')}
+            </Button>
           </ValidatonStatusToast>
         ),
       })
@@ -98,16 +90,14 @@ export function useValidationStatusToast() {
             title={t('Waiting for the Idena validation results')}
             colorScheme="green"
           >
-            {canValidate(identity) && (
-              <Button
-                variant="unstyled"
-                onClick={() => {
-                  router.push('/validation/after')
-                }}
-              >
-                {t('Show status')}
-              </Button>
-            )}
+            <Button
+              variant="unstyled"
+              onClick={() => {
+                router.push('/validation/after')
+              }}
+            >
+              {t('Show status')}
+            </Button>
           </ValidatonStatusToast>
         ),
       })

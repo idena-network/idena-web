@@ -47,7 +47,7 @@ const timerMachine = createMachine({
       always: [
         {
           target: 'stopped',
-          cond: ({elapsed, duration}) => elapsed >= duration,
+          cond: ({elapsed, duration}) => elapsed >= duration || duration < 0,
         },
       ],
       invoke: {
