@@ -19,6 +19,7 @@ import {useRotatingAds} from '../../screens/ads/hooks'
 import {AdBanner} from '../../screens/ads/containers'
 import {useHamburgerTop} from '../hooks/use-hamburger-top'
 import {useIsDesktop} from '../utils/utils'
+import {useValidationStatusToast} from '../../screens/validation/hooks/use-status-toast'
 
 export default function Layout({
   showHamburger = true,
@@ -78,6 +79,8 @@ function NormalApp({children, canRedirect = true, skipBanner, hasRotatingAds}) {
   }, [canRedirect, currentTrainingValidation, isOffline, router])
 
   const isDesktop = useIsDesktop()
+
+  useValidationStatusToast()
 
   return (
     <Flex

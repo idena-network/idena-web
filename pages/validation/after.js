@@ -10,13 +10,17 @@ import {
 } from '@chakra-ui/react'
 import dayjs from 'dayjs'
 import NextLink from 'next/link'
+import {useRouter} from 'next/router'
 import React from 'react'
 import {useTranslation} from 'react-i18next'
 import {useTrackTx} from '../../screens/ads/hooks'
 import {ValidationAdPromotion} from '../../screens/validation/components/ads'
 import {ValidationCountdown} from '../../screens/validation/components/countdown'
-import {useAutoFinishValidation} from '../../screens/validation/hooks/use-auto-finish'
 import {usePersistedValidationState} from '../../screens/validation/hooks/use-persisted-state'
+import {
+  useAutoCloseValidationStatusToast,
+  useTrackEpochPeriod,
+} from '../../screens/validation/hooks/use-status-toast'
 import {ApiStatus} from '../../shared/components/components'
 import useNodeTiming from '../../shared/hooks/use-node-timing'
 import {useEpoch} from '../../shared/providers/epoch-context'
@@ -25,11 +29,13 @@ import {EpochPeriod} from '../../shared/types'
 export default function AfterValidationPage() {
   const {t} = useTranslation()
 
+  const router = useRouter()
+
   const [{isPending}, setIsPending] = useBoolean()
 
   const {data: validationState} = usePersistedValidationState()
 
-  useTrackTx(validationState?.submitHash, {
+  useTrackTx(validationState?.submitLongAnswersHash, {
     onMined: () => {
       setIsPending.off()
     },
@@ -40,13 +46,21 @@ export default function AfterValidationPage() {
 
   const isAfterLongSession = currentPeriod === EpochPeriod.AfterLongSession
 
-  useAutoFinishValidation()
-
   const timing = useNodeTiming()
 
   const validationEnd = dayjs(epoch?.nextValidation)
     .add(timing?.shortSession, 'second')
     .add(timing?.longSession, 'second')
+
+  useAutoCloseValidationStatusToast()
+
+  useTrackEpochPeriod({
+    onChangeCurrentPeriod: period => {
+      if ([EpochPeriod.None, EpochPeriod.FlipLottery].includes(period)) {
+        router.push('/home')
+      }
+    },
+  })
 
   return (
     <Box color="white" fontSize="md" position="relative" w="full">
@@ -85,7 +99,9 @@ export default function AfterValidationPage() {
                 )}
               </Text>
             </Stack>
-            <ValidationCountdown duration={validationEnd.diff(dayjs())} />
+            {isAfterLongSession ? null : (
+              <ValidationCountdown duration={validationEnd.diff(dayjs())} />
+            )}
           </Stack>
           <ValidationAdPromotion />
         </Stack>

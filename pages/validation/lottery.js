@@ -16,13 +16,21 @@ import {useAutoStartValidation} from '../../screens/validation/hooks/use-auto-st
 import {ValidationCountdown} from '../../screens/validation/components/countdown'
 import {ApiStatus} from '../../shared/components/components'
 import {useEpoch} from '../../shared/providers/epoch-context'
+import {useAutoCloseValidationStatusToast} from '../../screens/validation/hooks/use-status-toast'
+import {EpochPeriod} from '../../shared/types'
 
 export default function LotteryPage() {
   const {t} = useTranslation()
 
+  useAutoCloseValidationStatusToast()
+
   const epoch = useEpoch()
 
   useAutoStartValidation()
+
+  const msUntilValidation = dayjs(
+    epoch.nextValidation || epoch.validationStart
+  ).diff(dayjs())
 
   return (
     <Box color="white" fontSize="md" position="relative" w="full">
@@ -30,9 +38,9 @@ export default function LotteryPage() {
         justifyContent="space-between"
         alignItems="center"
         position="absolute"
-        top="3"
-        left="3"
-        right="3"
+        top="2"
+        left="4"
+        right="4"
       >
         <ApiStatus position="relative" />
         <NextLink href="/home" passHref>
@@ -53,9 +61,15 @@ export default function LotteryPage() {
                 )}
               </Text>
             </Stack>
-            <ValidationCountdown
-              duration={dayjs(epoch?.nextValidation).diff(dayjs())}
-            />
+            {epoch ? (
+              <ValidationCountdown
+                duration={
+                  epoch.currentPeriod === EpochPeriod.FlipLottery
+                    ? msUntilValidation
+                    : 0
+                }
+              />
+            ) : null}
           </Stack>
           <ValidationAdPromotion />
         </Stack>

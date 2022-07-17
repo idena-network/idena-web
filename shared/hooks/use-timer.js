@@ -36,18 +36,20 @@ export function useTimer(initialDuration) {
 }
 
 const timerMachine = createMachine({
-  initial: 'running',
   context: {
     interval: 1000,
     duration: 0,
     elapsed: 0,
   },
+  initial: 'running',
   states: {
     running: {
-      always: {
-        target: 'stopped',
-        cond: ({elapsed, duration}) => elapsed >= duration,
-      },
+      always: [
+        {
+          target: 'stopped',
+          cond: ({elapsed, duration}) => elapsed >= duration,
+        },
+      ],
       invoke: {
         src: ({interval}) => cb => {
           const intervalId = setInterval(() => {

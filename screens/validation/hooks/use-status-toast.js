@@ -22,40 +22,37 @@ export function useValidationStatusToast() {
 
   const [identity] = useIdentity()
 
+  const closeValidationToasts = useCloseValidationStatusToast()
+
   useTrackEpochPeriod({
-    onChangeValidationPeriod: currentPeriod => {
-      const isFlipLottery = currentPeriod === EpochPeriod.FlipLottery
-
-      const prevToastId = isFlipLottery ? 'validation' : EpochPeriod.FlipLottery
-      const nextToastId = isFlipLottery ? EpochPeriod.FlipLottery : 'validation'
-
-      validationPeriods
-        .filter(
-          period => period !== currentPeriod && toast.isActive(prevToastId)
-        )
-        .forEach(toast.close)
-
-      if (toast.isActive(nextToastId)) return
+    onChangeCurrentPeriod: currentPeriod => {
+      for (const period of [
+        EpochPeriod.FlipLottery,
+        EpochPeriod.ShortSession,
+        EpochPeriod.LongSession,
+        EpochPeriod.AfterLongSession,
+      ]) {
+        if (period !== currentPeriod && toast.isActive(period)) {
+          toast.close(period)
+        }
+      }
+    },
+    onFlipLottery: () => {
+      if (toast.isActive(EpochPeriod.FlipLottery)) return
 
       toast({
-        id: nextToastId,
+        id: EpochPeriod.FlipLottery,
         duration: null,
         render: () => (
           <ValidatonStatusToast
-            title={
-              isFlipLottery
-                ? t('Idena validation will start soon')
-                : t('Waiting for the end of the long session')
-            }
-            colorScheme={isFlipLottery ? 'red' : 'green'}
+            title={t('Idena validation will start soon')}
+            colorScheme="red"
           >
             {canValidate(identity) && (
               <Button
                 variant="unstyled"
                 onClick={() => {
-                  router.push(
-                    `/validation/${isFlipLottery ? 'lottery' : 'after'}`
-                  )
+                  router.push('/validation/lottery')
                 }}
               >
                 {t('Show countdown')}
@@ -65,18 +62,69 @@ export function useValidationStatusToast() {
         ),
       })
     },
-    onNone: toast.closeAll,
+    onValidationCeremony: () => {
+      if (toast.isActive('validationCeremony')) return
+
+      toast({
+        id: 'validationCeremony',
+        duration: null,
+        render: () => (
+          <ValidatonStatusToast
+            title={t('Waiting for the end of the long session')}
+            colorScheme="green"
+          >
+            {canValidate(identity) && (
+              <Button
+                variant="unstyled"
+                onClick={() => {
+                  router.push('/validation/after')
+                }}
+              >
+                {t('Show countdown')}
+              </Button>
+            )}
+          </ValidatonStatusToast>
+        ),
+      })
+    },
+    onAfterLongSession: () => {
+      if (toast.isActive(EpochPeriod.AfterLongSession)) return
+
+      toast({
+        id: EpochPeriod.AfterLongSession,
+        duration: null,
+        render: () => (
+          <ValidatonStatusToast
+            title={t('Waiting for the Idena validation results')}
+            colorScheme="green"
+          >
+            {canValidate(identity) && (
+              <Button
+                variant="unstyled"
+                onClick={() => {
+                  router.push('/validation/after')
+                }}
+              >
+                {t('Show status')}
+              </Button>
+            )}
+          </ValidatonStatusToast>
+        ),
+      })
+    },
+    onNone: closeValidationToasts,
   })
 }
 
-function useTrackEpochPeriod({
+export function useTrackEpochPeriod({
   onNone,
   onFlipLottery,
   onShortSession,
   onLongSession,
   onAfterLongSession,
   onChangeCurrentPeriod,
-  onChangeValidationPeriod,
+  onValidation,
+  onValidationCeremony,
 }) {
   const epoch = useEpoch()
   const currentPeriod = epoch?.currentPeriod
@@ -87,8 +135,24 @@ function useTrackEpochPeriod({
       onChangeCurrentPeriod: ({currentPeriod}) => {
         onChangeCurrentPeriod?.(currentPeriod)
 
-        if (validationPeriods.includes(currentPeriod)) {
-          onChangeValidationPeriod?.(currentPeriod)
+        const isValidation = [
+          EpochPeriod.FlipLottery,
+          EpochPeriod.ShortSession,
+          EpochPeriod.LongSession,
+          EpochPeriod.AfterLongSession,
+        ].includes(currentPeriod)
+
+        if (isValidation) {
+          onValidation?.(currentPeriod)
+        }
+
+        const isValidationCeremony = [
+          EpochPeriod.ShortSession,
+          EpochPeriod.LongSession,
+        ].includes(currentPeriod)
+
+        if (isValidationCeremony) {
+          onValidationCeremony?.()
         }
 
         switch (currentPeriod) {
@@ -174,9 +238,29 @@ const trackEpochPeriodMachine = createMachine(
   }
 )
 
-const validationPeriods = [
-  EpochPeriod.FlipLottery,
-  EpochPeriod.ShortSession,
-  EpochPeriod.LongSession,
-  EpochPeriod.AfterLongSession,
-]
+export function useCloseValidationStatusToast() {
+  const toast = useToast()
+
+  return React.useCallback(() => {
+    for (const period of [
+      EpochPeriod.FlipLottery,
+      EpochPeriod.ShortSession,
+      EpochPeriod.LongSession,
+      EpochPeriod.AfterLongSession,
+    ]) {
+      if (toast.isActive(period)) {
+        toast.close(period)
+      }
+    }
+  }, [toast])
+}
+
+export function useAutoCloseValidationStatusToast() {
+  const close = useCloseValidationStatusToast()
+
+  React.useEffect(() => {
+    close()
+  }, [close])
+
+  return close
+}

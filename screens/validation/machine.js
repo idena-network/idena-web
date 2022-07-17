@@ -374,7 +374,7 @@ export const createValidationMachine = ({
         translations: {},
         reports: new Set(),
         isTraining,
-        submitHash: null,
+        submitLongAnswersHash: null,
       },
       states: {
         shortSession: {
@@ -1234,7 +1234,7 @@ export const createValidationMachine = ({
                               actions: [
                                 assign({
                                   longAnswersSubmitted: true,
-                                  submitHash: (_, {data}) => data,
+                                  submitLongAnswersHash: (_, {data}) => data,
                                 }),
                                 log('Long answers sent'),
                                 send('FORCE_SUBMIT_SHORT_ANSWERS'),
@@ -1458,9 +1458,10 @@ export const createValidationMachine = ({
           longFlips,
           wordsSeed,
           longAnswersSubmitted,
+          submitLongAnswersHash,
         }) =>
           longAnswersSubmitted
-            ? Promise.resolve()
+            ? Promise.resolve(submitLongAnswersHash)
             : submitLongAnswersTx(
                 privateKey,
                 longHashes,
@@ -1949,4 +1950,6 @@ async function submitLongAnswersTx(key, hashes, answers, wordsSeed, epoch) {
   const result = await sendRawTx(`0x${hex}`)
 
   console.log('sending long answers tx', hex, result)
+
+  return result
 }

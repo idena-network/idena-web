@@ -11,9 +11,7 @@ export function useAutoStartValidation() {
   const epoch = useEpoch()
   const [identity] = useIdentity()
 
-  const isEligibleIdentity = React.useMemo(() => canValidate(identity), [
-    identity,
-  ])
+  const isCandidate = React.useMemo(() => canValidate(identity), [identity])
 
   useInterval(
     () => {
@@ -21,6 +19,6 @@ export function useAutoStartValidation() {
         router.push('/validation')
       }
     },
-    isEligibleIdentity ? 1000 : null
+    isCandidate ? 1000 : null
   )
 }
