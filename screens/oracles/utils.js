@@ -665,7 +665,10 @@ export const mapVoting = ({
 })
 
 export function mapVotingStatus(status) {
-  return areSameCaseInsensitive(status, VotingStatus.Voted) ? 'Voting' : status
+  if (areSameCaseInsensitive(status, VotingStatus.CanBeProlonged))
+    return 'Pending'
+  if (areSameCaseInsensitive(status, VotingStatus.Voted)) return 'Voting'
+  return status
 }
 
 export function minOracleRewardFromEstimates(data) {

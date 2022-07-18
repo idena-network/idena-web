@@ -353,6 +353,7 @@ export function VotingStatusBadge({status, ...props}) {
   const colors = (() => {
     switch (status?.toLowerCase()) {
       case VotingStatus.Pending:
+      case VotingStatus.CanBeProlonged:
         return {
           bg: 'rgb(218 121 255 /0.2)',
           color: 'rgb(218 121 255)',

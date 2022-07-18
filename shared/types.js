@@ -121,6 +121,7 @@ export const VotingStatus = {
   Prolonging: 'prolonging',
   Terminating: 'terminating',
   Invalid: 'invalid',
+  CanBeProlonged: 'canbeprolonged',
 }
 
 export const FlipGrade = {

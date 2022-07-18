@@ -358,6 +358,10 @@ export const votingMachine = createMachine(
                 cond: 'isCounting',
               },
               {
+                target: VotingStatus.CanBeProlonged,
+                cond: 'isCanBeProlonged',
+              },
+              {
                 target: VotingStatus.Archived,
                 cond: 'isArchived',
               },
@@ -400,6 +404,7 @@ export const votingMachine = createMachine(
           [VotingStatus.Open]: {},
           [VotingStatus.Voted]: {},
           [VotingStatus.Counting]: {},
+          [VotingStatus.CanBeProlonged]: {},
           [VotingStatus.Archived]: {},
           [VotingStatus.Terminated]: {},
           hist: {
@@ -1056,6 +1061,10 @@ export const viewVotingMachine = createMachine(
                 cond: 'isCounting',
               },
               {
+                target: VotingStatus.CanBeProlonged,
+                cond: 'isCanBeProlonged',
+              },
+              {
                 target: VotingStatus.Archived,
                 cond: 'isArchived',
               },
@@ -1092,27 +1101,8 @@ export const viewVotingMachine = createMachine(
           },
           [VotingStatus.Open]: {},
           [VotingStatus.Voted]: {},
-          [VotingStatus.Counting]: {
-            initial: 'idle',
-            states: {
-              idle: {
-                on: {
-                  FINISH: 'finish',
-                },
-              },
-              finish: {
-                on: {
-                  FINISH: {
-                    target: `#viewVoting.mining.${VotingStatus.Finishing}`,
-                    actions: ['setFinishing', 'persist'],
-                  },
-                },
-              },
-            },
-            on: {
-              CANCEL: '.idle',
-            },
-          },
+          [VotingStatus.Counting]: {},
+          [VotingStatus.CanBeProlonged]: {},
           [VotingStatus.Archived]: {},
           [VotingStatus.Terminated]: {},
           terminating: {
@@ -1175,6 +1165,7 @@ export const viewVotingMachine = createMachine(
             actions: ['onError'],
           },
           REVIEW_PROLONG_VOTING: 'prolong',
+          REVIEW_FINISH_VOTING: 'finish',
           FOLLOW_LINK: '.redirecting',
         },
       },
@@ -1192,6 +1183,15 @@ export const viewVotingMachine = createMachine(
           ADD_FUND: {
             target: `mining.${VotingStatus.Funding}`,
             actions: ['setFunding', 'persist'],
+          },
+          CANCEL: 'idle',
+        },
+      },
+      finish: {
+        on: {
+          FINISH: {
+            target: `#viewVoting.mining.${VotingStatus.Finishing}`,
+            actions: ['setFinishing', 'persist'],
           },
           CANCEL: 'idle',
         },
@@ -1867,6 +1867,7 @@ function votingStatusGuards() {
     isRunning: isVotingStatus(VotingStatus.Open),
     isVoted: isVotingStatus(VotingStatus.Voted),
     isCounting: isVotingStatus(VotingStatus.Counting),
+    isCanBeProlonged: isVotingStatus(VotingStatus.CanBeProlonged),
     isVoting: isVotingStatus(VotingStatus.Voting),
     isFinishing: isVotingStatus(VotingStatus.Finishing),
     isArchived: isVotingStatus(VotingStatus.Archived),

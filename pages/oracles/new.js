@@ -235,7 +235,6 @@ function NewVotingPage() {
               <VotingInlineFormControl
                 htmlFor="startDate"
                 label={t('Start date')}
-                isDisabled={shouldStartImmediately}
                 isInvalid={isInvalid(
                   'startDate',
                   startDate || shouldStartImmediately
@@ -247,6 +246,7 @@ function NewVotingPage() {
                     id="startDate"
                     type="datetime-local"
                     onChange={handleChange}
+                    isDisabled={shouldStartImmediately}
                   />
                   {isInvalid(
                     'startDate',
