@@ -14,6 +14,7 @@ import {useRouter} from 'next/router'
 import React from 'react'
 import {useTranslation} from 'react-i18next'
 import {useTrackTx} from '../../screens/ads/hooks'
+import {LayoutContainer} from '../../screens/app/components'
 import {ValidationAdPromotion} from '../../screens/validation/components/ads'
 import {ValidationCountdown} from '../../screens/validation/components/countdown'
 import {usePersistedValidationState} from '../../screens/validation/hooks/use-persisted-state'
@@ -21,10 +22,14 @@ import {
   useAutoCloseValidationStatusToast,
   useTrackEpochPeriod,
 } from '../../screens/validation/hooks/use-status-toast'
-import {ApiStatus} from '../../shared/components/components'
+import {canValidate} from '../../screens/validation/utils'
+import Auth from '../../shared/components/auth'
+import {ApiStatus, ErrorAlert} from '../../shared/components/components'
 import useNodeTiming from '../../shared/hooks/use-node-timing'
+import {useAuthState} from '../../shared/providers/auth-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
-import {EpochPeriod} from '../../shared/types'
+import {useIdentity} from '../../shared/providers/identity-context'
+import {EpochPeriod, IdentityStatus} from '../../shared/types'
 
 export default function AfterValidationPage() {
   const {t} = useTranslation()
@@ -41,12 +46,28 @@ export default function AfterValidationPage() {
     },
   })
 
+  const {auth} = useAuthState()
+
   const epoch = useEpoch()
   const currentPeriod = epoch?.currentPeriod
 
   const isAfterLongSession = currentPeriod === EpochPeriod.AfterLongSession
+  const isValidationCeremony = [
+    EpochPeriod.ShortSession,
+    EpochPeriod.LongSession,
+  ].includes(currentPeriod)
 
   const timing = useNodeTiming()
+
+  const [identity] = useIdentity()
+
+  const isEligible = canValidate(identity)
+
+  const isValidated = [
+    IdentityStatus.Newbie,
+    IdentityStatus.Verified,
+    IdentityStatus.Human,
+  ].includes(identity.state)
 
   const validationEnd = dayjs(epoch?.nextValidation)
     .add(timing?.shortSession, 'second')
@@ -61,6 +82,14 @@ export default function AfterValidationPage() {
       }
     },
   })
+
+  if (!auth) {
+    return (
+      <LayoutContainer>
+        <Auth />
+      </LayoutContainer>
+    )
+  }
 
   return (
     <Box color="white" fontSize="md" position="relative" w="full">
@@ -87,17 +116,34 @@ export default function AfterValidationPage() {
                   ? t('Waiting for the Idena validation results')
                   : t('Waiting for the end of the long session')}
               </Heading>
-              <Text color="xwhite.050" fontSize="mdx">
-                {isAfterLongSession ? (
-                  t('Network is reaching consensus on validated identities')
-                ) : (
-                  <>
-                    {isPending
-                      ? t('Please wait. You answers are being submitted...')
-                      : t('You answers are successfully submitted')}
-                  </>
-                )}
-              </Text>
+
+              {isAfterLongSession && (
+                <Text color="xwhite.050" fontSize="mdx">
+                  {t('Network is reaching consensus on validated identities')}
+                </Text>
+              )}
+
+              {isValidationCeremony && (
+                <>
+                  {isEligible &&
+                    isPending &&
+                    t('Please wait. You answers are being submitted...')}
+                  {isEligible &&
+                    !isPending &&
+                    t('You answers are successfully submitted')}
+                  {!isEligible && (
+                    <ErrorAlert>
+                      {isValidated
+                        ? t(
+                            'Can not start validation session because you did not submit flips'
+                          )
+                        : t(
+                            'Can not start validation session because you did not activate invite'
+                          )}
+                    </ErrorAlert>
+                  )}
+                </>
+              )}
             </Stack>
             {isAfterLongSession ? null : (
               <ValidationCountdown duration={validationEnd.diff(dayjs())} />

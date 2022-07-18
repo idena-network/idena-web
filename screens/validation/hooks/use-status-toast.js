@@ -309,6 +309,7 @@ export function useCloseValidationStatusToast() {
       EpochPeriod.FlipLottery,
       EpochPeriod.ShortSession,
       EpochPeriod.LongSession,
+      'validationCeremony',
       EpochPeriod.AfterLongSession,
     ]) {
       if (toast.isActive(period)) {

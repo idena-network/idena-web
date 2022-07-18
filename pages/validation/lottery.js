@@ -14,19 +14,44 @@ import {useTranslation} from 'react-i18next'
 import {ValidationAdPromotion} from '../../screens/validation/components/ads'
 import {useAutoStartValidation} from '../../screens/validation/hooks/use-auto-start'
 import {ValidationCountdown} from '../../screens/validation/components/countdown'
-import {ApiStatus} from '../../shared/components/components'
+import {ApiStatus, ErrorAlert} from '../../shared/components/components'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {useAutoCloseValidationStatusToast} from '../../screens/validation/hooks/use-status-toast'
-import {EpochPeriod} from '../../shared/types'
+import {EpochPeriod, IdentityStatus} from '../../shared/types'
+import {useAuthState} from '../../shared/providers/auth-context'
+import {LayoutContainer} from '../../screens/app/components'
+import Auth from '../../shared/components/auth'
+import {canValidate} from '../../screens/validation/utils'
+import {useIdentity} from '../../shared/providers/identity-context'
 
 export default function LotteryPage() {
   const {t} = useTranslation()
 
   useAutoCloseValidationStatusToast()
 
+  const {auth} = useAuthState()
   const epoch = useEpoch()
+  const [identity] = useIdentity()
+
+  const isIneligible = !canValidate(identity)
+
+  const isValidated = [
+    IdentityStatus.Newbie,
+    IdentityStatus.Verified,
+    IdentityStatus.Human,
+  ].includes(identity.state)
 
   useAutoStartValidation()
+
+  useAutoCloseValidationStatusToast()
+
+  if (!auth) {
+    return (
+      <LayoutContainer>
+        <Auth />
+      </LayoutContainer>
+    )
+  }
 
   return (
     <Box color="white" fontSize="md" position="relative" w="full">
@@ -57,6 +82,17 @@ export default function LotteryPage() {
                 )}
               </Text>
             </Stack>
+            {isIneligible && (
+              <ErrorAlert>
+                {isValidated
+                  ? t(
+                      'Can not start validation session because you did not submit flips'
+                    )
+                  : t(
+                      'Can not start validation session because you did not activate invite'
+                    )}
+              </ErrorAlert>
+            )}
             {epoch ? (
               <ValidationCountdown
                 duration={
