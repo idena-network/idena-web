@@ -19,7 +19,7 @@ import {ValidationAdPromotion} from '../../screens/validation/components/ads'
 import {ValidationCountdown} from '../../screens/validation/components/countdown'
 import {usePersistedValidationState} from '../../screens/validation/hooks/use-persisted-state'
 import {
-  useAutoCloseValidationStatusToast,
+  useAutoCloseValidationToast,
   useTrackEpochPeriod,
 } from '../../screens/validation/hooks/use-status-toast'
 import {canValidate} from '../../screens/validation/utils'
@@ -73,7 +73,7 @@ export default function AfterValidationPage() {
     .add(timing?.shortSession, 'second')
     .add(timing?.longSession, 'second')
 
-  useAutoCloseValidationStatusToast()
+  useAutoCloseValidationToast()
 
   useTrackEpochPeriod({
     onChangeCurrentPeriod: period => {

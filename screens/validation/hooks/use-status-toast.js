@@ -7,32 +7,33 @@ import React from 'react'
 import {useTranslation} from 'react-i18next'
 import {createMachine} from 'xstate'
 import {assign, choose} from 'xstate/lib/actions'
+import {useCloseToast} from '../../../shared/hooks/use-toast'
 import {useEpoch} from '../../../shared/providers/epoch-context'
 import {useTestValidationState} from '../../../shared/providers/test-validation-context'
 import {EpochPeriod} from '../../../shared/types'
 import {ValidatonStatusToast} from '../components/status-toast'
 
-export function useValidationStatusToast() {
+export function useValidationToast() {
   const {t} = useTranslation()
 
   const router = useRouter()
 
   const toast = useToast()
 
-  const closeValidationToasts = useCloseValidationStatusToast()
+  const closeValidationToasts = useCloseValidationToast()
+
+  const closeToast = useCloseToast()
 
   useTrackEpochPeriod({
     onChangeCurrentPeriod: currentPeriod => {
-      for (const period of [
+      ;[
         EpochPeriod.FlipLottery,
         EpochPeriod.ShortSession,
         EpochPeriod.LongSession,
         EpochPeriod.AfterLongSession,
-      ]) {
-        if (period !== currentPeriod && toast.isActive(period)) {
-          toast.close(period)
-        }
-      }
+      ]
+        .filter(period => period !== currentPeriod)
+        .forEach(closeToast)
     },
     onFlipLottery: () => {
       if (toast.isActive(EpochPeriod.FlipLottery)) return
@@ -107,7 +108,7 @@ export function useValidationStatusToast() {
   })
 }
 
-export function useTestValidationStatusToast() {
+export function useTestValidationToast() {
   const {t} = useTranslation()
 
   const router = useRouter()
@@ -119,64 +120,36 @@ export function useTestValidationStatusToast() {
     epoch: testValidationEpoch,
   } = useTestValidationState()
 
-  const closeToast = React.useCallback(
-    id => {
-      if (toast.isActive(id)) {
-        toast.close(id)
-      }
-    },
-    [toast]
-  )
-
   React.useEffect(() => {
     if (currentTrainingValidation) {
       const isTrainingValidationSoon =
         testValidationEpoch?.currentPeriod !== EpochPeriod.FlipLottery
 
       if (isTrainingValidationSoon) {
-        closeToast('testValidationRunning')
-      } else {
-        closeToast('testValidationSoon')
-      }
+        if (toast.isActive('testValidationSoon')) return
 
-      toast({
-        id: isTrainingValidationSoon
-          ? 'testValidationSoon'
-          : 'testValidationRunning',
-        duration: null,
-        render: () => (
-          <ValidatonStatusToast
-            title={
-              isTrainingValidationSoon
-                ? t('Idena training validation will start soon')
-                : t('Idena training validation is in progress')
-            }
-            colorScheme={isTrainingValidationSoon ? 'red' : 'green'}
-          >
-            <Button
-              variant="unstyled"
-              onClick={() => {
-                router.push(
-                  isTrainingValidationSoon
-                    ? '/try/validation/lottery'
-                    : '/try/validation/after'
-                )
-              }}
+        toast({
+          id: 'testValidationSoon',
+          duration: null,
+          render: () => (
+            <ValidatonStatusToast
+              title={t('Idena training validation will start soon')}
+              colorScheme="red"
             >
-              {t('Show countdown')}
-            </Button>
-          </ValidatonStatusToast>
-        ),
-      })
+              <Button
+                variant="unstyled"
+                onClick={() => {
+                  router.push('/validation/lottery')
+                }}
+              >
+                {t('Show countdown')}
+              </Button>
+            </ValidatonStatusToast>
+          ),
+        })
+      }
     }
-  }, [
-    closeToast,
-    currentTrainingValidation,
-    router,
-    t,
-    testValidationEpoch,
-    toast,
-  ])
+  }, [currentTrainingValidation, router, t, testValidationEpoch, toast])
 }
 
 export function useTrackEpochPeriod({
@@ -301,30 +274,46 @@ const trackEpochPeriodMachine = createMachine(
   }
 )
 
-export function useCloseValidationStatusToast() {
-  const toast = useToast()
+export function useCloseValidationToast() {
+  const closeToast = useCloseToast()
 
   return React.useCallback(() => {
-    for (const period of [
+    ;[
       EpochPeriod.FlipLottery,
       EpochPeriod.ShortSession,
       EpochPeriod.LongSession,
       'validationCeremony',
       EpochPeriod.AfterLongSession,
-    ]) {
-      if (toast.isActive(period)) {
-        toast.close(period)
-      }
-    }
-  }, [toast])
+    ].forEach(closeToast)
+  }, [closeToast])
 }
 
-export function useAutoCloseValidationStatusToast() {
-  const close = useCloseValidationStatusToast()
+export function useAutoCloseValidationToast() {
+  const close = useCloseValidationToast()
 
   React.useEffect(() => {
     close()
   }, [close])
 
   return close
+}
+
+export function useCloseTestValidationToast() {
+  return useCloseToast('testValidationSoon')
+}
+
+export function useAutoCloseTestValidationToast() {
+  const close = useCloseTestValidationToast()
+
+  React.useEffect(() => {
+    close()
+  }, [close])
+}
+
+export function useCloseManyToasts(...ids) {
+  const closeToast = useCloseToast()
+
+  return React.useCallback(() => {
+    ids.forEach(closeToast)
+  }, [closeToast, ids])
 }

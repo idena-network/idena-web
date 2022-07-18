@@ -66,3 +66,16 @@ export const useClosableToast = () => {
     [close, toast]
   )
 }
+
+export function useCloseToast() {
+  const toast = useToast()
+
+  return React.useCallback(
+    id => {
+      if (toast.isActive(id)) {
+        toast.close(id)
+      }
+    },
+    [toast]
+  )
+}

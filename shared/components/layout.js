@@ -19,8 +19,8 @@ import {AdBanner} from '../../screens/ads/containers'
 import {useHamburgerTop} from '../hooks/use-hamburger-top'
 import {useIsDesktop} from '../utils/utils'
 import {
-  useTestValidationStatusToast,
-  useValidationStatusToast,
+  useTestValidationToast,
+  useValidationToast,
 } from '../../screens/validation/hooks/use-status-toast'
 
 export default function Layout({
@@ -79,9 +79,9 @@ function NormalApp({children, canRedirect = true, skipBanner, hasRotatingAds}) {
 
   const isDesktop = useIsDesktop()
 
-  useValidationStatusToast()
+  useValidationToast()
 
-  useTestValidationStatusToast()
+  useTestValidationToast()
 
   return (
     <Flex
