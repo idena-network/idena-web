@@ -82,6 +82,17 @@ export default function LotteryPage() {
                 )}
               </Text>
             </Stack>
+
+            {epoch ? (
+              <ValidationCountdown
+                duration={
+                  epoch.currentPeriod === EpochPeriod.FlipLottery
+                    ? dayjs(epoch.nextValidation).diff(dayjs())
+                    : 0
+                }
+              />
+            ) : null}
+
             {isIneligible && (
               <ErrorAlert>
                 {isValidated
@@ -93,15 +104,6 @@ export default function LotteryPage() {
                     )}
               </ErrorAlert>
             )}
-            {epoch ? (
-              <ValidationCountdown
-                duration={
-                  epoch.currentPeriod === EpochPeriod.FlipLottery
-                    ? dayjs(epoch.nextValidation).diff(dayjs())
-                    : 0
-                }
-              />
-            ) : null}
           </Stack>
           <ValidationAdPromotion />
         </Stack>

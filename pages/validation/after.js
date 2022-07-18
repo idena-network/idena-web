@@ -131,22 +131,23 @@ export default function AfterValidationPage() {
                   {isEligible &&
                     !isPending &&
                     t('You answers are successfully submitted')}
-                  {!isEligible && (
-                    <ErrorAlert>
-                      {isValidated
-                        ? t(
-                            'Can not start validation session because you did not submit flips'
-                          )
-                        : t(
-                            'Can not start validation session because you did not activate invite'
-                          )}
-                    </ErrorAlert>
-                  )}
                 </>
               )}
             </Stack>
             {isAfterLongSession ? null : (
               <ValidationCountdown duration={validationEnd.diff(dayjs())} />
+            )}
+
+            {!isEligible && (
+              <ErrorAlert>
+                {isValidated
+                  ? t(
+                      'Can not start validation session because you did not submit flips'
+                    )
+                  : t(
+                      'Can not start validation session because you did not activate invite'
+                    )}
+              </ErrorAlert>
             )}
           </Stack>
           <ValidationAdPromotion />
