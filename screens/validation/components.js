@@ -27,11 +27,8 @@ import {
   ModalBody,
 } from '@chakra-ui/react'
 import {useSwipeable} from 'react-swipeable'
-import {useMachine} from '@xstate/react'
 import {Trans, useTranslation} from 'react-i18next'
-import dayjs from 'dayjs'
-import router, {useRouter} from 'next/router'
-import {State} from 'xstate'
+import {useRouter} from 'next/router'
 import useHover from '@react-hook/hover'
 import {Box, Fill, Absolute} from '../../shared/components'
 import Flex from '../../shared/components/flex'
@@ -47,20 +44,15 @@ import {
   DrawerFooter,
   Drawer,
   DrawerBody,
-  Toast,
 } from '../../shared/components/components'
 import {
   availableReportsNumber,
   decodedWithKeywords,
   filterRegularFlips,
   filterSolvableFlips,
-  loadValidationState,
   rearrangeFlips,
 } from './utils'
-import {Notification, Snackbar} from '../../shared/components/notifications'
-import {NotificationType} from '../../shared/providers/notification-context'
-import {AnswerType, EpochPeriod, RelevanceType} from '../../shared/types'
-import {createTimerMachine} from '../../shared/machines'
+import {AnswerType, RelevanceType} from '../../shared/types'
 import {
   EmptyFlipImage,
   FlipKeywordPanelNew,
@@ -73,7 +65,6 @@ import {
   PrimaryButton,
   SecondaryButton,
 } from '../../shared/components/button'
-import useNodeTiming from '../../shared/hooks/use-node-timing'
 import {useInterval} from '../../shared/hooks/use-interval'
 import {
   BlockIcon,
@@ -85,7 +76,6 @@ import {
   ZoomFlipIcon,
   CrossSmallIcon,
 } from '../../shared/components/icons'
-import {TEST_SHORT_SESSION_INTERVAL_SEC} from '../../shared/providers/test-validation-context'
 import {use100vh} from '../../shared/hooks/use-100vh'
 import {useIsDesktop} from '../../shared/utils/utils'
 import {useTimer} from '../../shared/hooks/use-timer'
@@ -1106,225 +1096,6 @@ function ValidationDialogFooter({submitText, onSubmit, isDesktop, props}) {
         {submitText}
       </Button>
     </NoticeFooter>
-  )
-}
-
-export function ValidationToast({
-  epoch: {currentPeriod, nextValidation},
-  isTestValidation,
-}) {
-  const {t} = useTranslation()
-
-  switch (currentPeriod) {
-    case EpochPeriod.FlipLottery:
-      return (
-        <ValidationSoonToast
-          validationStart={nextValidation}
-          isTestValidation={isTestValidation}
-        />
-      )
-    case EpochPeriod.ShortSession:
-    case EpochPeriod.LongSession:
-    case EpochPeriod.AfterLongSession:
-      return isTestValidation ? (
-        <TestValidationRunningToast
-          key={currentPeriod}
-          validationStart={nextValidation}
-        />
-      ) : (
-        <Snackbar>
-          <Toast
-            title={t('"Waiting for the end of the long session"')}
-            actionContent={t('"Show countdown"')}
-            onAction={() => {
-              router.push('/validation/after')
-            }}
-          />
-        </Snackbar>
-        // <ValidationRunningToast
-        //   key={currentPeriod}
-        //   currentPeriod={currentPeriod}
-        //   validationStart={nextValidation}
-        // />
-      )
-    // return <AfterLongSessionToast />
-    default:
-      return null
-  }
-}
-
-export function ValidationSoonToast({validationStart, isTestValidation}) {
-  const router = useRouter()
-
-  const duration = React.useMemo(() => dayjs(validationStart).diff(dayjs()), [
-    validationStart,
-  ])
-
-  const [{remaining}] = useTimer(duration)
-
-  // const timerMachine = React.useMemo(
-  //   () => createTimerMachine(dayjs(validationStart).diff(dayjs(), 's')),
-  //   [validationStart]
-  // )
-
-  // const [
-  //   {
-  //     context: {duration},
-  //   },
-  // ] = useMachine(timerMachine)
-
-  const {t} = useTranslation()
-
-  return (
-    <Snackbar>
-      <Notification
-        bg={theme.colors.danger}
-        color={theme.colors.white}
-        iconColor={theme.colors.white}
-        pinned
-        type={NotificationType.Info}
-        title={remaining}
-        body={
-          isTestValidation
-            ? t('Idena training validation will start soon')
-            : t('Idena validation will start soon')
-        }
-        actionName="Show countdown"
-        action={() => {
-          router.push('/validation/lottery')
-        }}
-        actionColor="white"
-      />
-    </Snackbar>
-  )
-}
-
-export function TestValidationRunningToast({validationStart}) {
-  const router = useRouter()
-
-  const {t} = useTranslation()
-
-  const timerMachine = React.useMemo(
-    () =>
-      createTimerMachine(
-        dayjs(validationStart)
-          .add(TEST_SHORT_SESSION_INTERVAL_SEC, 's')
-          .diff(dayjs(), 's')
-      ),
-    [validationStart]
-  )
-
-  const [
-    {
-      context: {duration},
-    },
-  ] = useMachine(timerMachine)
-
-  return (
-    <Snackbar>
-      <Notification
-        bg={theme.colors.primary}
-        color={theme.colors.white}
-        iconColor={theme.colors.white}
-        actionColor={theme.colors.white}
-        pinned
-        type={NotificationType.Info}
-        title={<TimerClock duration={duration} color={theme.colors.white} />}
-        body={t(`Idena training validation is in progress`)}
-        action={() => router.push('/try/validation')}
-        actionName={t('Validate')}
-      />
-    </Snackbar>
-  )
-}
-
-export function ValidationRunningToast({currentPeriod, validationStart}) {
-  const {shortSession, longSession} = useNodeTiming()
-  const sessionDuration =
-    currentPeriod === EpochPeriod.ShortSession
-      ? shortSession
-      : shortSession + longSession
-
-  const validationStateDefinition = loadValidationState()
-  const done = validationStateDefinition
-    ? State.create(validationStateDefinition).done
-    : false
-
-  const router = useRouter()
-
-  const {t} = useTranslation()
-
-  // const timerMachine = React.useMemo(
-  //   () =>
-  //     createTimerMachine(
-  //       dayjs(validationStart)
-  //         .add(sessionDuration, 's')
-  //         .diff(dayjs(), 's')
-  //     ),
-  //   [validationStart, sessionDuration]
-  // )
-
-  // const [
-  //   {
-  //     context: {duration},
-  //   },
-  // ] = useMachine(timerMachine)
-
-  const duration = React.useMemo(() => dayjs(validationStart).diff(dayjs()), [
-    validationStart,
-  ])
-
-  const [{remaining}] = useTimer(duration)
-
-  return (
-    <Snackbar>
-      <Notification
-        bg={done ? theme.colors.success : theme.colors.primary}
-        color={theme.colors.white}
-        iconColor={theme.colors.white}
-        actionColor={theme.colors.white}
-        pinned
-        type={NotificationType.Info}
-        title={remaining}
-        body={
-          done
-            ? `Waiting for the end of ${currentPeriod}`
-            : `Idena validation is in progress`
-        }
-        action={() => {
-          if (done) {
-            router.push('/validation/after')
-          } else {
-            router.push('/validation')
-          }
-        }}
-        actionName={done ? t('Show countdown') : t('Validate')}
-      />
-    </Snackbar>
-  )
-}
-
-export function AfterLongSessionToast() {
-  const {t} = useTranslation()
-
-  const router = useRouter()
-
-  return (
-    <Snackbar>
-      <Notification
-        bg={theme.colors.success}
-        color={theme.colors.white}
-        iconColor={theme.colors.white}
-        pinned
-        type={NotificationType.Info}
-        title={t('Waiting for the Idena validation results')}
-        action={() => {
-          router.push('/validation/after')
-        }}
-        actionName="Show status"
-        actionColor="white"
-      />
-    </Snackbar>
   )
 }
 

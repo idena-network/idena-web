@@ -1,11 +1,11 @@
 import {useMachine} from '@xstate/react'
 import {assign, createMachine} from 'xstate'
 
-export function useTimer(initialDuration) {
+export function useTimer(duration) {
   // eslint-disable-next-line no-use-before-define
   const [state, send] = useMachine(timerMachine, {
     context: {
-      duration: initialDuration,
+      duration,
     },
   })
 
@@ -13,7 +13,7 @@ export function useTimer(initialDuration) {
   const isRunning = state.matches('running')
 
   const {elapsed} = state.context
-  const remaining = initialDuration - elapsed
+  const remaining = duration - elapsed
 
   return [
     {
@@ -25,6 +25,7 @@ export function useTimer(initialDuration) {
       status: state.value,
     },
     {
+      // eslint-disable-next-line no-shadow
       reset(duration) {
         send('RESET', {duration})
       },

@@ -3,7 +3,6 @@ import React from 'react'
 import {useRouter} from 'next/router'
 import {Flex, useDisclosure} from '@chakra-ui/react'
 import Sidebar from './sidebar'
-import Notifications from './notifications'
 import {shouldStartValidation} from '../../screens/validation/utils'
 import {Hamburger, LayoutContainer} from '../../screens/app/components'
 import {useAuthState} from '../providers/auth-context'
@@ -95,8 +94,6 @@ function NormalApp({children, canRedirect = true, skipBanner, hasRotatingAds}) {
       {hasRotatingAds && !skipBanner && !isOffline && isDesktop && <AdBanner />}
 
       {children}
-
-      <Notifications />
 
       <DeferredVotes />
     </Flex>

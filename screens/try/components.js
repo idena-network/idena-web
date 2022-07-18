@@ -24,9 +24,8 @@ import {
   useDisclosure,
   useTheme,
 } from '@chakra-ui/react'
-import {useMachine} from '@xstate/react'
 import dayjs from 'dayjs'
-import React, {useEffect, useMemo, useRef, useState} from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
 import {getFlip, getFlipCache} from '../../shared/api/self'
@@ -48,8 +47,8 @@ import {
   TimerIcon,
   WrongIcon,
 } from '../../shared/components/icons'
+import {useTimer} from '../../shared/hooks/use-timer'
 import {useFailToast} from '../../shared/hooks/use-toast'
-import {createTimerMachine} from '../../shared/machines'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {
   useTestValidationDispatch,
@@ -85,21 +84,17 @@ function Countdown({validationTime = 0}) {
     Math.max(validationTime - new Date().getTime(), 0) / 1000
   )
 
-  const [state] = useMachine(
-    useMemo(() => createTimerMachine(duration), [duration])
-  )
+  const [{remainingSeconds}] = useTimer(duration)
 
   return (
     <Text fontSize={['mdx', 'base']} fontWeight={500}>
-      {state.matches('stopped') && '00:00:00'}
-      {state.matches('running') &&
-        [
-          Math.floor(duration / 3600),
-          Math.floor((duration % 3600) / 60),
-          duration % 60,
-        ]
-          .map(t => t.toString().padStart(2, 0))
-          .join(':')}
+      {[
+        Math.floor(remainingSeconds / 3600),
+        Math.floor((remainingSeconds % 3600) / 60),
+        remainingSeconds % 60,
+      ]
+        .map(t => t.toString().padStart(2, 0))
+        .join(':')}
     </Text>
   )
 }

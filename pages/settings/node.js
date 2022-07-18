@@ -13,11 +13,9 @@ import {
 } from '@chakra-ui/react'
 import SettingsLayout from './layout'
 import {
-  useSettingsState,
-  useSettingsDispatch,
   ApiKeyStates,
+  useSettings,
 } from '../../shared/providers/settings-context'
-import {useNotificationDispatch} from '../../shared/providers/notification-context'
 import {
   FormLabel,
   Input,
@@ -27,12 +25,11 @@ import {PrimaryButton} from '../../shared/components/button'
 import {checkKey, getProvider} from '../../shared/api'
 import {Link} from '../../shared/components'
 import {ChevronDownIcon} from '../../shared/components/icons'
+import {useSuccessToast} from '../../shared/hooks/use-toast'
 
 function Settings() {
   const {t} = useTranslation()
-  const {addNotification} = useNotificationDispatch()
-  const settingsState = useSettingsState()
-  const {saveConnection} = useSettingsDispatch()
+  const [settingsState, {saveConnection}] = useSettings()
 
   const size = useBreakpointValue(['lg', 'md'])
   const flexDirection = useBreakpointValue(['column', 'row'])
@@ -49,10 +46,12 @@ function Settings() {
     setState({url: settingsState.url, apiKey: settingsState.apiKey})
   }, [settingsState])
 
+  const toast = useSuccessToast()
+
   const notify = () =>
-    addNotification({
+    toast({
       title: 'Settings updated',
-      body: `Connected to url ${state.url}`,
+      description: `Connected to url ${state.url}`,
     })
 
   useEffect(() => {
@@ -61,8 +60,9 @@ function Settings() {
         const result = await checkKey(settingsState.apiKey)
         const provider = await getProvider(result.provider)
         setNodeProvider(provider.data.ownerName)
-        // eslint-disable-next-line no-empty
-      } catch (e) {}
+      } catch (e) {
+        console.error(e)
+      }
     }
 
     if (settingsState.apiKeyState === ApiKeyStates.OFFLINE) check()
