@@ -351,7 +351,13 @@ export default function ViewVotingPage() {
                         />
                       </Flex>
                       <Divider orientation="horizontal" />
-                      {isLoaded && <VotingPhase service={service} />}
+                      {isLoaded && (
+                        <VotingPhase
+                          canProlong={canProlong}
+                          canTerminate={canTerminate}
+                          service={service}
+                        />
+                      )}
                     </Stack>
                   </VotingSkeleton>
 

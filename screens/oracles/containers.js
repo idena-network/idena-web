@@ -1237,7 +1237,7 @@ export function LaunchVotingDrawer({votingService}) {
   )
 }
 
-export function VotingPhase({service}) {
+export function VotingPhase({canProlong, canTerminate, service}) {
   const {t} = useTranslation()
 
   const [current] = useActor(service)
@@ -1253,7 +1253,6 @@ export function VotingPhase({service}) {
     winnerThreshold,
     quorum,
     committeeSize,
-    estimatedTerminationTime,
     finishTime,
     terminationTime,
   } = current.context
@@ -1296,24 +1295,30 @@ export function VotingPhase({service}) {
             : t('End counting'),
           finishCountingDate,
         ]
-      : didReachQuorum
+      : // eslint-disable-next-line no-nested-ternary
+      didReachQuorum
       ? [
           // eslint-disable-next-line no-nested-ternary
           didDetermineWinner
-            ? isAllowedToTerminate({estimatedTerminationTime})
+            ? canTerminate
               ? t('Waiting for rewards distribution or termination')
               : t('Waiting for rewards distribution')
-            : isAllowedToTerminate({estimatedTerminationTime})
+            : canTerminate
             ? t('Waiting for refunds or termination')
             : t('Waiting for refunds'),
           null,
         ]
-      : [
-          isAllowedToTerminate({estimatedTerminationTime})
+      : // eslint-disable-next-line no-nested-ternary
+      canProlong
+      ? [
+          canTerminate
             ? t('Waiting for prolongation or termination')
             : t('Waiting for prolongation'),
           null,
         ]
+      : canTerminate
+      ? [t('Waiting for termination'), null]
+      : []
     : // eslint-disable-next-line no-nested-ternary
     eitherIdleState(VotingStatus.CanBeProlonged)
     ? [t('Waiting for prolongation'), null]
