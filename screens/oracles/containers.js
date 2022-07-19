@@ -333,7 +333,8 @@ export function VotingCard({votingRef, ...props}) {
                       VotingStatus.Pending,
                       VotingStatus.Open,
                       VotingStatus.Voting,
-                      VotingStatus.Voted
+                      VotingStatus.Voted,
+                      VotingStatus.CanBeProlonged
                     )
                       ? voteProofsCount
                       : sumAccountableVotes(votes),
