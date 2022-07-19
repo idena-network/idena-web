@@ -655,11 +655,12 @@ export default function ViewVotingPage() {
                             </Text>
                           )}
 
-                        {eitherIdleState(VotingStatus.CanBeProlonged) && (
-                          <Text color="red.500">
-                            {t('Quorum is not reached')}
-                          </Text>
-                        )}
+                        {eitherIdleState(VotingStatus.CanBeProlonged) &&
+                          !didReachQuorum && (
+                            <Text color="red.500">
+                              {t('Quorum is not reached')}
+                            </Text>
+                          )}
                         {eitherIdleState(VotingStatus.Counting) &&
                           isVotingFailed && (
                             <Text color="red.500">
