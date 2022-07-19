@@ -9,7 +9,6 @@ import {createMachine} from 'xstate'
 import {assign, choose} from 'xstate/lib/actions'
 import {useCloseToast} from '../../../shared/hooks/use-toast'
 import {useEpoch} from '../../../shared/providers/epoch-context'
-import {useTestValidationState} from '../../../shared/providers/test-validation-context'
 import {EpochPeriod} from '../../../shared/types'
 import {ValidatonStatusToast} from '../components/status-toast'
 
@@ -106,50 +105,6 @@ export function useValidationToast() {
     },
     onNone: closeValidationToasts,
   })
-}
-
-export function useTestValidationToast() {
-  const {t} = useTranslation()
-
-  const router = useRouter()
-
-  const toast = useToast()
-
-  const {
-    current: currentTrainingValidation,
-    epoch: testValidationEpoch,
-  } = useTestValidationState()
-
-  React.useEffect(() => {
-    if (currentTrainingValidation) {
-      const isTrainingValidationSoon =
-        testValidationEpoch?.currentPeriod !== EpochPeriod.FlipLottery
-
-      if (isTrainingValidationSoon) {
-        if (toast.isActive('testValidationSoon')) return
-
-        toast({
-          id: 'testValidationSoon',
-          duration: null,
-          render: () => (
-            <ValidatonStatusToast
-              title={t('Idena training validation will start soon')}
-              colorScheme="red"
-            >
-              <Button
-                variant="unstyled"
-                onClick={() => {
-                  router.push('/validation/lottery')
-                }}
-              >
-                {t('Show countdown')}
-              </Button>
-            </ValidatonStatusToast>
-          ),
-        })
-      }
-    }
-  }, [currentTrainingValidation, router, t, testValidationEpoch, toast])
 }
 
 export function useTrackEpochPeriod({
@@ -296,24 +251,4 @@ export function useAutoCloseValidationToast() {
   }, [close])
 
   return close
-}
-
-export function useCloseTestValidationToast() {
-  return useCloseToast('testValidationSoon')
-}
-
-export function useAutoCloseTestValidationToast() {
-  const close = useCloseTestValidationToast()
-
-  React.useEffect(() => {
-    close()
-  }, [close])
-}
-
-export function useCloseManyToasts(...ids) {
-  const closeToast = useCloseToast()
-
-  return React.useCallback(() => {
-    ids.forEach(closeToast)
-  }, [closeToast, ids])
 }

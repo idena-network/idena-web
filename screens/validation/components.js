@@ -1,6 +1,6 @@
 /* eslint-disable no-shadow */
 /* eslint-disable react/prop-types */
-import React, {useEffect, useMemo, useRef, useState} from 'react'
+import React, {useEffect, useRef, useState} from 'react'
 import {margin, borderRadius, cover, transparentize, rgba} from 'polished'
 import {FiCheck, FiXCircle, FiChevronLeft, FiChevronRight} from 'react-icons/fi'
 import {
@@ -30,11 +30,13 @@ import {useSwipeable} from 'react-swipeable'
 import {Trans, useTranslation} from 'react-i18next'
 import {useRouter} from 'next/router'
 import useHover from '@react-hook/hover'
+import dayjs from 'dayjs'
+import durationPlugin from 'dayjs/plugin/duration'
 import {Box, Fill, Absolute} from '../../shared/components'
 import Flex from '../../shared/components/flex'
 import {reorderList} from '../../shared/utils/arr'
 import theme, {rem} from '../../shared/theme'
-import {adjustDuration} from './machine'
+import {adjustDurationInSeconds} from './machine'
 import {Tooltip as TooltipLegacy} from '../../shared/components/tooltip'
 import {
   Tooltip,
@@ -79,6 +81,8 @@ import {
 import {use100vh} from '../../shared/hooks/use-100vh'
 import {useIsDesktop} from '../../shared/utils/utils'
 import {useTimer} from '../../shared/hooks/use-timer'
+
+dayjs.extend(durationPlugin)
 
 const Scroll = require('react-scroll')
 
@@ -962,8 +966,8 @@ export function NavButton({type, bg, color, ...props}) {
 }
 
 export function ValidationTimer({validationStart, duration, color}) {
-  const adjustedDuration = useMemo(
-    () => adjustDuration(validationStart, duration),
+  const adjustedDuration = React.useMemo(
+    () => adjustDurationInSeconds(validationStart, duration) * 1000,
     [duration, validationStart]
   )
 
@@ -989,10 +993,7 @@ export function TimerClock({duration, color}) {
     <Box style={{fontVariantNumeric: 'tabular-nums', minWidth: rem(37)}}>
       <Text color={color} fontSize={['16px', '13px']} fontWeight={500}>
         {isStopped && '00:00'}
-        {isRunning &&
-          [Math.floor(remaining / 60), remaining % 60]
-            .map(t => t.toString().padStart(2, 0))
-            .join(':')}
+        {isRunning && dayjs.duration(remaining).format('mm:ss')}
       </Text>
     </Box>
   )
@@ -1401,7 +1402,6 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
           <ChakraFlex
             direction={['column', 'row']}
             justify="center"
-            align="center"
             flexGrow={1}
           >
             <Stack

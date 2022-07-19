@@ -79,3 +79,11 @@ export function useCloseToast() {
     [toast]
   )
 }
+
+export function useCloseManyToasts(...ids) {
+  const closeToast = useCloseToast()
+
+  return React.useCallback(() => {
+    ids.forEach(closeToast)
+  }, [closeToast, ids])
+}

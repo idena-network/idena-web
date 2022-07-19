@@ -25,6 +25,7 @@ import {
   useTheme,
 } from '@chakra-ui/react'
 import dayjs from 'dayjs'
+import durationPlugin from 'dayjs/plugin/duration'
 import React, {useEffect, useRef, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
@@ -61,6 +62,8 @@ import {capitalize} from '../../shared/utils/string'
 import {toBlob, useIsDesktop} from '../../shared/utils/utils'
 import {canScheduleValidation, GetAnswerTitle} from './utils'
 
+dayjs.extend(durationPlugin)
+
 function CertificateCardPanelItem({title, children, ...props}) {
   return (
     <Flex
@@ -79,22 +82,12 @@ function CertificateCardPanelItem({title, children, ...props}) {
   )
 }
 
-function Countdown({validationTime = 0}) {
-  const duration = Math.floor(
-    Math.max(validationTime - new Date().getTime(), 0) / 1000
-  )
-
-  const [{remainingSeconds}] = useTimer(duration)
+export function Countdown({duration = 0}) {
+  const [{remaining}] = useTimer(duration)
 
   return (
     <Text fontSize={['mdx', 'base']} fontWeight={500}>
-      {[
-        Math.floor(remainingSeconds / 3600),
-        Math.floor((remainingSeconds % 3600) / 60),
-        remainingSeconds % 60,
-      ]
-        .map(t => t.toString().padStart(2, 0))
-        .join(':')}
+      {dayjs.duration(remaining).format('HH:mm:ss')}
     </Text>
   )
 }
@@ -186,6 +179,12 @@ export function CertificateCard({
     }
   }
 
+  const startTime = current?.startTime
+  const timerDuration = React.useMemo(
+    () => Math.floor(Math.max(dayjs(startTime).diff(), 0)),
+    [startTime]
+  )
+
   return (
     <Flex
       alignSelf="stretch"
@@ -237,7 +236,7 @@ export function CertificateCard({
         </CertificateCardPanelItem>
         {isStarted && (
           <CertificateCardPanelItem title={t('Time left')}>
-            <Countdown validationTime={current.startTime} />
+            <Countdown duration={timerDuration} />
           </CertificateCardPanelItem>
         )}
         <CertificateCardPanelItem title={t('Trust level')}>

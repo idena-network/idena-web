@@ -18,10 +18,8 @@ import {useRotatingAds} from '../../screens/ads/hooks'
 import {AdBanner} from '../../screens/ads/containers'
 import {useHamburgerTop} from '../hooks/use-hamburger-top'
 import {useIsDesktop} from '../utils/utils'
-import {
-  useTestValidationToast,
-  useValidationToast,
-} from '../../screens/validation/hooks/use-status-toast'
+import {useValidationToast} from '../../screens/validation/hooks/use-validation-toast'
+import {useTestValidationToast} from '../../screens/try/hooks/use-test-validation-toast'
 
 export default function Layout({
   showHamburger = true,

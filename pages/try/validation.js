@@ -23,10 +23,7 @@ import {RelevanceType, SessionType} from '../../shared/types'
 import {toBlob} from '../../shared/utils/utils'
 import {signMessage} from '../../shared/utils/crypto'
 import {toHexString} from '../../shared/utils/buffers'
-import {
-  useAutoCloseTestValidationToast,
-  useCloseTestValidationToast,
-} from '../../screens/validation/hooks/use-status-toast'
+import {useAutoCloseTestValidationToast} from '../../screens/try/hooks/use-test-validation-toast'
 
 export default function TrainingPage() {
   const {auth, privateKey, coinbase} = useAuthState()
@@ -191,8 +188,6 @@ function ValidationSession({
       },
     },
   })
-
-  useCloseTestValidationToast()
 
   return (
     <ValidationScreen

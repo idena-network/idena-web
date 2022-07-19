@@ -17,14 +17,14 @@ import Auth from '../../shared/components/auth'
 import useNodeTiming from '../../shared/hooks/use-node-timing'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {writeValidationLog} from '../../shared/utils/logs'
-import {useAutoCloseValidationStatusToast} from '../../screens/validation/hooks/use-status-toast'
+import {useAutoCloseValidationToast} from '../../screens/validation/hooks/use-validation-toast'
 
 export default function ValidationPage() {
   const epoch = useEpoch()
   const timing = useNodeTiming()
   const {auth, privateKey, coinbase} = useAuthState()
 
-  useAutoCloseValidationStatusToast()
+  useAutoCloseValidationToast()
 
   if (!auth) {
     return (

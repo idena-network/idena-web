@@ -21,7 +21,7 @@ import {usePersistedValidationState} from '../../screens/validation/hooks/use-pe
 import {
   useAutoCloseValidationToast,
   useTrackEpochPeriod,
-} from '../../screens/validation/hooks/use-status-toast'
+} from '../../screens/validation/hooks/use-validation-toast'
 import {canValidate} from '../../screens/validation/utils'
 import Auth from '../../shared/components/auth'
 import {ApiStatus, ErrorAlert} from '../../shared/components/components'
