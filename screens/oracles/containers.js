@@ -288,7 +288,8 @@ export function VotingCard({votingRef, ...props}) {
               VotingStatus.Voted,
               VotingStatus.Archived,
               VotingStatus.Terminated,
-              VotingStatus.Counting
+              VotingStatus.Counting,
+              VotingStatus.CanBeProlonged
             ) && (
               <PrimaryButton onClick={() => router.push(viewHref)}>
                 {t('View')}
@@ -1312,6 +1313,9 @@ export function VotingPhase({service}) {
             : t('Waiting for prolongation'),
           null,
         ]
+    : // eslint-disable-next-line no-nested-ternary
+    eitherIdleState(VotingStatus.CanBeProlonged)
+    ? [t('Waiting for prolongation'), null]
     : // eslint-disable-next-line no-nested-ternary
     eitherIdleState(VotingStatus.Archived, VotingStatus.Terminating)
     ? [t('Waiting for termination'), finishTime]
