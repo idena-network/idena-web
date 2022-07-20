@@ -20,6 +20,7 @@ import {useHamburgerTop} from '../hooks/use-hamburger-top'
 import {useIsDesktop} from '../utils/utils'
 import {useValidationToast} from '../../screens/validation/hooks/use-validation-toast'
 import {useTestValidationToast} from '../../screens/try/hooks/use-test-validation-toast'
+import {useStartTestValidation} from '../../screens/try/hooks/use-start-test-validation'
 
 export default function Layout({
   showHamburger = true,
@@ -67,13 +68,21 @@ function NormalApp({children, canRedirect = true, skipBanner, hasRotatingAds}) {
 
   const isOffline = settings.apiKeyState === ApiKeyStates.OFFLINE
 
+  const startTestValidation = useStartTestValidation()
+
   React.useEffect(() => {
     if (!canRedirect) return
     if (isOffline) {
       router.push('/node/offline')
     } else if (currentTrainingValidation?.period === EpochPeriod.ShortSession)
-      router.push('/try/validation')
-  }, [canRedirect, currentTrainingValidation, isOffline, router])
+      startTestValidation()
+  }, [
+    canRedirect,
+    currentTrainingValidation,
+    isOffline,
+    router,
+    startTestValidation,
+  ])
 
   const isDesktop = useIsDesktop()
 

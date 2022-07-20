@@ -19,6 +19,7 @@ import {LayoutContainer} from '../../screens/app/components'
 import Auth from '../../shared/components/auth'
 import {useAutoCloseTestValidationToast} from '../../screens/try/hooks/use-test-validation-toast'
 import {useTestValidationState} from '../../shared/providers/test-validation-context'
+import {useAutoStartTestValidation} from '../../screens/try/hooks/use-start-test-validation'
 
 export default function LotteryPage() {
   const {t} = useTranslation()
@@ -26,6 +27,8 @@ export default function LotteryPage() {
   const {auth} = useAuthState()
 
   const {current, epoch} = useTestValidationState()
+
+  useAutoStartTestValidation()
 
   useAutoCloseTestValidationToast()
 
@@ -54,8 +57,8 @@ export default function LotteryPage() {
       </Flex>
 
       <Center bg="graphite.500" color="white" minH="100vh">
-        <Stack spacing="12">
-          <Stack spacing="6" w={['xs', '2xl']}>
+        <Stack spacing="12" w={['xs', '640px']}>
+          <Stack spacing="6">
             <Stack spacing="2">
               <Heading fontSize="lg" fontWeight={500}>
                 {t('Idena training validation will start soon')}
@@ -70,7 +73,7 @@ export default function LotteryPage() {
             {epoch ? (
               <ValidationCountdown
                 duration={Math.floor(
-                  Math.max(dayjs(current.startTime).diff(), 0)
+                  Math.max(dayjs(current?.startTime).diff(), 0)
                 )}
               />
             ) : null}
