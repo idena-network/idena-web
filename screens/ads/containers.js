@@ -1270,6 +1270,183 @@ export function BurnDrawer({ad, onBurn, ...props}) {
   )
 }
 
+export function CreateCampaignDrawer({ad, onSuccess, ...props}) {
+  const {t} = useTranslation()
+
+  const formatDna = useFormatDna()
+
+  const failToast = useFailToast()
+
+  const [{address}] = useIdentity()
+
+  const balance = useBalance(address)
+
+  const [isPending, {on: setIsPendingOn, off: setIsPendingOff}] = useBoolean()
+
+  const {submit} = usePublishAd({
+    onBeforeSubmit: setIsPendingOn,
+    onMined: React.useCallback(() => {
+      // eslint-disable-next-line no-unused-expressions
+      onSuccess?.()
+      setIsPendingOff()
+    }, [onSuccess, setIsPendingOff]),
+    onError: React.useCallback(
+      error => {
+        failToast(error)
+        setIsPendingOff()
+      },
+      [failToast, setIsPendingOff]
+    ),
+  })
+
+  const competingAds = useCompetingAds(ad?.cid, ad ? new AdTarget(ad) : null)
+
+  const competitorCount = competingAds?.length
+  const maxCompetitor = competingAds?.sort((a, b) => b.amount - a.amount)[0]
+
+  return (
+    <AdDrawer isMining={isPending} {...props}>
+      <DrawerHeader>
+        <Stack spacing={4}>
+          <FillCenter
+            alignSelf="flex-start"
+            bg="blue.012"
+            w={12}
+            minH={12}
+            rounded="xl"
+          >
+            <AdsIcon boxSize={6} color="blue.500" />
+          </FillCenter>
+          <Heading fontSize="lg" fontWeight={500}>
+            {t('Create ad campaign')}
+          </Heading>
+        </Stack>
+      </DrawerHeader>
+      <DrawerBody overflowY="auto" mx={-6} mb={10}>
+        <Stack spacing="6" color="brandGray.500" fontSize="md" p={6} pt={0}>
+          <Stack spacing="3">
+            <Text>
+              {t(
+                'Your ad campaign is about to be created for the audience with the following target parameters:',
+                {nsSeparator: '|'}
+              )}
+            </Text>
+          </Stack>
+
+          <Stack spacing="6" bg="gray.50" p={6} rounded="lg">
+            <Stack isInline spacing={5} align="flex-start">
+              <AdImage src={ad ? adImageThumbSrc(ad) : null} w="10" />
+              <Box>
+                <Text fontWeight={500}>{ad?.title}</Text>
+                <ExternalLink href={ad?.url} maxW="48">
+                  {ad?.url}
+                </ExternalLink>
+              </Box>
+            </Stack>
+            <Stack spacing={3}>
+              <HDivider />
+              <InlineAdStatGroup labelWidth="24">
+                <InlineAdStat
+                  label={t('Competitors')}
+                  value={String(competitorCount)}
+                />
+                <InlineAdStat
+                  label={t('Max bid')}
+                  value={maxCompetitor ? formatDna(maxCompetitor.amount) : '--'}
+                />
+              </InlineAdStatGroup>
+            </Stack>
+          </Stack>
+          <form
+            id="runCampaign"
+            onSubmit={e => {
+              e.preventDefault()
+
+              const target = Object.fromEntries(
+                new FormData(e.currentTarget).entries()
+              )
+              if (balance > 0) {
+                submit({...ad, ...target})
+              } else {
+                failToast(t('Insufficient funds to start campaign'))
+              }
+            }}
+          >
+            <FormSection>
+              <FormSectionTitle>{t('Target audience')}</FormSectionTitle>
+              <Stack spacing={3} shouldWrapChildren>
+                <AdFormField label={t('Language')}>
+                  <Select
+                    name="language"
+                    defaultValue={ad?.language}
+                    _hover={{
+                      borderColor: 'gray.100',
+                    }}
+                  >
+                    <option></option>
+                    {AVAILABLE_LANGS.map(lang => (
+                      <option key={lang}>{lang}</option>
+                    ))}
+                  </Select>
+                </AdFormField>
+                <AdFormField label={t('Min age')}>
+                  <AdNumberInput
+                    name="age"
+                    defaultValue={ad?.age}
+                    min={0}
+                    max={Number.MAX_SAFE_INTEGER}
+                  />
+                  <FormHelperText color="muted" fontSize="sm" mt="1">
+                    {t('Min age to see the ad')}
+                  </FormHelperText>
+                </AdFormField>
+                <AdFormField label={t('Min stake')}>
+                  <AdNumberInput
+                    name="stake"
+                    defaultValue={ad?.stake}
+                    min={0}
+                    max={Number.MAX_SAFE_INTEGER}
+                    addon={t('iDNA')}
+                  />
+                  <FormHelperText color="muted" fontSize="sm" mt="1">
+                    {t('Min stake amount to see the ad')}
+                  </FormHelperText>
+                </AdFormField>
+                <AdFormField label="OS">
+                  <Select
+                    name="os"
+                    defaultValue={ad?.os}
+                    _hover={{
+                      borderColor: 'gray.100',
+                    }}
+                  >
+                    <option></option>
+                    {Object.entries(OS).map(([k, v]) => (
+                      <option key={v} value={v}>
+                        {k}
+                      </option>
+                    ))}
+                  </Select>
+                </AdFormField>
+              </Stack>
+            </FormSection>
+          </form>
+        </Stack>
+      </DrawerBody>
+      <DrawerFooter>
+        <PrimaryButton
+          type="submit"
+          form="runCampaign"
+          isLoading={isPending}
+          loadingText={t('Creating...')}
+        >
+          {t('Create')}
+        </PrimaryButton>
+      </DrawerFooter>
+    </AdDrawer>
+  )
+}
+
 export function BlockAdStat({label, value, children, ...props}) {
   return (
     <Stat {...props}>
@@ -1374,7 +1551,7 @@ export function AdPreview({ad, ...props}) {
 }
 
 export function AdDebug() {
-  const {decodeProfile, decodeAd} = useProtoProfileDecoder()
+  const {decodeProfile, decodeAd, decodeAdTarget} = useProtoProfileDecoder()
 
   const [result, setResult] = React.useState()
 
@@ -1418,6 +1595,26 @@ export function AdDebug() {
             </FormLabel>
           </fieldset>
           <PrimaryButton type="submit">Decode ad</PrimaryButton>
+        </form>
+        <form
+          onSubmit={e => {
+            e.preventDefault()
+
+            setResult(
+              decodeAdTarget(
+                new FormData(e.currentTarget).get('encodedAdTarget')
+              )
+            )
+          }}
+        >
+          <fieldset>
+            <legend>Ad target decoder</legend>
+            <FormLabel>
+              Encoded ad target
+              <Input name="encodedAdTarget" />
+            </FormLabel>
+          </fieldset>
+          <PrimaryButton type="submit">Decode ad target</PrimaryButton>
         </form>
       </Stack>
       <Debug>{result ?? null}</Debug>

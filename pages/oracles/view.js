@@ -91,6 +91,7 @@ import Layout from '../../shared/components/layout'
 import {Page} from '../../screens/app/components'
 import {
   AddFundIcon,
+  AdsIcon,
   CoinsLgIcon,
   OkIcon,
   RefreshIcon,
@@ -102,9 +103,9 @@ import {useAuthState} from '../../shared/providers/auth-context'
 import {useBalance} from '../../shared/hooks/use-balance'
 import {viewVotingMachine} from '../../screens/oracles/machines'
 import {useDeferredVotes, useOracleActions} from '../../screens/oracles/hooks'
-import {AdPreview} from '../../screens/ads/containers'
+import {AdPreview, CreateCampaignDrawer} from '../../screens/ads/containers'
 import {useIpfsAd} from '../../screens/ads/hooks'
-import {validateAdVoting} from '../../screens/ads/utils'
+import {isApprovedVoting, validateAdVoting} from '../../screens/ads/utils'
 
 dayjs.extend(relativeTime)
 dayjs.extend(duration)
@@ -222,6 +223,8 @@ export default function ViewVotingPage() {
 
   const isMaliciousAdVoting = ad && isValidAdVoting
 
+  const createCampaignDisclosure = useDisclosure()
+
   return (
     <>
       <Layout showHamburger={false}>
@@ -318,7 +321,7 @@ export default function ViewVotingPage() {
                           </Text>
                         )}
                       </Stack>
-                      <Flex>
+                      <Flex align="center">
                         {adCid && (
                           <IconButton
                             icon={<ViewIcon boxSize={4} />}
@@ -338,6 +341,21 @@ export default function ViewVotingPage() {
                           locale={i18n.language}
                           alignSelf="start"
                         />
+                        {areSameCaseInsensitive(issuer, coinbase) &&
+                          !isMaliciousAdVoting &&
+                          isApprovedVoting(current.context) &&
+                          ad && (
+                            <>
+                              <VDivider />
+                              <IconButton
+                                icon={<AdsIcon boxSize={4} />}
+                                _hover={{background: 'transparent'}}
+                                onClick={createCampaignDisclosure.onOpen}
+                              >
+                                {t('Create campaign')}
+                              </IconButton>
+                            </>
+                          )}
                       </Flex>
                       <Divider orientation="horizontal" />
                       {isLoaded && <VotingPhase service={service} />}
@@ -1108,6 +1126,12 @@ export default function ViewVotingPage() {
           </PrimaryButton>
         </DialogFooter>
       </Dialog>
+
+      <CreateCampaignDrawer
+        ad={{...ad, cid: adCid, contract: contractHash}}
+        onSuccess={createCampaignDisclosure.onClose}
+        {...createCampaignDisclosure}
+      />
     </>
   )
 }
