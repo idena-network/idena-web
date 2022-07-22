@@ -307,7 +307,7 @@ export function useProfileAds() {
 
   const decodedProfileAds = useQueries(
     profile?.ads?.map(({cid, target, ...ad}) => ({
-      queryKey: ['decodedProfileAd', [cid]],
+      queryKey: ['decodedProfileAd', cid, target],
       queryFn: async () => ({
         ...decodeAd(
           await queryClient
@@ -320,6 +320,7 @@ export function useProfileAds() {
         ),
         ...decodeAdTarget(target),
         cid,
+        target,
         ...ad,
       }),
       enabled: Boolean(cid),
@@ -331,9 +332,9 @@ export function useProfileAds() {
     decodedProfileAds
       .filter(({data}) => Boolean(data?.contract))
       .map(({data}) => {
-        const {cid, contract, ...ad} = data
+        const {cid, contract, target, ...ad} = data
         return {
-          queryKey: ['profileAd', cid, contract],
+          queryKey: ['profileAd', cid, contract, target],
           queryFn: async () => ({
             ...ad,
             cid,
