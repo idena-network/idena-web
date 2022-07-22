@@ -127,10 +127,10 @@ export default function AfterValidationPage() {
                 <>
                   {isEligible &&
                     isPending &&
-                    t('Please wait. You answers are being submitted...')}
+                    t('Please wait. Your answers are being submitted...')}
                   {isEligible &&
                     !isPending &&
-                    t('You answers are successfully submitted')}
+                    t('Your answers are successfully submitted')}
                 </>
               )}
             </Stack>
