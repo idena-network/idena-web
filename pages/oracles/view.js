@@ -25,6 +25,7 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import duration from 'dayjs/plugin/duration'
 import {ArrowDownIcon, ArrowUpIcon, ViewIcon} from '@chakra-ui/icons'
+import {useQuery} from 'react-query'
 import {
   Avatar,
   GoogleTranslateButton,
@@ -105,7 +106,11 @@ import {viewVotingMachine} from '../../screens/oracles/machines'
 import {useDeferredVotes, useOracleActions} from '../../screens/oracles/hooks'
 import {AdPreview, CreateCampaignDrawer} from '../../screens/ads/containers'
 import {useIpfsAd} from '../../screens/ads/hooks'
-import {isApprovedVoting, validateAdVoting} from '../../screens/ads/utils'
+import {
+  getAdVoting,
+  isApprovedVoting,
+  validateAdVoting,
+} from '../../screens/ads/utils'
 
 dayjs.extend(relativeTime)
 dayjs.extend(duration)
@@ -216,14 +221,22 @@ export default function ViewVotingPage() {
 
   const adPreviewDisclosure = useDisclosure()
 
-  const isValidAdVoting = React.useMemo(
-    () => validateAdVoting({ad, voting: current.context}) === false,
-    [ad, current.context]
-  )
-
-  const isMaliciousAdVoting = ad && isValidAdVoting
+  const isMaliciousAdVoting = React.useMemo(() => {
+    if (ad) {
+      return validateAdVoting({ad, voting: current.context}) === false
+    }
+  }, [ad, current.context])
 
   const createCampaignDisclosure = useDisclosure()
+
+  const {data: adVoting} = useQuery({
+    queryKey: ['adVoting', contractHash],
+    queryFn: () => {
+      if (contractHash) {
+        return getAdVoting(contractHash)
+      }
+    },
+  })
 
   return (
     <>
@@ -343,8 +356,7 @@ export default function ViewVotingPage() {
                         />
                         {areSameCaseInsensitive(issuer, coinbase) &&
                           !isMaliciousAdVoting &&
-                          isApprovedVoting(current.context) &&
-                          ad && (
+                          isApprovedVoting(adVoting) && (
                             <>
                               <VDivider />
                               <IconButton
