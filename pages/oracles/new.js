@@ -235,7 +235,6 @@ function NewVotingPage() {
               <VotingInlineFormControl
                 htmlFor="startDate"
                 label={t('Start date')}
-                isDisabled={shouldStartImmediately}
                 isInvalid={isInvalid(
                   'startDate',
                   startDate || shouldStartImmediately
@@ -247,6 +246,7 @@ function NewVotingPage() {
                     id="startDate"
                     type="datetime-local"
                     onChange={handleChange}
+                    isDisabled={shouldStartImmediately}
                   />
                   {isInvalid(
                     'startDate',
@@ -348,7 +348,6 @@ function NewVotingPage() {
                 tooltip={t(
                   'Refunded when voting in majority and lost when voting in minority'
                 )}
-                isDisabled={isFreeVoting}
                 mt={2}
               >
                 <Stack spacing={3} flex={1}>
