@@ -85,7 +85,6 @@ import {
   viewVotingHref,
   votingFinishDate,
   votingMinBalance,
-  isAllowedToTerminate,
   hasQuorum,
   mapVotingStatus,
   effectiveBalance,
@@ -355,7 +354,6 @@ export function VotingStatusBadge({status, ...props}) {
   const colors = (() => {
     switch (status?.toLowerCase()) {
       case VotingStatus.Pending:
-      case VotingStatus.CanBeProlonged:
         return {
           bg: 'rgb(218 121 255 /0.2)',
           color: 'rgb(218 121 255)',
@@ -381,6 +379,11 @@ export function VotingStatusBadge({status, ...props}) {
         return {
           bg: 'red.020',
           color: 'red.500',
+        }
+      case VotingStatus.CanBeProlonged:
+        return {
+          bg: 'orange.010',
+          color: 'orange.500',
         }
       default:
       case VotingStatus.Archived:

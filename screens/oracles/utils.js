@@ -249,20 +249,18 @@ export const estimateCallContract = async (
     webClientType
   )
 
+  const coinbase = privateKeyToAddress(privateKey)
+
   const rawTx = await getRawTx(
     TxType.CallContractTx,
-    privateKeyToAddress(privateKey),
+    coinbase,
     contractHash,
     amount,
     null,
     toHexString(payload.toBytes(), true)
   )
 
-  const tx = new Transaction().fromHex(rawTx)
-  tx.sign(privateKey)
-  const hex = tx.toHex(true)
-
-  const result = await estimateRawTx(hex)
+  const result = await estimateRawTx(rawTx, coinbase)
 
   if (result.receipt?.error) throw new Error(result.receipt?.error)
 
@@ -303,20 +301,18 @@ export const estimateTerminateContract = async (
     webClientType
   )
 
+  const coinbase = privateKeyToAddress(privateKey)
+
   const rawTx = await getRawTx(
     TxType.TerminateContractTx,
-    privateKeyToAddress(privateKey),
+    coinbase,
     contractHash,
     null,
     null,
     toHexString(payload.toBytes(), true)
   )
 
-  const tx = new Transaction().fromHex(rawTx)
-  tx.sign(privateKey)
-  const hex = tx.toHex(true)
-
-  const result = await estimateRawTx(hex)
+  const result = await estimateRawTx(rawTx, coinbase)
 
   if (result.receipt?.error) throw new Error(result.receipt?.error)
 
@@ -531,7 +527,11 @@ export function votingStatuses(filter) {
     case VotingListFilter.Todo:
       return [VotingStatus.Pending, VotingStatus.Open]
     case VotingListFilter.Voting:
-      return [VotingStatus.Voted, VotingStatus.Counting]
+      return [
+        VotingStatus.Voted,
+        VotingStatus.Counting,
+        VotingStatus.CanBeProlonged,
+      ]
     case VotingListFilter.Closed:
       return [VotingStatus.Archived, VotingStatus.Terminated]
     case VotingListFilter.All:
@@ -541,6 +541,7 @@ export function votingStatuses(filter) {
         VotingStatus.Open,
         VotingStatus.Voted,
         VotingStatus.Counting,
+        VotingStatus.CanBeProlonged,
         VotingStatus.Archived,
         VotingStatus.Terminated,
       ]
@@ -666,7 +667,7 @@ export const mapVoting = ({
 
 export function mapVotingStatus(status) {
   if (areSameCaseInsensitive(status, VotingStatus.CanBeProlonged))
-    return 'Pending'
+    return 'Prolongation'
   if (areSameCaseInsensitive(status, VotingStatus.Voted)) return 'Voting'
   return status
 }

@@ -80,10 +80,10 @@ export async function getRawTx(
   return result
 }
 
-export async function estimateRawTx(hex) {
+export async function estimateRawTx(hex, coinbase = null) {
   const {data} = await api().post('/', {
     method: 'bcn_estimateRawTx',
-    params: [hex],
+    params: [hex, coinbase],
     id: 1,
   })
   const {result, error} = data
