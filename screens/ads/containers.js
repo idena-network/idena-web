@@ -33,6 +33,7 @@ import {
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
 import {ChevronRightIcon, TriangleUpIcon, ViewIcon} from '@chakra-ui/icons'
+import {useQueryClient} from 'react-query'
 import {
   Avatar,
   Drawer,
@@ -1277,19 +1278,23 @@ export function CreateCampaignDrawer({ad, onSuccess, ...props}) {
 
   const failToast = useFailToast()
 
-  const [{address}] = useIdentity()
+  const [{address, profileHash}] = useIdentity()
 
   const balance = useBalance(address)
 
   const [isPending, {on: setIsPendingOn, off: setIsPendingOff}] = useBoolean()
 
+  const queryClient = useQueryClient()
+
   const {submit} = usePublishAd({
     onBeforeSubmit: setIsPendingOn,
     onMined: React.useCallback(() => {
+      queryClient.invalidateQueries({queryKey: ['ipfs_get', [profileHash]]})
+
       // eslint-disable-next-line no-unused-expressions
       onSuccess?.()
       setIsPendingOff()
-    }, [onSuccess, setIsPendingOff]),
+    }, [onSuccess, profileHash, queryClient, setIsPendingOff]),
     onError: React.useCallback(
       error => {
         failToast(error)
