@@ -220,6 +220,13 @@ export default function AdListPage() {
 
   const devToolsDisclosure = useDisclosure()
 
+  React.useEffect(() => {
+    if (query.filter) {
+      setFilter(query.filter)
+      replace('/adn/list')
+    }
+  }, [query, replace])
+
   return (
     <Layout>
       <Page pt={[4, 6]}>

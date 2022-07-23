@@ -111,6 +111,8 @@ import {
   isApprovedVoting,
   validateAdVoting,
 } from '../../screens/ads/utils'
+import {useSuccessToast} from '../../shared/hooks/use-toast'
+import {AdStatus} from '../../screens/ads/types'
 
 dayjs.extend(relativeTime)
 dayjs.extend(duration)
@@ -237,6 +239,22 @@ export default function ViewVotingPage() {
       }
     },
   })
+
+  const successToast = useSuccessToast()
+
+  const {onClose: onCloseCampaignDisclosure} = createCampaignDisclosure
+
+  const handleCreateCampaign = React.useCallback(() => {
+    onCloseCampaignDisclosure()
+
+    successToast({
+      title: t('Ad campaign is successfully created'),
+      actionContent: t(`View 'Campaigns'`),
+      onAction: () => {
+        redirect(`/adn/list?filter=${AdStatus.Published}`)
+      },
+    })
+  }, [onCloseCampaignDisclosure, redirect, successToast, t])
 
   return (
     <>
@@ -1141,7 +1159,7 @@ export default function ViewVotingPage() {
 
       <CreateCampaignDrawer
         ad={{...ad, cid: adCid, contract: contractHash}}
-        onSuccess={createCampaignDisclosure.onClose}
+        onSuccess={handleCreateCampaign}
         {...createCampaignDisclosure}
       />
     </>
