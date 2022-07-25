@@ -115,7 +115,7 @@ export function ValidationAdPromotion(props) {
               </Stack>
             </Stack>
             <SuccessAlert
-              icon={<InfoIcon color="green.500" mr="3" />}
+              icon={<InfoIcon color="green.500" boxSize="5" mr="3" />}
               fontSize="md"
             >
               {t('Watching ads makes your coin valuable!')}
