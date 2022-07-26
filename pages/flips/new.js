@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react'
+import React, {useEffect, useState} from 'react'
 import {useRouter} from 'next/router'
 import {Box, Flex, useToast, Divider, useDisclosure} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
@@ -23,6 +23,7 @@ import {
   FlipSubmitStep,
   CommunityTranslationUnavailable,
   PublishFlipDrawer,
+  FlipProtectStep,
 } from '../../screens/flips/components'
 import Layout from '../../shared/components/layout'
 import {flipMasterMachine} from '../../screens/flips/machines'
@@ -108,6 +109,8 @@ export default function NewFlipPage() {
     },
     logger: msg => console.log(redact(msg)),
   })
+
+  const [protectedImages, setProtectedImages] = useState([])
 
   useEffect(() => {
     if (epochState && privateKey) {
@@ -195,6 +198,18 @@ export default function NewFlipPage() {
                   }
                 >
                   {t('Select images')}
+                </FlipMasterNavbarItem>
+                <FlipMasterNavbarItem
+                  step={
+                    // eslint-disable-next-line no-nested-ternary
+                    is('protect')
+                      ? Step.Active
+                      : is('keywords') || is('images')
+                      ? Step.Next
+                      : Step.Completed
+                  }
+                >
+                  {t('Protect images')}
                 </FlipMasterNavbarItem>
                 <FlipMasterNavbarItem
                   step={
@@ -299,9 +314,20 @@ export default function NewFlipPage() {
                   onPainting={() => send('PAINTING')}
                 />
               )}
+              {is('protect') && (
+                <FlipProtectStep
+                  keywords={keywords}
+                  showTranslation={showTranslation}
+                  originalOrder={originalOrder}
+                  images={images}
+                  onProtectImages={protectedImgs =>
+                    (setProtectedImages(protectedImgs))
+                  }
+                />
+              )}
               {is('shuffle') && (
                 <FlipShuffleStep
-                  images={images}
+                  images={protectedImages}
                   originalOrder={originalOrder}
                   order={order}
                   onShuffle={() => send('SHUFFLE')}
@@ -319,7 +345,7 @@ export default function NewFlipPage() {
                   onSwitchLocale={() => send('SWITCH_LOCALE')}
                   originalOrder={originalOrder}
                   order={order}
-                  images={images}
+                  images={protectedImages}
                 />
               )}
             </FlipMaster>
@@ -336,7 +362,10 @@ export default function NewFlipPage() {
           )}
           {not('submit') && (
             <PrimaryButton
-              isDisabled={is('images.painting')}
+              isDisabled={
+                is('images.painting') ||
+                (is('protect') && protectedImages.length < 4)
+              }
               onClick={() => send('NEXT')}
             >
               {t('Next step')}
