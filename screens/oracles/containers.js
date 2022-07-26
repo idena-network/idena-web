@@ -85,7 +85,6 @@ import {
   viewVotingHref,
   votingFinishDate,
   votingMinBalance,
-  isAllowedToTerminate,
   hasQuorum,
   mapVotingStatus,
   effectiveBalance,
@@ -288,7 +287,8 @@ export function VotingCard({votingRef, ...props}) {
               VotingStatus.Voted,
               VotingStatus.Archived,
               VotingStatus.Terminated,
-              VotingStatus.Counting
+              VotingStatus.Counting,
+              VotingStatus.CanBeProlonged
             ) && (
               <PrimaryButton onClick={() => router.push(viewHref)}>
                 {t('View')}
@@ -332,7 +332,8 @@ export function VotingCard({votingRef, ...props}) {
                       VotingStatus.Pending,
                       VotingStatus.Open,
                       VotingStatus.Voting,
-                      VotingStatus.Voted
+                      VotingStatus.Voted,
+                      VotingStatus.CanBeProlonged
                     )
                       ? voteProofsCount
                       : sumAccountableVotes(votes),
@@ -378,6 +379,11 @@ export function VotingStatusBadge({status, ...props}) {
         return {
           bg: 'red.020',
           color: 'red.500',
+        }
+      case VotingStatus.CanBeProlonged:
+        return {
+          bg: 'orange.010',
+          color: 'orange.500',
         }
       default:
       case VotingStatus.Archived:
@@ -1234,7 +1240,7 @@ export function LaunchVotingDrawer({votingService}) {
   )
 }
 
-export function VotingPhase({service}) {
+export function VotingPhase({canProlong, canTerminate, service}) {
   const {t} = useTranslation()
 
   const [current] = useActor(service)
@@ -1250,7 +1256,6 @@ export function VotingPhase({service}) {
     winnerThreshold,
     quorum,
     committeeSize,
-    estimatedTerminationTime,
     finishTime,
     terminationTime,
   } = current.context
@@ -1293,24 +1298,33 @@ export function VotingPhase({service}) {
             : t('End counting'),
           finishCountingDate,
         ]
-      : didReachQuorum
+      : // eslint-disable-next-line no-nested-ternary
+      didReachQuorum
       ? [
           // eslint-disable-next-line no-nested-ternary
           didDetermineWinner
-            ? isAllowedToTerminate({estimatedTerminationTime})
+            ? canTerminate
               ? t('Waiting for rewards distribution or termination')
               : t('Waiting for rewards distribution')
-            : isAllowedToTerminate({estimatedTerminationTime})
+            : canTerminate
             ? t('Waiting for refunds or termination')
             : t('Waiting for refunds'),
           null,
         ]
-      : [
-          isAllowedToTerminate({estimatedTerminationTime})
+      : // eslint-disable-next-line no-nested-ternary
+      canProlong
+      ? [
+          canTerminate
             ? t('Waiting for prolongation or termination')
             : t('Waiting for prolongation'),
           null,
         ]
+      : canTerminate
+      ? [t('Waiting for termination'), null]
+      : []
+    : // eslint-disable-next-line no-nested-ternary
+    eitherIdleState(VotingStatus.CanBeProlonged)
+    ? [t('Waiting for prolongation'), null]
     : // eslint-disable-next-line no-nested-ternary
     eitherIdleState(VotingStatus.Archived, VotingStatus.Terminating)
     ? [t('Waiting for termination'), finishTime]
