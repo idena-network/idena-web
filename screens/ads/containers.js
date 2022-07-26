@@ -220,10 +220,9 @@ export function AdListItem({
 
   const formatDna = useFormatDna()
 
-  const competingAds = useCompetingAds(
-    cid,
-    new AdTarget({language, age, os, stake})
-  )
+  const target = new AdTarget({language, age, os, stake})
+
+  const competingAds = useCompetingAds(cid, target)
 
   const competitorCount = competingAds?.length
   const maxCompetitor = competingAds?.sort((a, b) => b.amount - a.amount)[0]
@@ -235,7 +234,9 @@ export function AdListItem({
       ?.sort((a, b) => b.amount - a.amount)
       .map(burn => ({...burn, ...AdBurnKey.fromHex(burn?.key)})) ?? []
 
-  const burnIndex = orderedBurntCoins.findIndex(burn => burn.cid === cid)
+  const burnIndex = orderedBurntCoins.findIndex(
+    burn => burn.cid === cid && burn.target === target.toHex()
+  )
   const burnAmount = orderedBurntCoins[burnIndex]
 
   const rotationStatus =

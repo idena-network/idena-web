@@ -219,7 +219,9 @@ export function useCompetingAds(cid, target) {
       return approvedBurntCoins?.filter(burn => {
         const key = AdBurnKey.fromHex(burn.key)
         return (
-          cid !== key.cid && areCompetingAds(decodeAdTarget(key.target), target)
+          cid !== key.cid &&
+          target.toHex() !== key.target &&
+          areCompetingAds(decodeAdTarget(key.target), target)
         )
       })
     }
