@@ -756,8 +756,58 @@ export const flipMasterMachine = Machine(
                 ],
               },
               PAINTING: '.painting',
-              NEXT: 'shuffle',
+              NEXT: 'protect',
               PREV: 'keywords',
+            },
+            initial: 'idle',
+            states: {
+              idle: {},
+              painting: {},
+              persisting: {
+                invoke: {
+                  id: 'persistFlip',
+                  src: 'persistFlip',
+                },
+                on: {
+                  PERSISTED: {
+                    target: 'idle',
+                    actions: [
+                      assign((context, {flip}) => ({...context, ...flip})),
+                      log(),
+                    ],
+                  },
+                },
+              },
+            },
+          },
+          protect: {
+            on: {
+              CHANGE_IMAGES: {
+                target: '.persisting',
+                actions: [
+                  assign({
+                    images: ({images}, {image, currentIndex}) => [
+                      ...images.slice(0, currentIndex),
+                      image,
+                      ...images.slice(currentIndex + 1),
+                    ],
+                  }),
+                  log(),
+                ],
+              },
+              CHANGE_ORIGINAL_ORDER: {
+                target: '.persisting',
+                actions: [
+                  assign({
+                    originalOrder: (_, {order}) => order,
+                    order: (_, {order}) => order,
+                  }),
+                  log(),
+                ],
+              },
+              PAINTING: '.painting',
+              NEXT: 'shuffle',
+              PREV: 'images',
             },
             initial: 'idle',
             states: {
@@ -814,7 +864,7 @@ export const flipMasterMachine = Machine(
                 actions: ['changeOrder', log()],
               },
               NEXT: 'submit',
-              PREV: 'images',
+              PREV: 'protect',
             },
             initial: 'idle',
             states: {
@@ -876,6 +926,7 @@ export const flipMasterMachine = Machine(
         },
         on: {
           PICK_IMAGES: '.images',
+          PICK_PROTECT: '.protect',
           PICK_KEYWORDS: '.keywords',
           PICK_SHUFFLE: '.shuffle',
           PICK_SUBMIT: '.submit',

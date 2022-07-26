@@ -1,5 +1,5 @@
 /* eslint-disable react/prop-types */
-import React from 'react'
+import React, {useEffect} from 'react'
 import NextLink from 'next/link'
 import {
   Image,
@@ -40,7 +40,7 @@ import {useService} from '@xstate/react'
 import {EditIcon, ViewIcon} from '@chakra-ui/icons'
 import FlipEditor from './components/flip-editor'
 import {Step} from './types'
-import {formatKeywords} from './utils'
+import {formatKeywords, protectFlipImage} from './utils'
 import {PageTitle} from '../app/components'
 import {
   PrimaryButton,
@@ -824,6 +824,70 @@ export function FlipEditorStep({
               onChanging={onPainting}
             />
           ))}
+        </Box>
+      </Stack>
+    </FlipStep>
+  )
+}
+
+export function FlipProtectStep({originalOrder, images, onProtectImages}) {
+  const {t} = useTranslation()
+
+  const [protectedImages, setProtectedImages] = React.useState([])
+  const [currentIndex, setCurrentIdx] = React.useState(0)
+
+  useEffect(() => {
+    const protectedFlips = []
+    const protectImages = async () => {
+      for (let i = 0; i < images.length; i++) {
+        const protectedImageSrc = await protectFlipImage(images[i])
+        console.log(protectedImageSrc)
+        protectedFlips[i] = protectedImageSrc
+      }
+      setProtectedImages(protectedFlips)
+      onProtectImages(protectedFlips)
+    }
+
+    protectImages()
+  }, [images])
+
+  return (
+    <FlipStep>
+      <FlipStepHeader>
+        <FlipStepTitle>
+          {t('Protect your images with watermarks')}
+        </FlipStepTitle>
+        <FlipStepSubtitle>
+          {t(
+            `Watermarks help to prevent your flip from being stolen and used by other participants.`
+          )}
+        </FlipStepSubtitle>
+      </FlipStepHeader>
+      <Stack isInline spacing={10}>
+        <FlipImageList>
+          {originalOrder.map((num, idx) => (
+            <SelectableItem
+              isActive={idx === currentIndex}
+              isFirst={idx === 0}
+              isLast={idx === images.length - 1}
+              onClick={() => setCurrentIdx(idx)}
+            >
+              <FlipImageListItem
+                key={num}
+                src={protectedImages[num]}
+                isFirst={idx === 0}
+                isLast={idx === images.length - 1}
+                onClick={() => setCurrentIdx(idx)}
+              />
+            </SelectableItem>
+          ))}
+        </FlipImageList>
+        <Box>
+          <Image
+            borgerRadius="8px"
+            border="solid 1px rgba(83, 86, 92, 0.16)"
+            src={protectedImages[currentIndex]}
+          />
         </Box>
       </Stack>
     </FlipStep>
