@@ -137,7 +137,6 @@ export function VotingCard({votingRef, ...props}) {
     committeeSize,
     isOracle,
     totalReward,
-    finishCountingDate,
     estimatedTotalReward,
     isNew,
   } = current.context
