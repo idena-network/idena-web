@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/prop-types */
 import React, {Fragment} from 'react'
 import Link from 'next/link'
@@ -39,6 +40,7 @@ import {
   eitherState,
   callRpc,
   toPercent,
+  areSameCaseInsensitive,
 } from '../../shared/utils/utils'
 import {
   Avatar,
@@ -314,13 +316,16 @@ export function VotingCard({votingRef, ...props}) {
                 borderLeft="1px"
               />
               <Stack isInline spacing={2} align="center">
-                {hasWinner({
+                {eitherIdleState(
+                  VotingStatus.Archived,
+                  VotingStatus.Terminated
+                ) &&
+                hasWinner({
                   votes,
                   votesCount: voteProofsCount,
                   winnerThreshold,
                   quorum,
                   committeeSize,
-                  finishCountingDate,
                 }) ? (
                   <UserTickIcon boxSize={4} color="muted" />
                 ) : (
@@ -978,6 +983,7 @@ export function VotingResult({votingService, ...props}) {
   const [current] = useActor(votingService)
 
   const {
+    status,
     options,
     votes = options.map(({id}) => ({option: id, count: 0})),
     voteProofsCount,
@@ -985,7 +991,6 @@ export function VotingResult({votingService, ...props}) {
     committeeSize,
     quorum,
     selectedOption = -1,
-    finishCountingDate,
   } = current.context
 
   const didDetermineWinner = hasWinner({
@@ -994,8 +999,11 @@ export function VotingResult({votingService, ...props}) {
     winnerThreshold,
     quorum,
     committeeSize,
-    finishCountingDate,
   })
+
+  const eitherIdleState = (...states) =>
+    eitherState(current, ...states.map(s => `idle.${s}`.toLowerCase())) ||
+    states.some(s => areSameCaseInsensitive(status, s))
 
   const max = Math.max(...votes.map(({count}) => count))
 
@@ -1011,7 +1019,11 @@ export function VotingResult({votingService, ...props}) {
             max={max}
             isMine={id === selectedOption}
             didVote={selectedOption > -1}
-            isWinner={didDetermineWinner && currentValue === max}
+            isWinner={
+              eitherIdleState(VotingStatus.Archived, VotingStatus.Terminated) &&
+              didDetermineWinner &&
+              currentValue === max
+            }
             votesCount={sumAccountableVotes(votes)}
           />
         )
@@ -1240,7 +1252,7 @@ export function LaunchVotingDrawer({votingService}) {
   )
 }
 
-export function VotingPhase({canProlong, canTerminate, service}) {
+export function VotingPhase({canFinish, canProlong, canTerminate, service}) {
   const {t} = useTranslation()
 
   const [current] = useActor(service)
@@ -1292,12 +1304,7 @@ export function VotingPhase({canProlong, canTerminate, service}) {
       )
     ? // eslint-disable-next-line no-nested-ternary
       dayjs().isBefore(finishCountingDate)
-      ? [
-          didDetermineWinner
-            ? t('Waiting for rewards distribution')
-            : t('End counting'),
-          finishCountingDate,
-        ]
+      ? [t('End counting'), finishCountingDate]
       : // eslint-disable-next-line no-nested-ternary
       didReachQuorum
       ? [
@@ -1324,7 +1331,7 @@ export function VotingPhase({canProlong, canTerminate, service}) {
       : []
     : // eslint-disable-next-line no-nested-ternary
     eitherIdleState(VotingStatus.CanBeProlonged)
-    ? [t('Waiting for prolongation'), null]
+    ? [canFinish ? t('End counting') : t('Waiting for prolongation'), null]
     : // eslint-disable-next-line no-nested-ternary
     eitherIdleState(VotingStatus.Archived, VotingStatus.Terminating)
     ? [t('Waiting for termination'), finishTime]
@@ -1454,6 +1461,7 @@ export function FinishDrawer({
   isLoading,
   from,
   available,
+  isVotingFailed,
   // eslint-disable-next-line no-shadow
   hasWinner,
   onFinish,
@@ -1464,7 +1472,7 @@ export function FinishDrawer({
   return (
     <AdDrawer isMining={isLoading} isCloseable={!isLoading} {...props}>
       <OracleDrawerHeader>
-        {hasWinner ? t('Finish voting') : t('Claim refunds')}
+        {isVotingFailed ? t('Claim refunds') : t('Claim rewards')}
       </OracleDrawerHeader>
       <OracleDrawerBody
         as="form"
@@ -1474,9 +1482,13 @@ export function FinishDrawer({
         }}
       >
         <Text color="muted" fontSize="md">
-          {hasWinner
-            ? t('Declare the winner and pay rewards to oracles.')
-            : t('Finish voting and refund oracles with their lock funds.')}
+          {isVotingFailed
+            ? t('Voting is failed to reach quorum. Distribute refunds.')
+            : hasWinner
+            ? t(
+                'Finish voting and distribute rewards to the oracles who voted in the majority.'
+              )
+            : t('Finish voting and distribute rewards to the oracles.')}
         </Text>
 
         <OracleFormControl label={t('Transfer from')}>
@@ -1489,12 +1501,12 @@ export function FinishDrawer({
 
         <PrimaryButton
           isLoading={isLoading}
-          loadingText={hasWinner ? t('Distributing') : t('Refunding')}
+          loadingText={t('Claiming')}
           type="submit"
           mt={3}
           ml="auto"
         >
-          {hasWinner ? t('Distribute rewards') : t('Refund')}
+          {isVotingFailed ? t('Claim refunds') : t('Claim rewards')}
         </PrimaryButton>
       </OracleDrawerBody>
     </AdDrawer>

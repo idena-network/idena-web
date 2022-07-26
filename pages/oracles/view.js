@@ -189,11 +189,9 @@ export default function ViewVotingPage() {
 
   const isLoaded = !current.matches('loading')
 
-  const sameString = a => b => areSameCaseInsensitive(a, b)
-
   const eitherIdleState = (...states) =>
     eitherState(current, ...states.map(s => `idle.${s}`.toLowerCase())) ||
-    states.some(sameString(status))
+    states.some(s => areSameCaseInsensitive(status, s))
 
   const isClosed = eitherIdleState(
     VotingStatus.Archived,
@@ -206,7 +204,6 @@ export default function ViewVotingPage() {
     winnerThreshold,
     quorum,
     committeeSize,
-    finishCountingDate,
   })
 
   const didReachQuorum = hasQuorum({
@@ -353,6 +350,7 @@ export default function ViewVotingPage() {
                       <Divider orientation="horizontal" />
                       {isLoaded && (
                         <VotingPhase
+                          canFinish={canFinish}
                           canProlong={canProlong}
                           canTerminate={canTerminate}
                           service={service}
@@ -589,14 +587,14 @@ export default function ViewVotingPage() {
                               isLoading={current.matches(
                                 `mining.${VotingStatus.Finishing}`
                               )}
-                              loadingText={t('Finishing')}
+                              loadingText={t('Claiming')}
                               onClick={() =>
                                 send('REVIEW_FINISH_VOTING', {from: coinbase})
                               }
                             >
-                              {didDetermineWinner
-                                ? t('Finish voting')
-                                : t('Claim refunds')}
+                              {isVotingFailed
+                                ? t('Claim refunds')
+                                : t('Claim rewards')}
                             </PrimaryButton>
                           )}
 
@@ -671,7 +669,10 @@ export default function ViewVotingPage() {
                           )}
                         <VDivider />
                         <Stack isInline spacing={2} align="center">
-                          {didDetermineWinner ? (
+                          {eitherIdleState(
+                            VotingStatus.Archived,
+                            VotingStatus.Terminated
+                          ) && didDetermineWinner ? (
                             <UserTickIcon color="muted" boxSize={4} />
                           ) : (
                             <UserIcon color="muted" boxSize={4} />
@@ -1079,6 +1080,7 @@ export default function ViewVotingPage() {
           send('FINISH', {privateKey})
         }}
         hasWinner={didDetermineWinner}
+        isVotingFailed={isVotingFailed}
       />
 
       <ProlongDrawer

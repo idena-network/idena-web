@@ -203,24 +203,30 @@ async function loadActions(id, privateKey) {
     }
   }
 
+  const canFinish = await checkAction(
+    estimateCallContract(privateKey, {
+      method: 'finishVoting',
+      contractHash: id,
+    })
+  )
+
+  const canProlong = await checkAction(
+    estimateCallContract(privateKey, {
+      method: 'prolongVoting',
+      contractHash: id,
+    })
+  )
+
+  const canTerminate = await checkAction(
+    estimateTerminateContract(privateKey, {
+      contractHash: id,
+    })
+  )
+
   return {
-    canFinish: await checkAction(
-      estimateCallContract(privateKey, {
-        method: 'finishVoting',
-        contractHash: id,
-      })
-    ),
-    canProlong: await checkAction(
-      estimateCallContract(privateKey, {
-        method: 'prolongVoting',
-        contractHash: id,
-      })
-    ),
-    canTerminate: await checkAction(
-      estimateTerminateContract(privateKey, {
-        contractHash: id,
-      })
-    ),
+    canFinish,
+    canProlong: canFinish ? false : canProlong,
+    canTerminate,
   }
 }
 
