@@ -11,6 +11,7 @@ import {useCloseToast} from '../../../shared/hooks/use-toast'
 import {useEpoch} from '../../../shared/providers/epoch-context'
 import {EpochPeriod} from '../../../shared/types'
 import {ValidatonStatusToast} from '../components/status-toast'
+import {useCloseLotteryScreen} from './use-auto-start'
 
 export function useValidationToast() {
   const {t} = useTranslation()
@@ -22,6 +23,8 @@ export function useValidationToast() {
   const closeValidationToasts = useCloseValidationToast()
 
   const closeToast = useCloseToast()
+
+  const [didCloseLotteryScreen] = useCloseLotteryScreen()
 
   useTrackEpochPeriod({
     onChangeCurrentPeriod: currentPeriod => {
@@ -35,6 +38,8 @@ export function useValidationToast() {
         .forEach(closeToast)
     },
     onFlipLottery: () => {
+      if (!didCloseLotteryScreen) return
+
       if (toast.isActive(EpochPeriod.FlipLottery)) return
 
       toast({

@@ -12,7 +12,10 @@ import NextLink from 'next/link'
 import React from 'react'
 import {useTranslation} from 'react-i18next'
 import {ValidationAdPromotion} from '../../screens/validation/components/ads'
-import {useAutoStartValidation} from '../../screens/validation/hooks/use-auto-start'
+import {
+  useAutoStartValidation,
+  useCloseLotteryScreen,
+} from '../../screens/validation/hooks/use-auto-start'
 import {ValidationCountdown} from '../../screens/validation/components/countdown'
 import {ApiStatus, ErrorAlert} from '../../shared/components/components'
 import {useEpoch} from '../../shared/providers/epoch-context'
@@ -43,6 +46,8 @@ export default function LotteryPage() {
 
   useAutoCloseValidationToast()
 
+  const [, setCloseLotteryScreen] = useCloseLotteryScreen()
+
   if (!auth) {
     return (
       <LayoutContainer>
@@ -63,7 +68,13 @@ export default function LotteryPage() {
       >
         <ApiStatus position="relative" />
         <NextLink href="/home" passHref>
-          <CloseButton boxSize={4} color="white" />
+          <CloseButton
+            boxSize={4}
+            color="white"
+            onClick={() => {
+              setCloseLotteryScreen(true)
+            }}
+          />
         </NextLink>
       </Flex>
 
