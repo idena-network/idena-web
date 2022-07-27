@@ -2,7 +2,6 @@ import {encode} from 'rlp'
 import axios from 'axios'
 import Jimp from 'jimp'
 import CID from 'cids'
-import extractColors from 'extract-colors'
 import {loadPersistentStateValue, persistItem} from '../../shared/utils/persist'
 import {FlipType} from '../../shared/types'
 import {areSame, areEual} from '../../shared/utils/arr'
@@ -413,9 +412,10 @@ export async function protectFlipImage(imgSrc) {
 
   let palette = []
   try {
+    // eslint-disable-next-line global-require
+    const extractColors = require('extract-colors').default
     palette = await extractColors(imgSrc)
   } catch (e) {}
-
   const getImageData = image => {
     const vMin = 0
     const vMax = 1
@@ -872,11 +872,7 @@ export async function protectFlipImage(imgSrc) {
   await new Promise(resolve => (blurredImage.onload = resolve))
 
   // Create mesh
-  const watershedImageData = watershed(
-    blurredImage,
-      img.width,
-      img.height
-  )
+  const watershedImageData = watershed(blurredImage, img.width, img.height)
   mergeMeshPixels(resultImageData, watershedImageData)
 
   // Modify image hue
