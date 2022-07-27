@@ -220,6 +220,13 @@ export default function AdListPage() {
 
   const devToolsDisclosure = useDisclosure()
 
+  React.useEffect(() => {
+    if (query.filter) {
+      setFilter(query.filter)
+      replace('/adn/list')
+    }
+  }, [query, replace])
+
   return (
     <Layout>
       <Page pt={[4, 6]}>
@@ -274,7 +281,7 @@ export default function AdListPage() {
           <AdList spacing={4} w="full" my="8">
             {ads.map(ad => (
               <AdListItem
-                key={`${ad.cid}!!${ad.id}`}
+                key={`${ad.cid}!!${ad.id}!!${ad.target}`}
                 ad={ad}
                 onReview={() => {
                   setSelectedAd(ad)

@@ -25,6 +25,7 @@ import dayjs from 'dayjs'
 import relativeTime from 'dayjs/plugin/relativeTime'
 import duration from 'dayjs/plugin/duration'
 import {ArrowDownIcon, ArrowUpIcon, ViewIcon} from '@chakra-ui/icons'
+import {useQuery} from 'react-query'
 import {
   Avatar,
   GoogleTranslateButton,
@@ -92,6 +93,7 @@ import Layout from '../../shared/components/layout'
 import {Page} from '../../screens/app/components'
 import {
   AddFundIcon,
+  AdsIcon,
   CoinsLgIcon,
   OkIcon,
   RefreshIcon,
@@ -103,9 +105,15 @@ import {useAuthState} from '../../shared/providers/auth-context'
 import {useBalance} from '../../shared/hooks/use-balance'
 import {viewVotingMachine} from '../../screens/oracles/machines'
 import {useDeferredVotes, useOracleActions} from '../../screens/oracles/hooks'
-import {AdPreview} from '../../screens/ads/containers'
+import {AdPreview, CreateCampaignDrawer} from '../../screens/ads/containers'
 import {useIpfsAd} from '../../screens/ads/hooks'
-import {validateAdVoting} from '../../screens/ads/utils'
+import {
+  getAdVoting,
+  isApprovedVoting,
+  validateAdVoting,
+} from '../../screens/ads/utils'
+import {useSuccessToast} from '../../shared/hooks/use-toast'
+import {AdStatus} from '../../screens/ads/types'
 
 dayjs.extend(relativeTime)
 dayjs.extend(duration)
@@ -226,12 +234,38 @@ export default function ViewVotingPage() {
 
   const adPreviewDisclosure = useDisclosure()
 
-  const isValidAdVoting = React.useMemo(
-    () => validateAdVoting({ad, voting: current.context}) === false,
-    [ad, current.context]
-  )
+  const isMaliciousAdVoting = React.useMemo(() => {
+    if (ad) {
+      return validateAdVoting({ad, voting: current.context}) === false
+    }
+  }, [ad, current.context])
 
-  const isMaliciousAdVoting = ad && isValidAdVoting
+  const createCampaignDisclosure = useDisclosure()
+
+  const {data: adVoting} = useQuery({
+    queryKey: ['adVoting', contractHash],
+    queryFn: () => {
+      if (contractHash) {
+        return getAdVoting(contractHash)
+      }
+    },
+  })
+
+  const successToast = useSuccessToast()
+
+  const {onClose: onCloseCampaignDisclosure} = createCampaignDisclosure
+
+  const handleCreateCampaign = React.useCallback(() => {
+    onCloseCampaignDisclosure()
+
+    successToast({
+      title: t('Ad campaign is successfully created'),
+      actionContent: t(`View 'Campaigns'`),
+      onAction: () => {
+        redirect(`/adn/list?filter=${AdStatus.Published}`)
+      },
+    })
+  }, [onCloseCampaignDisclosure, redirect, successToast, t])
 
   return (
     <>
@@ -329,7 +363,7 @@ export default function ViewVotingPage() {
                           </Text>
                         )}
                       </Stack>
-                      <Flex>
+                      <Flex align="center">
                         {adCid && (
                           <IconButton
                             icon={<ViewIcon boxSize={4} />}
@@ -349,6 +383,20 @@ export default function ViewVotingPage() {
                           locale={i18n.language}
                           alignSelf="start"
                         />
+                        {areSameCaseInsensitive(issuer, coinbase) &&
+                          !isMaliciousAdVoting &&
+                          isApprovedVoting(adVoting) && (
+                            <>
+                              <VDivider />
+                              <IconButton
+                                icon={<AdsIcon boxSize={4} />}
+                                _hover={{background: 'transparent'}}
+                                onClick={createCampaignDisclosure.onOpen}
+                              >
+                                {t('Create campaign')}
+                              </IconButton>
+                            </>
+                          )}
                       </Flex>
                       <Divider orientation="horizontal" />
                       {isLoaded && (
@@ -1155,6 +1203,12 @@ export default function ViewVotingPage() {
           </PrimaryButton>
         </DialogFooter>
       </Dialog>
+
+      <CreateCampaignDrawer
+        ad={{...ad, cid: adCid, contract: contractHash}}
+        onSuccess={handleCreateCampaign}
+        {...createCampaignDisclosure}
+      />
     </>
   )
 }

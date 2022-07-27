@@ -148,8 +148,8 @@ const buildAdReviewVotingOption = option => ({
 
 export const adVotingDefaults = {
   title: 'Is this ad appropriate?',
-  votingDuration: 4320,
-  publicVotingDuration: 4320,
+  votingDuration: isVercelProduction ? 4320 : 10,
+  publicVotingDuration: isVercelProduction ? 4320 : 10,
   winnerThreshold: 51,
   quorum: 1,
   committeeSize: 300,
