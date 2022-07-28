@@ -24,7 +24,7 @@ import {
   useAutoStartTestLottery,
   useStartTestValidation,
 } from '../../screens/try/hooks/use-start-test-validation'
-import {useAutoStartLottery} from '../../screens/validation/hooks/use-auto-start'
+import {useAutoStartLottery} from '../../screens/validation/hooks/use-start-validation'
 
 export default function Layout({
   showHamburger = true,

@@ -6,14 +6,14 @@ export function useTimer(duration) {
   const [state, send] = useMachine(timerMachine, {
     context: {
       duration,
+      remaining: duration,
     },
   })
 
+  const {elapsed, remaining} = state.context
+
   const isStopped = state.matches('stopped')
   const isRunning = state.matches('running')
-
-  const {elapsed} = state.context
-  const remaining = duration - elapsed
 
   return [
     {
@@ -51,6 +51,11 @@ const timerMachine = createMachine({
           cond: ({elapsed, duration}) => elapsed >= duration || duration < 0,
         },
       ],
+      entry: [
+        assign({
+          remaining: ({duration}) => duration,
+        }),
+      ],
       invoke: {
         src: ({interval}) => cb => {
           const intervalId = setInterval(() => {
@@ -63,7 +68,11 @@ const timerMachine = createMachine({
       on: {
         TICK: {
           actions: [
-            assign({elapsed: ({elapsed, interval}) => elapsed + interval}),
+            assign({
+              elapsed: ({elapsed, interval}) => elapsed + interval,
+              remaining: ({duration, elapsed, interval}) =>
+                duration - elapsed - interval,
+            }),
           ],
         },
       },

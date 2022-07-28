@@ -64,7 +64,7 @@ export function useCloseLotteryScreen() {
   return [
     didClose,
     value => {
-      sessionStorage.setItem([`didCloseLotteryScreen-${coinbase}`, value])
+      sessionStorage.setItem(`didCloseLotteryScreen-${coinbase}`, value)
       setDidClose(value)
     },
   ]

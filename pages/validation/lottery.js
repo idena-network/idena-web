@@ -15,7 +15,7 @@ import {ValidationAdPromotion} from '../../screens/validation/components/ads'
 import {
   useAutoStartValidation,
   useCloseLotteryScreen,
-} from '../../screens/validation/hooks/use-auto-start'
+} from '../../screens/validation/hooks/use-start-validation'
 import {ValidationCountdown} from '../../screens/validation/components/countdown'
 import {ApiStatus, ErrorAlert} from '../../shared/components/components'
 import {useEpoch} from '../../shared/providers/epoch-context'
