@@ -32,6 +32,7 @@ export function useValidationToast() {
         EpochPeriod.FlipLottery,
         EpochPeriod.ShortSession,
         EpochPeriod.LongSession,
+        'validationCeremony',
         EpochPeriod.AfterLongSession,
       ]
         .filter(period => period !== currentPeriod)
@@ -249,11 +250,11 @@ export function useCloseValidationToast() {
 }
 
 export function useAutoCloseValidationToast() {
-  const close = useCloseValidationToast()
+  const closeToast = useCloseValidationToast()
 
   React.useEffect(() => {
-    close()
-  }, [close])
+    closeToast()
+  }, [closeToast])
 
-  return close
+  return closeToast
 }
