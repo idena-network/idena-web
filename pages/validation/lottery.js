@@ -79,8 +79,8 @@ export default function LotteryPage() {
       </Flex>
 
       <Center bg="graphite.500" color="white" minH="100vh">
-        <Stack spacing="12">
-          <Stack spacing="6" w={['xs', '2xl']}>
+        <Stack spacing="12" w={['xs', '2xl']}>
+          <Stack spacing="6">
             <Stack spacing="2">
               <Heading fontSize="lg" fontWeight={500}>
                 {t('Idena validation will start soon')}
