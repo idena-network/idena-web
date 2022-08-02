@@ -94,6 +94,7 @@ export const flipsMachine = Machine(
                 hash,
                 keywords: keywords[idx],
                 images: Array.from({length: 4}),
+                protectedImages: Array.from({length: 4}),
               }))
             }
 
@@ -542,6 +543,7 @@ export const flipMasterMachine = Machine(
         translations: [[], []],
       },
       images: Array.from({length: 4}),
+      protectedImages: Array.from({length: 4}),
       originalOrder: DEFAULT_FLIP_ORDER,
       order: DEFAULT_FLIP_ORDER,
       orderPermutations: DEFAULT_FLIP_ORDER,
@@ -782,25 +784,10 @@ export const flipMasterMachine = Machine(
           },
           protect: {
             on: {
-              CHANGE_IMAGES: {
-                target: '.persisting',
+              SAVE_PROTECTED: {
                 actions: [
                   assign({
-                    images: ({images}, {image, currentIndex}) => [
-                      ...images.slice(0, currentIndex),
-                      image,
-                      ...images.slice(currentIndex + 1),
-                    ],
-                  }),
-                  log(),
-                ],
-              },
-              CHANGE_ORIGINAL_ORDER: {
-                target: '.persisting',
-                actions: [
-                  assign({
-                    originalOrder: (_, {order}) => order,
-                    order: (_, {order}) => order,
+                    protectedImages: (_, {images}) => images,
                   }),
                   log(),
                 ],

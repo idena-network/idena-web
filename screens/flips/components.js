@@ -2,7 +2,7 @@
 import React, {useEffect} from 'react'
 import NextLink from 'next/link'
 import {
-  Image,
+  Image as ChakraImage,
   Text,
   Box,
   Flex,
@@ -207,7 +207,7 @@ export function FlipCard({flipService, onDelete}) {
 
 export function FlipCardImage(props) {
   return (
-    <Image
+    <ChakraImage
       objectFit="cover"
       borderStyle="solid"
       borderWidth="1px"
@@ -830,19 +830,72 @@ export function FlipEditorStep({
   )
 }
 
-export function FlipProtectStep({originalOrder, images, onProtectImages}) {
+export function FlipProtectStep({
+  originalOrder,
+  images,
+  // protectedImages,
+  watermark,
+  onProtectImages,
+}) {
   const {t} = useTranslation()
 
   const [protectedImages, setProtectedImages] = React.useState([])
   const [currentIndex, setCurrentIdx] = React.useState(0)
+
+  const watermarkedDataURL = async (imageSrc, text) => {
+    const isTopLeft = Math.floor(Math.random() * 2) === 0
+    const randAngle = Math.floor(Math.random() * 15 + 30)
+
+    const watershedImage = new Image()
+    watershedImage.src = imageSrc
+    await new Promise(resolve => (watershedImage.onload = resolve))
+
+    console.log(`w - ${watershedImage.width} h - ${watershedImage.height}`)
+
+    const tempCanvas = document.createElement('canvas')
+    const tempCtx = tempCanvas.getContext('2d')
+    tempCanvas.width = watershedImage.width
+    tempCanvas.height = watershedImage.height
+    tempCtx.drawImage(watershedImage, 0, 0)
+    tempCtx.save()
+
+    tempCtx.rotate(((isTopLeft ? randAngle : (0 - randAngle)) * Math.PI) / 180)
+    tempCtx.font = 'bold 170px "Inter"'
+    const dateWidth = tempCtx.measureText(watermark).width
+    tempCtx.globalAlpha = 0.35
+    tempCtx.fillStyle = 'white'
+    tempCtx.fillText(
+      watermark,
+      isTopLeft
+        ? watershedImage.width / 2 - dateWidth / 2 + 40
+        : watershedImage.width / 2 - dateWidth / 2 - 40,
+      isTopLeft ? 70 : watershedImage.height + 70
+    )
+    tempCtx.save()
+
+    tempCtx.font = 'bold 40px "Inter"'
+    const textWidth = tempCtx.measureText(text).width
+    // console.log('t - ' + textWidth + ' d - ' + dateWidth + ' i - ' + watershedImage.width)
+    tempCtx.fillText(
+      text,
+      isTopLeft
+        ? watershedImage.width / 2 - textWidth / 2 + 40
+        : watershedImage.width / 2 - textWidth / 2 - 40,
+      isTopLeft ? -70 : watershedImage.height - 70
+    )
+    return tempCanvas.toDataURL()
+  }
 
   useEffect(() => {
     const protectedFlips = []
     const protectImages = async () => {
       for (let i = 0; i < images.length; i++) {
         const protectedImageSrc = await protectFlipImage(images[i])
-        console.log(protectedImageSrc)
-        protectedFlips[i] = protectedImageSrc
+        const watermarkedImageSrc = await watermarkedDataURL(
+          protectedImageSrc,
+          'www.idena.io'
+        )
+        protectedFlips[i] = watermarkedImageSrc
       }
       setProtectedImages(protectedFlips)
       onProtectImages(protectedFlips)
@@ -883,7 +936,7 @@ export function FlipProtectStep({originalOrder, images, onProtectImages}) {
           ))}
         </FlipImageList>
         <Box>
-          <Image
+          <ChakraImage
             borgerRadius="8px"
             border="solid 1px rgba(83, 86, 92, 0.16)"
             src={protectedImages[currentIndex]}
@@ -1169,7 +1222,7 @@ export function FlipImage({
       {...props}
     >
       {src ? (
-        <Image
+        <ChakraImage
           src={src}
           objectFit={objectFit}
           fallbackSrc="/static/flips-cant-icn.svg"

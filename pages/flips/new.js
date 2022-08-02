@@ -110,8 +110,6 @@ export default function NewFlipPage() {
     logger: msg => console.log(redact(msg)),
   })
 
-  const [protectedImages, setProtectedImages] = useState([])
-
   useEffect(() => {
     if (epochState && privateKey) {
       send('PREPARE_FLIP', {epoch: epochState.epoch, privateKey})
@@ -123,6 +121,7 @@ export default function NewFlipPage() {
     keywordPairId,
     keywords,
     images,
+    protectedImages,
     originalOrder,
     order,
     showTranslation,
@@ -135,6 +134,7 @@ export default function NewFlipPage() {
   const is = state => current.matches({editing: state})
   const either = (...states) =>
     eitherState(current, ...states.map(s => ({editing: s})))
+  const bottomWatermark = epochState && `${epochState.nextValidation.substr(5, 5)}`
 
   const isOffline = is('keywords.loaded.fetchTranslationsFailed')
 
@@ -320,8 +320,10 @@ export default function NewFlipPage() {
                   showTranslation={showTranslation}
                   originalOrder={originalOrder}
                   images={images}
+                  // protectedImages={protectedImages}
+                  watermark={bottomWatermark}
                   onProtectImages={protectedImgs =>
-                    (setProtectedImages(protectedImgs))
+                    send('SAVE_PROTECTED', {protectedImgs})
                   }
                 />
               )}
@@ -364,7 +366,7 @@ export default function NewFlipPage() {
             <PrimaryButton
               isDisabled={
                 is('images.painting') ||
-                (is('protect') && protectedImages.length < 4)
+                (is('protect') && protectedImages && protectedImages.length < 4)
               }
               onClick={() => send('NEXT')}
             >
