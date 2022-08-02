@@ -40,7 +40,7 @@ import {useService} from '@xstate/react'
 import {EditIcon, ViewIcon} from '@chakra-ui/icons'
 import FlipEditor from './components/flip-editor'
 import {Step} from './types'
-import {formatKeywords, protectFlipImage} from './utils'
+import {formatKeywords, protectFlipImage, watermarkedDataURL} from './utils'
 import {PageTitle} from '../app/components'
 import {
   PrimaryButton,
@@ -840,50 +840,6 @@ export function FlipProtectStep({
   const {t} = useTranslation()
 
   const [currentIndex, setCurrentIdx] = React.useState(0)
-
-  const watermarkedDataURL = async (imageSrc, text) => {
-    const isTopLeft = Math.floor(Math.random() * 2) === 0
-    const randAngle = Math.floor(Math.random() * 15 + 30)
-
-    const watershedImage = new Image()
-    watershedImage.src = imageSrc
-    await new Promise(resolve => (watershedImage.onload = resolve))
-
-    console.log(`w - ${watershedImage.width} h - ${watershedImage.height}`)
-
-    const tempCanvas = document.createElement('canvas')
-    const tempCtx = tempCanvas.getContext('2d')
-    tempCanvas.width = watershedImage.width
-    tempCanvas.height = watershedImage.height
-    tempCtx.drawImage(watershedImage, 0, 0)
-    tempCtx.save()
-
-    tempCtx.rotate(((isTopLeft ? randAngle : (0 - randAngle)) * Math.PI) / 180)
-    tempCtx.font = 'bold 170px "Inter"'
-    const dateWidth = tempCtx.measureText(watermark).width
-    tempCtx.globalAlpha = 0.35
-    tempCtx.fillStyle = 'white'
-    tempCtx.fillText(
-      watermark,
-      isTopLeft
-        ? watershedImage.width / 2 - dateWidth / 2 + 40
-        : watershedImage.width / 2 - dateWidth / 2 - 40,
-      isTopLeft ? 70 : watershedImage.height + 70
-    )
-    tempCtx.save()
-
-    tempCtx.font = 'bold 40px "Inter"'
-    const textWidth = tempCtx.measureText(text).width
-    // console.log('t - ' + textWidth + ' d - ' + dateWidth + ' i - ' + watershedImage.width)
-    tempCtx.fillText(
-      text,
-      isTopLeft
-        ? watershedImage.width / 2 - textWidth / 2 + 40
-        : watershedImage.width / 2 - textWidth / 2 - 40,
-      isTopLeft ? -70 : watershedImage.height - 70
-    )
-    return tempCanvas.toDataURL()
-  }
 
   useEffect(() => {
     const protectedFlips = []

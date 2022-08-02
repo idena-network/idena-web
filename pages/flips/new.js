@@ -405,7 +405,7 @@ export default function NewFlipPage() {
           isPending={either('submit.submitting', 'submit.mining')}
           flip={{
             keywords: showTranslation ? keywords.translations : keywords.words,
-            images,
+            images: protectedImages,
             originalOrder,
             order,
           }}
