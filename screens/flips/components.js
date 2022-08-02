@@ -833,13 +833,12 @@ export function FlipEditorStep({
 export function FlipProtectStep({
   originalOrder,
   images,
-  // protectedImages,
+  protectedImages,
   watermark,
   onProtectImages,
 }) {
   const {t} = useTranslation()
 
-  const [protectedImages, setProtectedImages] = React.useState([])
   const [currentIndex, setCurrentIdx] = React.useState(0)
 
   const watermarkedDataURL = async (imageSrc, text) => {
@@ -897,7 +896,6 @@ export function FlipProtectStep({
         )
         protectedFlips[i] = watermarkedImageSrc
       }
-      setProtectedImages(protectedFlips)
       onProtectImages(protectedFlips)
     }
 

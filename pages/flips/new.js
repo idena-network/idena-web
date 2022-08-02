@@ -320,10 +320,10 @@ export default function NewFlipPage() {
                   showTranslation={showTranslation}
                   originalOrder={originalOrder}
                   images={images}
-                  // protectedImages={protectedImages}
+                  protectedImages={protectedImages}
                   watermark={bottomWatermark}
                   onProtectImages={protectedImgs =>
-                    send('SAVE_PROTECTED', {protectedImgs})
+                    send('SAVE_PROTECTED', {images: protectedImgs})
                   }
                 />
               )}
