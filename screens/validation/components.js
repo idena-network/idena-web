@@ -1530,6 +1530,7 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
         setFlipCase(flipCase === 0 ? flipCase : flipCase - 1)
       }
     },
+    delta: 50,
     preventDefaultTouchmoveEvent: true,
     trackMouse: true,
   })
@@ -2064,6 +2065,7 @@ export function ValidationScreen({
         scrollToCurrentFlip(currentIndex - 1)
       }
     },
+    delta: 50,
     preventDefaultTouchmoveEvent: true,
     trackMouse: true,
   })
