@@ -5,6 +5,7 @@ import {
   Heading,
   HStack,
   IconButton,
+  Link,
   LinkBox,
   LinkOverlay,
   Stack,
@@ -16,12 +17,14 @@ import {useSwipeable} from 'react-swipeable'
 import {
   Avatar,
   ExternalLink,
+  HDivider,
   SmallText,
   SuccessAlert,
 } from '../../../shared/components/components'
 import {InfoIcon} from '../../../shared/components/icons'
 import {useLanguage} from '../../../shared/hooks/use-language'
 import {AdBurnKey} from '../../../shared/models/adBurnKey'
+import {useIsDesktop} from '../../../shared/utils/utils'
 import {AdImage} from '../../ads/components'
 import {useBurntCoins, useFormatDna, useRotateAds} from '../../ads/hooks'
 
@@ -56,7 +59,102 @@ export function ValidationAdPromotion(props) {
     style: 'short',
   }).format(24, 'hour')
 
+  const isDesktop = useIsDesktop()
+
   if (ads.length > 0) {
+    if (!isDesktop)
+      return (
+        <Stack spacing="2">
+          <Stack
+            spacing="6"
+            bg="gray.500"
+            borderRadius="lg"
+            fontSize="base"
+            p="6"
+          >
+            <Stack spacing="3">
+              <Stack spacing="2">
+                <Heading fontSize="lg" fontWeight={500}>
+                  {currentAd?.title}
+                </Heading>
+                <Text fontSize={['mdx', null]} color="muted">
+                  {currentAd?.desc}
+                </Text>
+              </Stack>
+              <Link
+                href={currentAd?.url}
+                target="_blank"
+                noOfLines={2}
+                color="blue.500"
+                fontWeight={500}
+                maxW="255px"
+              >
+                {currentAd?.url} {currentAd?.url}
+              </Link>
+            </Stack>
+            <LinkBox>
+              <LinkOverlay href={currentAd?.url} isExternal>
+                <AdImage src={currentAd?.media} w="255px" />
+              </LinkOverlay>
+            </LinkBox>
+            <Stack spacing="2" divider={<HDivider borderColor="xwhite.010" />}>
+              <AdStat label={t('Sponsored by')} spacing="1.5">
+                <AdStatValue as={HStack} spacing="2" align="center">
+                  <Avatar
+                    address={currentAd?.author}
+                    boxSize="6"
+                    borderRadius="lg"
+                  />
+                  <Text as="span" color="muted" fontSize="base" noOfLines={1}>
+                    {currentAd?.author}
+                  </Text>
+                </AdStatValue>
+              </AdStat>
+              <AdStat
+                label={t('Burnt, {{time}}', {time: burnDuration})}
+                spacing="1.5"
+              >
+                <AdStatValue
+                  as="span"
+                  color="muted"
+                  fontSize="base"
+                  noOfLines={1}
+                >
+                  {formatDna(maybeBurn?.amount ?? 0)}
+                </AdStatValue>
+              </AdStat>
+            </Stack>
+          </Stack>
+
+          <HStack spacing="0.5" justify="center" align="center" py="3">
+            {ads.map((ad, idx) => {
+              const isCurrrent = currentIndex === idx
+
+              return (
+                <Button
+                  key={ad.cid}
+                  variant="unstyled"
+                  bg={isCurrrent ? 'muted' : 'rgb(150 153 158 /.3)'}
+                  borderRadius="1px"
+                  h="0.5"
+                  w="6"
+                  onClick={() => {
+                    setCurrentIndex(idx)
+                  }}
+                />
+              )
+            })}
+          </HStack>
+
+          <SuccessAlert
+            icon={<InfoIcon color="green.500" boxSize="5" mr="2" />}
+            fontSize="md"
+          >
+            {t('Watching ads makes your coin valuable!')}
+          </SuccessAlert>
+        </Stack>
+      )
+
     return (
       <Stack spacing="4">
         <Box position="relative">
@@ -90,7 +188,7 @@ export function ValidationAdPromotion(props) {
                     </Heading>
                     <Text color="muted">{currentAd?.desc}</Text>
                   </Stack>
-                  <ExternalLink href={currentAd?.url}>
+                  <ExternalLink href={currentAd?.url} noOfLines={2}>
                     {currentAd?.url}
                   </ExternalLink>
                 </Stack>

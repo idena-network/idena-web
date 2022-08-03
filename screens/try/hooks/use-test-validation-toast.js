@@ -5,7 +5,7 @@ import {useTranslation} from 'react-i18next'
 import {useCloseToast} from '../../../shared/hooks/use-toast'
 import {useTestValidationState} from '../../../shared/providers/test-validation-context'
 import {EpochPeriod} from '../../../shared/types'
-import {ValidatonStatusToast} from '../../validation/components/status-toast'
+import {ValidatonStatusToast} from '../../validation/components/toast'
 
 export function useTestValidationToast() {
   const {t} = useTranslation()

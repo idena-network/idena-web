@@ -10,7 +10,7 @@ import {assign, choose} from 'xstate/lib/actions'
 import {useCloseToast} from '../../../shared/hooks/use-toast'
 import {useEpoch} from '../../../shared/providers/epoch-context'
 import {EpochPeriod} from '../../../shared/types'
-import {ValidatonStatusToast} from '../components/status-toast'
+import {ValidatonStatusToast} from '../components/toast'
 import {useCloseLotteryScreen} from './use-start-validation'
 
 export function useValidationToast() {
