@@ -28,7 +28,7 @@ import {useIsDesktop} from '../../../shared/utils/utils'
 import {AdImage} from '../../ads/components'
 import {useBurntCoins, useFormatDna, useRotateAds} from '../../ads/hooks'
 
-export function ValidationAdPromotion(props) {
+export function ValidationAdPromotion() {
   const {t} = useTranslation()
 
   const {lng} = useLanguage()
@@ -166,59 +166,59 @@ export function ValidationAdPromotion(props) {
             transform="translateY(-50%)"
             onClick={prev}
           />
-          <Stack
-            spacing="7"
-            bg="gray.500"
-            borderRadius="lg"
-            p="10"
-            w="full"
-            {...props}
-          >
+          <Box bg="gray.500" borderRadius="lg" p="10" w="full">
             <Stack direction="row" spacing="8" {...swipeProps}>
               <LinkBox>
                 <LinkOverlay href={currentAd?.url} isExternal>
-                  <AdImage src={currentAd?.media} w="148px" />
+                  <AdImage src={currentAd?.media} w="212px" h="212px" />
                 </LinkOverlay>
               </LinkBox>
-              <Stack spacing="5">
-                <Stack spacing="1.5">
-                  <Stack spacing="2">
-                    <Heading as="h3" fontSize="md" fontWeight={500} isTruncated>
-                      {currentAd?.title}
-                    </Heading>
-                    <Text color="muted">{currentAd?.desc}</Text>
+              <Stack spacing="7">
+                <Stack spacing="5">
+                  <Stack spacing="1.5">
+                    <Stack spacing="2">
+                      <Heading
+                        as="h3"
+                        fontSize="md"
+                        fontWeight={500}
+                        isTruncated
+                      >
+                        {currentAd?.title}
+                      </Heading>
+                      <Text color="muted">{currentAd?.desc}</Text>
+                    </Stack>
+                    <ExternalLink href={currentAd?.url} noOfLines={2}>
+                      {currentAd?.url}
+                    </ExternalLink>
                   </Stack>
-                  <ExternalLink href={currentAd?.url} noOfLines={2}>
-                    {currentAd?.url}
-                  </ExternalLink>
+                  <Stack direction="row" spacing="8">
+                    <AdStat label={t('Sponsored by')} maxW="24">
+                      <AdStatValue as={HStack} spacing="1" align="center">
+                        <Avatar
+                          address={currentAd?.author}
+                          boxSize="4"
+                          borderRadius="sm"
+                        />
+                        <Text as="span" isTruncated>
+                          {currentAd?.author}
+                        </Text>
+                      </AdStatValue>
+                    </AdStat>
+                    <AdStat
+                      label={t('Burnt, {{time}}', {time: burnDuration})}
+                      value={formatDna(maybeBurn?.amount ?? 0)}
+                    />
+                  </Stack>
                 </Stack>
-                <Stack direction="row" spacing="8">
-                  <AdStat label={t('Sponsored by')} maxW="24">
-                    <AdStatValue as={HStack} spacing="1" align="center">
-                      <Avatar
-                        address={currentAd?.author}
-                        boxSize="4"
-                        borderRadius="sm"
-                      />
-                      <Text as="span" isTruncated>
-                        {currentAd?.author}
-                      </Text>
-                    </AdStatValue>
-                  </AdStat>
-                  <AdStat
-                    label={t('Burnt, {{time}}', {time: burnDuration})}
-                    value={formatDna(maybeBurn?.amount ?? 0)}
-                  />
-                </Stack>
+                <SuccessAlert
+                  icon={<InfoIcon color="green.500" boxSize="5" mr="3" />}
+                  fontSize="md"
+                >
+                  {t('Watching ads makes your coin valuable!')}
+                </SuccessAlert>
               </Stack>
             </Stack>
-            <SuccessAlert
-              icon={<InfoIcon color="green.500" boxSize="5" mr="3" />}
-              fontSize="md"
-            >
-              {t('Watching ads makes your coin valuable!')}
-            </SuccessAlert>
-          </Stack>
+          </Box>
           <AdNavButton
             icon={<TriangleUpIcon transform="rotate(90deg)" />}
             position="absolute"
