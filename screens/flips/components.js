@@ -38,6 +38,7 @@ import {useTranslation} from 'react-i18next'
 import {transparentize} from 'polished'
 import {useService} from '@xstate/react'
 import {EditIcon, ViewIcon} from '@chakra-ui/icons'
+import Jimp from 'jimp'
 import FlipEditor from './components/flip-editor'
 import {Step} from './types'
 import {formatKeywords, protectFlipImage, watermarkedDataURL} from './utils'
@@ -844,11 +845,23 @@ export function FlipProtectStep({
   useEffect(() => {
     const protectedFlips = []
     const protectImages = async () => {
+      const compressedImages = await Promise.all(
+        images.map(image =>
+          Jimp.read(image).then(raw =>
+            raw
+              .resize(240, 180)
+              .quality(60) // jpeg quality
+              .getBase64Async('image/jpeg')
+          )
+        )
+      )
+
       for (let i = 0; i < images.length; i++) {
-        const protectedImageSrc = await protectFlipImage(images[i])
+        const protectedImageSrc = await protectFlipImage(compressedImages[i])
         const watermarkedImageSrc = await watermarkedDataURL(
           protectedImageSrc,
-          'www.idena.io'
+          'www.idena.io',
+          watermark
         )
         protectedFlips[i] = watermarkedImageSrc
       }
@@ -891,7 +904,9 @@ export function FlipProtectStep({
         </FlipImageList>
         <Box>
           <ChakraImage
-            borgerRadius="8px"
+            h="330px"
+            w="440px"
+            borderRadius="8px"
             border="solid 1px rgba(83, 86, 92, 0.16)"
             src={protectedImages[currentIndex]}
           />

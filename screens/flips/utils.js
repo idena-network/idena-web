@@ -180,19 +180,8 @@ export async function publishFlip({
   if (areEual(order, originalOrder))
     throw new Error('You must shuffle flip before submit')
 
-  const compressedImages = await Promise.all(
-    images.map(image =>
-      Jimp.read(image).then(raw =>
-        raw
-          .resize(240, 180)
-          .quality(60) // jpeg quality
-          .getBase64Async('image/jpeg')
-      )
-    )
-  )
-
   const [publicHex, privateHex] = flipToHex(
-    originalOrder.map(num => compressedImages[num]),
+    originalOrder.map(num => images[num]),
     orderPermutations
   )
 
@@ -895,8 +884,6 @@ export async function watermarkedDataURL(imageSrc, text, date) {
   watershedImage.src = imageSrc
   await new Promise(resolve => (watershedImage.onload = resolve))
 
-  console.log(`w - ${watershedImage.width} h - ${watershedImage.height}`)
-
   const tempCanvas = document.createElement('canvas')
   const tempCtx = tempCanvas.getContext('2d')
   tempCanvas.width = watershedImage.width
@@ -904,29 +891,34 @@ export async function watermarkedDataURL(imageSrc, text, date) {
   tempCtx.drawImage(watershedImage, 0, 0)
   tempCtx.save()
 
+  tempCtx.globalAlpha = 0.1
+  tempCtx.fillStyle = 'black'
+  tempCtx.fillRect(0, 0, watershedImage.width, watershedImage.height)
+  tempCtx.save()
+
   tempCtx.rotate(((isTopLeft ? randAngle : 0 - randAngle) * Math.PI) / 180)
-  tempCtx.font = 'bold 170px "Inter"'
+  tempCtx.font = 'bold 92px "Inter"'
   const dateWidth = tempCtx.measureText(date).width
   tempCtx.globalAlpha = 0.35
   tempCtx.fillStyle = 'white'
   tempCtx.fillText(
     date,
     isTopLeft
-      ? watershedImage.width / 2 - dateWidth / 2 + 40
-      : watershedImage.width / 2 - dateWidth / 2 - 40,
-    isTopLeft ? 70 : watershedImage.height + 70
+      ? watershedImage.width / 2 - dateWidth / 2 + 20
+      : watershedImage.width / 2 - dateWidth / 2 - 70,
+    isTopLeft ? 35 : watershedImage.height + 70
   )
   tempCtx.save()
 
-  tempCtx.font = 'bold 40px "Inter"'
+  tempCtx.font = 'bold 22px "Inter"'
   const textWidth = tempCtx.measureText(text).width
   // console.log('t - ' + textWidth + ' d - ' + dateWidth + ' i - ' + watershedImage.width)
   tempCtx.fillText(
     text,
     isTopLeft
-      ? watershedImage.width / 2 - textWidth / 2 + 40
-      : watershedImage.width / 2 - textWidth / 2 - 40,
-    isTopLeft ? -70 : watershedImage.height - 70
+      ? watershedImage.width / 2 - textWidth / 2 + 20
+      : watershedImage.width / 2 - textWidth / 2 - 70,
+    isTopLeft ? -35 : watershedImage.height
   )
   return tempCanvas.toDataURL()
 }
