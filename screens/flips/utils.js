@@ -506,7 +506,7 @@ export async function protectFlipImage(imgSrc) {
 
   const modifyImageHue = imageData => {
     const pixels = imageData.data
-    const rnd = Math.floor(Math.random() * 15) + 5
+    const rnd = Math.floor(Math.random() * 30) + 20
     for (let i = 0; i < pixels.length; i += 4) {
       const hsvImage = convert.rgb.hsv(pixels[i], pixels[i + 1], pixels[i + 2])
       const newRgbImage = convert.hsv.rgb(
@@ -899,7 +899,7 @@ export async function watermarkedDataURL(imageSrc, text, date) {
   tempCtx.rotate(((isTopLeft ? randAngle : 0 - randAngle) * Math.PI) / 180)
   tempCtx.font = 'bold 92px "Inter"'
   const dateWidth = tempCtx.measureText(date).width
-  tempCtx.globalAlpha = 0.35
+  tempCtx.globalAlpha = 0.2
   tempCtx.fillStyle = 'white'
   tempCtx.fillText(
     date,
