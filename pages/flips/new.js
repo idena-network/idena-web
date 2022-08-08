@@ -134,7 +134,8 @@ export default function NewFlipPage() {
   const is = state => current.matches({editing: state})
   const either = (...states) =>
     eitherState(current, ...states.map(s => ({editing: s})))
-  const bottomWatermark = epochState && `${epochState.nextValidation.substr(5, 5)}`
+  const bottomWatermark =
+    epochState && `${epochState.nextValidation.substr(5, 5)}`
 
   const isOffline = is('keywords.loaded.fetchTranslationsFailed')
 
@@ -322,9 +323,10 @@ export default function NewFlipPage() {
                   images={images}
                   protectedImages={protectedImages}
                   watermark={bottomWatermark}
-                  onProtectImages={protectedImgs =>
+                  onProtecting={() => send('PROTECTING')}
+                  onProtectImages={protectedImgs => {
                     send('SAVE_PROTECTED', {images: protectedImgs})
-                  }
+                  }}
                 />
               )}
               {is('shuffle') && (
@@ -356,7 +358,7 @@ export default function NewFlipPage() {
         <FlipMasterFooter>
           {not('keywords') && (
             <SecondaryButton
-              isDisabled={is('images.painting')}
+              isDisabled={is('images.painting') || is('protect.protecting')}
               onClick={() => send('PREV')}
             >
               {t('Previous step')}
@@ -364,10 +366,7 @@ export default function NewFlipPage() {
           )}
           {not('submit') && (
             <PrimaryButton
-              isDisabled={
-                is('images.painting') ||
-                (is('protect') && protectedImages && protectedImages.length < 4)
-              }
+              isDisabled={is('images.painting') || is('protect.protecting')}
               onClick={() => send('NEXT')}
             >
               {t('Next step')}

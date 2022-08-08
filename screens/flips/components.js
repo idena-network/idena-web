@@ -836,6 +836,7 @@ export function FlipProtectStep({
   images,
   protectedImages,
   watermark,
+  onProtecting,
   onProtectImages,
 }) {
   const {t} = useTranslation()
@@ -843,27 +844,34 @@ export function FlipProtectStep({
   const [currentIndex, setCurrentIdx] = React.useState(0)
 
   useEffect(() => {
+    onProtecting()
     const protectedFlips = []
     const protectImages = async () => {
       const compressedImages = await Promise.all(
         images.map(image =>
-          Jimp.read(image).then(raw =>
-            raw
-              .resize(240, 180)
-              .quality(60) // jpeg quality
-              .getBase64Async('image/jpeg')
-          )
+          image
+            ? Jimp.read(image).then(raw =>
+                raw
+                  .resize(240, 180)
+                  .quality(60) // jpeg quality
+                  .getBase64Async('image/jpeg')
+              )
+            : image
         )
       )
 
       for (let i = 0; i < images.length; i++) {
-        const protectedImageSrc = await protectFlipImage(compressedImages[i])
-        const watermarkedImageSrc = await watermarkedDataURL(
-          protectedImageSrc,
-          'www.idena.io',
-          watermark
-        )
-        protectedFlips[i] = watermarkedImageSrc
+        if (compressedImages[i]) {
+          const protectedImageSrc = await protectFlipImage(compressedImages[i])
+          const watermarkedImageSrc = await watermarkedDataURL(
+            protectedImageSrc,
+            'www.idena.io',
+            watermark
+          )
+          protectedFlips[i] = watermarkedImageSrc
+        } else {
+          protectedFlips[i] = compressedImages[i]
+        }
       }
       onProtectImages(protectedFlips)
     }
@@ -875,11 +883,11 @@ export function FlipProtectStep({
     <FlipStep>
       <FlipStepHeader>
         <FlipStepTitle>
-          {t('Protect your images with watermarks')}
+          {t('Protect your images with adversarial noise and watermarks')}
         </FlipStepTitle>
         <FlipStepSubtitle>
           {t(
-            `Watermarks help to prevent your flip from being stolen and used by other participants.`
+            `Adversarial noise prevents AI from solving the flip. Watermarks prevents your flip from being copied by other participants.`
           )}
         </FlipStepSubtitle>
       </FlipStepHeader>
