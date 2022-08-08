@@ -877,8 +877,7 @@ export async function protectFlipImage(imgSrc) {
 }
 
 export async function watermarkedDataURL(imageSrc, text, date) {
-  const isTopLeft = Math.floor(Math.random() * 2) === 0
-  const randAngle = Math.floor(Math.random() * 15 + 30)
+  const randAngle = Math.floor(Math.random() * 70 - 35)
 
   const watershedImage = new Image()
   watershedImage.src = imageSrc
@@ -896,29 +895,19 @@ export async function watermarkedDataURL(imageSrc, text, date) {
   tempCtx.fillRect(0, 0, watershedImage.width, watershedImage.height)
   tempCtx.save()
 
-  tempCtx.rotate(((isTopLeft ? randAngle : 0 - randAngle) * Math.PI) / 180)
-  tempCtx.font = 'bold 92px "Inter"'
-  const dateWidth = tempCtx.measureText(date).width
+  tempCtx.translate(watershedImage.width / 2, watershedImage.height / 2)
   tempCtx.globalAlpha = 0.2
   tempCtx.fillStyle = 'white'
-  tempCtx.fillText(
-    date,
-    isTopLeft
-      ? watershedImage.width / 2 - dateWidth / 2 + 20
-      : watershedImage.width / 2 - dateWidth / 2 - 70,
-    isTopLeft ? 35 : watershedImage.height + 70
-  )
+  tempCtx.textAlign = 'center'
+  tempCtx.textBaseline = 'middle'
+
+  tempCtx.rotate((randAngle * Math.PI) / 180)
+  tempCtx.font = 'bold 92px "Inter"'
+  tempCtx.fillText(date, 0, -8)
   tempCtx.save()
 
-  tempCtx.font = 'bold 22px "Inter"'
-  const textWidth = tempCtx.measureText(text).width
-  // console.log('t - ' + textWidth + ' d - ' + dateWidth + ' i - ' + watershedImage.width)
-  tempCtx.fillText(
-    text,
-    isTopLeft
-      ? watershedImage.width / 2 - textWidth / 2 + 20
-      : watershedImage.width / 2 - textWidth / 2 - 70,
-    isTopLeft ? -35 : watershedImage.height
-  )
+  tempCtx.font = 'normal 22px "Inter"'
+  tempCtx.fillText(text, 0, 32)
+
   return tempCanvas.toDataURL()
 }
