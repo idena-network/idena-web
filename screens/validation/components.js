@@ -2121,7 +2121,7 @@ export function ValidationScreen({
           </Title>
         </Flex>
       </Header>
-      <ChakraBox order={[3, 2]} {...handlers}>
+      <ChakraBox order={[3, 2]}>
         <ChakraBox
           display={['block', 'none']}
           className="block-swipe-nav"
@@ -2139,6 +2139,7 @@ export function ValidationScreen({
               justify="center"
               align="center"
               position="relative"
+              {...handlers}
             >
               {currentFlip &&
                 ((currentFlip.fetched && !currentFlip.decoded) ||
