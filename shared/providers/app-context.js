@@ -26,6 +26,7 @@ import {signMessage} from '../utils/crypto'
 import {hexToUint8Array, toHexString} from '../utils/buffers'
 import {useExpired} from '../hooks/use-expired'
 import {useIdenaBot} from '../hooks/hooks'
+import {checkRestoringConnection} from '../../screens/node/utils'
 
 const AppContext = React.createContext()
 
@@ -173,7 +174,8 @@ export function AppProvider({tabId, ...props}) {
           apiKeyState === ApiKeyStates.OFFLINE ||
           apiKeyState === ApiKeyStates.RESTRICTED)
       ) {
-        saveConnection(savedKey.url, savedKey.key, false)
+        if (await checkRestoringConnection(savedKey.url, savedKey.key))
+          saveConnection(savedKey.url, savedKey.key, false)
       }
       // eslint-disable-next-line no-empty
     } catch (e) {}

@@ -21,7 +21,10 @@ import {
   NotNowDialog,
   ValidationCountdown,
 } from '../../screens/node/components'
-import {GetProviderPrice} from '../../screens/node/utils'
+import {
+  checkRestoringConnection,
+  GetProviderPrice,
+} from '../../screens/node/utils'
 import {
   checkSavedKey,
   getAvailableProviders,
@@ -166,7 +169,8 @@ export default function Restricted() {
           coinbase,
           toHexString(signature, true)
         )
-        setSavedApiKey(savedKey)
+        if (await checkRestoringConnection(savedKey.url, savedKey.key))
+          setSavedApiKey(savedKey)
         // eslint-disable-next-line no-empty
       } catch (e) {}
     }
