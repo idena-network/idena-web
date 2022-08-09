@@ -397,7 +397,7 @@ export const colorPickerColor = color =>
   color.includes('ffffff') ? 'rgb(210 212 217)' : `#${color}`
 
 export async function protectFlipImage(imgSrc) {
-  const blurValue = 1
+  const blurValue = 2
 
   let palette = []
   try {
