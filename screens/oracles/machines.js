@@ -890,7 +890,6 @@ export const newVotingMachine = createMachine(
         {epoch, address, ...voting},
         {privateKey, balance, stake}
       ) => {
-        console.log('voting', voting)
         const {
           receipt: {contract, gasCost, txFee},
         } = await estimateDeployContract(privateKey, {
