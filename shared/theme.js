@@ -697,6 +697,8 @@ export const uiTheme = {
             fontSize: 'md',
             fontWeight: 400,
             lineHeight: '5',
+            marginEnd: ['2', '6'],
+            maxW: ['48', 'fit-content'],
           },
           description: {
             lineHeight: '5',
