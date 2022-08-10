@@ -35,13 +35,11 @@ import {
   NumberInput,
 } from '../../screens/oracles/components'
 import {
-  votingMinBalance,
   votingMinStake,
   durationPreset,
   quorumVotesCount,
   viewVotingHref,
   humanError,
-  rewardPerOracle,
   hasLinklessOptions,
   hasValuableOptions,
 } from '../../screens/oracles/utils'
@@ -58,6 +56,7 @@ import {Page, PageTitle} from '../../screens/app/components'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useBalance} from '../../shared/hooks/use-balance'
 import {ChevronDownIcon} from '../../shared/components/icons'
+import {isAddress} from '../../screens/wallets/utils'
 
 dayjs.extend(duration)
 dayjs.extend(relativeTime)
@@ -116,12 +115,13 @@ function NewVotingPage() {
     quorum = 1,
     winnerThreshold = '66',
     feePerGas,
-    oracleReward,
+    rewardsFund,
     isWholeNetwork,
-    oracleRewardsEstimates,
     ownerFee = 0,
-    minOracleReward,
+    ownerDeposit,
     votingMinPayment,
+    ownerAddress,
+    isCustomOwnerAddress,
     dirtyBag,
   } = current.context
 
@@ -306,7 +306,7 @@ function NewVotingPage() {
                     preventInvalidInput
                     isDisabled={isWholeNetwork}
                     onChange={({target: {id, value}}) => {
-                      send('CHANGE_COMMITTEE', {id, value})
+                      send('CHANGE_COMMITTEE', {id, value: parseInt(value)})
                     }}
                   />
                   <Checkbox
@@ -373,68 +373,31 @@ function NewVotingPage() {
                 {t('Cost of voting')}
               </NewVotingFormSubtitle>
 
-              <PresetFormControl
-                label={t('Total funds')}
+              <VotingInlineFormControl
+                htmlFor="ownerDeposit"
+                label={t('Owner deposit')}
                 tooltip={t(
-                  'Total funds locked during the voting and paid to oracles and owner afterwards'
+                  'Owner deposit is required to start the voting. It will be refunded to the owner address.'
                 )}
               >
-                <PresetFormControlOptionList
-                  value={String(oracleReward)}
-                  onChange={value => {
-                    send('CHANGE', {
-                      id: 'oracleReward',
-                      value,
-                    })
-                  }}
-                >
-                  {oracleRewardsEstimates.map(({label, value}) => (
-                    <PresetFormControlOption key={value} value={String(value)}>
-                      {label}
-                    </PresetFormControlOption>
-                  ))}
-                </PresetFormControlOptionList>
-
-                <PresetFormControlInputBox>
-                  <DnaInput
-                    id="oracleReward"
-                    value={oracleReward * committeeSize || 0}
-                    min={minOracleReward * committeeSize || 0}
-                    onChange={({target: {id, value}}) => {
-                      send('CHANGE', {
-                        id,
-                        value: (value || 0) / Math.max(1, committeeSize),
-                      })
-                    }}
-                  />
-                  <NewOracleFormHelperText textAlign="right">
-                    {t('Min reward per oracle: {{amount}}', {
-                      amount: dna(
-                        rewardPerOracle({fundPerOracle: oracleReward, ownerFee})
-                      ),
-                      nsSeparator: '!',
-                    })}
-                  </NewOracleFormHelperText>
-                </PresetFormControlInputBox>
-              </PresetFormControl>
+                <DnaInput id="ownerDeposit" value={ownerDeposit} isDisabled />
+              </VotingInlineFormControl>
 
               <VotingInlineFormControl
-                htmlFor="ownerFee"
-                label={t('Owner fee')}
-                tooltip={t('% of the Total funds you receive')}
+                htmlFor="rewardsFund"
+                label={t('Rewards fund')}
+                tooltip={t('Oracle rewards fund')}
               >
-                <PercentInput
-                  id="ownerFee"
-                  value={ownerFee}
-                  onChange={handleChange}
+                <DnaInput
+                  id="rewardsFund"
+                  value={rewardsFund}
+                  onChange={({target: {id, value}}) =>
+                    send('CHANGE', {id, value: parseFloat(value)})
+                  }
                 />
-
                 <NewOracleFormHelperText textAlign="right">
-                  {t('Paid to owner: {{amount}}', {
-                    amount: dna(
-                      (oracleReward * committeeSize * Math.min(100, ownerFee)) /
-                        100 || 0
-                    ),
+                  {t('Min reward per oracle: {{amount}}', {
+                    amount: dna(rewardsFund / Math.max(1, committeeSize)),
                     nsSeparator: '!',
                   })}
                 </NewOracleFormHelperText>
@@ -456,6 +419,48 @@ function NewVotingPage() {
 
               <Collapse in={isOpenAdvanced} mt={2}>
                 <Stack spacing={3}>
+                  <VotingInlineFormControl
+                    htmlFor="ownerAddress"
+                    label={t('Owner address')}
+                    tooltip={t(
+                      'Owner deposit will be sent to the specified Owner address'
+                    )}
+                  >
+                    <Stack spacing={3} flex={1}>
+                      <Input
+                        id="ownerAddress"
+                        isInvalid={
+                          isCustomOwnerAddress && !isAddress(ownerAddress)
+                        }
+                        value={ownerAddress}
+                        isDisabled={!isCustomOwnerAddress}
+                        onChange={handleChange}
+                      />
+                      <Checkbox
+                        id="isCustomOwnerAddress"
+                        onChange={({target: {id, checked}}) => {
+                          send('CHANGE', {id, value: checked})
+                        }}
+                      >
+                        {t('Custom owner address')}
+                      </Checkbox>
+                    </Stack>
+                  </VotingInlineFormControl>
+
+                  <VotingInlineFormControl
+                    htmlFor="ownerFee"
+                    label={t('Owner fee')}
+                    tooltip={t(
+                      '% of the oracle rewards above the specified Rewards fund that will be sent to the Owner address'
+                    )}
+                  >
+                    <PercentInput
+                      id="ownerFee"
+                      value={ownerFee}
+                      onChange={handleChange}
+                    />
+                  </VotingInlineFormControl>
+
                   <VotingDurationInput
                     id="publicVotingDuration"
                     value={publicVotingDuration}
@@ -537,11 +542,15 @@ function NewVotingPage() {
           onClose={() => send('CANCEL')}
           from={coinbase}
           available={balance}
-          balance={votingMinBalance(oracleReward, committeeSize)}
+          ownerDeposit={ownerDeposit}
+          rewardsFund={rewardsFund}
           minStake={votingMinStake(feePerGas)}
           votingDuration={votingDuration}
           publicVotingDuration={publicVotingDuration}
           ownerFee={ownerFee}
+          shouldStartImmediately={shouldStartImmediately}
+          ownerAddress={ownerAddress}
+          isCustomOwnerAddress={isCustomOwnerAddress}
           isLoading={eitherState(
             current,
             'publishing.deploy',
@@ -549,8 +558,13 @@ function NewVotingPage() {
           )}
           // eslint-disable-next-line no-shadow
           onConfirm={({balance, stake}) =>
-            send('CONFIRM', {privateKey, balance, stake})
+            send('CONFIRM', {
+              privateKey,
+              balance,
+              stake,
+            })
           }
+          onError={e => send('ERROR', e)}
         />
 
         <NewOraclePresetDialog
