@@ -83,6 +83,7 @@ import {
   callRpc,
   dummyAddress,
   eitherState,
+  humanizeDuration,
   mapIdentityToFriendlyStatus,
   openExternalUrl,
   toLocaleDna,
@@ -1707,7 +1708,7 @@ export function ProfileTagList() {
   const {t} = useTranslation()
 
   const [
-    {age, penalty, totalShortFlipPoints, totalQualifiedFlips},
+    {age, penalty, penaltySeconds, totalShortFlipPoints, totalQualifiedFlips},
   ] = useIdentity()
 
   const epoch = useEpoch()
@@ -1721,7 +1722,11 @@ export function ProfileTagList() {
   const [isMobile] = useMediaQuery('(max-width: 480px)')
 
   const hasAnyTag =
-    age > 0 || penalty > 0 || Number.isFinite(score) || inviteScore > 0
+    age > 0 ||
+    penalty > 0 ||
+    penaltySeconds > 0 ||
+    Number.isFinite(score) ||
+    inviteScore > 0
 
   return (
     <Wrap
@@ -1799,6 +1804,7 @@ export function ProfileTagList() {
         </WrapItem>
       )}
 
+      {/* TODO: remove after fork 0.30.0 */}
       {penalty > 0 && (
         <WrapItem>
           <ProfileTag bg={[null, 'red.012']}>
@@ -1812,7 +1818,20 @@ export function ProfileTagList() {
         </WrapItem>
       )}
 
-      {inviteScore && (
+      {penaltySeconds > 0 && (
+        <WrapItem>
+          <ProfileTag bg={[null, 'red.012']}>
+            <ProfileTagLabel color="red.500">
+              {t('Mining penalty')}
+            </ProfileTagLabel>
+            <ProfileTagValue color="red.500">
+              {humanizeDuration(penaltySeconds)}
+            </ProfileTagValue>
+          </ProfileTag>
+        </WrapItem>
+      )}
+
+      {inviteScore > 0 && (
         <WrapItem>
           {isMobile ? (
             <ProfileTag>
