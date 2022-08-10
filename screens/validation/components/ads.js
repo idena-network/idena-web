@@ -16,7 +16,6 @@ import {useTranslation} from 'react-i18next'
 import {useSwipeable} from 'react-swipeable'
 import {
   Avatar,
-  ExternalLink,
   HDivider,
   SmallText,
   SuccessAlert,
@@ -24,7 +23,7 @@ import {
 import {InfoIcon} from '../../../shared/components/icons'
 import {useLanguage} from '../../../shared/hooks/use-language'
 import {AdBurnKey} from '../../../shared/models/adBurnKey'
-import {useIsDesktop} from '../../../shared/utils/utils'
+import {openExternalUrl, useIsDesktop} from '../../../shared/utils/utils'
 import {AdImage} from '../../ads/components'
 import {useBurntCoins, useFormatDna, useRotateAds} from '../../ads/hooks'
 
@@ -89,7 +88,7 @@ export function ValidationAdPromotion() {
                 fontWeight={500}
                 maxW="255px"
               >
-                {currentAd?.url} {currentAd?.url}
+                {currentAd?.url}
               </Link>
             </Stack>
             <LinkBox>
@@ -175,21 +174,33 @@ export function ValidationAdPromotion() {
               </LinkBox>
               <Stack spacing="7">
                 <Stack spacing="5">
-                  <Stack spacing="1.5">
+                  <Stack spacing="1.5" width="xs">
                     <Stack spacing="2">
                       <Heading
                         as="h3"
                         fontSize="md"
                         fontWeight={500}
-                        isTruncated
+                        noOfLines={1}
                       >
                         {currentAd?.title}
                       </Heading>
-                      <Text color="muted">{currentAd?.desc}</Text>
+                      <Text color="muted" noOfLines={2}>
+                        {currentAd?.desc}
+                      </Text>
                     </Stack>
-                    <ExternalLink href={currentAd?.url} noOfLines={2}>
+                    <Button
+                      variant="link"
+                      colorScheme="blue"
+                      noOfLines={2}
+                      fontWeight={500}
+                      textAlign="start"
+                      onClick={() => {
+                        const win = openExternalUrl(currentAd?.url)
+                        win.focus()
+                      }}
+                    >
                       {currentAd?.url}
-                    </ExternalLink>
+                    </Button>
                   </Stack>
                   <Stack direction="row" spacing="8">
                     <AdStat label={t('Sponsored by')} maxW="24">

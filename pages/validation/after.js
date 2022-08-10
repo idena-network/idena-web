@@ -92,14 +92,23 @@ export default function AfterValidationPage() {
   }
 
   return (
-    <Box color="white" fontSize="md" position="relative" w="full">
+    <Box
+      bg="graphite.500"
+      color="white"
+      fontSize="md"
+      p={['8', 0]}
+      pt={['2', 0]}
+      position="relative"
+      w="full"
+    >
       <Flex
         justifyContent="space-between"
         alignItems="center"
-        position="absolute"
-        top="2"
-        left="4"
-        right="4"
+        position={['relative', 'absolute']}
+        insetX={[0, '4']}
+        top={[null, '2']}
+        mx={['-4', 0]}
+        mb={['8', 0]}
       >
         <ApiStatus position="relative" />
         <NextLink href="/home" passHref>
@@ -107,8 +116,8 @@ export default function AfterValidationPage() {
         </NextLink>
       </Flex>
 
-      <Center bg="graphite.500" color="white" minH="100vh">
-        <Stack spacing="12" w={['xs', '2xl']}>
+      <Center color="white" minH="100vh">
+        <Stack spacing="12" w={['xs', '640px']}>
           <Stack spacing="6">
             <Stack spacing="2">
               <Heading fontSize="lg" fontWeight={500}>

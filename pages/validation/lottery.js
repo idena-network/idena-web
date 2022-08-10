@@ -61,10 +61,10 @@ export default function LotteryPage() {
       bg="graphite.500"
       color="white"
       fontSize="md"
-      position="relative"
-      w="full"
       p={['8', 0]}
       pt={['2', 0]}
+      position="relative"
+      w="full"
     >
       <Flex
         justifyContent="space-between"
@@ -88,7 +88,7 @@ export default function LotteryPage() {
       </Flex>
 
       <Center minH="100vh">
-        <Stack spacing="12" w={['xs', '2xl']}>
+        <Stack spacing="12" w={['xs', '640px']}>
           <Stack spacing="6">
             <Stack spacing="2">
               <Heading fontSize="lg" fontWeight={500}>
