@@ -880,11 +880,11 @@ export function FlipProtectStep({
     <FlipStep>
       <FlipStepHeader>
         <FlipStepTitle>
-          {t('Protect your images with adversarial noise and watermarks')}
+          {t('Protect your images with adversarial noise')}
         </FlipStepTitle>
         <FlipStepSubtitle>
           {t(
-            `Adversarial noise prevents AI from solving the flip. Watermarks prevents your flip from being copied by other participants.`
+            `Adversarial noise makes your flip more AI-resistant`
           )}
         </FlipStepSubtitle>
       </FlipStepHeader>
