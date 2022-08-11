@@ -169,6 +169,13 @@ export function useDeferredVotes() {
           }
           break
         }
+        case "tx can't be accepted due to validation ceremony": {
+          await updateDeferredVote(vote.id, {
+            block: vote.block + 10 * 3,
+          })
+          queryClient.invalidateQueries('useDeferredVotes')
+          break
+        }
         case 'insufficient funds': {
           showError(e.message)
           break
