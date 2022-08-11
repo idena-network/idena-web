@@ -134,8 +134,6 @@ export default function NewFlipPage() {
   const is = state => current.matches({editing: state})
   const either = (...states) =>
     eitherState(current, ...states.map(s => ({editing: s})))
-  const bottomWatermark =
-    epochState && `${epochState.nextValidation.substr(5, 5)}`
 
   const isOffline = is('keywords.loaded.fetchTranslationsFailed')
 
@@ -322,7 +320,6 @@ export default function NewFlipPage() {
                   originalOrder={originalOrder}
                   images={images}
                   protectedImages={protectedImages}
-                  watermark={bottomWatermark}
                   onProtecting={() => send('PROTECTING')}
                   onProtectImages={protectedImgs => {
                     send('SAVE_PROTECTED', {images: protectedImgs})

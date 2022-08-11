@@ -23,6 +23,7 @@ import {
   FlipSubmitStep,
   CommunityTranslationUnavailable,
   PublishFlipDrawer,
+  FlipProtectStep,
 } from '../../screens/flips/components'
 import Layout from '../../shared/components/layout'
 import {flipMasterMachine} from '../../screens/flips/machines'
@@ -110,6 +111,7 @@ export default function EditFlipPage() {
     availableKeywords,
     keywords,
     images,
+    protectedImages,
     originalOrder,
     order,
     showTranslation,
@@ -184,6 +186,18 @@ export default function EditFlipPage() {
                   }
                 >
                   {t('Select images')}
+                </FlipMasterNavbarItem>
+                <FlipMasterNavbarItem
+                  step={
+                    // eslint-disable-next-line no-nested-ternary
+                    is('protect')
+                      ? Step.Active
+                      : is('keywords') || is('images')
+                      ? Step.Next
+                      : Step.Completed
+                  }
+                >
+                  {t('Protect images')}
                 </FlipMasterNavbarItem>
                 <FlipMasterNavbarItem
                   step={
@@ -282,9 +296,22 @@ export default function EditFlipPage() {
                   onPainting={() => send('PAINTING')}
                 />
               )}
+              {is('protect') && (
+                <FlipProtectStep
+                  keywords={keywords}
+                  showTranslation={showTranslation}
+                  originalOrder={originalOrder}
+                  images={images}
+                  protectedImages={protectedImages}
+                  onProtecting={() => send('PROTECTING')}
+                  onProtectImages={protectedImgs => {
+                    send('SAVE_PROTECTED', {images: protectedImgs})
+                  }}
+                />
+              )}
               {is('shuffle') && (
                 <FlipShuffleStep
-                  images={images}
+                  images={protectedImages}
                   originalOrder={originalOrder}
                   order={order}
                   onShuffle={() => send('SHUFFLE')}
@@ -302,7 +329,7 @@ export default function EditFlipPage() {
                   onSwitchLocale={() => send('SWITCH_LOCALE')}
                   originalOrder={originalOrder}
                   order={order}
-                  images={images}
+                  images={protectedImages}
                 />
               )}
             </FlipMaster>
@@ -311,7 +338,7 @@ export default function EditFlipPage() {
         <FlipMasterFooter>
           {not('keywords') && (
             <SecondaryButton
-              isDisabled={is('images.painting')}
+              isDisabled={is('images.painting') || is('protect.protecting')}
               onClick={() => send('PREV')}
             >
               {t('Previous step')}
@@ -319,7 +346,7 @@ export default function EditFlipPage() {
           )}
           {not('submit') && (
             <PrimaryButton
-              isDisabled={is('images.painting')}
+              isDisabled={is('images.painting') || is('protect.protecting')}
               onClick={() => send('NEXT')}
             >
               {t('Next step')}
@@ -353,7 +380,7 @@ export default function EditFlipPage() {
           isPending={either('submit.submitting', 'submit.mining')}
           flip={{
             keywords: showTranslation ? keywords.translations : keywords.words,
-            images,
+            images: protectedImages,
             originalOrder,
             order,
           }}
