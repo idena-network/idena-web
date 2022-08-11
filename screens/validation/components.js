@@ -1402,6 +1402,7 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
           <ChakraFlex
             direction={['column', 'row']}
             justify="center"
+            align={['center', 'initial']}
             flexGrow={1}
           >
             <Stack

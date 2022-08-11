@@ -133,14 +133,14 @@ export default function AfterValidationPage() {
               )}
 
               {isValidationCeremony && (
-                <>
+                <Text color="xwhite.050" fontSize="mdx">
                   {isEligible &&
                     isPending &&
                     t('Please wait. Your answers are being submitted...')}
                   {isEligible &&
                     !isPending &&
                     t('Your answers are successfully submitted')}
-                </>
+                </Text>
               )}
             </Stack>
             {isAfterLongSession ? null : (
