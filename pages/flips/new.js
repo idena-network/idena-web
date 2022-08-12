@@ -321,6 +321,9 @@ export default function NewFlipPage() {
                   images={images}
                   protectedImages={protectedImages}
                   onProtecting={() => send('PROTECTING')}
+                  onProtectImage={(image, currentIndex) =>
+                    send('CHANGE_PROTECTED_IMAGES', {image, currentIndex})
+                  }
                   onProtectImages={protectedImgs => {
                     send('SAVE_PROTECTED', {images: protectedImgs})
                   }}

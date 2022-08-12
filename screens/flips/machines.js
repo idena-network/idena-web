@@ -784,6 +784,22 @@ export const flipMasterMachine = Machine(
           },
           protect: {
             on: {
+              CHANGE_PROTECTED_IMAGES: {
+                target: '.idle',
+                actions: [
+                  assign({
+                    protectedImages: (
+                      {protectedImages},
+                      {image, currentIndex}
+                    ) => [
+                      ...protectedImages.slice(0, currentIndex),
+                      image,
+                      ...protectedImages.slice(currentIndex + 1),
+                    ],
+                  }),
+                  log(),
+                ],
+              },
               SAVE_PROTECTED: {
                 target: '.idle',
                 actions: [

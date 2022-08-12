@@ -812,14 +812,7 @@ export async function protectFlipImage(imgSrc) {
       neigh[4] = outPixels[index]
     }
 
-    /* Get image from canvas */
-    // const img = new Image();
-    // img.src = canvas.toDataURL()
-    // img.width = imgW
-    // img.height = imgH
     const maxSize = Math.max(imgW, imgH)
-    // const image = ImageAccess.fromHTMLImage( img, maxSize, maxSize, "stretch" );
-    //-----
     const imageNOCV = ImageAccess.fromHTMLImage(
       image,
       maxSize,
@@ -831,11 +824,6 @@ export async function protectFlipImage(imgSrc) {
     const watershedImageAccess = blurToWatershed(imageNOCV)
     const watershedMesh = getOverlayImg(watershedImageAccess)
     const imgDataWatershed = getImageData(watershedMesh)
-
-    // let src = cv.matFromImageData(imgDataWatershed);
-    // let resultSize = new cv.Size(imgW, imgH);
-    // cv.resize(src, resultMat, resultSize, 0, 0, cv.INTER_AREA);
-    // src.delete();
 
     return imgDataWatershed
   }
@@ -872,7 +860,18 @@ export async function protectFlipImage(imgSrc) {
   const resultCanvasContext = resultCanvas.getContext('2d')
   resultCanvas.width = resultImageData.width
   resultCanvas.height = resultImageData.height
-  resultCanvasContext.putImageData(resultImageData, 0, 0)
+
+  const protectedImage = getImageFromImageData(resultImageData)
+  await new Promise(resolve => (protectedImage.onload = resolve))
+  const flip = Math.floor(Math.random() * 2) == 0
+  resultCanvasContext.scale(flip ? -1 : 1, 1)
+  resultCanvasContext.drawImage(
+    protectedImage,
+    flip ? resultImageData.width * -1 : 0,
+    0,
+    resultImageData.width,
+    resultImageData.height
+  )
   return resultCanvas.toDataURL()
 }
 
