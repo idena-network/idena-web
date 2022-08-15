@@ -451,22 +451,25 @@ export default function HomePage() {
                               mt={[null, '3px']}
                             >
                               {stakingApy > 0 ? toPercent(stakingApy) : '--'}
-                              <Tooltip
-                                bg="graphite.500"
-                                placement="top"
-                                hasArrow
-                                label={t(
-                                  'Please activate your mining status to earn the staking rewards'
-                                )}
-                                w="130px"
-                              >
-                                <InfoIcon
-                                  boxSize={[5, 4]}
-                                  color="red.500"
-                                  mt={[-1, -1 / 2]}
-                                  ml={1}
-                                />
-                              </Tooltip>
+                              {canMine && !online && (
+                                <Tooltip
+                                  shouldWrapChildren
+                                  bg="graphite.500"
+                                  placement="top"
+                                  hasArrow
+                                  label={t(
+                                    'Please activate your mining status to earn the staking rewards'
+                                  )}
+                                  w="130px"
+                                >
+                                  <InfoIcon
+                                    boxSize={[5, 4]}
+                                    color="red.500"
+                                    mt={[-1, -1 / 2]}
+                                    ml={1}
+                                  />
+                                </Tooltip>
+                              )}
                             </UserStatValue>
                           </Flex>
                         </UserStat>
