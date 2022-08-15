@@ -174,6 +174,7 @@ export function useDeferredVotes() {
             block: vote.block + 10 * 3,
           })
           queryClient.invalidateQueries('useDeferredVotes')
+          if (!skipToast) showError(e.message)
           break
         }
         case 'insufficient funds': {

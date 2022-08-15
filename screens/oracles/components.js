@@ -52,6 +52,8 @@ import useSyncing from '../../shared/hooks/use-syncing'
 import {getBlockAt} from '../../shared/api'
 import {useInterval} from '../../shared/hooks/use-interval'
 import {useAuthState} from '../../shared/providers/auth-context'
+import {useEpoch} from '../../shared/providers/epoch-context'
+import {EpochPeriod} from '../../shared/types'
 
 export function OracleDrawerHeader({
   icon = <OracleIcon />,
@@ -711,7 +713,9 @@ export function DeferredVotes() {
     {votes: pendingVotes, isReady},
     {estimateSendVote, estimateProlong, sendVote},
   ] = useDeferredVotes()
-  const {t} = useTranslation()
+  const {t, i18n} = useTranslation()
+
+  const epoch = useEpoch()
 
   const failToast = useFailToast()
 
@@ -719,9 +723,11 @@ export function DeferredVotes() {
 
   const {isOpen, onOpen, onClose} = useDisclosure()
 
-  const dna = toLocaleDna(undefined, {maximumFractionDigits: 4})
+  const dna = toLocaleDna(i18n.language, {maximumFractionDigits: 4})
 
   const currentVote = state.votes[state.index]
+
+  const canOpen = epoch?.currentPeriod === EpochPeriod.None
 
   const openModal = () => {
     if (isOpen) return
@@ -781,7 +787,7 @@ export function DeferredVotes() {
         openModal()
       }
     },
-    isReady ? interval : null,
+    isReady && canOpen ? interval : null,
     true
   )
 
