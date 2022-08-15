@@ -19,8 +19,7 @@ import useClickOutside from '../../../shared/hooks/use-click-outside'
 import {Menu, MenuItem} from '../../../shared/components/menu'
 import {useInterval} from '../../../shared/hooks/use-interval'
 import {Box, Absolute} from '../../../shared/components'
-import {Tooltip} from '../../../shared/components/tooltip'
-import {Toast, Tooltip as TooltipX} from '../../../shared/components/components'
+import {Toast, Tooltip} from '../../../shared/components/components'
 import theme from '../../../shared/theme'
 import Flex from '../../../shared/components/flex'
 import {resizing, imageResize, imageResizeSoft} from '../../../shared/utils/img'
@@ -1004,11 +1003,9 @@ function FlipEditorIcon({tooltip, isActive, isDisabled, mr, ...props}) {
   )
   return (
     <ChakraBox mr={mr}>
-      {isDisabled ? (
-        <Tooltip content={tooltip}>{icon}</Tooltip>
-      ) : (
-        <TooltipX label={tooltip}>{icon}</TooltipX>
-      )}
+      <Tooltip label={tooltip} shouldWrapChildren>
+        {icon}
+      </Tooltip>
     </ChakraBox>
   )
 }
