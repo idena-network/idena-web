@@ -399,3 +399,6 @@ export async function createOrUpdateFlip({
     .put(nextFlip)
     .then(dbKey => console.log('updated draft', 'key', dbKey))
 }
+
+export const colorPickerColor = color =>
+  color.includes('ffffff') ? 'rgb(210 212 217)' : `#${color}`
