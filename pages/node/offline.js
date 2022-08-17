@@ -109,7 +109,7 @@ export default function Offline() {
   const [isDesktop] = useMediaQuery('(min-width: 481px)')
   const size = useBreakpointValue(['lg', 'md'])
   const variant = useBreakpointValue(['mobile', 'initial'])
-  const variantRadio = useBreakpointValue(['mobileDark', 'dark'])
+  const variantRadio = useBreakpointValue(['mobileDark', 'initial'])
   const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
   const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
 

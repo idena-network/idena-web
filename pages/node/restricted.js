@@ -95,7 +95,7 @@ export default function Restricted() {
   const [savedApiKey, setSavedApiKey] = useState()
 
   const size = useBreakpointValue(['lg', 'md'])
-  const variantRadio = useBreakpointValue(['mobileDark', 'dark'])
+  const variantRadio = useBreakpointValue(['mobileDark', 'initial'])
   const variantSecondary = useBreakpointValue(['primaryFlat', 'secondary'])
 
   const notNow = forceDialog => {
