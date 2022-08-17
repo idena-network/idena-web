@@ -1,37 +1,31 @@
 /* eslint-disable react/prop-types */
 import React, {createRef, useRef, useCallback, useState} from 'react'
-import {rem, position} from 'polished'
 import Jimp from 'jimp'
 import {useTranslation} from 'react-i18next'
 import mousetrap from 'mousetrap'
 import {
-  Box as ChakraBox,
+  Box,
+  Flex,
   Stack,
   VisuallyHidden,
-  IconButton as ChakraIconButton,
-  Divider,
   useToast,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  SimpleGrid,
   Portal,
+  IconButton,
+  Button,
+  useTheme,
+  Divider,
 } from '@chakra-ui/react'
 import {SearchIcon} from '@chakra-ui/icons'
 import {useNotificationDispatch} from '../../../shared/providers/notification-context'
-import useClickOutside from '../../../shared/hooks/use-click-outside'
-import {Menu, MenuItem} from '../../../shared/components/menu'
 import {useInterval} from '../../../shared/hooks/use-interval'
-import {Box, Absolute} from '../../../shared/components'
 import {Toast, Tooltip} from '../../../shared/components/components'
-import theme from '../../../shared/theme'
-import Flex from '../../../shared/components/flex'
 import {resizing, imageResize, imageResizeSoft} from '../../../shared/utils/img'
 import {writeImageURLToClipboard} from '../../../shared/utils/clipboard'
-import {
-  Brushes,
-  ColorPicker,
-  ArrowHint,
-  EditorContextMenu,
-  ImageEraseEditor,
-  ApplyChangesBottomPanel,
-} from './flip-editor-tools'
 import {ImageSearchDialog} from './image-search'
 import {
   AddImageIcon,
@@ -43,7 +37,11 @@ import {
   FolderIcon,
   RedoIcon,
   UndoIcon,
+  CopyIcon,
+  DeleteIcon,
 } from '../../../shared/components/icons'
+import {rem} from '../../../shared/theme'
+import {colorPickerColor} from '../utils'
 
 const ImageEditor =
   typeof window !== 'undefined'
@@ -81,24 +79,18 @@ export default function FlipEditor({
 
   const [blankImage, setBlankImage] = useState(BLANK_IMAGE_DATAURL)
 
-  // Button menu
-  const [isInsertImageMenuOpen, setInsertImageMenuOpen] = useState(false)
-  const insertMenuRef = [useRef(), useRef(), useRef(), useRef()]
   // Context menu
   const [showContextMenu, setShowContextMenu] = useState(false)
   const [contextMenuCursor, setContextMenuCursor] = useState({x: 0, y: 0})
-
-  useClickOutside(insertMenuRef[idx], () => {
-    setInsertImageMenuOpen(false)
-  })
 
   const [bottomMenuPanel, setBottomMenuPanel] = useState(BottomMenu.Main)
   const [rightMenuPanel, setRightMenuPanel] = useState(RightMenu.None)
 
   const [brush, setBrush] = useState(20)
   const [brushColor, setBrushColor] = useState('ff6666dd')
-  const [showColorPicker, setShowColorPicker] = useState(false)
   const [showArrowHint, setShowArrowHint] = useState(!src && idx === 0)
+
+  const theme = useTheme()
 
   // Editors
   const editorRefs = useRef([
@@ -310,15 +302,17 @@ export default function FlipEditor({
   const handleOnCopy = () => {
     const url = activeObjectUrl || (editors[idx] && editors[idx].toDataURL())
     if (url) {
-      writeImageURLToClipboard(url).then(() =>
+      writeImageURLToClipboard(url).then(() => {
+        setShowContextMenu(false)
         addNotification({
           title: t('Copied'),
         })
-      )
+      })
     }
   }
 
   const handleOnPaste = () => {
+    setShowContextMenu(false)
     handleImageFromClipboard()
   }
 
@@ -342,6 +336,7 @@ export default function FlipEditor({
 
   const handleOnDelete = () => {
     if (editors[idx]) {
+      setShowContextMenu(false)
       editors[idx].removeActiveObject()
       setChangesCnt(NOCHANGES)
       handleOnChanged()
@@ -412,8 +407,8 @@ export default function FlipEditor({
       objId && editor && editor._graphics && editor._graphics._objects[objId]
     if (obj) {
       return {
-        x: obj.translateX,
-        y: obj.translateY,
+        x: obj.left,
+        y: obj.top,
         width: obj.width,
         height: obj.height,
         angle: obj.angle,
@@ -521,6 +516,7 @@ export default function FlipEditor({
       if (containerEl) {
         containerEl.parentElement.style.height = rem(328)
         containerEl.addEventListener('contextmenu', e => {
+          console.log('eee', e)
           setContextMenuCursor({x: e.layerX, y: e.layerY})
           setShowContextMenu(true)
           setRightMenuPanel(RightMenu.None)
@@ -580,13 +576,9 @@ export default function FlipEditor({
   const rightArrowPortalRef = React.useRef()
 
   return (
-    <div
-      style={{
-        display: `${visible ? '' : 'none'}`,
-      }}
-    >
+    <Box display={visible ? 'initial' : 'none'}>
       <Flex>
-        <Box>
+        <Box position="relative">
           {(bottomMenuPanel === BottomMenu.Erase ||
             rightMenuPanel === RightMenu.Erase) && (
             <ImageEraseEditor
@@ -629,26 +621,16 @@ export default function FlipEditor({
             />
           )}
 
-          {showContextMenu && (
-            <EditorContextMenu
-              x={contextMenuCursor.x}
-              y={contextMenuCursor.y}
-              onClose={() => {
-                setShowContextMenu(false)
-              }}
-              onCopy={() => {
-                handleOnCopy()
-              }}
-              onPaste={async () =>
-                handleImageFromClipboard(INSERT_OBJECT_IMAGE)
-              }
-              onDelete={
-                activeObjectId || isSelectionCreated ? handleOnDelete : null
-              }
-            />
-          )}
+          <EditorContextMenu
+            isOpen={showContextMenu}
+            {...contextMenuCursor}
+            onCopy={handleOnCopy}
+            onPaste={handleOnPaste}
+            isDeletable={activeObjectId || isSelectionCreated}
+            onDelete={handleOnDelete}
+          />
 
-          <ChakraBox
+          <Box
             h={rem(IMAGE_HEIGHT)}
             w={rem(IMAGE_WIDTH)}
             border="1px"
@@ -665,16 +647,16 @@ export default function FlipEditor({
                 rotatingPointOffset: 20,
                 lineWidth: '1',
                 cornerColor: theme.colors.white,
-                cornerStrokeColor: theme.colors.primary,
+                cornerStrokeColor: theme.colors.blue[500],
                 transparentCorners: false,
-                borderColor: theme.colors.primary,
+                borderColor: theme.colors.blue[500],
               }}
               usageStatistics={false}
             />
-          </ChakraBox>
+          </Box>
 
           {bottomMenuPanel === BottomMenu.Main && (
-            <Stack isInline align="center" spacing={3} mt={6}>
+            <Stack isInline align="center" spacing={3} mt={3}>
               <FlipEditorIcon
                 tooltip={t('Search on web')}
                 icon={<SearchIcon />}
@@ -696,7 +678,7 @@ export default function FlipEditor({
                 </Portal>
               )}
 
-              <Box ref={leftArrowPortalRef}>
+              <Box ref={leftArrowPortalRef} position="relative">
                 <FlipEditorIcon
                   tooltip={t('Select file')}
                   icon={<FolderIcon />}
@@ -720,35 +702,74 @@ export default function FlipEditor({
                 />
               </VisuallyHidden>
 
-              <FlipEditorIcon
-                tooltip={t('Add image')}
-                icon={<AddImageIcon />}
-                onClick={() => {
-                  if (rightMenuPanel === RightMenu.Erase) {
-                    setRightMenuPanel(RightMenu.None)
-                  }
-                  editors[idx].stopDrawingMode()
-                  setRightMenuPanel(RightMenu.None)
-                  setInsertImageMenuOpen(!isInsertImageMenuOpen)
-                }}
-              />
+              <Menu autoSelect={false}>
+                <Tooltip label={t('Add image')}>
+                  <MenuButton
+                    as={Box}
+                    cursor="pointer"
+                    _hover={{color: 'blue.500'}}
+                  >
+                    <FlipEditorIcon
+                      tooltip={t('Add image')}
+                      icon={<AddImageIcon />}
+                      onClick={() => {
+                        if (rightMenuPanel === RightMenu.Erase) {
+                          setRightMenuPanel(RightMenu.None)
+                        }
+                        editors[idx].stopDrawingMode()
+                        setRightMenuPanel(RightMenu.None)
+                      }}
+                    />
+                  </MenuButton>
+                </Tooltip>
+                <FlipEditorMenuList zIndex="popover">
+                  <FlipEditorMenuItem
+                    onClick={async () => {
+                      setInsertImageMode(INSERT_OBJECT_IMAGE)
+                      setShowImageSearch(true)
+                    }}
+                    icon={<SearchIcon boxSize={5} color="blue.500" />}
+                  >
+                    {t('Search on web')}
+                  </FlipEditorMenuItem>
+                  <FlipEditorMenuItem
+                    onClick={async () => {
+                      setInsertImageMode(INSERT_OBJECT_IMAGE)
+                      uploaderRef.current.click()
+                    }}
+                    icon={<FolderIcon boxSize={5} color="blue.500" />}
+                  >
+                    {t('Select file')}
+                  </FlipEditorMenuItem>
+                  <FlipEditorMenuItem
+                    onClick={async () => {
+                      handleImageFromClipboard(INSERT_OBJECT_IMAGE)
+                    }}
+                    icon={<ClipboardIcon boxSize={5} color="blue.500" />}
+                  >
+                    {t('Paste image')}
+                  </FlipEditorMenuItem>
+                </FlipEditorMenuList>
+              </Menu>
 
-              <FlipEditorToolbarDivider />
+              <Divider orientation="vertical" h={5} />
 
               <FlipEditorIcon
                 icon={<UndoIcon />}
-                tooltip={`${t('Undo')} (Ctrl/Cmd+Z})`}
+                tooltip={`${t('Undo')} (${global.isMac ? 'Cmd+Z' : 'Ctrl+Z'})`}
                 isDisabled={editors[idx] && editors[idx].isEmptyUndoStack()}
                 onClick={handleUndo}
               />
               <FlipEditorIcon
                 icon={<RedoIcon />}
-                tooltip={`${t('Redo')} (Ctrl/Cmd+Shift+Z})`}
+                tooltip={`${t('Redo')} (${
+                  global.isMac ? 'Cmd+Shift+Z' : 'Ctrl+Shift+Z'
+                })`}
                 isDisabled={editors[idx] && editors[idx].isEmptyUndoStack()}
                 onClick={handleRedo}
               />
 
-              <FlipEditorToolbarDivider />
+              <Divider orientation="vertical" h={5} />
 
               <FlipEditorIcon
                 tooltip={t('Crop image')}
@@ -769,7 +790,7 @@ export default function FlipEditor({
                 </Portal>
               )}
 
-              <ChakraBox ref={rightArrowPortalRef}>
+              <Box ref={rightArrowPortalRef} position="relative">
                 <FlipEditorIcon
                   tooltip={t('Draw')}
                   isActive={rightMenuPanel === RightMenu.FreeDrawing}
@@ -786,7 +807,7 @@ export default function FlipEditor({
                     }
                   }}
                 />
-              </ChakraBox>
+              </Box>
 
               <FlipEditorIcon
                 isDisabled={!activeObjectUrl}
@@ -806,7 +827,7 @@ export default function FlipEditor({
                 }}
               />
 
-              <FlipEditorToolbarDivider />
+              <Divider orientation="vertical" h={5} />
 
               <FlipEditorIcon
                 tooltip={t('Clear')}
@@ -871,85 +892,82 @@ export default function FlipEditor({
               }}
             />
           )}
-
-          <Box>
-            <Flex>
-              <Box css={position('relative')}>
-                {isInsertImageMenuOpen && (
-                  <Box ref={insertMenuRef[idx]}>
-                    <Absolute top="-11.4em" right="-17em" zIndex={100}>
-                      <Menu>
-                        <MenuItem
-                          onClick={async () => {
-                            setInsertImageMenuOpen(false)
-                            setInsertImageMode(INSERT_OBJECT_IMAGE)
-                            setShowImageSearch(true)
-                          }}
-                          disabled={false}
-                          icon={<SearchIcon boxSize={5} name="search" />}
-                        >
-                          {t('Search on web')}
-                        </MenuItem>
-                        <MenuItem
-                          onClick={async () => {
-                            setInsertImageMenuOpen(false)
-                            setInsertImageMode(INSERT_OBJECT_IMAGE)
-                            uploaderRef.current.click()
-                          }}
-                          disabled={false}
-                          icon={<FolderIcon boxSize={5} name="folder" />}
-                        >
-                          {t('Select file')}
-                        </MenuItem>
-                        <MenuItem
-                          onClick={async () => {
-                            setInsertImageMenuOpen(false)
-                            handleImageFromClipboard(INSERT_OBJECT_IMAGE)
-                          }}
-                          disabled={false}
-                          danger={false}
-                          icon={<ClipboardIcon boxSize={5} />}
-                        >
-                          {t('Paste image')}
-                        </MenuItem>
-                      </Menu>
-                    </Absolute>
-                  </Box>
-                )}
-              </Box>
-            </Flex>
-          </Box>
         </Box>
 
-        {(rightMenuPanel === RightMenu.FreeDrawing ||
-          rightMenuPanel === RightMenu.Erase) && (
+        {rightMenuPanel === RightMenu.FreeDrawing && (
           <Stack align="center" ml={6}>
-            <ColorPicker
-              color={brushColor}
-              visible={showColorPicker}
-              onChange={c => {
-                setShowColorPicker(false)
-                setBrushColor(c)
-                if (!editors[idx]) return
-                const nextColor = `#${c}`
-                editors[idx].setBrush({width: brush, color: nextColor})
-              }}
-            />
-
-            {rightMenuPanel === RightMenu.FreeDrawing && (
-              <>
-                <ChakraBox
+            <Box>
+              <Menu autoSelect={false} placement="left-start">
+                <MenuButton
                   bg={`#${brushColor}`}
-                  border="1px"
-                  borderColor="brandGray.016"
-                  rounded="full"
-                  boxSize={4}
-                  onClick={() => setShowColorPicker(!showColorPicker)}
+                  borderWidth={1}
+                  borderColor={colorPickerColor(brushColor)}
+                  borderRadius="full"
+                  w={4}
+                  h={4}
+                  outline="none"
+                  _hover={{bg: `#${brushColor}`}}
+                  _active={{bg: `#${brushColor}`}}
                 />
+                <FlipEditorMenuList px={2} mt={-1}>
+                  <SimpleGrid columns={4} spacing={1}>
+                    {[
+                      'ffffff',
+                      'd2d4d9e0',
+                      '96999edd',
+                      '53565cdd',
+                      'ff6666dd',
+                      'ff60e7dd',
+                      'a066ffdd',
+                      '578fffdd',
+                      '0cbdd0dd',
+                      '27d980dd',
+                      'ffd763dd',
+                      'ffa366dd',
+                    ].map(color => (
+                      <FlipEditorMenuItem
+                        justifyContent="center"
+                        borderRadius="sm"
+                        p={1}
+                        onClick={() => {
+                          setBrushColor(color)
+                          if (!editors[idx]) return
+                          const nextColor = `#${color}`
+                          editors[idx].setBrush({
+                            width: brush,
+                            color: nextColor,
+                          })
+                        }}
+                      >
+                        <Box
+                          bg={`#${color}`}
+                          borderWidth={1}
+                          borderColor={colorPickerColor(color)}
+                          borderRadius="full"
+                          boxSize={4}
+                          position="relative"
+                        >
+                          {color === brushColor && (
+                            <Box
+                              position="absolute"
+                              top={-1}
+                              left={-1}
+                              right={-1}
+                              bottom={-1}
+                              borderColor={colorPickerColor(color)}
+                              borderWidth={1}
+                              borderRadius="full"
+                            />
+                          )}
+                        </Box>
+                      </FlipEditorMenuItem>
+                    ))}
+                  </SimpleGrid>
+                </FlipEditorMenuList>
+              </Menu>
+            </Box>
 
-                <Divider borderColor="gray.100" w={6} />
-              </>
-            )}
+            <Divider orientation="horizontal" w={6} />
 
             <Brushes
               brush={brush}
@@ -958,10 +976,23 @@ export default function FlipEditor({
                 if (!editors[idx]) return
                 editors[idx].setBrush({width: b, color: brushColor})
               }}
-            ></Brushes>
+            />
           </Stack>
         )}
+        {rightMenuPanel === RightMenu.Erase && (
+          <Box ml={6}>
+            <Brushes
+              brush={brush}
+              onChange={b => {
+                setBrush(b)
+                if (!editors[idx]) return
+                editors[idx].setBrush({width: b, color: brushColor})
+              }}
+            />
+          </Box>
+        )}
       </Flex>
+
       <ImageSearchDialog
         isOpen={showImageSearch}
         onPick={url => {
@@ -981,42 +1012,361 @@ export default function FlipEditor({
           })
         }
       />
-    </div>
+    </Box>
+  )
+}
+
+function Brushes({brush, onChange}) {
+  const brushes = [4, 12, 20, 28, 36]
+  return (
+    <Stack spacing={2} align="center">
+      {brushes.map((b, i) => (
+        <Flex
+          key={b}
+          align="center"
+          justify="center"
+          bg={brush === b ? 'gray.50' : 'none'}
+          borderRadius="sm"
+          onClick={() => onChange(b)}
+          boxSize={6}
+        >
+          <Box
+            bg="brandGray.500"
+            borderRadius="full"
+            boxSize={rem((i + 1) * 2)}
+          />
+        </Flex>
+      ))}
+    </Stack>
+  )
+}
+
+function ArrowHint({hint, leftHanded}) {
+  return (
+    <Box position="relative">
+      <Box position="absolute" bottom="76px" zIndex={90}>
+        {leftHanded && (
+          <div>
+            <Box
+              borderColor="blue.500"
+              borderLeftWidth={2}
+              borderTopWidth={2}
+              minW={6}
+              minH={10}
+            />
+            <Box
+              borderWidth={6}
+              borderBottom="none"
+              borderColor="transparent"
+              borderTopColor="blue.500"
+              w={0}
+              h={0}
+              position="absolute"
+              left="-5px"
+            />
+            <Box
+              color="muted"
+              fontWeight={400}
+              minW={75}
+              position="absolute"
+              left="30px"
+              top="-25px"
+            >
+              {hint}
+            </Box>
+          </div>
+        )}
+
+        {!leftHanded && (
+          <Box>
+            <Box
+              borderColor="blue.500"
+              borderRightWidth={2}
+              borderTopWidth={2}
+              minW={6}
+              minH={10}
+            />
+            <Box
+              borderWidth={6}
+              borderBottom="none"
+              borderColor="transparent"
+              borderTopColor="blue.500"
+              position="absolute"
+              right={-1}
+              w={0}
+              h={0}
+            />
+            <Box
+              color="muted"
+              fontWeight={400}
+              w="52px"
+              minW="52px"
+              position="absolute"
+              left="-58px"
+              top="-25px"
+            >
+              {hint}
+            </Box>
+          </Box>
+        )}
+      </Box>
+    </Box>
+  )
+}
+
+function EditorContextMenu({
+  x,
+  y,
+  isDeletable,
+  onCopy,
+  onPaste,
+  onDelete,
+  ...props
+}) {
+  const {t} = useTranslation()
+
+  return (
+    <Menu {...props}>
+      <FlipEditorMenuList position="absolute" top={y} left={x} zIndex="popover">
+        <FlipEditorMenuItem
+          onClick={onCopy}
+          icon={<CopyIcon boxSize={5} color="blue.500" />}
+        >
+          {`${t('Copy')} (${global.isMac ? 'Cmd+C' : 'Ctrl+C'})`}
+        </FlipEditorMenuItem>
+
+        <FlipEditorMenuItem
+          onClick={onPaste}
+          icon={<ClipboardIcon boxSize={5} color="blue.500" />}
+        >
+          {`${t('Paste image')} (${global.isMac ? 'Cmd+V' : 'Ctrl+V'})`}
+        </FlipEditorMenuItem>
+
+        <FlipEditorMenuItem
+          isDisabled={!isDeletable}
+          onClick={onDelete}
+          color="red.500"
+          icon={<DeleteIcon boxSize={5} color="red.500" />}
+        >
+          {t('Delete')}
+        </FlipEditorMenuItem>
+      </FlipEditorMenuList>
+    </Menu>
+  )
+}
+
+function ImageEraseEditor({
+  url,
+  brushWidth,
+  imageObjectProps,
+  onDone,
+  onChanging,
+  isDone,
+}) {
+  const canvasRef = useRef()
+  const [isMouseDown, setIsMouseDown] = useState(false)
+
+  React.useEffect(() => {
+    if (isDone && onDone) {
+      if (canvasRef.current) {
+        onDone(canvasRef.current.toDataURL())
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDone])
+
+  const handleMouseMove = useCallback(
+    e => {
+      const ctx = canvasRef.current && canvasRef.current.getContext('2d')
+
+      const x = e.nativeEvent.offsetX
+      const y = e.nativeEvent.offsetY
+      if (ctx && isMouseDown) {
+        onChanging()
+        ctx.globalCompositeOperation = 'destination-out'
+
+        ctx.beginPath()
+        ctx.arc(x, y, brushWidth / 2, 0, 2 * Math.PI)
+        ctx.fill()
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [canvasRef, isMouseDown]
+  )
+
+  const handleMouseDown = () => {
+    setIsMouseDown(true)
+
+    onChanging()
+  }
+
+  const handleMouseUp = () => {
+    setIsMouseDown(false)
+  }
+
+  React.useEffect(() => {
+    let ignore = false
+
+    async function init() {
+      if (!ignore && canvasRef.current) {
+        let img = new Image()
+        img.setAttribute('crossOrigin', 'anonymous')
+        img.src = url
+        img.onload = function() {
+          const width =
+            img.width * ((imageObjectProps && imageObjectProps.scaleX) || 1)
+          const height =
+            img.height * ((imageObjectProps && imageObjectProps.scaleY) || 1)
+          canvasRef.current.width = width
+          canvasRef.current.height = height
+
+          const ctx = canvasRef.current.getContext('2d')
+          ctx.drawImage(img, 0, 0, width, height)
+
+          img = null
+        }
+      }
+    }
+    init()
+    return () => {
+      ignore = true
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canvasRef])
+
+  const left =
+    imageObjectProps?.x -
+    (imageObjectProps?.width * imageObjectProps?.scaleX) / 2 +
+    1
+
+  const top =
+    imageObjectProps?.y -
+    (imageObjectProps?.height * imageObjectProps?.scaleY) / 2 +
+    1
+
+  const angle = imageObjectProps?.angle ?? 0
+
+  return (
+    <Box position="relative" display={isDone ? 'none' : 'initial'}>
+      <Box
+        position="absolute"
+        top={0}
+        left={0}
+        height={IMAGE_HEIGHT - 2}
+        width={IMAGE_WIDTH - 2}
+        overflow="hidden"
+        zIndex={100}
+      >
+        <Box
+          borderRadius="xl"
+          w="full"
+          h="full"
+          cursor="crosshair"
+          onMouseDown={handleMouseDown}
+          onMouseUp={handleMouseUp}
+        >
+          <Box
+            ref={canvasRef}
+            as="canvas"
+            bg="transparent"
+            position="absolute"
+            left={`${left}px`}
+            top={`${top}px`}
+            transform={`rotate(${angle}deg)`}
+            onMouseMove={e => handleMouseMove(e)}
+          />
+        </Box>
+      </Box>
+    </Box>
+  )
+}
+
+function ApplyChangesBottomPanel({label, onDone, onCancel}) {
+  const {t} = useTranslation()
+  return (
+    <Flex justify="space-between" align="center" fontWeight={500} mt={3} px={3}>
+      {label}
+      <Stack isInline align="center">
+        <DrawingToolbarButton onClick={onCancel}>
+          {t('Cancel')}
+        </DrawingToolbarButton>
+        <Divider orientation="vertical" h={5} />
+        <DrawingToolbarButton fontWeight={600} onClick={onDone}>
+          {t('Done')}
+        </DrawingToolbarButton>
+      </Stack>
+    </Flex>
   )
 }
 
 function FlipEditorIcon({tooltip, isActive, isDisabled, mr, ...props}) {
   const icon = (
-    <ChakraIconButton
+    <IconButton
       aria-label={tooltip}
       isDisabled={isDisabled}
       bg={isActive ? 'gray.50' : 'unset'}
       color={isActive ? 'brandBlue.500' : 'unset'}
-      fontSize={rem(20)}
+      fontSize={20}
       size={6}
       rounded="md"
-      p={0.5}
+      p={1 / 2}
       _hover={{color: isDisabled ? 'inherit' : 'brandBlue.500'}}
       _active={{bg: 'transparent'}}
       {...props}
     />
   )
   return (
-    <ChakraBox mr={mr}>
+    <Box mr={mr}>
       <Tooltip label={tooltip} shouldWrapChildren>
         {icon}
       </Tooltip>
-    </ChakraBox>
+    </Box>
   )
 }
 
-function FlipEditorToolbarDivider(props) {
+function FlipEditorMenuList(props) {
   return (
-    <Divider
-      orientation="vertical"
-      borderColor="gray.100"
-      h={5}
-      mx={0}
+    <MenuList
+      border="none"
+      shadow="0 4px 6px 0 rgba(83, 86, 92, 0.24), 0 0 2px 0 rgba(83, 86, 92, 0.2)"
+      rounded="lg"
+      py={2}
+      minW={145}
+      {...props}
+    />
+  )
+}
+
+function FlipEditorMenuItem({children, ...props}) {
+  return (
+    <MenuItem
+      color="brandGray.500"
+      fontWeight={500}
+      px={3}
+      py={3 / 2}
+      _hover={{bg: 'gray.50'}}
+      _focus={{bg: 'gray.50'}}
+      _selected={{bg: 'gray.50'}}
+      _active={{bg: 'gray.50'}}
+      {...props}
+    >
+      <Stack isInline spacing={2} align="center">
+        {React.Children.map(children, child => (
+          <Box>{child}</Box>
+        ))}
+      </Stack>
+    </MenuItem>
+  )
+}
+
+function DrawingToolbarButton(props) {
+  return (
+    <Button
+      variant="link"
+      colorScheme="blue"
+      fontWeight={500}
+      _hover={null}
+      _active={null}
       {...props}
     />
   )
