@@ -21,7 +21,10 @@ import {
   NotNowDialog,
   ValidationCountdown,
 } from '../../screens/node/components'
-import {GetProviderPrice} from '../../screens/node/utils'
+import {
+  checkRestoringConnection,
+  GetProviderPrice,
+} from '../../screens/node/utils'
 import {
   checkSavedKey,
   getAvailableProviders,
@@ -92,7 +95,7 @@ export default function Restricted() {
   const [savedApiKey, setSavedApiKey] = useState()
 
   const size = useBreakpointValue(['lg', 'md'])
-  const variantRadio = useBreakpointValue(['mobileDark', 'dark'])
+  const variantRadio = useBreakpointValue(['mobileDark', 'initial'])
   const variantSecondary = useBreakpointValue(['primaryFlat', 'secondary'])
 
   const notNow = forceDialog => {
@@ -166,7 +169,8 @@ export default function Restricted() {
           coinbase,
           toHexString(signature, true)
         )
-        setSavedApiKey(savedKey)
+        if (await checkRestoringConnection(savedKey.url, savedKey.key))
+          setSavedApiKey(savedKey)
         // eslint-disable-next-line no-empty
       } catch (e) {}
     }

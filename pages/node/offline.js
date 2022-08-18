@@ -28,6 +28,7 @@ import {
   NodeOfflineAlert,
   ProviderOfflineAlert,
 } from '../../screens/node/components'
+import {checkRestoringConnection} from '../../screens/node/utils'
 import {
   getCandidateKey,
   checkKey,
@@ -38,7 +39,6 @@ import {
   activateKey,
   checkProvider,
   checkSavedKey,
-  fetchEpoch,
 } from '../../shared/api'
 
 import {PrimaryButton} from '../../shared/components/button'
@@ -109,7 +109,7 @@ export default function Offline() {
   const [isDesktop] = useMediaQuery('(min-width: 481px)')
   const size = useBreakpointValue(['lg', 'md'])
   const variant = useBreakpointValue(['mobile', 'initial'])
-  const variantRadio = useBreakpointValue(['mobileDark', 'dark'])
+  const variantRadio = useBreakpointValue(['mobileDark', 'initial'])
   const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
   const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
 
@@ -212,7 +212,9 @@ export default function Offline() {
           coinbase,
           toHexString(signature, true)
         )
-        setSavedApiKey(savedKey)
+        if (await checkRestoringConnection(savedKey.url, savedKey.key))
+          setSavedApiKey(savedKey)
+        // eslint-disable-next-line no-empty
       } catch (e) {}
     }
     checkSaved()

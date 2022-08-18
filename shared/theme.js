@@ -275,18 +275,6 @@ export const uiTheme = {
             borderRadius: 'md',
           },
         },
-        dark: {
-          container: {
-            borderColor: 'white',
-            _checked: {
-              bg: 'gray.500',
-            },
-            _disabled: {
-              bg: 'none',
-              borderColor: 'gray.300',
-            },
-          },
-        },
         mobile: {
           container: {
             bg: 'gray.50',
