@@ -477,6 +477,7 @@ export function SendDrawer(props) {
       {...props}
       onClose={() => {
         dispatch('done')
+        // eslint-disable-next-line react/destructuring-assignment
         props.onClose()
       }}
     >

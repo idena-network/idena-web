@@ -61,6 +61,7 @@ function Settings() {
         const result = await checkKey(settingsState.apiKey)
         const provider = await getProvider(result.provider)
         setNodeProvider(provider.data.ownerName)
+        // eslint-disable-next-line no-empty
       } catch (e) {}
     }
 

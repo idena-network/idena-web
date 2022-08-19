@@ -2,12 +2,7 @@
 import Jimp from 'jimp'
 import {bytes, CID} from 'multiformats'
 import i18n from '../../i18n'
-import {
-  estimateRawTx,
-  fetchNetworkSize,
-  getRawTx,
-  sendRawTx,
-} from '../../shared/api'
+import {estimateRawTx, getRawTx, sendRawTx} from '../../shared/api'
 import {Profile} from '../../shared/models/profile'
 import {StoreToIpfsAttachment} from '../../shared/models/storeToIpfsAttachment'
 import {Transaction} from '../../shared/models/transaction'
@@ -152,10 +147,11 @@ export const adVotingDefaults = {
   publicVotingDuration: isVercelProduction ? 4320 : 10,
   winnerThreshold: 51,
   quorum: 1,
-  committeeSize: 300,
+  committeeSize: isVercelProduction ? 300 : 5,
   ownerFee: 0,
   shouldStartImmediately: true,
   isFreeVoting: true,
+  rewardsFund: 100,
   options: [
     buildAdReviewVotingOption(AdVotingOption.Approve),
     buildAdReviewVotingOption(AdVotingOption.Reject),
@@ -167,9 +163,6 @@ export const buildAdReviewVoting = ({title, adCid}) => ({
   desc: title,
   adCid,
 })
-
-export const calculateMinOracleReward = async () =>
-  5000 / (await fetchNetworkSize())
 
 export async function fetchProfileAds(address) {
   try {
