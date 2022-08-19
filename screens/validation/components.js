@@ -1530,6 +1530,7 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
         setFlipCase(flipCase === 0 ? flipCase : flipCase - 1)
       }
     },
+    delta: 50,
     preventDefaultTouchmoveEvent: true,
     trackMouse: true,
   })
@@ -2064,6 +2065,7 @@ export function ValidationScreen({
         scrollToCurrentFlip(currentIndex - 1)
       }
     },
+    delta: 50,
     preventDefaultTouchmoveEvent: true,
     trackMouse: true,
   })
@@ -2119,7 +2121,7 @@ export function ValidationScreen({
           </Title>
         </Flex>
       </Header>
-      <ChakraBox order={[3, 2]} {...handlers}>
+      <ChakraBox order={[3, 2]}>
         <ChakraBox
           display={['block', 'none']}
           className="block-swipe-nav"
@@ -2137,6 +2139,7 @@ export function ValidationScreen({
               justify="center"
               align="center"
               position="relative"
+              {...handlers}
             >
               {currentFlip &&
                 ((currentFlip.fetched && !currentFlip.decoded) ||
