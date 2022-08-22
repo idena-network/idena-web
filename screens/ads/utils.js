@@ -151,7 +151,6 @@ export const adVotingDefaults = {
   ownerFee: 0,
   shouldStartImmediately: true,
   isFreeVoting: true,
-  rewardsFund: 100,
   options: [
     buildAdReviewVotingOption(AdVotingOption.Approve),
     buildAdReviewVotingOption(AdVotingOption.Reject),

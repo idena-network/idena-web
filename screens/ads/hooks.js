@@ -431,6 +431,7 @@ export function useIpfsAd(cid, options) {
 }
 
 export function useReviewAd({
+  rewardsFund,
   onBeforeSubmit,
   onDeployContract,
   onStartVoting,
@@ -450,6 +451,7 @@ export function useReviewAd({
   })
 
   const {data: startVotingHash, mutate: startVoting} = useStartAdVoting({
+    rewardsFund,
     onError,
   })
 
@@ -541,7 +543,7 @@ function useDeployAdContract({onBeforeSubmit, onSubmit, onError}) {
   )
 }
 
-function useStartAdVoting({onError}) {
+function useStartAdVoting({rewardsFund, onError}) {
   const coinbase = useCoinbase()
 
   const privateKey = usePrivateKey()
@@ -565,7 +567,7 @@ function useStartAdVoting({onError}) {
           type: TxType.CallContractTx,
           from: coinbase,
           to: startParams?.contract,
-          amount: startAmount,
+          amount: startAmount + rewardsFund,
           payload,
         },
         privateKey
@@ -576,7 +578,7 @@ function useStartAdVoting({onError}) {
           type: TxType.CallContractTx,
           from: coinbase,
           to: startParams?.contract,
-          amount: startAmount,
+          amount: startAmount + rewardsFund,
           payload,
           maxFee: Number(estimateResult.txFee) * 1.1,
         },
@@ -785,10 +787,7 @@ export function useStartAdVotingAmount() {
     // eslint-disable-next-line no-shadow
     async ({queryKey: [, committeeSize]}) => {
       const networkSize = await fetchNetworkSize()
-      return (
-        minOwnerDeposit(networkSize, committeeSize) +
-        adVotingDefaults.rewardsFund
-      )
+      return minOwnerDeposit(networkSize, committeeSize)
     }
   )
 }
