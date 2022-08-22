@@ -413,7 +413,7 @@ export function AddFundDrawer({
 }) {
   const {t, i18n} = useTranslation()
 
-  const toDna = toLocaleDna(i18n.language)
+  const toDna = toLocaleDna(i18n.language, {maximumFractionDigits: 4})
 
   const [amount, setAmount] = React.useState(0)
 
@@ -496,7 +496,7 @@ export function VoteDrawer({
     data: {balance},
   } = useBalance()
 
-  const toDna = toLocaleDna(i18n.language)
+  const toDna = toLocaleDna(i18n.language, {maximumFractionDigits: 4})
 
   return (
     <AdDrawer isMining={isLoading} isCloseable={!isLoading} {...props}>
@@ -584,7 +584,7 @@ export function ReviewVotingDrawer({
     else setSendAmount(0)
   }, [ownerDeposit, rewardsFund, isOpen, hasRequiredAmount])
 
-  const toDna = toLocaleDna(i18n.language)
+  const toDna = toLocaleDna(i18n.language, {maximumFractionDigits: 4})
 
   const ownerRefund =
     Math.min(sendAmount, ownerDeposit) +
@@ -1124,7 +1124,7 @@ export function LaunchDrawer({
 }) {
   const {t, i18n} = useTranslation()
 
-  const dna = toLocaleDna(i18n.language)
+  const dna = toLocaleDna(i18n.language, {maximumFractionDigits: 4})
 
   const [sendAmount, setSendAmount] = useState()
 
@@ -1275,7 +1275,8 @@ export function LaunchVotingDrawer({votingService}) {
         send('CANCEL')
       }}
       balance={Number(balance)}
-      requiredBalance={ownerDeposit + rewardsFund}
+      ownerDeposit={Number(ownerDeposit)}
+      rewardsFund={Number(rewardsFund)}
       ownerFee={ownerFee}
       from={coinbase}
       available={identityBalance}
@@ -1283,6 +1284,7 @@ export function LaunchVotingDrawer({votingService}) {
       onLaunch={({amount}) => {
         send('START_VOTING', {amount, privateKey})
       }}
+      onError={e => send('ERROR', e)}
     />
   )
 }
