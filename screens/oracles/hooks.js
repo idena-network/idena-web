@@ -169,21 +169,24 @@ export function useDeferredVotes() {
           }
           break
         }
+        case 'insufficient funds': {
+          showError(e.message)
+          break
+        }
         case "tx can't be accepted due to validation ceremony": {
           await updateDeferredVote(vote.id, {
-            block: vote.block + 10 * 3,
+            block: vote.block + isVercelProduction ? 10 * 3 : 2 * 3,
           })
           queryClient.invalidateQueries('useDeferredVotes')
           if (!skipToast) showError(e.message)
           break
         }
-        case 'insufficient funds': {
-          showError(e.message)
-          break
-        }
         default: {
+          await updateDeferredVote(vote.id, {
+            block: vote.block + isVercelProduction ? 10 * 3 : 2 * 3,
+          })
+          queryClient.invalidateQueries('useDeferredVotes')
           showError(e.message)
-          deleteVote(vote.id)
         }
       }
     }
