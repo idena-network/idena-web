@@ -404,7 +404,10 @@ export function ContactCard({
                 <VDivider />
                 <IconButton
                   icon={<DeleteIcon boxSize={5} />}
-                  colorScheme="red"
+                  color="red.500"
+                  _hover={{
+                    bg: 'red.012',
+                  }}
                   _active={{
                     bg: 'red.012',
                   }}
