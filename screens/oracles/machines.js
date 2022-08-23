@@ -657,6 +657,8 @@ export const newVotingMachine = createMachine(
                     options,
                     startDate,
                     shouldStartImmediately,
+                    isCustomOwnerAddress,
+                    ownerAddress,
                     ...context
                   }) => ({
                     type: 'SET_DIRTY',
@@ -665,6 +667,9 @@ export const newVotingMachine = createMachine(
                         ? null
                         : 'options',
                       shouldStartImmediately || startDate ? null : 'startDate',
+                      isCustomOwnerAddress && !isAddress(ownerAddress)
+                        ? 'ownerAddress'
+                        : null,
                       ...['title', 'desc'].filter(f => !context[f]),
                     ].filter(v => v),
                   })

@@ -420,27 +420,38 @@ function NewVotingPage() {
               <Collapse in={isOpenAdvanced} mt={2}>
                 <Stack spacing={3}>
                   <VotingInlineFormControl
+                    pt={1 / 2}
                     htmlFor="ownerAddress"
                     label={t('Owner address')}
                     tooltip={t(
                       'Owner deposit will be sent to the specified Owner address'
                     )}
+                    isInvalid={isInvalid(
+                      'ownerAddress',
+                      !isCustomOwnerAddress || isAddress(ownerAddress)
+                    )}
                   >
                     <Stack spacing={3} flex={1}>
                       <Input
-                        id="ownerAddress"
-                        isInvalid={
-                          isCustomOwnerAddress && !isAddress(ownerAddress)
-                        }
-                        value={ownerAddress}
                         isDisabled={!isCustomOwnerAddress}
+                        id="ownerAddress"
+                        value={ownerAddress}
                         onChange={handleChange}
                       />
+                      {isInvalid(
+                        'ownerAddress',
+                        !isCustomOwnerAddress || isAddress(ownerAddress)
+                      ) && (
+                        <FormErrorMessage fontSize="md">
+                          {t('You must provide a valid address')}
+                        </FormErrorMessage>
+                      )}
                       <Checkbox
                         id="isCustomOwnerAddress"
                         onChange={({target: {id, checked}}) => {
                           send('CHANGE', {id, value: checked})
                         }}
+                        isInvalid={false}
                       >
                         {t('Custom owner address')}
                       </Checkbox>
