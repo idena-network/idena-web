@@ -70,7 +70,7 @@ export default function Restricted() {
   const [{apiKeyState, apiKeyData, apiKey}] = useSettings()
   const {saveConnection} = useSettingsDispatch()
   const {coinbase, privateKey} = useAuthState()
-  const [{state: identityState}] = useIdentity()
+  const [{state: identityState, age}] = useIdentity()
   const auth = useAuthState()
   const router = useRouter()
   const {t} = useTranslation()
@@ -391,7 +391,8 @@ export default function Restricted() {
                                 {t('Prolong node access')}{' '}
                                 {`(${GetProviderPrice(
                                   provider.data,
-                                  identityState
+                                  identityState,
+                                  age
                                 )} iDNA)`}
                               </Text>
                               <Text color="muted" fontSize="sm">
@@ -486,7 +487,7 @@ export default function Restricted() {
           providerId={provider.id}
           url={provider.data.url}
           from={coinbase}
-          amount={GetProviderPrice(provider.data, identityState)}
+          amount={GetProviderPrice(provider.data, identityState, age)}
           to={provider.data.address}
         />
       )}
