@@ -23,7 +23,7 @@ import {
 import {InfoIcon} from '../../../shared/components/icons'
 import {useLanguage} from '../../../shared/hooks/use-language'
 import {AdBurnKey} from '../../../shared/models/adBurnKey'
-import {openExternalUrl, useIsDesktop} from '../../../shared/utils/utils'
+import {useIsDesktop} from '../../../shared/utils/utils'
 import {AdImage} from '../../ads/components'
 import {useBurntCoins, useFormatDna, useRotateAds} from '../../ads/hooks'
 
@@ -188,19 +188,15 @@ export function ValidationAdPromotion() {
                         {currentAd?.desc}
                       </Text>
                     </Stack>
-                    <Button
-                      variant="link"
-                      colorScheme="blue"
-                      noOfLines={2}
+                    <Link
+                      href={currentAd?.url}
+                      target="_blank"
+                      color="blue.500"
                       fontWeight={500}
-                      textAlign="start"
-                      onClick={() => {
-                        const win = openExternalUrl(currentAd?.url)
-                        win.focus()
-                      }}
+                      noOfLines={2}
                     >
                       {currentAd?.url}
-                    </Button>
+                    </Link>
                   </Stack>
                   <Stack direction="row" spacing="8">
                     <AdStat label={t('Sponsored by')} maxW="24">
