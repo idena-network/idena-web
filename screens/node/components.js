@@ -13,7 +13,6 @@ import {
   Text,
   Button,
 } from '@chakra-ui/react'
-import {useMachine} from '@xstate/react'
 import dayjs from 'dayjs'
 import {useMemo, useState} from 'react'
 import {useTranslation} from 'react-i18next'
@@ -33,8 +32,8 @@ import {
 import {SendOutIcon} from '../../shared/components/icons'
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
 import useRpc from '../../shared/hooks/use-rpc'
+import {useTimer} from '../../shared/hooks/use-timer'
 import {useFailToast} from '../../shared/hooks/use-toast'
-import {createTimerMachine} from '../../shared/machines'
 import {Transaction} from '../../shared/models/transaction'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useEpoch} from '../../shared/providers/epoch-context'
@@ -407,27 +406,21 @@ export function ValidationCountdown(props) {
   const epoch = useEpoch()
   const {t} = useTranslation()
 
-  const duration = useMemo(
-    () => dayjs(epoch?.nextValidation).diff(dayjs(), 's'),
-    [epoch.nextValidation]
-  )
+  const nextValidation = epoch?.nextValidation ?? null
 
-  const [state] = useMachine(
-    useMemo(() => createTimerMachine(duration), [duration])
-  )
+  const duration = useMemo(() => dayjs(nextValidation).diff(), [nextValidation])
 
-  const {elapsed} = state.context
-  const remaining = duration - elapsed
+  const [{remainingSeconds, isRunning}] = useTimer(duration)
 
   return (
     <Stack spacing={3} isInline {...props}>
       <CountdownPart
         title={t('minutes')}
-        value={state.matches('running') ? Math.floor(remaining / 60) : '00'}
+        value={isRunning ? Math.floor(remainingSeconds / 60) : '00'}
       />
       <CountdownPart
         title={t('seconds')}
-        value={state.matches('running') ? Math.floor(remaining % 60) : '00'}
+        value={isRunning ? Math.floor(remainingSeconds % 60) : '00'}
       />
     </Stack>
   )
