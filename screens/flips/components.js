@@ -837,7 +837,6 @@ export function FlipProtectStep({
   protectedImages,
   onProtecting,
   onProtectImage,
-  onProtectImages,
 }) {
   const {t} = useTranslation()
   const BLANK_IMAGE_DATAURL =
@@ -860,38 +859,6 @@ export function FlipProtectStep({
     const protectedImageSrc = await protectFlipImage(compressedImage)
     onProtectImage(protectedImageSrc, originalOrder[currentIndex])
   }
-
-  useEffect(() => {
-    onProtecting()
-    const protectedFlips = []
-    const protectImages = async () => {
-      const compressedImages = await Promise.all(
-        images.map(image =>
-          image
-            ? Jimp.read(image).then(raw =>
-                raw
-                  .resize(240, 180)
-                  .quality(60) // jpeg quality
-                  .getBase64Async('image/jpeg')
-              )
-            : image
-        )
-      )
-
-      // eslint-disable-next-line no-plusplus
-      for (let i = 0; i < images.length; i++) {
-        if (compressedImages[i]) {
-          const protectedImageSrc = await protectFlipImage(compressedImages[i])
-          protectedFlips[i] = protectedImageSrc
-        } else {
-          protectedFlips[i] = compressedImages[i]
-        }
-      }
-      onProtectImages(protectedFlips)
-    }
-
-    protectImages()
-  }, [images])
 
   return (
     <FlipStep>

@@ -910,3 +910,30 @@ export async function watermarkedDataURL(imageSrc, text, date) {
 
   return tempCanvas.toDataURL()
 }
+
+export async function protectFlip({images}) {
+  const protectedFlips = []
+  const compressedImages = await Promise.all(
+    images.map(image =>
+      image
+        ? Jimp.read(image).then(raw =>
+            raw
+              .resize(240, 180)
+              .quality(60) // jpeg quality
+              .getBase64Async('image/jpeg')
+          )
+        : image
+    )
+  )
+
+  // eslint-disable-next-line no-plusplus
+  for (let i = 0; i < images.length; i++) {
+    if (compressedImages[i]) {
+      const protectedImageSrc = await protectFlipImage(compressedImages[i])
+      protectedFlips[i] = protectedImageSrc
+    } else {
+      protectedFlips[i] = compressedImages[i]
+    }
+  }
+  return {protectedImages: protectedFlips}
+}
