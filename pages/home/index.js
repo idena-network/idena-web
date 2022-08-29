@@ -56,6 +56,7 @@ import {
   ExternalLink,
   MobileApiStatus,
   TextLink,
+  Tooltip,
 } from '../../shared/components/components'
 import {useOnboarding} from '../../shared/providers/onboarding-context'
 import {
@@ -75,6 +76,7 @@ import {
   PhotoIcon,
   TestValidationIcon,
   PooIcon,
+  InfoIcon,
 } from '../../shared/components/icons'
 import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
 import {isValidDnaUrl} from '../../screens/dna/utils'
@@ -449,6 +451,25 @@ export default function HomePage() {
                               mt={[null, '3px']}
                             >
                               {stakingApy > 0 ? toPercent(stakingApy) : '--'}
+                              {canMine && !online && (
+                                <Tooltip
+                                  shouldWrapChildren
+                                  bg="graphite.500"
+                                  placement="top"
+                                  hasArrow
+                                  label={t(
+                                    'Please activate your mining status to earn the staking rewards'
+                                  )}
+                                  w="130px"
+                                >
+                                  <InfoIcon
+                                    boxSize={[5, 4]}
+                                    color="red.500"
+                                    mt={[-1, -1 / 2]}
+                                    ml={1}
+                                  />
+                                </Tooltip>
+                              )}
                             </UserStatValue>
                           </Flex>
                         </UserStat>
