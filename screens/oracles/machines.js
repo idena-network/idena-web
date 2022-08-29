@@ -10,14 +10,12 @@ import {
   createContractDataReader,
   setVotingStatus,
   votingFinishDate,
-  fetchOracleRewardsEstimates,
   votingStatuses,
   fetchContractBalanceUpdates,
   stripOptions,
   hasValuableOptions,
   fetchVoting,
   mapVoting,
-  minOracleRewardFromEstimates,
   fetchLastOpenVotings,
   hasLinklessOptions,
   estimateTerminateContract,
@@ -27,6 +25,7 @@ import {
   estimateDeployContract,
   deployContract,
   normalizeId,
+  minOwnerDeposit,
 } from './utils'
 import {VotingStatus} from '../../shared/types'
 import {
@@ -43,6 +42,7 @@ import {sendDna} from '../../shared/api/utils'
 import {toHexString} from '../../shared/utils/buffers'
 import {AdVotingOption, AdVotingOptionId} from '../ads/types'
 import {fetchNetworkSize} from '../../shared/api/dna'
+import {isAddress} from '../wallets/utils'
 
 export const votingListMachine = createMachine(
   {
@@ -381,10 +381,10 @@ export const votingMachine = createMachine(
               },
               review: {
                 invoke: {
-                  src: 'loadMinOracleReward',
+                  src: 'loadOwnerDeposit',
                   onDone: {
                     actions: [
-                      'applyMinOracleReward',
+                      'applyOwnerDeposit',
                       sendParent(({id}) => ({type: 'REVIEW_START_VOTING', id})),
                     ],
                   },
@@ -393,6 +393,9 @@ export const votingMachine = createMachine(
                   START_VOTING: {
                     target: `#voting.mining.${VotingStatus.Starting}`,
                     actions: ['setStarting', 'persist'],
+                  },
+                  ERROR: {
+                    actions: ['onError'],
                   },
                 },
               },
@@ -462,13 +465,13 @@ export const votingMachine = createMachine(
           id: normalizeId(context.id || context.contractAddress),
           ...context,
         }),
-      applyMinOracleReward: assign({
-        minOracleReward: (_, {data}) => data,
+      applyOwnerDeposit: assign({
+        ownerDeposit: (_, {data}) => data,
       }),
     },
     services: {
       ...votingServices(),
-      loadMinOracleReward,
+      loadOwnerDeposit,
       pollStatus: ({txHash}) => cb => {
         let timeoutId
 
@@ -501,7 +504,6 @@ export const votingMachine = createMachine(
 export const newVotingMachine = createMachine(
   {
     context: {
-      oracleRewardsEstimates: [],
       options: [{id: 0}, {id: 1}],
       votingDuration: 4320,
       publicVotingDuration: 2160,
@@ -509,6 +511,7 @@ export const newVotingMachine = createMachine(
       committeeSize: 100,
       shouldStartImmediately: true,
       dirtyBag: {},
+      rewardsFund: 0,
     },
     initial: 'waiting',
     states: {
@@ -527,27 +530,20 @@ export const newVotingMachine = createMachine(
       },
       preload: {
         invoke: {
-          src: ({committeeSize}) =>
-            Promise.all([
-              callRpc('bcn_feePerGas'),
-              fetchOracleRewardsEstimates(committeeSize),
-            ]),
+          src: () =>
+            Promise.all([callRpc('bcn_feePerGas'), fetchNetworkSize()]),
           onDone: {
             target: 'choosingPreset',
             actions: [
-              assign((context, {data: [feePerGas, estimates]}) => {
-                const minOracleReward = minOracleRewardFromEstimates(estimates)
-                return {
-                  ...context,
-                  feePerGas,
-                  minOracleReward,
-                  oracleReward: minOracleReward,
-                  oracleRewardsEstimates: estimates.map(({amount, type}) => ({
-                    value: Number(amount),
-                    label: type,
-                  })),
-                }
-              }),
+              assign((context, {data: [feePerGas, networkSize]}) => ({
+                ...context,
+                feePerGas,
+                networkSize,
+                ownerDeposit: minOwnerDeposit(
+                  networkSize,
+                  context.committeeSize
+                ),
+              })),
               log(),
             ],
           },
@@ -618,7 +614,7 @@ export const newVotingMachine = createMachine(
             actions: ['setContractParams', 'setDirty', log()],
           },
           CHANGE_COMMITTEE: {
-            target: '.updateCommittee',
+            target: '.updateOwnerDeposit',
             actions: ['setContractParams', 'setDirty', log()],
           },
           SET_DIRTY: {
@@ -639,7 +635,7 @@ export const newVotingMachine = createMachine(
           },
           SET_WHOLE_NETWORK: [
             {
-              target: '.fetchNetworkSize',
+              target: '.updateOwnerDeposit',
               actions: [assign({isWholeNetwork: true})],
               cond: (_, {checked}) => checked,
             },
@@ -661,6 +657,8 @@ export const newVotingMachine = createMachine(
                     options,
                     startDate,
                     shouldStartImmediately,
+                    isCustomOwnerAddress,
+                    ownerAddress,
                     ...context
                   }) => ({
                     type: 'SET_DIRTY',
@@ -669,6 +667,9 @@ export const newVotingMachine = createMachine(
                         ? null
                         : 'options',
                       shouldStartImmediately || startDate ? null : 'startDate',
+                      isCustomOwnerAddress && !isAddress(ownerAddress)
+                        ? 'ownerAddress'
+                        : null,
                       ...['title', 'desc'].filter(f => !context[f]),
                     ].filter(v => v),
                   })
@@ -681,36 +682,21 @@ export const newVotingMachine = createMachine(
         initial: 'idle',
         states: {
           idle: {},
-          fetchNetworkSize: {
+          updateOwnerDeposit: {
             invoke: {
               src: () => fetchNetworkSize(),
-              onDone: {
-                target: 'updateCommittee',
-                actions: [
-                  assign({
-                    committeeSize: (_, {data}) => data,
-                  }),
-                ],
-              },
-            },
-          },
-          updateCommittee: {
-            invoke: {
-              src: ({committeeSize}) =>
-                fetchOracleRewardsEstimates(committeeSize),
               onDone: {
                 target: 'idle',
                 actions: [
                   assign((context, {data}) => {
-                    const minOracleReward = minOracleRewardFromEstimates(data)
+                    const committeeSize = context.isWholeNetwork
+                      ? data
+                      : context.committeeSize
                     return {
                       ...context,
-                      minOracleReward,
-                      oracleReward: minOracleReward,
-                      oracleRewardsEstimates: data.map(({amount, type}) => ({
-                        value: Number(amount),
-                        label: type,
-                      })),
+                      committeeSize,
+                      networkSize: data,
+                      ownerDeposit: minOwnerDeposit(data, committeeSize),
                     }
                   }),
                 ],
@@ -724,6 +710,7 @@ export const newVotingMachine = createMachine(
         states: {
           review: {
             on: {
+              ERROR: {actions: ['onError']},
               CANCEL: {actions: send('EDIT')},
               CONFIRM: 'deploy',
             },
@@ -973,8 +960,10 @@ export const newVotingMachine = createMachine(
         }),
     },
     guards: {
-      shouldStartImmediately: ({shouldStartImmediately}) =>
+      shouldStartImmediately: ({
         shouldStartImmediately,
+        isCustomOwnerAddress,
+      }) => shouldStartImmediately && !isCustomOwnerAddress,
       isValidForm: ({
         title,
         desc,
@@ -982,13 +971,17 @@ export const newVotingMachine = createMachine(
         startDate,
         shouldStartImmediately,
         committeeSize,
+        isCustomOwnerAddress,
+        ownerAddress,
       }) =>
         title &&
         desc &&
         hasValuableOptions(options) &&
         hasLinklessOptions(options) &&
         (startDate || shouldStartImmediately) &&
-        Number(committeeSize) > 0,
+        Number(committeeSize) > 0 &&
+        (!isCustomOwnerAddress ||
+          (isCustomOwnerAddress && isAddress(ownerAddress))),
     },
   }
 )
@@ -1017,7 +1010,7 @@ export const viewVotingMachine = createMachine(
         invoke: {
           src: 'loadVoting',
           onDone: {
-            target: 'loadMinOracleReward',
+            target: 'loadOwnerDeposit',
             actions: ['applyVoting', log()],
           },
           onError: {
@@ -1026,12 +1019,12 @@ export const viewVotingMachine = createMachine(
           },
         },
       },
-      loadMinOracleReward: {
+      loadOwnerDeposit: {
         invoke: {
-          src: 'loadMinOracleReward',
+          src: 'loadOwnerDeposit',
           onDone: {
             target: 'idle',
-            actions: ['applyMinOracleReward', log()],
+            actions: ['applyOwnerDeposit', log()],
           },
           onError: {
             target: 'invalid',
@@ -1091,6 +1084,9 @@ export const viewVotingMachine = createMachine(
                   START_VOTING: {
                     target: `#viewVoting.mining.${VotingStatus.Starting}`,
                     actions: ['setStarting', 'persist'],
+                  },
+                  ERROR: {
+                    actions: ['onError'],
                   },
                 },
               },
@@ -1260,8 +1256,8 @@ export const viewVotingMachine = createMachine(
           id: normalizeId(context.id || context.contractAddress),
           ...context,
         }),
-      applyMinOracleReward: assign({
-        minOracleReward: (_, {data}) => data,
+      applyOwnerDeposit: assign({
+        ownerDeposit: (_, {data}) => data,
       }),
     },
     services: {
@@ -1278,7 +1274,7 @@ export const viewVotingMachine = createMachine(
           contractAddress: id,
         }),
       }),
-      loadMinOracleReward,
+      loadOwnerDeposit,
       ...votingServices(),
       vote: async (
         // eslint-disable-next-line no-shadow
@@ -1322,8 +1318,6 @@ export const viewVotingMachine = createMachine(
               value: voteHash,
             },
           ],
-          // gasCost,
-          // txFee,
         }
 
         const {
@@ -1837,10 +1831,9 @@ function votingServices() {
   }
 }
 
-async function loadMinOracleReward({committeeSize}) {
-  return minOracleRewardFromEstimates(
-    await fetchOracleRewardsEstimates(committeeSize)
-  )
+async function loadOwnerDeposit({committeeSize}) {
+  const networkSize = await fetchNetworkSize()
+  return minOwnerDeposit(networkSize, committeeSize)
 }
 
 function votingStatusGuards() {

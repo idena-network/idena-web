@@ -48,6 +48,7 @@ import {
   Center,
   HStack,
   useToken,
+  FormHelperText,
 } from '@chakra-ui/react'
 import {borderRadius} from 'polished'
 import {FiEye, FiEyeOff} from 'react-icons/fi'
@@ -62,7 +63,7 @@ import {
   InfoIcon,
   MoreIcon,
 } from './icons'
-import {openExternalUrl} from '../utils/utils'
+import {clampValue, openExternalUrl} from '../utils/utils'
 import {Heading} from './typo'
 import {FlatButton, IconButton} from './button'
 import {ApiKeyStates, useSettingsState} from '../providers/settings-context'
@@ -666,6 +667,44 @@ export function GoogleTranslateButton({
   )
 }
 
+export function NumberInput({
+  min,
+  max = Number.MAX_VALUE,
+  preventInvalidInput = false,
+  onChange,
+  onClamp,
+  ...props
+}) {
+  return (
+    <Input
+      type="number"
+      min={min}
+      max={max}
+      onBlur={({target}) => {
+        const {id, value} = target
+        if (!target.checkValidity()) {
+          const clampedValue = clampValue(min, max, Number(value))
+          // eslint-disable-next-line no-unused-expressions
+          onChange?.({
+            target: {
+              id,
+              value: clampedValue,
+            },
+          })
+          if (onClamp) onClamp(clampedValue)
+        }
+      }}
+      onChange={e => {
+        if (preventInvalidInput) {
+          if (e.target.checkValidity()) onChange(e)
+          // eslint-disable-next-line no-unused-expressions
+        } else onChange?.(e)
+      }}
+      {...props}
+    />
+  )
+}
+
 export function ChainedInputGroup({addon, children, ...props}) {
   const {isDisabled} = props
 
@@ -710,6 +749,25 @@ export function ChainedInputAddon({isDisabled, bg = 'white', ...props}) {
       color="muted"
       h={8}
       px={3}
+      {...props}
+    />
+  )
+}
+
+export function ChainedNumberInput(props) {
+  const {isDisabled, bg, _hover} = props
+
+  const borderRightColor = isDisabled ? 'gray.50' : bg
+
+  return (
+    <NumberInput
+      borderRightColor={borderRightColor}
+      borderTopRightRadius={0}
+      borderBottomRightRadius={0}
+      _hover={{
+        borderRightColor,
+        ..._hover,
+      }}
       {...props}
     />
   )
@@ -886,4 +944,32 @@ export function ApiStatus(props) {
 
 export function MobileApiStatus(props) {
   return <ApiStatus display={['initial', 'none']} {...props} />
+}
+
+export function DrawerFormHelper({label, value, ...props}) {
+  return (
+    <Flex justify="space-between" {...props}>
+      <DrawerFormHelperText>{label}</DrawerFormHelperText>
+      <DrawerFormHelperValue>{value}</DrawerFormHelperValue>
+    </Flex>
+  )
+}
+
+export function DrawerFormHelperText(props) {
+  return <FormHelperText color="muted" fontSize="md" {...props} />
+}
+
+export function DrawerFormHelperValue(props) {
+  return <FormHelperText color="gray.500" fontSize="md" {...props} />
+}
+
+export function DnaInput(props) {
+  const {isDisabled} = props
+
+  return (
+    <ChainedInputGroup>
+      <ChainedNumberInput min={0} step="any" {...props} />
+      <ChainedInputAddon isDisabled={isDisabled}>iDNA</ChainedInputAddon>
+    </ChainedInputGroup>
+  )
 }

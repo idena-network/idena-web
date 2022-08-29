@@ -85,20 +85,6 @@ export async function fetchLastOpenVotings({oracle, limit = 11}) {
   return result
 }
 
-export async function fetchOracleRewardsEstimates(committeeSize) {
-  const {result, error} = await (
-    await fetch(
-      apiUrl(
-        `OracleVotingContracts/EstimatedOracleRewards?committeeSize=${committeeSize}`
-      )
-    )
-  ).json()
-
-  if (error) throw new Error(error.message)
-
-  return result
-}
-
 export async function fetchContractTxs({
   address,
   contractAddress,
@@ -360,6 +346,9 @@ export function buildContractDeploymentArgs({
   ownerFee = 0,
   shouldStartImmediately,
   isFreeVoting,
+  isCustomOwnerAddress,
+  ownerAddress,
+  rewardsFund,
 }) {
   return buildDynamicArgs([
     {
@@ -384,6 +373,8 @@ export function buildContractDeploymentArgs({
       format: 'dna',
     },
     {value: ownerFee, format: 'byte'},
+    {value: rewardsFund, format: 'dna'},
+    {value: isCustomOwnerAddress ? ownerAddress : null},
   ])
 }
 
@@ -445,10 +436,6 @@ export function quorumVotesCount({quorum, committeeSize}) {
   return Math.ceil((committeeSize * quorum) / 100)
 }
 
-export function rewardPerOracle({fundPerOracle, ownerFee}) {
-  return (fundPerOracle * (100 - Math.min(100, ownerFee))) / 100 || 0
-}
-
 export function winnerVotesCount({winnerThreshold, votesCount}) {
   return Math.ceil((votesCount * winnerThreshold) / 100)
 }
@@ -476,10 +463,6 @@ export function hasWinner({
     didReachQuorum &&
     votes.some(({count}) => count >= requiredVotesCountByVotes)
   )
-}
-
-export function minOracleReward(feePerGas) {
-  return dnaFeePerGas(feePerGas) * 100 * 100
 }
 
 export function votingMinStake(feePerGas) {
@@ -558,7 +541,7 @@ export const humanError = (
     startDate,
     balance,
     // eslint-disable-next-line no-shadow
-    minOracleReward,
+    ownerDeposit,
     committeeSize,
     votingMinPayment,
     ownerDeposit,
@@ -577,7 +560,7 @@ export const humanError = (
         startDate
       ).toLocaleString()}`
     case 'contract balance is less than minimal oracles reward': {
-      const requiredBalance = votingMinBalance(minOracleReward, committeeSize)
+      const requiredBalance = votingMinBalance(ownerDeposit, committeeSize)
       return `Insufficient funds to start the voting. Minimum deposit is required: ${dna(
         requiredBalance
       )}. Current balance: ${dna(balance)}.`
@@ -649,6 +632,7 @@ export const mapVoting = ({
   votingFinishTime,
   publicVotingFinishTime,
   minPayment,
+  oracleRewardFund,
   ...voting
 }) => ({
   ...voting,
@@ -661,6 +645,7 @@ export const mapVoting = ({
   finishDate: estimatedVotingFinishTime || votingFinishTime,
   finishCountingDate: estimatedPublicVotingFinishTime || publicVotingFinishTime,
   votingMinPayment: minPayment,
+  rewardsFund: oracleRewardFund || 0,
   ...hexToObject(fact),
 })
 
@@ -669,10 +654,6 @@ export function mapVotingStatus(status) {
     return 'Prolongation'
   if (areSameCaseInsensitive(status, VotingStatus.Voted)) return 'Voting'
   return status
-}
-
-export function minOracleRewardFromEstimates(data) {
-  return Number(data.find(({type}) => type === 'min')?.amount)
 }
 
 export const effectiveBalance = ({balance, ownerFee}) =>
@@ -780,3 +761,6 @@ export function getUrls(text) {
 
 export const sumAccountableVotes = votes =>
   votes?.reduce((agg, curr) => agg + curr?.count, 0) ?? 0
+
+export const minOwnerDeposit = (networkSize, commiteeSize) =>
+  (Math.ceil((5000 / networkSize) * 10000) / 10000) * commiteeSize

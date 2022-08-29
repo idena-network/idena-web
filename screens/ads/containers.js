@@ -1,4 +1,4 @@
-import React from 'react'
+import React, {useState} from 'react'
 import NextLink from 'next/link'
 import {
   Flex,
@@ -54,6 +54,8 @@ import {
   SmallText,
   Debug,
   Tooltip,
+  DnaInput,
+  DrawerFormHelper,
 } from '../../shared/components/components'
 import {
   useCurrentBannerAd,
@@ -842,7 +844,10 @@ export function ReviewAdDrawer({
 
   const [isPending, {on: setIsPendingOn, off: setIsPendingOff}] = useBoolean()
 
+  const [rewardsFund, setRewardsFund] = useState(100)
+
   const {submit} = useReviewAd({
+    rewardsFund,
     onBeforeSubmit: setIsPendingOn,
     onDeployContract,
     onStartVoting: React.useCallback(
@@ -942,9 +947,9 @@ export function ReviewAdDrawer({
               }
 
               if (deployAmount && startAmount) {
-                const requiredAmount = deployAmount + startAmount
+                const requiredAmount = deployAmount + startAmount + rewardsFund
 
-                if (balance > requiredAmount) {
+                if (balance >= requiredAmount) {
                   try {
                     submit({
                       ...ad,
@@ -985,21 +990,43 @@ export function ReviewAdDrawer({
             }}
           >
             <Stack spacing={4}>
-              <FormControl isDisabled isReadOnly>
-                <Stack spacing={3}>
-                  <FormLabel htmlFor="stake" mb={0}>
-                    {t('Min stake, iDNA')}
-                  </FormLabel>
-                  <Input defaultValue={deployAmount} />
-                </Stack>
-              </FormControl>
-              <FormControl isDisabled isReadOnly>
-                <Stack spacing={3}>
-                  <FormLabel htmlFor="oracleFee" mb={0}>
-                    {t('Review fee, iDNA')}
-                  </FormLabel>
-                  <Input defaultValue={startAmount} />
-                </Stack>
+              <FormControl>
+                <FormLabel mb={2}>
+                  <Tooltip
+                    label={t(
+                      'The total review fee that will be spent on reviewing your ad by the Oracles. The higher the fee, the faster the Oracles will review your ad.'
+                    )}
+                    placement="top"
+                    zIndex="tooltip"
+                  >
+                    <Text
+                      borderBottom="dotted 1px"
+                      borderBottomColor="muted"
+                      cursor="help"
+                      as="span"
+                    >
+                      {t('Review fee')}
+                    </Text>
+                  </Tooltip>
+                </FormLabel>
+                <DnaInput
+                  value={rewardsFund}
+                  onChange={e => setRewardsFund(Number(e.target.value))}
+                />
+                <DrawerFormHelper
+                  mt={4}
+                  label={t('Refundable deposit')}
+                  value={formatDna(startAmount)}
+                />
+                <DrawerFormHelper
+                  label={t('Stake')}
+                  value={formatDna(deployAmount)}
+                />
+                <DrawerFormHelper
+                  mt={6}
+                  label={t('Total amount')}
+                  value={formatDna(deployAmount + startAmount + rewardsFund)}
+                />
               </FormControl>
             </Stack>
           </form>
