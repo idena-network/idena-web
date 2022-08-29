@@ -544,7 +544,6 @@ export const humanError = (
     ownerDeposit,
     committeeSize,
     votingMinPayment,
-    ownerDeposit,
   },
   locale
 ) => {
