@@ -1,10 +1,15 @@
 import dayjs from 'dayjs'
 import {useBreakpointValue} from '@chakra-ui/react'
 import {isMobile} from 'react-device-detect'
+import duration from 'dayjs/plugin/duration'
+import relativeTime from 'dayjs/plugin/relativeTime'
 import {getRpcParams} from '../api/api-client'
 import {IdentityStatus} from '../types'
 import {stripHexPrefix} from './buffers'
 import i18n from '../../i18n'
+
+dayjs.extend(duration)
+dayjs.extend(relativeTime)
 
 export const HASH_IN_MEMPOOL =
   '0x0000000000000000000000000000000000000000000000000000000000000000'
@@ -210,3 +215,6 @@ export function hexToObject(hex) {
     return {}
   }
 }
+
+export const humanizeDuration = (d, unit = 's') =>
+  dayjs.duration(d, unit).humanize()
