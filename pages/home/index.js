@@ -451,7 +451,7 @@ export default function HomePage() {
                               mt={[null, '3px']}
                             >
                               {stakingApy > 0 ? toPercent(stakingApy) : '--'}
-                              {canMine && !online && (
+                              {canMine && !online && !delegatee && (
                                 <Tooltip
                                   shouldWrapChildren
                                   bg="graphite.500"
