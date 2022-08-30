@@ -336,7 +336,7 @@ export function useStakingApy() {
 
       const estimatedReward =
         85000 *
-        (proposerProbability * proposerOnlyReward +
+        (proposerOnlyProbability * proposerOnlyReward +
           committeeOnlyProbability * committeeOnlyReward +
           proposerAndCommitteeProbability * proposerAndCommitteeReward)
 
