@@ -27,16 +27,23 @@ export function useValidationToast() {
   const [didCloseLotteryScreen] = useCloseLotteryScreen()
 
   useTrackEpochPeriod({
-    onChangeCurrentPeriod: currentPeriod => {
-      ;[
+    onChangeCurrentPeriod: nextPeriod => {
+      for (const toastId of [
         EpochPeriod.FlipLottery,
         EpochPeriod.ShortSession,
         EpochPeriod.LongSession,
         'validationCeremony',
         EpochPeriod.AfterLongSession,
-      ]
-        .filter(period => period !== currentPeriod)
-        .forEach(closeToast)
+      ]) {
+        const isShowingCeremonyToast =
+          [EpochPeriod.ShortSession, EpochPeriod.LongSession].includes(
+            nextPeriod
+          ) && toastId === 'validationCeremony'
+
+        if (toastId !== nextPeriod && !isShowingCeremonyToast) {
+          closeToast(toastId)
+        }
+      }
     },
     onFlipLottery: () => {
       if (!didCloseLotteryScreen) return
