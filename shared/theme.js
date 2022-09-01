@@ -698,7 +698,7 @@ export const uiTheme = {
             fontWeight: 400,
             lineHeight: '5',
             marginEnd: ['2', '6'],
-            maxW: ['48', 'fit-content'],
+            maxW: ['48', 'none'],
           },
           description: {
             lineHeight: '5',
