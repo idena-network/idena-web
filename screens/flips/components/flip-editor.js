@@ -40,6 +40,8 @@ import {
   DeleteIcon,
 } from '../../../shared/components/icons'
 import {useSuccessToast} from '../../../shared/hooks/use-toast'
+import {rem} from '../../../shared/theme'
+import {colorPickerColor} from '../utils'
 
 const ImageEditor =
   typeof window !== 'undefined'
