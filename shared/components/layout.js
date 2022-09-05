@@ -3,9 +3,7 @@ import React from 'react'
 import {useRouter} from 'next/router'
 import {Flex, useDisclosure} from '@chakra-ui/react'
 import Sidebar from './sidebar'
-import Notifications from './notifications'
 import {shouldStartValidation} from '../../screens/validation/utils'
-import {ValidationToast} from '../../screens/validation/components'
 import {Hamburger, LayoutContainer} from '../../screens/app/components'
 import {useAuthState} from '../providers/auth-context'
 import Auth from './auth'
@@ -20,6 +18,13 @@ import {useRotatingAds} from '../../screens/ads/hooks'
 import {AdBanner} from '../../screens/ads/containers'
 import {useHamburgerTop} from '../hooks/use-hamburger-top'
 import {useIsDesktop} from '../utils/utils'
+import {useValidationToast} from '../../screens/validation/hooks/use-validation-toast'
+import {useTestValidationToast} from '../../screens/try/hooks/use-test-validation-toast'
+import {
+  useAutoStartTestLottery,
+  useStartTestValidation,
+} from '../../screens/try/hooks/use-start-test-validation'
+import {useAutoStartLottery} from '../../screens/validation/hooks/use-start-validation'
 
 export default function Layout({
   showHamburger = true,
@@ -59,10 +64,7 @@ function NormalApp({children, canRedirect = true, skipBanner, hasRotatingAds}) {
   const [identity] = useIdentity()
   const settings = useSettingsState()
 
-  const {
-    current: currentTrainingValidation,
-    epoch: testValidationEpoch,
-  } = useTestValidationState()
+  const {current: currentTrainingValidation} = useTestValidationState()
 
   useInterval(() => {
     if (shouldStartValidation(epoch, identity)) router.push('/validation')
@@ -70,15 +72,31 @@ function NormalApp({children, canRedirect = true, skipBanner, hasRotatingAds}) {
 
   const isOffline = settings.apiKeyState === ApiKeyStates.OFFLINE
 
+  const startTestValidation = useStartTestValidation()
+
   React.useEffect(() => {
     if (!canRedirect) return
     if (isOffline) {
       router.push('/node/offline')
     } else if (currentTrainingValidation?.period === EpochPeriod.ShortSession)
-      router.push('/try/validation')
-  }, [canRedirect, currentTrainingValidation, isOffline, router])
+      startTestValidation()
+  }, [
+    canRedirect,
+    currentTrainingValidation,
+    isOffline,
+    router,
+    startTestValidation,
+  ])
 
   const isDesktop = useIsDesktop()
+
+  useAutoStartLottery()
+
+  useAutoStartTestLottery()
+
+  useValidationToast()
+
+  useTestValidationToast()
 
   return (
     <Flex
@@ -92,11 +110,6 @@ function NormalApp({children, canRedirect = true, skipBanner, hasRotatingAds}) {
 
       {children}
 
-      {currentTrainingValidation && (
-        <ValidationToast epoch={testValidationEpoch} isTestValidation />
-      )}
-      {epoch && <ValidationToast epoch={epoch} identity={identity} />}
-      <Notifications />
       <DeferredVotes />
     </Flex>
   )

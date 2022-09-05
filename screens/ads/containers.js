@@ -75,6 +75,7 @@ import {
   useBurntCoins,
   useProtoProfileDecoder,
   useIpfsAd,
+  useProtoProfileEncoder,
 } from './hooks'
 import {
   AdsIcon,
@@ -1581,6 +1582,7 @@ export function AdPreview({ad, ...props}) {
 }
 
 export function AdDebug() {
+  const {encodeAdTarget} = useProtoProfileEncoder()
   const {decodeProfile, decodeAd, decodeAdTarget} = useProtoProfileDecoder()
 
   const [result, setResult] = React.useState()
@@ -1645,6 +1647,40 @@ export function AdDebug() {
             </FormLabel>
           </fieldset>
           <PrimaryButton type="submit">Decode ad target</PrimaryButton>
+        </form>
+      </Stack>
+      <Stack as="section" spacing="4">
+        <form
+          onSubmit={e => {
+            e.preventDefault()
+
+            setResult(
+              encodeAdTarget(
+                Object.fromEntries(new FormData(e.target).entries())
+              )
+            )
+          }}
+        >
+          <fieldset>
+            <legend>Ad encoder</legend>
+            <FormLabel>
+              Language
+              <Input name="language" placeholder="Language" />
+            </FormLabel>
+            <FormLabel>
+              Age
+              <Input name="age" placeholder="Age" />
+            </FormLabel>
+            <FormLabel>
+              Os
+              <Input name="os" placeholder="Os" />
+            </FormLabel>
+            <FormLabel>
+              Stake
+              <Input name="stake" placeholder="Stake" />
+            </FormLabel>
+          </fieldset>
+          <PrimaryButton type="submit">Encode ad</PrimaryButton>
         </form>
       </Stack>
       <Debug>{result ?? null}</Debug>

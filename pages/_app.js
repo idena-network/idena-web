@@ -12,11 +12,10 @@ import 'focus-visible/dist/focus-visible'
 import {Box, ChakraProvider, extendTheme} from '@chakra-ui/react'
 import {uiTheme} from '../shared/theme'
 
-import {NotificationProvider} from '../shared/providers/notification-context'
-import {SettingsProvider} from '../shared/providers/settings-context'
-
 // eslint-disable-next-line import/no-extraneous-dependencies
 import 'tui-image-editor/dist/tui-image-editor.css'
+
+import {SettingsProvider} from '../shared/providers/settings-context'
 import {AuthProvider} from '../shared/providers/auth-context'
 import Flips from '../shared/components/flips'
 import {AppProvider} from '../shared/providers/app-context'
@@ -284,9 +283,7 @@ function AppProviders({tabId, ...props}) {
               <IdentityProvider>
                 <AppProvider tabId={tabId}>
                   <Flips />
-                  <OnboardingProvider>
-                    <NotificationProvider {...props} />
-                  </OnboardingProvider>
+                  <OnboardingProvider {...props} />
                 </AppProvider>
               </IdentityProvider>
             </EpochProvider>

@@ -42,6 +42,7 @@ import Layout from '../../../shared/components/layout'
 import {CertificateActionType} from '../../../shared/types'
 import {WideLink} from '../../../screens/home/components'
 import {useIsDesktop} from '../../../shared/utils/utils'
+import {useAutoCloseTestValidationToast} from '../../../screens/try/hooks/use-test-validation-toast'
 
 export default function Details() {
   const {t} = useTranslation()
@@ -86,6 +87,8 @@ export default function Details() {
       shouldBeReported,
     })
   }
+
+  useAutoCloseTestValidationToast()
 
   return (
     <Layout>

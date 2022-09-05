@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import {useMachine} from '@xstate/react'
-import {useMemo, useEffect} from 'react'
+import React, {useMemo, useEffect} from 'react'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
 import {useDisclosure} from '@chakra-ui/react'
@@ -17,11 +17,14 @@ import Auth from '../../shared/components/auth'
 import useNodeTiming from '../../shared/hooks/use-node-timing'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {writeValidationLog} from '../../shared/utils/logs'
+import {useAutoCloseValidationToast} from '../../screens/validation/hooks/use-validation-toast'
 
 export default function ValidationPage() {
   const epoch = useEpoch()
   const timing = useNodeTiming()
   const {auth, privateKey, coinbase} = useAuthState()
+
+  useAutoCloseValidationToast()
 
   if (!auth) {
     return (
@@ -91,7 +94,7 @@ function ValidationSession({
         setTimeout(onCloseExceededTooltip, 3000)
       },
       onValidationSucceeded: () => {
-        router.push('/home')
+        router.push('/validation/after')
       },
     },
     state: loadValidationState(),

@@ -24,9 +24,9 @@ import {
   useDisclosure,
   useTheme,
 } from '@chakra-ui/react'
-import {useMachine} from '@xstate/react'
 import dayjs from 'dayjs'
-import React, {useEffect, useMemo, useRef, useState} from 'react'
+import durationPlugin from 'dayjs/plugin/duration'
+import React, {useEffect, useRef, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
 import {getFlip, getFlipCache} from '../../shared/api/self'
@@ -48,8 +48,8 @@ import {
   TimerIcon,
   WrongIcon,
 } from '../../shared/components/icons'
+import {useTimer} from '../../shared/hooks/use-timer'
 import {useFailToast} from '../../shared/hooks/use-toast'
-import {createTimerMachine} from '../../shared/machines'
 import {useEpoch} from '../../shared/providers/epoch-context'
 import {
   useTestValidationDispatch,
@@ -61,6 +61,8 @@ import {keywords} from '../../shared/utils/keywords'
 import {capitalize} from '../../shared/utils/string'
 import {toBlob, useIsDesktop} from '../../shared/utils/utils'
 import {canScheduleValidation, GetAnswerTitle} from './utils'
+
+dayjs.extend(durationPlugin)
 
 function CertificateCardPanelItem({title, children, ...props}) {
   return (
@@ -80,26 +82,12 @@ function CertificateCardPanelItem({title, children, ...props}) {
   )
 }
 
-function Countdown({validationTime = 0}) {
-  const duration = Math.floor(
-    Math.max(validationTime - new Date().getTime(), 0) / 1000
-  )
-
-  const [state] = useMachine(
-    useMemo(() => createTimerMachine(duration), [duration])
-  )
+export function Countdown({duration = 0}) {
+  const [{remaining}] = useTimer(duration)
 
   return (
     <Text fontSize={['mdx', 'base']} fontWeight={500}>
-      {state.matches('stopped') && '00:00:00'}
-      {state.matches('running') &&
-        [
-          Math.floor(duration / 3600),
-          Math.floor((duration % 3600) / 60),
-          duration % 60,
-        ]
-          .map(t => t.toString().padStart(2, 0))
-          .join(':')}
+      {dayjs.duration(remaining).format('HH:mm:ss')}
     </Text>
   )
 }
@@ -191,6 +179,12 @@ export function CertificateCard({
     }
   }
 
+  const startTime = current?.startTime
+  const timerDuration = React.useMemo(
+    () => Math.floor(Math.max(dayjs(startTime).diff(), 0)),
+    [startTime]
+  )
+
   return (
     <Flex
       alignSelf="stretch"
@@ -242,7 +236,7 @@ export function CertificateCard({
         </CertificateCardPanelItem>
         {isStarted && (
           <CertificateCardPanelItem title={t('Time left')}>
-            <Countdown validationTime={current.startTime} />
+            <Countdown duration={timerDuration} />
           </CertificateCardPanelItem>
         )}
         <CertificateCardPanelItem title={t('Trust level')}>

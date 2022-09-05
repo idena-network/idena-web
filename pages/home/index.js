@@ -248,7 +248,6 @@ export default function HomePage() {
       {!idenaBotConnected && (
         <MyIdenaBotAlert onConnect={persistIdenaBot} onSkip={skipIdenaBot} />
       )}
-
       <Page pt="10" position="relative">
         <MobileApiStatus top={idenaBotConnected ? 4 : 5 / 2} left={4} />
         <Stack

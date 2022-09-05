@@ -21,7 +21,6 @@ import {
   Divider,
 } from '@chakra-ui/react'
 import {SearchIcon} from '@chakra-ui/icons'
-import {useNotificationDispatch} from '../../../shared/providers/notification-context'
 import {useInterval} from '../../../shared/hooks/use-interval'
 import {Toast, Tooltip} from '../../../shared/components/components'
 import {resizing, imageResize, imageResizeSoft} from '../../../shared/utils/img'
@@ -40,6 +39,7 @@ import {
   CopyIcon,
   DeleteIcon,
 } from '../../../shared/components/icons'
+import {useSuccessToast} from '../../../shared/hooks/use-toast'
 import {rem} from '../../../shared/theme'
 import {colorPickerColor} from '../utils'
 
@@ -297,17 +297,16 @@ export default function FlipEditor({
     }
   }
 
-  const {addNotification} = useNotificationDispatch()
+  const successToast = useSuccessToast()
 
   const handleOnCopy = () => {
     const url = activeObjectUrl || (editors[idx] && editors[idx].toDataURL())
     if (url) {
-      writeImageURLToClipboard(url).then(() => {
-        setShowContextMenu(false)
-        addNotification({
+      writeImageURLToClipboard(url).then(() =>
+        successToast({
           title: t('Copied'),
         })
-      })
+      )
     }
   }
 

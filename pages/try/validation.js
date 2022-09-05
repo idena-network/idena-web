@@ -23,6 +23,7 @@ import {RelevanceType, SessionType} from '../../shared/types'
 import {toBlob} from '../../shared/utils/utils'
 import {signMessage} from '../../shared/utils/crypto'
 import {toHexString} from '../../shared/utils/buffers'
+import {useAutoCloseTestValidationToast} from '../../screens/try/hooks/use-test-validation-toast'
 
 export default function TrainingPage() {
   const {auth, privateKey, coinbase} = useAuthState()
@@ -38,6 +39,8 @@ export default function TrainingPage() {
       }
     }
   }, [current, router, timestamp])
+
+  useAutoCloseTestValidationToast()
 
   if (!auth) {
     return (

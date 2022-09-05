@@ -7,7 +7,6 @@ import {
   Alert,
   AlertIcon,
   Image,
-  useToast,
   useDisclosure,
   PopoverTrigger,
   Stack,
@@ -35,8 +34,6 @@ import {
 } from '../../shared/types'
 import {flipsMachine} from '../../screens/flips/machines'
 import Layout from '../../shared/components/layout'
-import {Notification} from '../../shared/components/notifications'
-import {NotificationType} from '../../shared/providers/notification-context'
 import {loadPersistentState} from '../../shared/utils/persist'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {redact} from '../../shared/utils/logs'
@@ -57,11 +54,10 @@ import {
 } from '../../shared/components/icons'
 import IconLink from '../../shared/components/icon-link'
 import {MobileApiStatus} from '../../shared/components/components'
+import {useFailToast} from '../../shared/hooks/use-toast'
 
 export default function FlipListPage() {
   const {t} = useTranslation()
-
-  const toast = useToast()
 
   const epochState = useEpoch()
   const {privateKey} = useAuthState()
@@ -89,25 +85,17 @@ export default function FlipListPage() {
     IdentityStatus.Newbie,
   ].includes(status)
 
+  const failToast = useFailToast()
+
   const [current, send] = useMachine(flipsMachine, {
     context: {
       knownFlips: knownFlips || [],
       filter: loadPersistentState('flipFilter') || FlipFilterType.Active,
     },
     actions: {
-      onError: (_, {error}) =>
-        toast({
-          title: error,
-          status: 'error',
-          duration: 5000,
-          isClosable: true,
-          // eslint-disable-next-line react/display-name
-          render: () => (
-            <Box fontSize="md">
-              <Notification title={error} type={NotificationType.Error} />
-            </Box>
-          ),
-        }),
+      onError: (_, {error}) => {
+        failToast(error)
+      },
     },
     logger: msg => console.log(redact(msg)),
   })

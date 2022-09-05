@@ -374,6 +374,7 @@ export const createValidationMachine = ({
         translations: {},
         reports: new Set(),
         isTraining,
+        submitLongAnswersHash: null,
       },
       states: {
         shortSession: {
@@ -1233,6 +1234,7 @@ export const createValidationMachine = ({
                               actions: [
                                 assign({
                                   longAnswersSubmitted: true,
+                                  submitLongAnswersHash: (_, {data}) => data,
                                 }),
                                 log('Long answers sent'),
                                 send('FORCE_SUBMIT_SHORT_ANSWERS'),
@@ -1456,9 +1458,10 @@ export const createValidationMachine = ({
           longFlips,
           wordsSeed,
           longAnswersSubmitted,
+          submitLongAnswersHash,
         }) =>
           longAnswersSubmitted
-            ? Promise.resolve()
+            ? Promise.resolve(submitLongAnswersHash)
             : submitLongAnswersTx(
                 privateKey,
                 longHashes,
@@ -1480,17 +1483,17 @@ export const createValidationMachine = ({
       delays: {
         // eslint-disable-next-line no-shadow
         BUMP_EXTRA_FLIPS: ({validationStart}) =>
-          Math.max(adjustDuration(validationStart, 35), 5) * 1000,
+          Math.max(adjustDurationInSeconds(validationStart, 35), 5) * 1000,
         // eslint-disable-next-line no-shadow
         FINALIZE_FLIPS: ({validationStart}) =>
-          Math.max(adjustDuration(validationStart, 90), 5) * 1000,
+          Math.max(adjustDurationInSeconds(validationStart, 90), 5) * 1000,
         // eslint-disable-next-line no-shadow
         SHORT_SESSION_AUTO_SUBMIT: ({
           validationStart,
           shortSessionDuration,
           isTraining,
         }) =>
-          adjustDuration(
+          adjustDurationInSeconds(
             validationStart,
             shortSessionDuration - (isTraining ? 0 : 10)
           ) * 1000,
@@ -1500,14 +1503,16 @@ export const createValidationMachine = ({
           longSessionDuration,
           isTraining,
         }) =>
-          adjustDuration(
+          adjustDurationInSeconds(
             validationStart,
             shortSessionDuration - (isTraining ? 0 : 10) + longSessionDuration
           ) * 1000,
         // eslint-disable-next-line no-shadow
         SEND_SHORT_ANSWERS: ({validationStart, shortSessionDuration}) =>
-          Math.max(adjustDuration(validationStart, shortSessionDuration), 5) *
-          1000,
+          Math.max(
+            adjustDurationInSeconds(validationStart, shortSessionDuration),
+            5
+          ) * 1000,
       },
       actions: {
         approveFlip: assign({
@@ -1810,7 +1815,7 @@ async function fetchWords(hash) {
   ).data
 }
 
-export function adjustDuration(validationStart, duration) {
+export function adjustDurationInSeconds(validationStart, duration) {
   return dayjs(validationStart)
     .add(duration, 's')
     .diff(dayjs(), 's')
@@ -1947,4 +1952,6 @@ async function submitLongAnswersTx(key, hashes, answers, wordsSeed, epoch) {
   const result = await sendRawTx(`0x${hex}`)
 
   console.log('sending long answers tx', hex, result)
+
+  return result
 }

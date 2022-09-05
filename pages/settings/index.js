@@ -31,7 +31,6 @@ import {
 } from '../../shared/providers/auth-context'
 import {LocaleSwitcher, Section} from '../../screens/settings/components'
 import {useEpoch} from '../../shared/providers/epoch-context'
-import {useNotificationDispatch} from '../../shared/providers/notification-context'
 import {readValidationLogs} from '../../shared/utils/logs'
 import {
   CopyIcon,
@@ -40,9 +39,8 @@ import {
   AngleArrowBackIcon,
   OpenExplorerIcon,
 } from '../../shared/components/icons'
-import {useSuccessToast} from '../../shared/hooks/use-toast'
+import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
 import {WideLink} from '../../screens/home/components'
-import {PageTitleNew} from '../../screens/app/components'
 import {ChangeLanguageDrawer} from '../../screens/settings/containers'
 import {useLanguage} from '../../shared/hooks/use-language'
 
@@ -74,7 +72,8 @@ function Settings() {
 
   const epochData = useEpoch()
   const {coinbase} = useAuthState()
-  const {addError} = useNotificationDispatch()
+
+  const failToast = useFailToast()
 
   const getLogs = async () => {
     try {
@@ -90,7 +89,7 @@ function Settings() {
       )
       saveAs(blob, `validation-${epoch}-${coinbase}.txt`)
     } catch (e) {
-      addError({title: 'Cannot export logs', body: e.message})
+      failToast({title: 'Cannot export logs', description: e.message})
     }
   }
 
