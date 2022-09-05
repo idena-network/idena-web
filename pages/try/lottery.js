@@ -19,10 +19,7 @@ import {LayoutContainer} from '../../screens/app/components'
 import Auth from '../../shared/components/auth'
 import {useAutoCloseTestValidationToast} from '../../screens/try/hooks/use-test-validation-toast'
 import {useTestValidationState} from '../../shared/providers/test-validation-context'
-import {
-  useAutoStartTestValidation,
-  useCloseTestLotteryScreen,
-} from '../../screens/try/hooks/use-start-test-validation'
+import {useAutoStartTestValidation} from '../../screens/try/hooks/use-start-test-validation'
 
 export default function LotteryPage() {
   const {t} = useTranslation()
@@ -34,8 +31,6 @@ export default function LotteryPage() {
   useAutoStartTestValidation()
 
   useAutoCloseTestValidationToast()
-
-  const [, setCloseTestLotteryScreen] = useCloseTestLotteryScreen()
 
   if (!auth) {
     return (
@@ -66,13 +61,7 @@ export default function LotteryPage() {
       >
         <ApiStatus position="relative" />
         <NextLink href="/try" passHref>
-          <CloseButton
-            boxSize={4}
-            color="white"
-            onClick={() => {
-              setCloseTestLotteryScreen(true)
-            }}
-          />
+          <CloseButton boxSize={4} color="white" />
         </NextLink>
       </Flex>
 
