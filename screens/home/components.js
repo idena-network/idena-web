@@ -46,6 +46,7 @@ import {
   CloseButton,
   Wrap,
   WrapItem,
+  useBoolean,
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
@@ -118,7 +119,12 @@ import {DnaInput} from '../oracles/components'
 import {BLOCK_TIME} from '../oracles/utils'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import {AdDrawer} from '../ads/containers'
-import {useBurntCoins, useFormatDna, useRotateAds} from '../ads/hooks'
+import {
+  useBurntCoins,
+  useFormatDna,
+  useRotateAds,
+  useTrackTx,
+} from '../ads/hooks'
 import {AdImage} from '../ads/components'
 import {useLanguage} from '../../shared/hooks/use-language'
 import {AdBurnKey} from '../../shared/models/adBurnKey'
@@ -1965,7 +1971,13 @@ function ProfileTagPopoverContent({children}) {
   )
 }
 
-export function ReplenishStakeDrawer({onSuccess, onError, isOpen, ...props}) {
+export function ReplenishStakeDrawer({
+  onSuccess,
+  onMined,
+  onError,
+  isOpen,
+  ...props
+}) {
   const {t, i18n} = useTranslation()
 
   const [{state, age}] = useIdentity()
@@ -1982,7 +1994,26 @@ export function ReplenishStakeDrawer({onSuccess, onError, isOpen, ...props}) {
 
   const [sendValue, setSendValue] = useState('')
 
-  const {submit} = useReplenishStake({onSuccess, onError})
+  const [isMining, setIsMining] = useBoolean()
+  const {off: setIsMiningOff} = setIsMining
+
+  const {data: hash, submit} = useReplenishStake({
+    onSuccess,
+    onError: React.useCallback(
+      e => {
+        setIsMiningOff()
+        onError(e)
+      },
+      [onError, setIsMiningOff]
+    ),
+  })
+
+  useTrackTx(hash, {
+    onMined: React.useCallback(() => {
+      setIsMiningOff()
+      onMined()
+    }, [onMined, setIsMiningOff]),
+  })
 
   const formatDna = toLocaleDna(i18n.language, {
     maximumFractionDigits: 5,
@@ -2016,7 +2047,7 @@ export function ReplenishStakeDrawer({onSuccess, onError, isOpen, ...props}) {
   )
 
   return (
-    <Drawer isOpen={isOpen} {...props}>
+    <AdDrawer isMining={isMining} isOpen={isOpen} {...props}>
       <DrawerHeader>
         <Stack spacing="4">
           <Center bg="blue.012" h="12" w="12" rounded="xl">
@@ -2052,6 +2083,8 @@ export function ReplenishStakeDrawer({onSuccess, onError, isOpen, ...props}) {
               id="replenishStake"
               onSubmit={e => {
                 e.preventDefault()
+
+                setIsMining.on()
 
                 submit({amount: sendValue})
               }}
@@ -2188,12 +2221,14 @@ export function ReplenishStakeDrawer({onSuccess, onError, isOpen, ...props}) {
             form="replenishStake"
             type="submit"
             isDisabled={!allChecked || !sendValue}
+            isLoading={isMining}
+            loadingText={t('Mining...')}
           >
             {t('Add stake')}
           </PrimaryButton>
         </HStack>
       </DrawerFooter>
-    </Drawer>
+    </AdDrawer>
   )
 }
 

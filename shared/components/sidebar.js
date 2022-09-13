@@ -28,12 +28,10 @@ import {
   Box,
 } from '@chakra-ui/react'
 import {PlusSquareIcon} from '@chakra-ui/icons'
-import {rem} from '../theme'
 import {pluralize} from '../utils/string'
 import {parsePersistedValidationState} from '../../screens/validation/utils'
 import {useAuthDispatch} from '../providers/auth-context'
-import {ApiKeyStates, useSettingsState} from '../providers/settings-context'
-import {ApiStatus, TextLink, Tooltip} from './components'
+import {ApiStatus} from './components'
 import {EpochPeriod, IdentityStatus, OnboardingStep} from '../types'
 import {useIdentity} from '../providers/identity-context'
 import {useEpoch} from '../providers/epoch-context'
@@ -437,7 +435,7 @@ function ActionPanel({onClose}) {
                         mr={3}
                         color="brandBlue.500"
                       />
-                      Add to calendar
+                      {t('Add to calendar')}
                     </MenuItem>
                   </MenuList>
                 </Menu>
