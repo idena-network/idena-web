@@ -29,6 +29,7 @@ const initStateValue = {
     [CertificateType.Easy]: {actionType: CertificateActionType.None},
     [CertificateType.Medium]: {actionType: CertificateActionType.None},
     [CertificateType.Hard]: {actionType: CertificateActionType.None},
+    [CertificateType.Sample]: {actionType: CertificateActionType.None},
   },
 }
 
@@ -125,24 +126,25 @@ function TestValidationProvider({children}) {
     }
   }, [coinbase, initialized, privateKey, setState])
 
-  useEffect(() => {
-    async function persist() {
-      try {
-        const signature = signMessage(coinbase, privateKey)
-        await persistTestValidation(toHexString(signature), coinbase, state)
-      } catch (e) {
-        console.error('cannot persist training validation', e)
-      }
-    }
+  // useEffect(() => {
+  //   async function persist() {
+  //     try {
+  //       const signature = signMessage(coinbase, privateKey)
+  //       await persistTestValidation(toHexString(signature), coinbase, state)
+  //     } catch (e) {
+  //       console.error('cannot persist training validation', e)
+  //     }
+  //   }
 
-    if (coinbase && state.timestamp && state.shouldPersist) {
-      persist()
-    }
-  }, [coinbase, privateKey, state])
+  //   if (coinbase && state.timestamp && state.shouldPersist) {
+  //     persist()
+  //   }
+  // }, [coinbase, privateKey, state])
 
   const checkValidation = async id => {
     if (!state.current) return
-    const result = await getResult(id)
+    const result =
+      state.current.type === CertificateType.Sample ? {} : await getResult(id)
 
     if (result.actionType === CertificateActionType.Passed) {
       sendSuccessTrainingValidation(coinbase)
@@ -169,11 +171,20 @@ function TestValidationProvider({children}) {
 
   const scheduleValidation = async type => {
     const signature = signMessage(coinbase, privateKey)
-    const {id, startTime} = await requestTestValidation(
-      toHexString(signature),
-      coinbase,
-      type
-    )
+    let id
+    let startTime
+    if (type === CertificateType.Sample) {
+      id = 'sample-validation'
+      const dt = new Date()
+      startTime = dt.setMinutes(dt.getMinutes() + 1)
+    } else {
+      ;({id, startTime} = await requestTestValidation(
+        toHexString(signature),
+        coinbase,
+        type
+      ))
+    }
+
     setState(prevState => ({
       ...prevState,
       timestamp: new Date().getTime(),
@@ -217,6 +228,7 @@ function TestValidationProvider({children}) {
           new Date().getTime()
       )
         return
+
       const newPeriod = getEpochPeriod(state.current.startTime)
       if (newPeriod !== state.current.period) {
         setState({
@@ -235,8 +247,8 @@ function TestValidationProvider({children}) {
   )
 
   useEffect(() => {
-    async function check(id) {
-      const result = await getResult(id)
+    async function check(id, type) {
+      const result = type === CertificateType.Sample ? {} : await getResult(id)
 
       setState(prevState => ({
         ...prevState,
@@ -258,7 +270,7 @@ function TestValidationProvider({children}) {
     }
     if (state.current?.period === EpochPeriod.None) {
       if (state.current.startTime < new Date().getTime()) {
-        check(state.current.id)
+        check(state.current.id, state.current.type)
       }
     }
   }, [setState, state])

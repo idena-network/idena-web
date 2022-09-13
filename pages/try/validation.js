@@ -4,13 +4,11 @@ import {useEffect, useMemo} from 'react'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
 import {useDisclosure} from '@chakra-ui/react'
-import dayjs from 'dayjs'
 import {createValidationMachine} from '../../screens/validation/machine'
 import {ValidationScreen} from '../../screens/validation/components'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {LayoutContainer} from '../../screens/app/components'
 import Auth from '../../shared/components/auth'
-import {forEachAsync} from '../../shared/utils/fn'
 import {decodedWithoutKeywords} from '../../screens/validation/utils'
 import {
   TEST_LONG_SESSION_INTERVAL_SEC,
@@ -18,12 +16,12 @@ import {
   useTestValidationDispatch,
   useTestValidationState,
 } from '../../shared/providers/test-validation-context'
-import {getFlip, getHashes, submitAnswers} from '../../shared/api/self'
+import {getHashes, submitAnswers} from '../../shared/api/self'
 import {RelevanceType, SessionType} from '../../shared/types'
-import {toBlob} from '../../shared/utils/utils'
 import {signMessage} from '../../shared/utils/crypto'
 import {toHexString} from '../../shared/utils/buffers'
 import {useAutoCloseTestValidationToast} from '../../screens/try/hooks/use-test-validation-toast'
+import {fetchFlips, loadWords} from '../../screens/try/utils'
 
 export default function TrainingPage() {
   const {auth, privateKey, coinbase} = useAuthState()
@@ -206,40 +204,4 @@ function ValidationSession({
       }}
     />
   )
-}
-
-async function loadWords(flips) {
-  return Promise.resolve(flips.map(x => ({hash: x.hash, words: x.keywords})))
-}
-
-async function fetchFlips(hashes, cb) {
-  return forEachAsync(hashes, async hash => {
-    const flip = await getFlip(hash)
-    if (flip) {
-      const images = await Promise.all(flip.images.map(toBlob))
-
-      return cb({
-        type: 'FLIP',
-        flip: {
-          time: dayjs(),
-          images: images.map(URL.createObjectURL),
-          orders: flip.orders,
-          keywords: flip.keywords,
-          hash,
-          fetched: true,
-          decoded: true,
-        },
-      })
-    }
-    return Promise.resolve(
-      cb({
-        type: 'FLIP',
-        flip: {
-          hash,
-          missing: true,
-          failed: true,
-        },
-      })
-    )
-  })
 }

@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 /* eslint-disable no-shadow */
 import {Machine, assign, createMachine} from 'xstate'
 import {decode} from 'rlp'
@@ -352,6 +353,7 @@ export const createValidationMachine = ({
   longSessionDuration,
   locale,
   isTraining,
+  isSample,
 }) =>
   createMachine(
     {
@@ -375,6 +377,7 @@ export const createValidationMachine = ({
         translations: {},
         reports: {},
         isTraining,
+        isSample,
         submitLongAnswersHash: null,
       },
       states: {
@@ -631,6 +634,7 @@ export const createValidationMachine = ({
                         cond: ({shortFlips}) =>
                           filterRegularFlips(shortFlips).length === 0,
                       },
+                      sampleValidationShortTransition,
                       {
                         target: '.normal',
                         cond: ({currentIndex}) => currentIndex > 1,
@@ -656,6 +660,7 @@ export const createValidationMachine = ({
                         cond: ({shortFlips}) =>
                           filterRegularFlips(shortFlips).length === 0,
                       },
+                      sampleValidationShortTransition,
                       {
                         target: '.lastFlip',
                         cond: ({currentIndex, shortFlips}) =>
@@ -680,6 +685,7 @@ export const createValidationMachine = ({
                       },
                     ],
                     PICK: [
+                      sampleValidationShortTransition,
                       {
                         target: '.firstFlip',
                         cond: (_, {index}) => index === 0,
@@ -717,19 +723,17 @@ export const createValidationMachine = ({
                       on: {
                         ANSWER: {
                           actions: [
-                            assign({
-                              shortFlips: ({shortFlips}, {hash, option}) =>
-                                mergeFlipsByHash(shortFlips, [{hash, option}]),
-                            }),
+                            'answerShortSession',
                             log(
                               (_, {hash, option}) =>
                                 `Make answer, hash: ${hash}, option: ${option}`
                             ),
                           ],
                         },
-                        SUBMIT: {
-                          target: 'submitShortSession',
-                        },
+                        SUBMIT: [
+                          sampleValidationShortTransition,
+                          {target: 'submitShortSession'},
+                        ],
                       },
                       after: {
                         SHORT_SESSION_AUTO_SUBMIT: [
@@ -999,6 +1003,7 @@ export const createValidationMachine = ({
                         target: undefined,
                         cond: ({longFlips}) => longFlips.length === 0,
                       },
+                      ...sampleValidationLongTransition,
                       {
                         target: '.normal',
                         cond: ({currentIndex}) => currentIndex > 1,
@@ -1023,6 +1028,7 @@ export const createValidationMachine = ({
                         target: undefined,
                         cond: ({longFlips}) => longFlips.length === 0,
                       },
+                      ...sampleValidationLongTransition,
                       {
                         target: '.lastFlip',
                         cond: ({longFlips, currentIndex}) =>
@@ -1055,6 +1061,7 @@ export const createValidationMachine = ({
                           }),
                         ],
                       },
+                      ...sampleValidationLongTransition,
                       {
                         target: '.lastFlip',
                         cond: ({longFlips}, {index}) =>
@@ -1089,26 +1096,31 @@ export const createValidationMachine = ({
                       on: {
                         ANSWER: {
                           actions: [
-                            assign({
-                              longFlips: ({longFlips}, {hash, option}) =>
-                                mergeFlipsByHash(longFlips, [{hash, option}]),
-                            }),
+                            'answerLongSession',
                             log(
                               (_, {hash, option}) =>
                                 `Make answer, hash: ${hash}, option: ${option}`
                             ),
                           ],
                         },
-                        FINISH_FLIPS: {
-                          target: 'finishFlips',
-                          actions: log('Start checking keywords'),
-                        },
+                        FINISH_FLIPS: [
+                          ...sampleValidationLongTransition,
+                          {
+                            target: 'finishFlips',
+                            actions: log('Start checking keywords'),
+                          },
+                        ],
                       },
                     },
                     finishFlips: {
                       on: {
                         START_KEYWORDS_QUALIFICATION: {
                           target: 'keywordsQualification',
+                          actions: [
+                            assign({
+                              keywordsQualificationStarted: true,
+                            }),
+                          ],
                         },
                       },
                     },
@@ -1182,12 +1194,7 @@ export const createValidationMachine = ({
                           on: {
                             ANSWER: {
                               actions: [
-                                assign({
-                                  longFlips: ({longFlips}, {hash, option}) =>
-                                    mergeFlipsByHash(longFlips, [
-                                      {hash, option},
-                                    ]),
-                                }),
+                                'answerLongSession',
                                 log(
                                   (_, {hash, option}) =>
                                     `Make answer, hash: ${hash}, option: ${option}`
@@ -1200,10 +1207,13 @@ export const createValidationMachine = ({
                             REPORT_WORDS: {
                               actions: ['reportFlip'],
                             },
-                            SUBMIT: {
-                              target:
-                                '#validation.longSession.solve.answer.review',
-                            },
+                            SUBMIT: [
+                              ...sampleValidationLongTransition,
+                              {
+                                target:
+                                  '#validation.longSession.solve.answer.review',
+                              },
+                            ],
                             PICK_INDEX: {
                               actions: [
                                 send((_, {index}) => ({
@@ -1556,6 +1566,32 @@ export const createValidationMachine = ({
           ) * 1000,
       },
       actions: {
+        answerShortSession: assign({
+          shortFlips: ({shortFlips, currentIndex}, {hash, option}) =>
+            mergeFlipsByHash(shortFlips, [
+              {
+                hash,
+                option,
+                isWrongAnswer:
+                  option === shortFlips[currentIndex].option
+                    ? shortFlips[currentIndex].isWrongAnswer
+                    : false,
+              },
+            ]),
+        }),
+        answerLongSession: assign({
+          longFlips: ({longFlips, currentIndex}, {hash, option}) =>
+            mergeFlipsByHash(longFlips, [
+              {
+                hash,
+                option,
+                isWrongAnswer:
+                  option === longFlips[currentIndex].option
+                    ? longFlips[currentIndex].isWrongAnswer
+                    : false,
+              },
+            ]),
+        }),
         approveFlip: assign({
           bestFlipHashes: ({longFlips, bestFlipHashes}, {hash}) => {
             const flip = longFlips.find(x => x.hash === hash)
@@ -1686,6 +1722,9 @@ export const createValidationMachine = ({
               return translations
             }, translations),
         }),
+        needToApprove: () => {},
+        needToReport: () => {},
+        needToAbstain: () => {},
       },
       guards: {
         didFetchShortFlips: ({shortFlips}) => {
@@ -1856,6 +1895,89 @@ const stepStates = {
     },
   },
 }
+
+const sampleValidationShortTransition = {
+  target: undefined,
+  cond: ({isSample, currentIndex, shortFlips}) =>
+    isSample &&
+    shortFlips[currentIndex].option &&
+    shortFlips[currentIndex].option !== shortFlips[currentIndex].answer,
+
+  actions: [
+    assign({
+      shortFlips: ({shortFlips, currentIndex}) =>
+        mergeFlipsByHash(shortFlips, [
+          {
+            ...shortFlips[currentIndex],
+            isWrongAnswer: true,
+          },
+        ]),
+    }),
+  ],
+}
+
+const sampleValidationLongTransition = [
+  {
+    target: undefined,
+    cond: ({isSample, currentIndex, longFlips}) =>
+      isSample &&
+      longFlips[currentIndex].option &&
+      longFlips[currentIndex].option !== longFlips[currentIndex].answer,
+
+    actions: [
+      assign({
+        longFlips: ({longFlips, currentIndex}) =>
+          mergeFlipsByHash(longFlips, [
+            {
+              ...longFlips[currentIndex],
+              isWrongAnswer: true,
+            },
+          ]),
+      }),
+    ],
+  },
+  {
+    target: undefined,
+    cond: ({longFlips, currentIndex, isSample, keywordsQualificationStarted}) =>
+      isSample &&
+      keywordsQualificationStarted &&
+      !longFlips[currentIndex].isReported &&
+      longFlips[currentIndex].relevance !== RelevanceType.Relevant,
+    actions: ['needToApprove'],
+  },
+  {
+    target: undefined,
+    cond: ({
+      longFlips,
+      currentIndex,
+      isSample,
+      keywordsQualificationStarted,
+      reports,
+    }) =>
+      isSample &&
+      keywordsQualificationStarted &&
+      longFlips[currentIndex].isReported &&
+      longFlips[currentIndex].relevance !== RelevanceType.Irrelevant &&
+      availableReportsNumber(longFlips) - reports.size > 0,
+    actions: ['needToReport'],
+  },
+  {
+    target: undefined,
+    cond: ({
+      longFlips,
+      currentIndex,
+      isSample,
+      keywordsQualificationStarted,
+      reports,
+    }) =>
+      isSample &&
+      keywordsQualificationStarted &&
+      longFlips[currentIndex].isReported &&
+      longFlips[currentIndex].relevance === RelevanceType.Relevant &&
+      availableReportsNumber(longFlips) - reports.size <= 0,
+    actions: ['needToAbstain'],
+  },
+]
 
 function mergeHashes(hashes, newHashes) {
   return [...hashes, ...newHashes.filter(x => !hashes.some(y => y === x))]

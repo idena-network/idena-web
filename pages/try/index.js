@@ -1,4 +1,4 @@
-import {CloseButton, Flex, Heading, Stack} from '@chakra-ui/react'
+import {Box, Button, CloseButton, Flex, Heading, Stack} from '@chakra-ui/react'
 import dayjs from 'dayjs'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
@@ -8,12 +8,15 @@ import {GetNextUTCValidationDate} from '../../screens/try/utils'
 import {Avatar, MobileApiStatus} from '../../shared/components/components'
 import Layout from '../../shared/components/layout'
 import {useAuthState} from '../../shared/providers/auth-context'
+import {useTestValidationDispatch} from '../../shared/providers/test-validation-context'
 import {CertificateType} from '../../shared/types'
 
 export default function Try() {
   const {t} = useTranslation()
   const router = useRouter()
   const {coinbase} = useAuthState()
+
+  const {scheduleValidation} = useTestValidationDispatch()
 
   return (
     <Layout>
@@ -43,6 +46,14 @@ export default function Try() {
                 >
                   {t('Training validation')}
                 </Heading>
+                <Box>
+                  <Button
+                    variant="link"
+                    color="blue.500"
+                    w="auto"
+                    onClick={() => scheduleValidation(CertificateType.Sample)}
+                  >{`${t('Learn to solve flips')} >`}</Button>
+                </Box>
                 <Heading
                   as="h3"
                   fontSize="mdx"

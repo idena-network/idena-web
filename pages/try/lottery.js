@@ -23,6 +23,7 @@ import {useAutoCloseTestValidationToast} from '../../screens/try/hooks/use-test-
 import {useTestValidationState} from '../../shared/providers/test-validation-context'
 import {useAutoStartTestValidation} from '../../screens/try/hooks/use-start-test-validation'
 import {useRotatingAds} from '../../screens/ads/hooks'
+import {CertificateType} from '../../shared/types'
 
 const shouldForwardProp = prop =>
   isValidMotionProp(prop) || ['children'].includes(prop)
@@ -52,6 +53,8 @@ export default function LotteryPage() {
       </LayoutContainer>
     )
   }
+
+  const isSample = current?.type === CertificateType.Sample
 
   return (
     <Box
@@ -108,14 +111,34 @@ export default function LotteryPage() {
             >
               <Stack spacing="6">
                 <Stack spacing="2">
-                  <Heading fontSize="lg" fontWeight={500}>
-                    {t('Idena training validation will start soon')}
-                  </Heading>
-                  <Text color="xwhite.050" fontSize="mdx">
-                    {t(
-                      'Get ready! Make sure you have a stable internet connection'
-                    )}
-                  </Text>
+                  {isSample ? (
+                    <>
+                      <Heading fontSize="lg" fontWeight={500}>
+                        {t('Get ready for the training validation')}
+                      </Heading>
+                      <Text color="xwhite.050" fontSize="mdx">
+                        {t(
+                          'To get validated you need to prove that you are a human. No personal data is required. Solve the flip-puzzles within a limited time frame.'
+                        )}
+                      </Text>
+                      <Text color="xwhite.050" fontSize="mdx">
+                        {t(
+                          'For a successful validation, it’s important to be online a few minutes before the ceremony starts. Get ready!'
+                        )}
+                      </Text>
+                    </>
+                  ) : (
+                    <>
+                      <Heading fontSize="lg" fontWeight={500}>
+                        {t('Idena training validation will start soon')}
+                      </Heading>
+                      <Text color="xwhite.050" fontSize="mdx">
+                        {t(
+                          'Get ready! Make sure you have a stable internet connection'
+                        )}
+                      </Text>
+                    </>
+                  )}
                 </Stack>
 
                 {epoch ? (
@@ -128,22 +151,24 @@ export default function LotteryPage() {
               </Stack>
             </MotionBox>
           </Box>
-          <Box>
-            <MotionBox
-              initial={{
-                x: isRotatingAds ? 1499 : 0,
-              }}
-              animate={{
-                x: 0,
-              }}
-              transition={{
-                duration: 1,
-                delay: 3,
-              }}
-            >
-              <ValidationAdPromotion />
-            </MotionBox>
-          </Box>
+          {!isSample && (
+            <Box>
+              <MotionBox
+                initial={{
+                  x: isRotatingAds ? 1499 : 0,
+                }}
+                animate={{
+                  x: 0,
+                }}
+                transition={{
+                  duration: 1,
+                  delay: 3,
+                }}
+              >
+                <ValidationAdPromotion />
+              </MotionBox>
+            </Box>
+          )}
         </Stack>
       </Center>
     </Box>

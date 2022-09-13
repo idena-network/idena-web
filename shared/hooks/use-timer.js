@@ -16,8 +16,14 @@ export function useTimer(duration) {
   const isStopped = state.matches('stopped')
   const isRunning = state.matches('running')
 
-  // eslint-disable-next-line no-shadow
-  const reset = useCallback(duration => send('RESET', {duration}), [send])
+  const reset = useCallback(
+    // eslint-disable-next-line no-shadow
+    duration => {
+      send('RESET', {duration})
+    },
+    [send]
+  )
+
   const stop = useCallback(() => send('STOP'), [send])
 
   return [
@@ -30,7 +36,6 @@ export function useTimer(duration) {
       status: state.value,
     },
     {
-      // eslint-disable-next-line no-shadow
       reset,
       stop,
     },
