@@ -26,6 +26,7 @@ import {
   useMediaQuery,
   ModalBody,
   VStack,
+  SlideFade,
 } from '@chakra-ui/react'
 import {useSwipeable} from 'react-swipeable'
 import {Trans, useTranslation} from 'react-i18next'
@@ -77,6 +78,8 @@ import {
   ArrowBackIcon,
   ZoomFlipIcon,
   CrossSmallIcon,
+  NewStarIcon,
+  HollowStarIcon,
 } from '../../shared/components/icons'
 import {use100vh} from '../../shared/hooks/use-100vh'
 import {useIsDesktop} from '../../shared/utils/utils'
@@ -616,18 +619,26 @@ export function Thumbnail({
   relevance,
   isCurrent,
   isLong,
+  isBest,
+  isDesktop,
   onPick,
 }) {
   const isQualified = !!relevance
   const hasIrrelevantWords = relevance === RelevanceType.Irrelevant
   const flipPreviewSize = useBreakpointValue(['100%', 32])
   const flipPreviewBorderRadius = useBreakpointValue(['16px', '12px'])
+  const bestRewardTooltipPlacement = useBreakpointValue([
+    'bottom-start',
+    'top-start',
+  ])
 
   return (
     <ThumbnailHolder
       name={flipId}
       isCurrent={isCurrent}
       isLong={isLong}
+      isBest={isBest}
+      isDesktop={isDesktop}
       border={[
         `solid 1px ${
           // eslint-disable-next-line no-nested-ternary
@@ -684,7 +695,14 @@ export function Thumbnail({
   )
 }
 
-function ThumbnailHolder({isCurrent, isLong, children, ...props}) {
+function ThumbnailHolder({
+  isCurrent,
+  isLong,
+  isBest,
+  isDesktop,
+  children,
+  ...props
+}) {
   const currentColor = isLong ? 'gray.500' : 'xwhite.500'
 
   return (
@@ -705,6 +723,22 @@ function ThumbnailHolder({isCurrent, isLong, children, ...props}) {
         w={['44px', '32px']}
         m={[0.5, 1]}
       >
+        {isBest && (
+          <ChakraFlex
+            position="absolute"
+            top="-2px"
+            right="-2px"
+            w={5}
+            h={5}
+            align="center"
+            justify="center"
+            borderRadius="50%"
+            backgroundColor="white"
+            zIndex={2}
+          >
+            <NewStarIcon w={2} h={2} color="white" />
+          </ChakraFlex>
+        )}
         {children}
       </ChakraBox>
     </ChakraFlex>
@@ -1899,6 +1933,7 @@ export function ValidationScreen({
 
   const {
     currentIndex,
+    bestFlipIndexes,
     translations,
     reports,
     longFlips,
@@ -2161,6 +2196,46 @@ export function ValidationScreen({
                       </QualificationButton>
                     </Tooltip>
                   </QualificationActions>
+                  {isDesktop &&
+                    currentFlip.relevance === RelevanceType.Relevant &&
+                    (bestFlipIndexes.length < 1 ||
+                      bestFlipIndexes.includes(currentIndex)) && (
+                      <SlideFade
+                        direction="top"
+                        offsetY="80px"
+                        in={currentFlip.relevance === RelevanceType.Relevant}
+                      >
+                        <Divider mt={1} />
+                        <ChakraFlex direction="column" align="center">
+                          <Button
+                            mt={5}
+                            variant="bordered"
+                            w={['100%', 'auto']}
+                            onClick={() => send('FAVORITE')}
+                          >
+                            {bestFlipIndexes.includes(currentIndex) ? (
+                              <NewStarIcon
+                                h="12.5px"
+                                w="13px"
+                                mr="5.5px"
+                                fill="brandGray.500"
+                              />
+                            ) : (
+                              <HollowStarIcon
+                                h="12.5px"
+                                w="13px"
+                                mr="5.5px"
+                                fill="brandGray.500"
+                              />
+                            )}
+                            {t('Mark as the best')}
+                          </Button>
+                          <Text fontSize="8px" color="#B8BABC" mt={2}>
+                            {t('You can mark this flip as the best')}
+                          </Text>
+                        </ChakraFlex>
+                      </SlideFade>
+                    )}
                 </Stack>
               </FlipWords>
             )}
@@ -2181,6 +2256,48 @@ export function ValidationScreen({
           />
         </ActionBarItem>
         <ActionBarItem justify="flex-end">
+          {!isDesktop &&
+            currentFlip &&
+            currentFlip.relevance === RelevanceType.Relevant &&
+            (bestFlipIndexes.length < 1 ||
+              bestFlipIndexes.includes(currentIndex)) && (
+              <Tooltip
+                isOpen={
+                  currentFlip &&
+                  currentFlip.relevance === RelevanceType.Relevant &&
+                  bestFlipIndexes.length < 1 &&
+                  !bestFlipIndexes.includes(currentIndex)
+                }
+                hasArrow={false}
+                label="You can mark this flip as the best"
+                placement="top"
+                zIndex="tooltip"
+                fontSize="mdx"
+                px={3}
+                py="10px"
+                mr={5}
+              >
+                <ChakraFlex
+                  align="center"
+                  justify="center"
+                  position="absolute"
+                  top="-100px"
+                  right={5}
+                  w={14}
+                  h={14}
+                  borderRadius="50%"
+                  boxShadow="0px 2px 4px rgba(0, 0, 0, 0.16)"
+                  backgroundColor="white"
+                  onClick={() => send('FAVORITE')}
+                >
+                  {bestFlipIndexes.includes(currentIndex) ? (
+                    <NewStarIcon h={5} w={5} fill="brandGray.500" />
+                  ) : (
+                    <HollowStarIcon h={5} w={5} fill="brandGray.500" />
+                  )}
+                </ChakraFlex>
+              </Tooltip>
+            )}
           <ChakraBox
             display={['block', 'none']}
             position="fixed"
@@ -2276,6 +2393,8 @@ export function ValidationScreen({
             {...flip}
             isCurrent={currentIndex === idx}
             isLong={isLongSessionFlips(state) || isLongSessionKeywords(state)}
+            isBest={bestFlipIndexes.includes(idx)}
+            isDesktop={isDesktop}
             onPick={() => send({type: 'PICK', index: idx})}
           />
         ))}

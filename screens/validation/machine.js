@@ -363,6 +363,7 @@ export const createValidationMachine = ({
         shortFlips: [],
         longFlips: [],
         currentIndex: 0,
+        bestFlipIndexes: [],
         epoch,
         validationStart,
         shortSessionDuration,
@@ -959,6 +960,25 @@ export const createValidationMachine = ({
                     log('Re-fetch long flips after rebooting the app'),
                   ],
                 },
+                FAVORITE: {
+                  actions: [
+                    assign({
+                      bestFlipIndexes: ({bestFlipIndexes, currentIndex}) => {
+                        const index = bestFlipIndexes.indexOf(currentIndex)
+                        if (index > -1) {
+                          bestFlipIndexes.splice(index, 1)
+                        } else {
+                          bestFlipIndexes.push(currentIndex)
+                        }
+                        return bestFlipIndexes
+                      },
+                    }),
+                    log(
+                      ({currentIndex}) =>
+                        `Mark ${currentIndex} flip as favorite`
+                    ),
+                  ],
+                },
               },
             },
             solve: {
@@ -1478,19 +1498,22 @@ export const createValidationMachine = ({
           wordsSeed,
           longAnswersSubmitted,
           submitLongAnswersHash,
+          bestFlipIndexes,
         }) =>
           longAnswersSubmitted
             ? Promise.resolve(submitLongAnswersHash)
             : submitLongAnswersTx(
                 privateKey,
                 longHashes,
-                longFlips.map(({option: answer = 0, hash, relevance}) => ({
+                longFlips.map(({option: answer = 0, hash, relevance}, idx) => ({
                   answer,
                   hash,
                   grade:
                     // eslint-disable-next-line no-nested-ternary
                     relevance === RelevanceType.Relevant
-                      ? FlipGrade.GradeD
+                      ? bestFlipIndexes.includes(idx)
+                        ? FlipGrade.GradeA
+                        : FlipGrade.GradeD
                       : relevance === RelevanceType.Irrelevant
                       ? FlipGrade.Reported
                       : FlipGrade.None,
