@@ -372,7 +372,7 @@ export const createValidationMachine = ({
         flipIndex: 0,
         locale,
         translations: {},
-        reports: new Set(),
+        reports: {},
         isTraining,
         submitLongAnswersHash: null,
       },
@@ -1550,14 +1550,14 @@ export const createValidationMachine = ({
             ])
           },
           reports: ({reports}, {hash}) => {
-            reports.delete(hash)
+            delete reports[hash]
             return reports
           },
         }),
         reportFlip: choose([
           {
             cond: ({longFlips, reports}) =>
-              reports.size < availableReportsNumber(longFlips),
+              Object.keys(reports).length < availableReportsNumber(longFlips),
             actions: [
               assign({
                 longFlips: ({longFlips}, {hash}) => {
@@ -1573,10 +1573,10 @@ export const createValidationMachine = ({
                   ])
                 },
                 reports: ({reports}, {hash}) => {
-                  if (reports.has(hash)) {
-                    reports.delete(hash)
+                  if (reports[hash]) {
+                    delete reports[hash]
                   } else {
-                    reports.add(hash)
+                    reports[hash] = true
                   }
                   return reports
                 },
@@ -1585,8 +1585,8 @@ export const createValidationMachine = ({
           },
           {
             cond: ({longFlips, reports}, {hash}) =>
-              reports.size >= availableReportsNumber(longFlips) &&
-              reports.has(hash),
+              Object.keys(reports).length >=
+                availableReportsNumber(longFlips) && reports[hash],
             actions: [
               assign({
                 longFlips: ({longFlips}, {hash}) =>
@@ -1594,7 +1594,7 @@ export const createValidationMachine = ({
                     {hash, relevance: RelevanceType.Abstained},
                   ]),
                 reports: ({reports}, {hash}) => {
-                  reports.delete(hash)
+                  delete reports[hash]
                   return reports
                 },
               }),
@@ -1603,8 +1603,8 @@ export const createValidationMachine = ({
           },
           {
             cond: ({longFlips, reports}, {hash}) =>
-              reports.size >= availableReportsNumber(longFlips) &&
-              !reports.has(hash),
+              Object.keys(reports).length >=
+                availableReportsNumber(longFlips) && !reports[hash],
             actions: [
               'onExceededReports',
               assign({

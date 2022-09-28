@@ -1878,6 +1878,8 @@ export function ValidationScreen({
     longSessionDuration,
   }
 
+  const reportsCount = Object.keys(reports).length
+
   return (
     <ValidationScene
       bg={isShortSession(state) ? theme.colors.black : theme.colors.white}
@@ -2079,7 +2081,7 @@ export function ValidationScreen({
                         {t('Report')}{' '}
                         {t('({{count}} left)', {
                           count:
-                            availableReportsNumber(longFlips) - reports.size,
+                            availableReportsNumber(longFlips) - reportsCount,
                         })}
                       </QualificationButton>
                     </Tooltip>
@@ -2309,7 +2311,7 @@ export function ValidationScreen({
 
       <ReviewValidationDialog
         flips={filterSolvableFlips(flips)}
-        reportedFlipsCount={reports.size}
+        reportedFlipsCount={reportsCount}
         availableReportsCount={availableReportsNumber(longFlips)}
         isOpen={state.matches('longSession.solve.answer.review')}
         isSubmitting={isSubmitting(state)}
