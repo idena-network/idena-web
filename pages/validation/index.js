@@ -105,6 +105,10 @@ function ValidationSession({
     persistValidationState(state)
   }, [state])
 
+  useEffect(() => {
+    send('REFETCH_FLIPS')
+  }, [send])
+
   return (
     <ValidationScreen
       state={state}

@@ -179,7 +179,6 @@ export function Flip({
   variant,
   timerDetails,
   onChoose,
-  onImageFail,
   isTrainingValidation,
 }) {
   const radius = useBreakpointValue(['12px', '8px'])
@@ -300,7 +299,6 @@ export function Flip({
                 position: 'relative',
                 zIndex: 1,
               }}
-              onError={onImageFail}
             />
           </ChakraBox>
         ))}
@@ -379,7 +377,6 @@ export function Flip({
                               position: 'relative',
                               zIndex: 1,
                             }}
-                            onError={onImageFail}
                           />
                         </ChakraBox>
                       ) : (
@@ -1976,7 +1973,6 @@ export function ValidationScreen({
                     option: AnswerType.Right,
                   })
                 }
-                onImageFail={() => send('REFETCH_FLIPS')}
                 isTrainingValidation={isTraining}
               />
             </ChakraFlex>

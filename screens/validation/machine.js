@@ -435,8 +435,11 @@ export const createValidationMachine = ({
               initial: 'polling',
               states: {
                 polling: {
-                  type: 'parallel',
+                  initial: 'prefetch',
                   states: {
+                    prefetch: {
+                      always: {target: 'fetchHashes'},
+                    },
                     fetchHashes: {
                       initial: 'fetching',
                       states: {
@@ -445,6 +448,8 @@ export const createValidationMachine = ({
                           invoke: {
                             src: 'fetchShortHashes',
                             onDone: {
+                              target:
+                                '#validation.shortSession.fetch.polling.fetchFlips',
                               actions: [
                                 assign({
                                   shortFlips: ({shortFlips}, {data}) =>
@@ -570,7 +575,7 @@ export const createValidationMachine = ({
               },
               on: {
                 REFETCH_FLIPS: {
-                  target: '#validation.shortSession.fetch.polling.fetchFlips',
+                  target: '#validation.shortSession.fetch.polling',
                   actions: [
                     assign({
                       shortFlips: ({shortFlips}) =>
@@ -834,9 +839,12 @@ export const createValidationMachine = ({
           type: 'parallel',
           states: {
             fetch: {
-              initial: 'fetchHashes',
+              initial: 'prefetch',
               entry: log('Start fetching long flips'),
               states: {
+                prefetch: {
+                  always: {target: 'fetchHashes'},
+                },
                 fetchHashes: {
                   entry: log('Fetching long hashes'),
                   invoke: {
@@ -940,7 +948,7 @@ export const createValidationMachine = ({
                   ],
                 },
                 REFETCH_FLIPS: {
-                  target: '.fetchFlips',
+                  target: '.prefetch',
                   actions: [
                     assign({
                       longFlips: ({longFlips}) =>
