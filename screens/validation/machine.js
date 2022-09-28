@@ -1099,8 +1099,11 @@ export const createValidationMachine = ({
                       type: 'parallel',
                       states: {
                         fetch: {
-                          initial: 'fetching',
+                          initial: 'prefetch',
                           states: {
+                            prefetch: {
+                              always: 'fetching',
+                            },
                             fetching: {
                               invoke: {
                                 src: 'fetchWords',
@@ -1142,6 +1145,16 @@ export const createValidationMachine = ({
                             },
                             done: {
                               type: 'final',
+                            },
+                          },
+                          on: {
+                            REFETCH_FLIPS: {
+                              target: '.prefetch',
+                              actions: [
+                                log(
+                                  'Re-fetching words after rebooting the app'
+                                ),
+                              ],
                             },
                           },
                         },
