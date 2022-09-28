@@ -243,6 +243,9 @@ export default function HomePage() {
 
   const spoilInviteDisclosure = useDisclosure()
 
+  const showActivateMiningStatusIcon = canMine && !online && !delegatee
+  const showValidateIdentityIcon = !canMine && Number(stake) > 0
+
   return (
     <Layout canRedirect={!dnaUrl} didConnectIdenaBot={idenaBotConnected}>
       {!idenaBotConnected && (
@@ -450,15 +453,22 @@ export default function HomePage() {
                               mt={[null, '3px']}
                             >
                               {stakingApy > 0 ? toPercent(stakingApy) : '--'}
-                              {canMine && !online && !delegatee && (
+                              {(showActivateMiningStatusIcon ||
+                                showValidateIdentityIcon) && (
                                 <Tooltip
                                   shouldWrapChildren
                                   bg="graphite.500"
                                   placement="top"
                                   hasArrow
-                                  label={t(
-                                    'Please activate your mining status to earn the staking rewards'
-                                  )}
+                                  label={
+                                    showActivateMiningStatusIcon
+                                      ? t(
+                                          'Please activate your mining status to earn the staking rewards'
+                                        )
+                                      : t(
+                                          'Please validate your account to earn the staking rewards'
+                                        )
+                                  }
                                   w="130px"
                                 >
                                   <InfoIcon
