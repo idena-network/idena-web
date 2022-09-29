@@ -505,7 +505,6 @@ export const createValidationMachine = ({
                                         ...flip,
                                         retries,
                                         flipIndex,
-                                        relevance: RelevanceType.Abstained,
                                       },
                                     ]),
                                   flipIndex: ({flipIndex}) => flipIndex + 1,
@@ -934,7 +933,6 @@ export const createValidationMachine = ({
                             ...flip,
                             retries,
                             flipIndex,
-                            relevance: RelevanceType.Abstained,
                           },
                         ]),
                       flipIndex: ({flipIndex}) => flipIndex + 1,
@@ -1820,10 +1818,21 @@ function mergeHashes(hashes, newHashes) {
 }
 
 function mergeFlipsByHash(flips, anotherFlips) {
-  return flips.map(flip => ({
-    ...flip,
-    ...anotherFlips.find(({hash}) => hash === flip.hash),
-  }))
+  return flips.map(flip => {
+    const anotherFlip = anotherFlips.find(({hash}) => hash === flip.hash)
+    if (anotherFlip) {
+      const relevance =
+        typeof anotherFlip.relevance !== 'undefined'
+          ? anotherFlip.relevance
+          : flip.relevance || RelevanceType.Abstained
+      return {
+        ...flip,
+        ...anotherFlip,
+        relevance,
+      }
+    }
+    return flip
+  })
 }
 
 async function fetchWords(hash) {
