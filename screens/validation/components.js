@@ -179,7 +179,6 @@ export function Flip({
   variant,
   timerDetails,
   onChoose,
-  onImageFail,
   isTrainingValidation,
 }) {
   const radius = useBreakpointValue(['12px', '8px'])
@@ -300,7 +299,6 @@ export function Flip({
                 position: 'relative',
                 zIndex: 1,
               }}
-              onError={onImageFail}
             />
           </ChakraBox>
         ))}
@@ -379,7 +377,6 @@ export function Flip({
                               position: 'relative',
                               zIndex: 1,
                             }}
-                            onError={onImageFail}
                           />
                         </ChakraBox>
                       ) : (
@@ -1881,6 +1878,8 @@ export function ValidationScreen({
     longSessionDuration,
   }
 
+  const reportsCount = Object.keys(reports).length
+
   return (
     <ValidationScene
       bg={isShortSession(state) ? theme.colors.black : theme.colors.white}
@@ -1976,7 +1975,6 @@ export function ValidationScreen({
                     option: AnswerType.Right,
                   })
                 }
-                onImageFail={() => send('REFETCH_FLIPS')}
                 isTrainingValidation={isTraining}
               />
             </ChakraFlex>
@@ -2083,7 +2081,7 @@ export function ValidationScreen({
                         {t('Report')}{' '}
                         {t('({{count}} left)', {
                           count:
-                            availableReportsNumber(longFlips) - reports.size,
+                            availableReportsNumber(longFlips) - reportsCount,
                         })}
                       </QualificationButton>
                     </Tooltip>
@@ -2313,7 +2311,7 @@ export function ValidationScreen({
 
       <ReviewValidationDialog
         flips={filterSolvableFlips(flips)}
-        reportedFlipsCount={reports.size}
+        reportedFlipsCount={reportsCount}
         availableReportsCount={availableReportsNumber(longFlips)}
         isOpen={state.matches('longSession.solve.answer.review')}
         isSubmitting={isSubmitting(state)}

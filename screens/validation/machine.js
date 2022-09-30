@@ -372,7 +372,7 @@ export const createValidationMachine = ({
         flipIndex: 0,
         locale,
         translations: {},
-        reports: new Set(),
+        reports: {},
         isTraining,
         submitLongAnswersHash: null,
       },
@@ -435,8 +435,11 @@ export const createValidationMachine = ({
               initial: 'polling',
               states: {
                 polling: {
-                  type: 'parallel',
+                  initial: 'prefetch',
                   states: {
+                    prefetch: {
+                      always: {target: 'fetchHashes'},
+                    },
                     fetchHashes: {
                       initial: 'fetching',
                       states: {
@@ -445,6 +448,8 @@ export const createValidationMachine = ({
                           invoke: {
                             src: 'fetchShortHashes',
                             onDone: {
+                              target:
+                                '#validation.shortSession.fetch.polling.fetchFlips',
                               actions: [
                                 assign({
                                   shortFlips: ({shortFlips}, {data}) =>
@@ -500,7 +505,6 @@ export const createValidationMachine = ({
                                         ...flip,
                                         retries,
                                         flipIndex,
-                                        relevance: RelevanceType.Abstained,
                                       },
                                     ]),
                                   flipIndex: ({flipIndex}) => flipIndex + 1,
@@ -570,7 +574,7 @@ export const createValidationMachine = ({
               },
               on: {
                 REFETCH_FLIPS: {
-                  target: '#validation.shortSession.fetch.polling.fetchFlips',
+                  target: '#validation.shortSession.fetch.polling',
                   actions: [
                     assign({
                       shortFlips: ({shortFlips}) =>
@@ -834,9 +838,12 @@ export const createValidationMachine = ({
           type: 'parallel',
           states: {
             fetch: {
-              initial: 'fetchHashes',
+              initial: 'prefetch',
               entry: log('Start fetching long flips'),
               states: {
+                prefetch: {
+                  always: {target: 'fetchHashes'},
+                },
                 fetchHashes: {
                   entry: log('Fetching long hashes'),
                   invoke: {
@@ -926,7 +933,6 @@ export const createValidationMachine = ({
                             ...flip,
                             retries,
                             flipIndex,
-                            relevance: RelevanceType.Abstained,
                           },
                         ]),
                       flipIndex: ({flipIndex}) => flipIndex + 1,
@@ -940,7 +946,7 @@ export const createValidationMachine = ({
                   ],
                 },
                 REFETCH_FLIPS: {
-                  target: '.fetchFlips',
+                  target: '.prefetch',
                   actions: [
                     assign({
                       longFlips: ({longFlips}) =>
@@ -1091,8 +1097,11 @@ export const createValidationMachine = ({
                       type: 'parallel',
                       states: {
                         fetch: {
-                          initial: 'fetching',
+                          initial: 'prefetch',
                           states: {
+                            prefetch: {
+                              always: 'fetching',
+                            },
                             fetching: {
                               invoke: {
                                 src: 'fetchWords',
@@ -1134,6 +1143,16 @@ export const createValidationMachine = ({
                             },
                             done: {
                               type: 'final',
+                            },
+                          },
+                          on: {
+                            REFETCH_FLIPS: {
+                              target: '.prefetch',
+                              actions: [
+                                log(
+                                  'Re-fetching words after rebooting the app'
+                                ),
+                              ],
                             },
                           },
                         },
@@ -1529,14 +1548,14 @@ export const createValidationMachine = ({
             ])
           },
           reports: ({reports}, {hash}) => {
-            reports.delete(hash)
+            delete reports[hash]
             return reports
           },
         }),
         reportFlip: choose([
           {
             cond: ({longFlips, reports}) =>
-              reports.size < availableReportsNumber(longFlips),
+              Object.keys(reports).length < availableReportsNumber(longFlips),
             actions: [
               assign({
                 longFlips: ({longFlips}, {hash}) => {
@@ -1552,10 +1571,10 @@ export const createValidationMachine = ({
                   ])
                 },
                 reports: ({reports}, {hash}) => {
-                  if (reports.has(hash)) {
-                    reports.delete(hash)
+                  if (reports[hash]) {
+                    delete reports[hash]
                   } else {
-                    reports.add(hash)
+                    reports[hash] = true
                   }
                   return reports
                 },
@@ -1564,8 +1583,8 @@ export const createValidationMachine = ({
           },
           {
             cond: ({longFlips, reports}, {hash}) =>
-              reports.size >= availableReportsNumber(longFlips) &&
-              reports.has(hash),
+              Object.keys(reports).length >=
+                availableReportsNumber(longFlips) && reports[hash],
             actions: [
               assign({
                 longFlips: ({longFlips}, {hash}) =>
@@ -1573,7 +1592,7 @@ export const createValidationMachine = ({
                     {hash, relevance: RelevanceType.Abstained},
                   ]),
                 reports: ({reports}, {hash}) => {
-                  reports.delete(hash)
+                  delete reports[hash]
                   return reports
                 },
               }),
@@ -1582,8 +1601,8 @@ export const createValidationMachine = ({
           },
           {
             cond: ({longFlips, reports}, {hash}) =>
-              reports.size >= availableReportsNumber(longFlips) &&
-              !reports.has(hash),
+              Object.keys(reports).length >=
+                availableReportsNumber(longFlips) && !reports[hash],
             actions: [
               'onExceededReports',
               assign({
@@ -1799,10 +1818,19 @@ function mergeHashes(hashes, newHashes) {
 }
 
 function mergeFlipsByHash(flips, anotherFlips) {
-  return flips.map(flip => ({
-    ...flip,
-    ...anotherFlips.find(({hash}) => hash === flip.hash),
-  }))
+  return flips.map(flip => {
+    const anotherFlip = anotherFlips.find(({hash}) => hash === flip.hash)
+    if (anotherFlip) {
+      const relevance =
+        anotherFlip?.relevance ?? (flip?.relevance || RelevanceType.Abstained)
+      return {
+        ...flip,
+        ...anotherFlip,
+        relevance,
+      }
+    }
+    return flip
+  })
 }
 
 async function fetchWords(hash) {
