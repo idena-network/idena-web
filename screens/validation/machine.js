@@ -1822,9 +1822,7 @@ function mergeFlipsByHash(flips, anotherFlips) {
     const anotherFlip = anotherFlips.find(({hash}) => hash === flip.hash)
     if (anotherFlip) {
       const relevance =
-        typeof anotherFlip.relevance !== 'undefined'
-          ? anotherFlip.relevance
-          : flip.relevance || RelevanceType.Abstained
+        anotherFlip?.relevance ?? (flip?.relevance || RelevanceType.Abstained)
       return {
         ...flip,
         ...anotherFlip,
