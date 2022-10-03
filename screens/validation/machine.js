@@ -1558,6 +1558,20 @@ export const createValidationMachine = ({
       },
       actions: {
         approveFlip: assign({
+          bestFlipIndexes: (
+            {longFlips, bestFlipIndexes, currentIndex},
+            {hash}
+          ) => {
+            const flip = longFlips.find(x => x.hash === hash)
+            const index = bestFlipIndexes.indexOf(currentIndex)
+            if (
+              flip.relevance === RelevanceType.Relevant &&
+              bestFlipIndexes.includes(flip.flipIndex)
+            ) {
+              bestFlipIndexes.splice(index, 1)
+            }
+            return bestFlipIndexes
+          },
           longFlips: ({longFlips}, {hash}) => {
             const flip = longFlips.find(x => x.hash === hash)
             return mergeFlipsByHash(longFlips, [

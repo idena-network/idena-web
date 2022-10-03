@@ -632,6 +632,22 @@ export function Thumbnail({
     'top-start',
   ])
 
+  const [bestRewardTooltipShowed, setBestRewardTooltipShowed] = useState(false)
+  const [bestRewardTooltipOpen, setBestRewardTooltipOpen] = useState(false)
+  useEffect(() => {
+    if (isBest && isCurrent && !bestRewardTooltipShowed) {
+      setBestRewardTooltipOpen(true)
+      setBestRewardTooltipShowed(true)
+    }
+  }, [isBest, isCurrent])
+  useEffect(() => {
+    if (bestRewardTooltipOpen) {
+      setTimeout(() => {
+        setBestRewardTooltipOpen(false)
+      }, 5000)
+    }
+  }, [bestRewardTooltipOpen])
+
   return (
     <ThumbnailHolder
       name={flipId}
@@ -676,6 +692,25 @@ export function Thumbnail({
               hasIrrelevantWords={hasIrrelevantWords}
             />
           )}
+          <ChakraFlex
+            justify="center"
+            align={['flex-end', 'flex-start']}
+            w="100%"
+            h="100%"
+            position="absolute"
+          >
+            <ChakraBox>
+              <Tooltip
+                isOpen={bestRewardTooltipOpen}
+                label="This flip will be rewarded with an 8x reward if other members also mark it as the best"
+                fontSize={['mdx', '12px']}
+                placement={bestRewardTooltipPlacement}
+                openDelay={100}
+              >
+                {' '}
+              </Tooltip>
+            </ChakraBox>
+          </ChakraFlex>
           <FlipImage
             src={images[0]}
             alt={images[0]}
@@ -1979,6 +2014,25 @@ export function ValidationScreen({
 
   const reportsCount = Object.keys(reports).length
 
+  const [bestRewardTipOpen, setBestRewardTipOpen] = useState(false)
+  useEffect(() => {
+    if (currentFlip && currentFlip.relevance === RelevanceType.Relevant) {
+      setBestRewardTipOpen(true)
+    }
+  }, [currentFlip])
+  useEffect(() => {
+    if (bestFlipIndexes.includes(currentIndex)) {
+      setBestRewardTipOpen(false)
+    }
+  }, [bestFlipIndexes, currentIndex])
+  useEffect(() => {
+    if (bestRewardTipOpen) {
+      setTimeout(() => {
+        setBestRewardTipOpen(false)
+      }, 5000)
+    }
+  }, [bestRewardTipOpen, currentFlip])
+
   return (
     <ValidationScene
       bg={isShortSession(state) ? theme.colors.black : theme.colors.white}
@@ -2263,10 +2317,11 @@ export function ValidationScreen({
               bestFlipIndexes.includes(currentIndex)) && (
               <Tooltip
                 isOpen={
-                  currentFlip &&
-                  currentFlip.relevance === RelevanceType.Relevant &&
-                  bestFlipIndexes.length < 1 &&
-                  !bestFlipIndexes.includes(currentIndex)
+                  bestRewardTipOpen
+                  // currentFlip &&
+                  // currentFlip.relevance === RelevanceType.Relevant &&
+                  // bestFlipIndexes.length < 1 &&
+                  // !bestFlipIndexes.includes(currentIndex)
                 }
                 hasArrow={false}
                 label="You can mark this flip as the best"
