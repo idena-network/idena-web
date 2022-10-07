@@ -181,6 +181,13 @@ export function useDeferredVotes() {
           if (!skipToast) showError(e.message)
           break
         }
+        case 'contract is not in running state':
+        case 'destination is not a contract': {
+          if (!skipToast) showError(e.message)
+          await deleteDeferredVote(vote.id)
+          queryClient.invalidateQueries('useDeferredVotes')
+          break
+        }
         default: {
           await updateDeferredVote(vote.id, {
             block: vote.block + isVercelProduction ? 10 * 3 : 2 * 3,
