@@ -209,6 +209,7 @@ function ValidationSession({
 }
 
 async function loadWords(flips) {
+  await new Promise(resolve => setTimeout(resolve, 10000))
   return Promise.resolve(flips.map(x => ({hash: x.hash, words: x.keywords})))
 }
 
