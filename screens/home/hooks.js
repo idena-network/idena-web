@@ -375,7 +375,10 @@ export function useInviteScore() {
     queryKey: ['invitesStatuses', ...inviteesAddresses],
     queryFn: () =>
       Promise.all(inviteesAddresses.map(addr => fetchIdentity(addr))),
-    select: data => data.some(x => x.state === IdentityStatus.Invite),
+    select: React.useCallback(
+      data => data.some(x => x.state === IdentityStatus.Invite),
+      []
+    ),
   })
 
   return React.useMemo(() => {
