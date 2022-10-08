@@ -4,6 +4,7 @@ import {useTranslation} from 'react-i18next'
 import {useMutation, useQuery} from 'react-query'
 import {
   activateKey,
+  fetchIdentity,
   getAvailableProviders,
   getRawTx,
   sendRawTx,
@@ -366,21 +367,19 @@ export function useInviteScore() {
 
   const epoch = useEpoch()
 
-  const [{canInvite}] = useIdentity()
+  const [{canInvite, invitees}] = useIdentity()
 
-  const {data: pendingInvites} = useQuery({
-    queryKey: ['persistedInvites'],
-    queryFn: () => db.table('invites').toArray(),
-    select: data =>
-      data.filter(
-        ({activated, terminatedHash, deletedAt}) =>
-          !activated && !terminatedHash && !deletedAt
-      ),
-    notifyOnChangeProps: 'tracked',
+  const inviteesAddresses = (invitees || []).map(x => x.Address)
+
+  const {data: hasNotActivatedInvite} = useQuery({
+    queryKey: ['invitesStatuses', ...inviteesAddresses],
+    queryFn: () =>
+      Promise.all(inviteesAddresses.map(addr => fetchIdentity(addr))),
+    select: data => data.some(x => x.state === IdentityStatus.Invite),
   })
 
   return React.useMemo(() => {
-    const hasPendingInvites = canInvite || pendingInvites?.length > 0
+    const hasPendingInvites = canInvite || hasNotActivatedInvite
 
     if (epoch && highestBlock && hasPendingInvites) {
       const endBlock =
@@ -391,5 +390,5 @@ export function useInviteScore() {
 
       return Math.max(1 - t ** 4 * 0.5, 0)
     }
-  }, [canInvite, epoch, highestBlock, pendingInvites])
+  }, [canInvite, epoch, hasNotActivatedInvite, highestBlock])
 }
