@@ -1,4 +1,5 @@
 import {useMachine} from '@xstate/react'
+import {useCallback} from 'react'
 import {assign, createMachine} from 'xstate'
 
 export function useTimer(duration) {
@@ -15,6 +16,10 @@ export function useTimer(duration) {
   const isStopped = state.matches('stopped')
   const isRunning = state.matches('running')
 
+  // eslint-disable-next-line no-shadow
+  const reset = useCallback(duration => send('RESET', {duration}), [send])
+  const stop = useCallback(() => send('STOP'), [send])
+
   return [
     {
       elapsed,
@@ -26,12 +31,8 @@ export function useTimer(duration) {
     },
     {
       // eslint-disable-next-line no-shadow
-      reset(duration) {
-        send('RESET', {duration})
-      },
-      stop() {
-        send('STOP')
-      },
+      reset,
+      stop,
     },
   ]
 }

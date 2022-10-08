@@ -83,7 +83,11 @@ function CertificateCardPanelItem({title, children, ...props}) {
 }
 
 export function Countdown({duration = 0}) {
-  const [{remaining}] = useTimer(duration)
+  const [{remaining}, {reset}] = useTimer(duration)
+
+  useEffect(() => {
+    reset(duration)
+  }, [duration, reset])
 
   return (
     <Text fontSize={['mdx', 'base']} fontWeight={500}>

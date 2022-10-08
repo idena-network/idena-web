@@ -14,7 +14,7 @@ import {
   Button,
 } from '@chakra-ui/react'
 import dayjs from 'dayjs'
-import {useMemo, useState} from 'react'
+import {useEffect, useMemo, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {getRawTx, buyKey} from '../../shared/api'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
@@ -410,7 +410,11 @@ export function ValidationCountdown(props) {
 
   const duration = useMemo(() => dayjs(nextValidation).diff(), [nextValidation])
 
-  const [{remainingSeconds, isRunning}] = useTimer(duration)
+  const [{remainingSeconds, isRunning}, {reset}] = useTimer(duration)
+
+  useEffect(() => {
+    reset(duration)
+  }, [duration, reset])
 
   return (
     <Stack spacing={3} isInline {...props}>

@@ -25,6 +25,7 @@ import {
   useBreakpointValue,
   useMediaQuery,
   ModalBody,
+  VStack,
 } from '@chakra-ui/react'
 import {useSwipeable} from 'react-swipeable'
 import {Trans, useTranslation} from 'react-i18next'
@@ -57,7 +58,6 @@ import {
 import {AnswerType, RelevanceType} from '../../shared/types'
 import {
   EmptyFlipImage,
-  FlipKeywordPanelNew,
   FlipKeywordTranslationSwitchNew,
 } from '../flips/components'
 
@@ -750,6 +750,8 @@ function ThumbnailOverlay({option, isQualified, hasIrrelevantWords}) {
 }
 
 export function FlipWords({
+  validationStart,
+  onSkip,
   currentFlip: {words = []},
   translations = {},
   onReport = {},
@@ -784,29 +786,52 @@ export function FlipWords({
         align="center"
         justify="center"
       >
-        <Heading fontSize="20px" fontWeight={500}>
-          {t(`Is the flip correct?`)}
-        </Heading>
-        <IconButton
-          icon={<InfoIcon />}
-          bg="unset"
+        <Heading
           fontSize="20px"
-          minW={5}
-          w={5}
-          h={5}
-          _active={{
-            bg: 'unset',
-          }}
-          _hover={{
-            bg: 'unset',
-          }}
-          _focus={{
-            outline: 'none',
-          }}
-          onClick={onReport}
-        />
+          fontWeight={500}
+          textAlign="center"
+          position="relative"
+          px={6}
+          w="full"
+          mb={2}
+        >
+          {t(`Is the flip correct?`)}
+          <ChakraFlex
+            position="absolute"
+            right={2}
+            top={0}
+            height="100%"
+            alignItems="center"
+          >
+            <IconButton
+              icon={<InfoIcon />}
+              bg="unset"
+              fontSize="20px"
+              minW={5}
+              w={5}
+              h={5}
+              _active={{
+                bg: 'unset',
+              }}
+              _hover={{
+                bg: 'unset',
+              }}
+              _focus={{
+                outline: 'none',
+              }}
+              onClick={onReport}
+            />
+          </ChakraFlex>
+        </Heading>
       </ChakraFlex>
-      <FlipKeywordPanelNew mb={8}>
+      <ChakraBox
+        px={[5, 10]}
+        py={8}
+        rounded="lg"
+        w={['100%', '320px']}
+        mb={8}
+        bg={[words.length ? '' : 'gray.50', 'gray.50']}
+      >
         {words.length ? (
           <FlipKeywordTranslationSwitchNew
             keywords={{
@@ -819,35 +844,36 @@ export function FlipWords({
             isInline={false}
           />
         ) : (
-          <>
-            <Box
-              style={{
-                color: theme.colors.primary2,
-                fontWeight: 500,
-                lineHeight: rem(20),
-              }}
+          <VStack spacing={2}>
+            <ChakraBox
+              lineHeight="20px"
+              fontWeight={500}
+              fontSize={['16px', 'md']}
+              textAlign="center"
             >
               {t(`Getting flip keywords...`)}
-            </Box>
-            {[
-              t(
-                'Can not load the flip keywords to moderate the story. Please wait or skip this flip.'
-              ),
-            ].map((word, idx) => (
-              <Box
-                key={`desc-${idx}`}
-                style={{
-                  color: theme.colors.muted,
-                  lineHeight: rem(20),
-                  ...margin(rem(theme.spacings.small8), 0, 0),
-                }}
-              >
-                {word}
-              </Box>
-            ))}
-          </>
+            </ChakraBox>
+            <ChakraBox
+              color="muted"
+              lineHeight="20px"
+              mt={2}
+              textAlign="center"
+              fontSize={['14px', 'md']}
+            >
+              {t(
+                'The author of the flip has not published the keywords yet. Please wait or skip this flip.'
+              )}
+            </ChakraBox>
+            <ChakraBox pt={2}>
+              <FlipWordsTimer
+                validationStart={validationStart}
+                duration={210}
+                onSkip={onSkip}
+              />
+            </ChakraBox>
+          </VStack>
         )}
-      </FlipKeywordPanelNew>
+      </ChakraBox>
       {children}
     </ChakraFlex>
   )
@@ -984,7 +1010,11 @@ export function Timer(props) {
 }
 
 export function TimerClock({duration, color}) {
-  const [{remaining, isStopped, isRunning}] = useTimer(duration)
+  const [{remaining, isStopped, isRunning}, {reset}] = useTimer(duration)
+
+  useEffect(() => {
+    reset(duration)
+  }, [duration, reset])
 
   return (
     <Box style={{fontVariantNumeric: 'tabular-nums', minWidth: rem(37)}}>
@@ -993,6 +1023,38 @@ export function TimerClock({duration, color}) {
         {isRunning && dayjs.duration(remaining).format('mm:ss')}
       </Text>
     </Box>
+  )
+}
+
+export function FlipWordsTimer({validationStart, duration, onSkip}) {
+  const {t} = useTranslation()
+  const adjustedDuration = React.useMemo(
+    () => adjustDurationInSeconds(validationStart, duration) * 1000,
+    [duration, validationStart]
+  )
+
+  const [{remaining}, {reset}] = useTimer(adjustedDuration)
+
+  useEffect(() => {
+    reset(adjustedDuration)
+  }, [adjustedDuration, reset])
+
+  return remaining > 0 ? (
+    <Box style={{fontVariantNumeric: 'tabular-nums', minWidth: rem(37)}}>
+      <Text color="muted" fontSize={['16px', '13px']} fontWeight={500}>
+        {dayjs.duration(remaining).format('mm:ss')}
+      </Text>
+    </Box>
+  ) : (
+    <Button
+      colorScheme="gray"
+      variant="outline"
+      borderColor="gray.200"
+      color="gray.500"
+      onClick={() => onSkip?.()}
+    >
+      {t('Skip')}
+    </Button>
   )
 }
 
@@ -1985,6 +2047,14 @@ export function ValidationScreen({
                 currentFlip={currentFlip}
                 translations={translations}
                 onReport={onOpenReportDialog}
+                validationStart={validationStart}
+                onSkip={() => {
+                  if (isLastFlip(state)) {
+                    send({type: 'SUBMIT'})
+                  } else {
+                    send({type: 'NEXT'})
+                  }
+                }}
               >
                 <Stack spacing={[0, 4]}>
                   <Stack
