@@ -1041,7 +1041,7 @@ export function FlipWordsTimer({validationStart, duration, onSkip}) {
 
   return remaining > 0 ? (
     <Box style={{fontVariantNumeric: 'tabular-nums', minWidth: rem(37)}}>
-      <Text color="muted" fontSize={['16px', '13px']} fontWeight={500}>
+      <Text color="gray.500" fontSize={['16px', '13px']} fontWeight={500}>
         {dayjs.duration(remaining).format('mm:ss')}
       </Text>
     </Box>
