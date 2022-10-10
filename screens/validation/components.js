@@ -1047,11 +1047,13 @@ export function FlipWordsTimer({validationStart, duration, onSkip}) {
     </Box>
   ) : (
     <Button
-      colorScheme="gray"
       variant="outline"
       borderColor="gray.200"
       color="gray.500"
       onClick={() => onSkip?.()}
+      _active={{
+        bg: 'unset',
+      }}
     >
       {t('Skip')}
     </Button>
@@ -2053,6 +2055,9 @@ export function ValidationScreen({
                     send({type: 'SUBMIT'})
                   } else {
                     send({type: 'NEXT'})
+                    if (!isDesktop) {
+                      scrollToCurrentFlip(currentIndex + 1)
+                    }
                   }
                 }}
               >
