@@ -32,6 +32,7 @@ import {
   isPendingKeywordPair,
   getRandomKeywordPair,
   protectFlip,
+  checkIfFlipNoiseEnabled,
 } from '../../screens/flips/utils'
 import {Step} from '../../screens/flips/types'
 import {
@@ -154,6 +155,9 @@ export default function NewFlipPage() {
     }, [router, send]),
   })
 
+  const isFlipNoiseEnabled = checkIfFlipNoiseEnabled(epochState?.epoch)
+  const maybeProtectedImages = isFlipNoiseEnabled ? protectedImages : images
+
   return (
     <Layout showHamburger={false}>
       <Page px={0} py={0}>
@@ -200,18 +204,20 @@ export default function NewFlipPage() {
                 >
                   {t('Select images')}
                 </FlipMasterNavbarItem>
-                <FlipMasterNavbarItem
-                  step={
-                    // eslint-disable-next-line no-nested-ternary
-                    is('protect')
-                      ? Step.Active
-                      : is('keywords') || is('images')
-                      ? Step.Next
-                      : Step.Completed
-                  }
-                >
-                  {t('Protect images')}
-                </FlipMasterNavbarItem>
+                {isFlipNoiseEnabled ? (
+                  <FlipMasterNavbarItem
+                    step={
+                      // eslint-disable-next-line no-nested-ternary
+                      is('protect')
+                        ? Step.Active
+                        : is('keywords') || is('images')
+                        ? Step.Next
+                        : Step.Completed
+                    }
+                  >
+                    {t('Protect images')}
+                  </FlipMasterNavbarItem>
+                ) : null}
                 <FlipMasterNavbarItem
                   step={
                     // eslint-disable-next-line no-nested-ternary
@@ -330,7 +336,7 @@ export default function NewFlipPage() {
               )}
               {is('shuffle') && (
                 <FlipShuffleStep
-                  images={protectedImages}
+                  images={maybeProtectedImages}
                   originalOrder={originalOrder}
                   order={order}
                   onShuffle={() => send('SHUFFLE')}
@@ -348,7 +354,7 @@ export default function NewFlipPage() {
                   onSwitchLocale={() => send('SWITCH_LOCALE')}
                   originalOrder={originalOrder}
                   order={order}
-                  images={protectedImages}
+                  images={maybeProtectedImages}
                 />
               )}
             </FlipMaster>
@@ -403,7 +409,7 @@ export default function NewFlipPage() {
           isPending={either('submit.submitting', 'submit.mining')}
           flip={{
             keywords: showTranslation ? keywords.translations : keywords.words,
-            images: protectedImages,
+            images: maybeProtectedImages,
             originalOrder,
             order,
           }}

@@ -1,3 +1,4 @@
+/* eslint-disable no-use-before-define */
 import {encode} from 'rlp'
 import axios from 'axios'
 import Jimp from 'jimp'
@@ -157,31 +158,59 @@ export function updateFlipType(flips, {id, type}) {
 export async function publishFlip({
   keywordPairId,
   images,
+  protectedImages,
   originalOrder,
   order,
   orderPermutations,
   privateKey,
   epoch,
 }) {
-  if (images.some(x => !x)) throw new Error('You must use 4 images for a flip')
+  const isFlipNoiseEnabled = checkIfFlipNoiseEnabled(epoch)
+
+  const flipsToPublish = isFlipNoiseEnabled ? protectedImages : images
+
+  if (flipsToPublish.some(x => !x))
+    throw new Error('You must use 4 images for a flip')
 
   const flips = await db.table('ownFlips').toArray()
 
   if (
-    flips.some(
-      flip =>
+    flips.some(flip => {
+      if (isFlipNoiseEnabled) {
+        return (
+          flip.type === FlipType.Published &&
+          flip.protectedImages &&
+          areSame(flip.protectedImages, protectedImages)
+        )
+      }
+
+      return (
         flip.type === FlipType.Published &&
         flip.images &&
         areSame(flip.images, images)
-    )
+      )
+    })
   )
     throw new Error('You already submitted this flip')
 
   if (areEual(order, originalOrder))
     throw new Error('You must shuffle flip before submit')
 
+  const compressedImages = checkIfFlipNoiseEnabled(epoch)
+    ? protectedImages
+    : await Promise.all(
+        images.map(image =>
+          Jimp.read(image).then(raw =>
+            raw
+              .resize(240, 180)
+              .quality(60) // jpeg quality
+              .getBase64Async('image/jpeg')
+          )
+        )
+      )
+
   const [publicHex, privateHex] = flipToHex(
-    originalOrder.map(num => images[num]),
+    originalOrder.map(num => compressedImages[num]),
     orderPermutations
   )
 
@@ -937,3 +966,6 @@ export async function protectFlip({images}) {
   }
   return {protectedImages: protectedFlips}
 }
+
+export const checkIfFlipNoiseEnabled = epochNumber =>
+  epochNumber >= process.env.NEXT_PUBLIC_FLIP_NOISE_EPOCH_START ?? 95

@@ -79,13 +79,17 @@ export default function ViewFlipPage() {
   const {
     hash,
     keywords,
-    images,
+    images: originalImages,
     protectedImages,
     originalOrder,
     order,
     showTranslation,
     type,
   } = current.context
+
+  const images = protectedImages?.every(Boolean)
+    ? protectedImages
+    : originalImages
 
   if (!id) return null
 

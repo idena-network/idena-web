@@ -11,6 +11,7 @@ import {
   updateFlipType,
   DEFAULT_FLIP_ORDER,
   createOrUpdateFlip,
+  checkIfFlipNoiseEnabled,
 } from './utils'
 import {callRpc} from '../../shared/utils/utils'
 import {shuffle} from '../../shared/utils/arr'
@@ -758,7 +759,15 @@ export const flipMasterMachine = Machine(
                 ],
               },
               PAINTING: '.painting',
-              NEXT: 'protect',
+              NEXT: [
+                {
+                  target: 'protect',
+                  cond: ({epoch}) => checkIfFlipNoiseEnabled(epoch),
+                },
+                {
+                  target: 'shuffle',
+                },
+              ],
               PREV: 'keywords',
             },
             initial: 'idle',
@@ -802,7 +811,14 @@ export const flipMasterMachine = Machine(
               },
               PROTECTING: '.protecting',
               NEXT: 'shuffle',
-              PREV: 'images',
+              PREV: {
+                target: 'images',
+                actions: [
+                  assign({
+                    protectedImages: Array.from({length: 4}),
+                  }),
+                ],
+              },
             },
             initial: 'idle',
             states: {
@@ -811,8 +827,8 @@ export const flipMasterMachine = Machine(
                   '': [
                     {
                       target: 'protecting',
-                      cond: ({protectedImages}) =>
-                        !protectedImages.some(x => x),
+                      cond: ({images, protectedImages}) =>
+                        images.some(x => x) && !protectedImages.some(x => x),
                     },
                   ],
                 },
@@ -868,7 +884,15 @@ export const flipMasterMachine = Machine(
                 actions: ['changeOrder', log()],
               },
               NEXT: 'submit',
-              PREV: 'protect',
+              PREV: [
+                {
+                  target: 'protect',
+                  cond: 'isFlipNoiseEnabled',
+                },
+                {
+                  target: 'images',
+                },
+              ],
             },
             initial: 'idle',
             states: {
@@ -963,6 +987,7 @@ export const flipMasterMachine = Machine(
           order,
           orderPermutations,
           images,
+          protectedImages,
           keywords,
           type,
           createdAt,
@@ -982,6 +1007,7 @@ export const flipMasterMachine = Machine(
             order,
             orderPermutations,
             images,
+            protectedImages,
             keywords,
           }
 
@@ -1028,6 +1054,9 @@ export const flipMasterMachine = Machine(
           order.map(n => originalOrder.findIndex(o => o === n)),
       }),
       persistFlip: async context => createOrUpdateFlip(context),
+    },
+    guards: {
+      isFlipNoiseEnabled: ({epoch}) => checkIfFlipNoiseEnabled(epoch),
     },
   }
 )
