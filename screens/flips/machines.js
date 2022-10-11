@@ -762,7 +762,7 @@ export const flipMasterMachine = Machine(
               NEXT: [
                 {
                   target: 'protect',
-                  cond: ({epoch}) => checkIfFlipNoiseEnabled(epoch),
+                  cond: 'isFlipNoiseEnabled',
                 },
                 {
                   target: 'shuffle',
