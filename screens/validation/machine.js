@@ -363,7 +363,7 @@ export const createValidationMachine = ({
         shortFlips: [],
         longFlips: [],
         currentIndex: 0,
-        bestFlipIndexes: [],
+        bestFlipHashes: {},
         epoch,
         validationStart,
         shortSessionDuration,
@@ -963,14 +963,13 @@ export const createValidationMachine = ({
                 FAVORITE: {
                   actions: [
                     assign({
-                      bestFlipIndexes: ({bestFlipIndexes, currentIndex}) => {
-                        const index = bestFlipIndexes.indexOf(currentIndex)
-                        if (index > -1) {
-                          bestFlipIndexes.splice(index, 1)
+                      bestFlipHashes: ({bestFlipHashes}, {hash}) => {
+                        if (bestFlipHashes[hash]) {
+                          delete bestFlipHashes[hash]
                         } else {
-                          bestFlipIndexes.push(currentIndex)
+                          bestFlipHashes[hash] = true
                         }
-                        return bestFlipIndexes
+                        return bestFlipHashes
                       },
                     }),
                     log(
@@ -1498,20 +1497,20 @@ export const createValidationMachine = ({
           wordsSeed,
           longAnswersSubmitted,
           submitLongAnswersHash,
-          bestFlipIndexes,
+          bestFlipHashes,
         }) =>
           longAnswersSubmitted
             ? Promise.resolve(submitLongAnswersHash)
             : submitLongAnswersTx(
                 privateKey,
                 longHashes,
-                longFlips.map(({option: answer = 0, hash, relevance}, idx) => ({
+                longFlips.map(({option: answer = 0, hash, relevance}) => ({
                   answer,
                   hash,
                   grade:
                     // eslint-disable-next-line no-nested-ternary
                     relevance === RelevanceType.Relevant
-                      ? bestFlipIndexes.includes(idx)
+                      ? bestFlipHashes[hash]
                         ? FlipGrade.GradeA
                         : FlipGrade.GradeD
                       : relevance === RelevanceType.Irrelevant
@@ -1558,19 +1557,15 @@ export const createValidationMachine = ({
       },
       actions: {
         approveFlip: assign({
-          bestFlipIndexes: (
-            {longFlips, bestFlipIndexes, currentIndex},
-            {hash}
-          ) => {
+          bestFlipHashes: ({longFlips, bestFlipHashes}, {hash}) => {
             const flip = longFlips.find(x => x.hash === hash)
-            const index = bestFlipIndexes.indexOf(currentIndex)
             if (
               flip.relevance === RelevanceType.Relevant &&
-              bestFlipIndexes.includes(flip.flipIndex)
+              bestFlipHashes[hash]
             ) {
-              bestFlipIndexes.splice(index, 1)
+              delete bestFlipHashes[hash]
             }
-            return bestFlipIndexes
+            return bestFlipHashes
           },
           longFlips: ({longFlips}, {hash}) => {
             const flip = longFlips.find(x => x.hash === hash)
@@ -1595,6 +1590,12 @@ export const createValidationMachine = ({
               Object.keys(reports).length < availableReportsNumber(longFlips),
             actions: [
               assign({
+                bestFlipHashes: ({bestFlipHashes}, {hash}) => {
+                  if (bestFlipHashes[hash]) {
+                    delete bestFlipHashes[hash]
+                  }
+                  return bestFlipHashes
+                },
                 longFlips: ({longFlips}, {hash}) => {
                   const flip = longFlips.find(x => x.hash === hash)
                   return mergeFlipsByHash(longFlips, [

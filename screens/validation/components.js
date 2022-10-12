@@ -1968,7 +1968,7 @@ export function ValidationScreen({
 
   const {
     currentIndex,
-    bestFlipIndexes,
+    bestFlipHashes,
     translations,
     reports,
     longFlips,
@@ -2021,10 +2021,10 @@ export function ValidationScreen({
     }
   }, [currentFlip])
   useEffect(() => {
-    if (bestFlipIndexes.includes(currentIndex)) {
+    if (bestFlipHashes[currentFlip?.hash]) {
       setBestRewardTipOpen(false)
     }
-  }, [bestFlipIndexes, currentIndex])
+  }, [bestFlipHashes, currentFlip])
   useEffect(() => {
     if (bestRewardTipOpen) {
       setTimeout(() => {
@@ -2252,8 +2252,8 @@ export function ValidationScreen({
                   </QualificationActions>
                   {isDesktop &&
                     currentFlip.relevance === RelevanceType.Relevant &&
-                    (bestFlipIndexes.length < 1 ||
-                      bestFlipIndexes.includes(currentIndex)) && (
+                    (Object.keys(bestFlipHashes).length < 1 ||
+                      bestFlipHashes[currentFlip.hash]) && (
                       <SlideFade
                         direction="top"
                         offsetY="80px"
@@ -2265,9 +2265,14 @@ export function ValidationScreen({
                             mt={5}
                             variant="bordered"
                             w={['100%', 'auto']}
-                            onClick={() => send('FAVORITE')}
+                            onClick={() =>
+                              send({
+                                type: 'FAVORITE',
+                                hash: currentFlip.hash,
+                              })
+                            }
                           >
-                            {bestFlipIndexes.includes(currentIndex) ? (
+                            {bestFlipHashes[currentFlip.hash] ? (
                               <NewStarIcon
                                 h="12.5px"
                                 w="13px"
@@ -2313,16 +2318,10 @@ export function ValidationScreen({
           {!isDesktop &&
             currentFlip &&
             currentFlip.relevance === RelevanceType.Relevant &&
-            (bestFlipIndexes.length < 1 ||
-              bestFlipIndexes.includes(currentIndex)) && (
+            (Object.keys(bestFlipHashes).length < 1 ||
+              bestFlipHashes[currentFlip.hash]) && (
               <Tooltip
-                isOpen={
-                  bestRewardTipOpen
-                  // currentFlip &&
-                  // currentFlip.relevance === RelevanceType.Relevant &&
-                  // bestFlipIndexes.length < 1 &&
-                  // !bestFlipIndexes.includes(currentIndex)
-                }
+                isOpen={bestRewardTipOpen}
                 hasArrow={false}
                 label="You can mark this flip as the best"
                 placement="top"
@@ -2343,9 +2342,14 @@ export function ValidationScreen({
                   borderRadius="50%"
                   boxShadow="0px 2px 4px rgba(0, 0, 0, 0.16)"
                   backgroundColor="white"
-                  onClick={() => send('FAVORITE')}
+                  onClick={() =>
+                    send({
+                      type: 'FAVORITE',
+                      hash: currentFlip.hash,
+                    })
+                  }
                 >
-                  {bestFlipIndexes.includes(currentIndex) ? (
+                  {bestFlipHashes[currentFlip.hash] ? (
                     <NewStarIcon h={5} w={5} fill="brandGray.500" />
                   ) : (
                     <HollowStarIcon h={5} w={5} fill="brandGray.500" />
@@ -2448,7 +2452,7 @@ export function ValidationScreen({
             {...flip}
             isCurrent={currentIndex === idx}
             isLong={isLongSessionFlips(state) || isLongSessionKeywords(state)}
-            isBest={bestFlipIndexes.includes(idx)}
+            isBest={currentIndex === idx && bestFlipHashes[currentFlip.hash]}
             isDesktop={isDesktop}
             onPick={() => send({type: 'PICK', index: idx})}
           />
