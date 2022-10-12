@@ -677,19 +677,6 @@ export function FlipKeywordPanel(props) {
   )
 }
 
-export function FlipKeywordPanelNew(props) {
-  return (
-    <Box
-      bg={['', 'gray.50']}
-      px={[0, 10]}
-      py={[4, 8]}
-      rounded="lg"
-      w={['100%', '320px']}
-      {...props}
-    ></Box>
-  )
-}
-
 export function FlipKeywordPair(props) {
   return <Stack isInline spacing={10} {...props} />
 }
