@@ -703,7 +703,11 @@ export function Thumbnail({
               <Tooltip
                 isOpen={bestRewardTooltipOpen}
                 label="This flip will be rewarded with an 8x reward if other members also mark it as the best"
-                fontSize={['mdx', '12px']}
+                fontSize="mdx"
+                fontWeight={400}
+                px={3}
+                py={[2, '10px']}
+                w={['228px', 'auto']}
                 placement={bestRewardTooltipPlacement}
                 openDelay={100}
               >
@@ -2452,7 +2456,7 @@ export function ValidationScreen({
             {...flip}
             isCurrent={currentIndex === idx}
             isLong={isLongSessionFlips(state) || isLongSessionKeywords(state)}
-            isBest={currentIndex === idx && bestFlipHashes[currentFlip.hash]}
+            isBest={bestFlipHashes[flip.hash]}
             isDesktop={isDesktop}
             onPick={() => send({type: 'PICK', index: idx})}
           />
