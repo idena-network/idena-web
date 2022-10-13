@@ -82,8 +82,12 @@ export const flipsMachine = Machine(
 
             if (missingFlips.length) {
               const keywords = availableKeywords
-                .filter(({id}) =>
-                  persistedFlips.some(({keywordPairId}) => keywordPairId !== id)
+                .filter(
+                  ({id, used}) =>
+                    used &&
+                    persistedFlips.some(
+                      ({keywordPairId}) => keywordPairId !== id
+                    )
                 )
                 .map(({id, words}) => ({
                   id,
