@@ -31,6 +31,7 @@ import {
   sendToIpfs,
   adVotingDefaults,
   isTargetedAd,
+  calculateTotalAdScore,
 } from './utils'
 import {TxType} from '../../shared/types'
 import {capitalize} from '../../shared/utils/string'
@@ -68,7 +69,7 @@ export function useRotatingAds(limit = 3) {
     }))
   )
 
-  const {decodeAd, decodeProfile} = useProtoProfileDecoder()
+  const {decodeAd, decodeProfile, decodeAdTarget} = useProtoProfileDecoder()
 
   const profiles = useQueries(
     profileHashes.map(({data: cid}) => ({
@@ -107,7 +108,6 @@ export function useRotatingAds(limit = 3) {
           ({data}) => data?.cid === AdBurnKey.fromHex(key).cid
         )
       )
-      .slice(0, limit)
       .map(({key, address, amount}) => {
         const {cid} = AdBurnKey.fromHex(key)
         return {
@@ -132,7 +132,29 @@ export function useRotatingAds(limit = 3) {
       }) ?? []
   )
 
-  return decodedProfileAds?.map(x => x.data).filter(Boolean) ?? []
+  return (
+    (
+      decodedProfileAds
+        // eslint-disable-next-line array-callback-return
+        ?.map(({data}) => {
+          if (data) {
+            const burn = burntCoins.find(({cid}) => cid === data.cid)
+
+            if (burn) {
+              return {
+                ...data,
+                totalScore: calculateTotalAdScore(decodeAdTarget(burn.target)),
+              }
+            }
+
+            return data
+          }
+        })
+        .filter(Boolean) ?? []
+    )
+      .sort((a, b) => b.totalScore - a.totalScore)
+      .slice(0, limit)
+  )
 }
 
 export function useCurrentBannerAd() {

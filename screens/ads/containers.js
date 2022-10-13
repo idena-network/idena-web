@@ -97,6 +97,7 @@ import {
   InputCharacterCount,
   AdNumberInput,
   AdFormError,
+  AdOfferTargetingTooltip,
 } from './components'
 import {Fill} from '../../shared/components'
 import {hasImageType} from '../../shared/utils/img'
@@ -109,6 +110,8 @@ import {AVAILABLE_LANGS} from '../../i18n'
 import {
   adFallbackSrc,
   adImageThumbSrc,
+  calculateTargetScore,
+  calculateTotalAdScore,
   compressAdImage,
   isValidImage,
   OS,
@@ -1719,7 +1722,7 @@ export function AdOfferListItem({
   if (isLoading || isError) {
     return (
       <Tr fontWeight={500}>
-        <Td colSpan={5} px={0}>
+        <Td colSpan={6} px={0}>
           <Skeleton h="10" />
         </Td>
       </Tr>
@@ -1728,11 +1731,11 @@ export function AdOfferListItem({
 
   return (
     <Tr fontWeight={500}>
-      <Td>
+      <Td borderColor="gray.100">
         <HStack>
           <AdImage src={adImageThumbSrc(ad)} boxSize="10" />
           <Stack spacing="1.5">
-            <Text lineHeight={4} isTruncated>
+            <Text lineHeight={4} maxW="60" noOfLines={2}>
               {ad.title}
             </Text>
             <HStack spacing={1}>
@@ -1740,7 +1743,7 @@ export function AdOfferListItem({
                 address={ad.author}
                 boxSize="4"
                 borderWidth={1}
-                borderColor="brandGray.016"
+                borderColor="gray.016"
                 borderRadius={['mobile', 'sm']}
               />
               <Text
@@ -1748,6 +1751,8 @@ export function AdOfferListItem({
                 fontSize="sm"
                 fontWeight={500}
                 lineHeight="shorter"
+                w="32"
+                noOfLines={1}
               >
                 {ad.author}
               </Text>
@@ -1755,32 +1760,51 @@ export function AdOfferListItem({
           </Stack>
         </HStack>
       </Td>
-      <Td>
-        <NextLink href={String(ad.url)} passHref>
-          <Link target="_blank" color="blue.500">
-            {ad.url}
-          </Link>
-        </NextLink>
+      <Td borderColor="gray.100">
+        <Link
+          href={ad.url}
+          target="_blank"
+          color="blue.500"
+          maxW="44"
+          noOfLines={2}
+        >
+          {ad.url}
+        </Link>
       </Td>
-      <Td>
+      <Td borderColor="gray.100">
         {targetValues.some(Boolean) ? (
-          <>
-            {t('Set')}{' '}
+          <Stack spacing="1">
+            <Text>{calculateTargetScore(ad)}</Text>
+            <HStack align="baseline" spacing="1">
+              <Text>{t('Set')}</Text>
+              <Tooltip
+                label={<AdOfferTargetingTooltip ad={ad} />}
+                placement="right-start"
+                arrowSize={8}
+                offset={[-8, 6]}
+              >
+                <Button
+                  variant="link"
+                  rightIcon={<ChevronRightIcon />}
+                  iconSpacing="0"
+                  color="blue.500"
+                  cursor="pointer"
+                  _hover={{
+                    textDecoration: 'none',
+                  }}
+                >
+                  {t('{{count}} targets', {
+                    count: targetValues.filter(Boolean).length,
+                  })}
+                </Button>
+              </Tooltip>
+            </HStack>
+          </Stack>
+        ) : (
+          <Stack spacing="1">
+            <Text>{calculateTargetScore(ad)}</Text>
             <Tooltip
-              label={
-                <InlineAdStatGroup labelWidth="16">
-                  <SmallInlineAdStat
-                    label={t('Language')}
-                    value={ad.language || 'Any'}
-                  />
-                  <SmallInlineAdStat label={t('OS')} value={ad.os || 'Any'} />
-                  <SmallInlineAdStat label={t('Age')} value={ad.age ?? 'Any'} />
-                  <SmallInlineAdStat
-                    label={t('Stake')}
-                    value={ad.stake ?? 'Any'}
-                  />
-                </InlineAdStatGroup>
-              }
+              label={<AdOfferTargetingTooltip ad={ad} />}
               placement="right-start"
               arrowSize={8}
               offset={[-8, 6]}
@@ -1790,23 +1814,25 @@ export function AdOfferListItem({
                 rightIcon={<ChevronRightIcon />}
                 iconSpacing="0"
                 color="blue.500"
-                cursor="pointer"
+                w="fit-content"
                 _hover={{
                   textDecoration: 'none',
                 }}
               >
-                {t('{{count}} targets', {
-                  count: targetValues.filter(Boolean).length,
-                })}
+                {t('Not set')}
               </Button>
             </Tooltip>
-          </>
-        ) : (
-          t('Not set')
+          </Stack>
         )}
       </Td>
-      <Td>{formatDna(amount)}</Td>
-      <Td>
+      <Td borderColor="gray.100">{formatDna(amount)}</Td>
+      <Td borderColor="gray.100">
+        {calculateTotalAdScore({
+          target: decodeAdTarget(target),
+          burnAmount: amount,
+        })}
+      </Td>
+      <Td borderColor="gray.100">
         {isSelfAuthor ? (
           <SecondaryButton
             onClick={() => {
