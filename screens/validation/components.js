@@ -705,6 +705,8 @@ export function Thumbnail({
                 label="This flip will be rewarded with an 8x reward if other members also mark it as the best"
                 fontSize="mdx"
                 fontWeight={400}
+                mt={[2, 0]}
+                mb={[0, 2]}
                 px={3}
                 py={[2, '10px']}
                 w={['228px', 'auto']}
@@ -765,8 +767,8 @@ function ThumbnailHolder({
         {isBest && (
           <ChakraFlex
             position="absolute"
-            top="-2px"
-            right="-2px"
+            top={['-4px', '-8px']}
+            right={['-4px', '-8px']}
             w={5}
             h={5}
             align="center"
@@ -2254,51 +2256,52 @@ export function ValidationScreen({
                       </QualificationButton>
                     </Tooltip>
                   </QualificationActions>
-                  {isDesktop &&
-                    currentFlip.relevance === RelevanceType.Relevant &&
-                    (Object.keys(bestFlipHashes).length < 1 ||
-                      bestFlipHashes[currentFlip.hash]) && (
-                      <SlideFade
-                        direction="top"
-                        offsetY="80px"
-                        in={currentFlip.relevance === RelevanceType.Relevant}
-                      >
-                        <Divider mt={1} />
-                        <ChakraFlex direction="column" align="center">
-                          <Button
-                            mt={5}
-                            variant="bordered"
-                            w={['100%', 'auto']}
-                            onClick={() =>
-                              send({
-                                type: 'FAVORITE',
-                                hash: currentFlip.hash,
-                              })
-                            }
-                          >
-                            {bestFlipHashes[currentFlip.hash] ? (
-                              <NewStarIcon
-                                h="12.5px"
-                                w="13px"
-                                mr="5.5px"
-                                fill="brandGray.500"
-                              />
-                            ) : (
-                              <HollowStarIcon
-                                h="12.5px"
-                                w="13px"
-                                mr="5.5px"
-                                fill="brandGray.500"
-                              />
-                            )}
-                            {t('Mark as the best')}
-                          </Button>
-                          <Text fontSize="8px" color="#B8BABC" mt={2}>
-                            {t('You can mark this flip as the best')}
-                          </Text>
-                        </ChakraFlex>
-                      </SlideFade>
-                    )}
+                  {isDesktop && (
+                    <SlideFade
+                      direction="top"
+                      offsetY="80px"
+                      in={
+                        currentFlip.relevance === RelevanceType.Relevant &&
+                        (Object.keys(bestFlipHashes).length < 1 ||
+                          bestFlipHashes[currentFlip.hash])
+                      }
+                    >
+                      <Divider mt={1} />
+                      <ChakraFlex direction="column" align="center">
+                        <Button
+                          mt={5}
+                          variant="bordered"
+                          w={['100%', 'auto']}
+                          onClick={() =>
+                            send({
+                              type: 'FAVORITE',
+                              hash: currentFlip.hash,
+                            })
+                          }
+                        >
+                          {bestFlipHashes[currentFlip.hash] ? (
+                            <NewStarIcon
+                              h="12.5px"
+                              w="13px"
+                              mr="5.5px"
+                              fill="brandGray.500"
+                            />
+                          ) : (
+                            <HollowStarIcon
+                              h="12.5px"
+                              w="13px"
+                              mr="5.5px"
+                              fill="brandGray.500"
+                            />
+                          )}
+                          {t('Mark as the best')}
+                        </Button>
+                        <Text fontSize="8px" color="#B8BABC" mt={2}>
+                          {t('You can mark this flip as the best')}
+                        </Text>
+                      </ChakraFlex>
+                    </SlideFade>
+                  )}
                 </Stack>
               </FlipWords>
             )}
