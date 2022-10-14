@@ -2296,7 +2296,7 @@ export function ValidationScreen({
                           )}
                           {t('Mark as the best')}
                         </Button>
-                        <Text fontSize="8px" color="#B8BABC" mt={2}>
+                        <Text fontSize="11px" color="#B8BABC" mt={2}>
                           {t('You can mark this flip as the best')}
                         </Text>
                       </ChakraFlex>
@@ -2330,7 +2330,7 @@ export function ValidationScreen({
               <Tooltip
                 isOpen={bestRewardTipOpen}
                 hasArrow={false}
-                label="You can mark this flip as the best"
+                label={t('You can mark this flip as the best')}
                 placement="top"
                 zIndex="tooltip"
                 fontSize="mdx"
