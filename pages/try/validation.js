@@ -71,7 +71,7 @@ function ValidationSession({
   shortSessionDuration,
   longSessionDuration,
 }) {
-  const {checkValidation} = useTestValidationDispatch()
+  const {checkValidation, cancelCurrentValidation} = useTestValidationDispatch()
 
   const {i18n} = useTranslation()
 
@@ -201,6 +201,10 @@ function ValidationSession({
         } finally {
           router.push(`/try/details/${id}`)
         }
+      }}
+      onClose={async () => {
+        await cancelCurrentValidation()
+        router.push('/try')
       }}
     />
   )

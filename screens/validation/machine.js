@@ -1958,7 +1958,7 @@ const sampleValidationLongTransition = [
       keywordsQualificationStarted &&
       longFlips[currentIndex].isReported &&
       longFlips[currentIndex].relevance !== RelevanceType.Irrelevant &&
-      availableReportsNumber(longFlips) - reports.size > 0,
+      availableReportsNumber(longFlips) - Object.keys(reports).length > 0,
     actions: ['needToReport'],
   },
   {
@@ -1974,7 +1974,7 @@ const sampleValidationLongTransition = [
       keywordsQualificationStarted &&
       longFlips[currentIndex].isReported &&
       longFlips[currentIndex].relevance === RelevanceType.Relevant &&
-      availableReportsNumber(longFlips) - reports.size <= 0,
+      availableReportsNumber(longFlips) - Object.keys(reports).length <= 0,
     actions: ['needToAbstain'],
   },
 ]

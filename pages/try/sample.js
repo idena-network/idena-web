@@ -3,7 +3,16 @@ import {useMachine} from '@xstate/react'
 import {useEffect, useMemo} from 'react'
 import {useRouter} from 'next/router'
 import {useTranslation} from 'react-i18next'
-import {Box, Image, Stack, Text, useDisclosure} from '@chakra-ui/react'
+import {
+  Box,
+  Image,
+  Stack,
+  Text,
+  useBreakpointValue,
+  useDisclosure,
+  Button,
+  Divider,
+} from '@chakra-ui/react'
 import {createValidationMachine} from '../../screens/validation/machine'
 import {
   sessionFlips,
@@ -85,7 +94,11 @@ function ValidationSession({
   shortSessionDuration,
   longSessionDuration,
 }) {
-  const {scheduleValidation, checkValidation} = useTestValidationDispatch()
+  const {
+    scheduleValidation,
+    checkValidation,
+    cancelCurrentValidation,
+  } = useTestValidationDispatch()
   const {t} = useTranslation()
 
   const approveFlipDisclosure = useDisclosure()
@@ -178,6 +191,10 @@ function ValidationSession({
   const flips = sessionFlips(state)
   const currentFlip = flips[currentIndex]
 
+  const size = useBreakpointValue(['mdx', 'md'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
+  const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
+
   return (
     <>
       <ValidationScreen
@@ -187,6 +204,10 @@ function ValidationSession({
         shortSessionDuration={shortSessionDuration}
         longSessionDuration={longSessionDuration}
         isExceededTooltipOpen={isExceededTooltipOpen}
+        onClose={async () => {
+          await cancelCurrentValidation()
+          router.push('/try')
+        }}
       />
       <Dialog {...approveFlipDisclosure}>
         <DialogHeader>{t('Approve the flip!')}</DialogHeader>
@@ -194,7 +215,7 @@ function ValidationSession({
           <Stack spacing={3}>
             <Text color="muted">
               {t(
-                `This flip follows the rules. Please approve all good flips clicking Approve button.`
+                `Flip complies with the rules. Please approve all good flips.`
               )}
             </Text>
             <Box>
@@ -203,9 +224,14 @@ function ValidationSession({
           </Stack>
         </DialogBody>
         <DialogFooter>
-          <SecondaryButton onClick={() => approveFlipDisclosure.onClose()}>
+          <Button
+            size={size}
+            w={['100%', 'auto']}
+            variant={variantSecondary}
+            onClick={() => approveFlipDisclosure.onClose()}
+          >
             {t('Got it')}
-          </SecondaryButton>
+          </Button>
         </DialogFooter>
       </Dialog>
       <Dialog {...reportFlipDisclosure}>
@@ -214,7 +240,7 @@ function ValidationSession({
           <Stack spacing={3}>
             <Text color="muted">
               {t(
-                `This flip doesn’t follow the rules. Please report bad flips next time clicking the Report button.`
+                `This flip doesn’t comply with the rules. Please report bad flips.`
               )}
             </Text>
             <Box>
@@ -229,9 +255,14 @@ function ValidationSession({
           </Stack>
         </DialogBody>
         <DialogFooter>
-          <SecondaryButton onClick={() => reportFlipDisclosure.onClose()}>
+          <Button
+            size={size}
+            w={['100%', 'auto']}
+            variant={variantSecondary}
+            onClick={() => reportFlipDisclosure.onClose()}
+          >
             {t('Got it')}
-          </SecondaryButton>
+          </Button>
         </DialogFooter>
       </Dialog>
       <Dialog {...abstainFlipDisclosure} size="md">
@@ -240,7 +271,7 @@ function ValidationSession({
           <Stack spacing={3}>
             <Text color="muted">
               {t(
-                `This flip doesn’t follow the rules. Do not approve the flip. Skip bad flips if you have no reports left.`
+                `This flip doesn’t comply with the rules. Do not Approve the flip. Skip bad flips if you have no reports left.`
               )}
             </Text>
             <Box>
@@ -255,9 +286,14 @@ function ValidationSession({
           </Stack>
         </DialogBody>
         <DialogFooter>
-          <SecondaryButton onClick={() => abstainFlipDisclosure.onClose()}>
+          <Button
+            size={size}
+            w={['100%', 'auto']}
+            variant={variantSecondary}
+            onClick={() => abstainFlipDisclosure.onClose()}
+          >
             {t('Got it')}
-          </SecondaryButton>
+          </Button>
         </DialogFooter>
       </Dialog>
       {state.matches('validationFailed') && (
@@ -267,7 +303,7 @@ function ValidationSession({
             <Stack spacing={3}>
               <Text color="muted">
                 {t(
-                  `Unfortunately you did not submit answers in time. Please keep an eye on the timer next time.`
+                  `You did not submit answers in time. Please keep an eye on the timer next time.`
                 )}
               </Text>
               <Box>
@@ -276,17 +312,34 @@ function ValidationSession({
             </Stack>
           </DialogBody>
           <DialogFooter>
-            <SecondaryButton onClick={() => router.push('/try')}>
+            <Button
+              order={[3, 1]}
+              size={size}
+              w={['100%', 'auto']}
+              variant={variantSecondary}
+              onClick={() => router.push('/try')}
+            >
               {t('Got it')}
-            </SecondaryButton>
-            <PrimaryButton
+            </Button>
+            <Divider
+              order={2}
+              display={['block', 'none']}
+              h={10}
+              orientation="vertical"
+              color="gray.100"
+            />
+            <Button
+              size={size}
+              order={[1, 3]}
+              w={['100%', 'auto']}
+              variant={variantPrimary}
               onClick={async () => {
                 await scheduleValidation(CertificateType.Sample)
                 router.push('/try/lottery')
               }}
             >
               {t('Try again')}
-            </PrimaryButton>
+            </Button>
           </DialogFooter>
         </Dialog>
       )}
@@ -294,25 +347,40 @@ function ValidationSession({
         <DialogHeader>{t('Success!')}</DialogHeader>
         <DialogBody>
           <Stack spacing={3}>
+            <Text>{t(`Now you know how to solve flips.`)}</Text>
             <Text>
               {t(
-                `The Idena protocol allows you to validate your address and get the Human status without using your personal data. All you need to do is prove that you are a real human and you don't have multiple accounts.`
-              )}
-            </Text>
-            <Text>
-              {t(
-                `Start training validation to learn how to prove that you are not a bot.`
+                `Pass the training validation and get your training validation certificate. It will help you to get an invitation code.`
               )}
             </Text>
           </Stack>
         </DialogBody>
         <DialogFooter>
-          <SecondaryButton onClick={() => router.push('/home')}>
+          <Button
+            size={size}
+            order={[3, 1]}
+            w={['100%', 'auto']}
+            variant={variantSecondary}
+            onClick={() => router.push('/home')}
+          >
             {t('Skip')}
-          </SecondaryButton>
-          <PrimaryButton onClick={() => router.push('/try')}>
+          </Button>
+          <Divider
+            order={2}
+            display={['block', 'none']}
+            h={10}
+            orientation="vertical"
+            color="gray.100"
+          />
+          <Button
+            size={size}
+            order={[1, 3]}
+            w={['100%', 'auto']}
+            variant={variantPrimary}
+            onClick={() => router.push('/try')}
+          >
             {t('Get certificate')}
-          </PrimaryButton>
+          </Button>
         </DialogFooter>
       </Dialog>
     </>

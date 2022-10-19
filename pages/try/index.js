@@ -10,6 +10,7 @@ import Layout from '../../shared/components/layout'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {useTestValidationDispatch} from '../../shared/providers/test-validation-context'
 import {CertificateType} from '../../shared/types'
+import {useIsDesktop} from '../../shared/utils/utils'
 
 export default function Try() {
   const {t} = useTranslation()
@@ -17,6 +18,8 @@ export default function Try() {
   const {coinbase} = useAuthState()
 
   const {scheduleValidation} = useTestValidationDispatch()
+
+  const isDesktop = useIsDesktop()
 
   return (
     <Layout>
@@ -36,25 +39,27 @@ export default function Try() {
             my={8}
           >
             <Stack isInline spacing={6} align="center" width="480px">
-              <Avatar address={coinbase} />
-              <Stack spacing={1}>
+              {isDesktop && <Avatar address={coinbase} />}
+              <Stack spacing={1} mt={[2, 0]}>
                 <Heading
                   as="h2"
-                  fontSize="lg"
-                  fontWeight={500}
+                  fontSize={['20px', 'lg']}
+                  fontWeight={[600, 500]}
                   lineHeight="short"
                 >
-                  {t('Training validation')}
+                  {t('Training validation certificates')}
                 </Heading>
-                <Box>
+                <Box order={[3, 2]} pt={[2, 0]}>
                   <Button
                     variant="link"
                     color="blue.500"
                     w="auto"
+                    fontSize={['16px', 'md']}
                     onClick={() => scheduleValidation(CertificateType.Sample)}
-                  >{`${t('Learn to solve flips')} >`}</Button>
+                  >{`${t('Learn how to solve flips')} >`}</Button>
                 </Box>
                 <Heading
+                  order={[2, 3]}
                   as="h3"
                   fontSize="mdx"
                   fontWeight="normal"
@@ -62,7 +67,7 @@ export default function Try() {
                   lineHeight="shorter"
                 >
                   {t(
-                    'Learn about the validation process and get a certificate. You can provide it as a proof to a validated person to get an invitation code.'
+                    'Pass the training validation and get your certificate. Share the certificate with validated participants of the Idena community to get an invitation code.'
                   )}
                 </Heading>
               </Stack>

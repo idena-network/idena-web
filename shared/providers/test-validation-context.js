@@ -126,20 +126,20 @@ function TestValidationProvider({children}) {
     }
   }, [coinbase, initialized, privateKey, setState])
 
-  // useEffect(() => {
-  //   async function persist() {
-  //     try {
-  //       const signature = signMessage(coinbase, privateKey)
-  //       await persistTestValidation(toHexString(signature), coinbase, state)
-  //     } catch (e) {
-  //       console.error('cannot persist training validation', e)
-  //     }
-  //   }
+  useEffect(() => {
+    async function persist() {
+      try {
+        const signature = signMessage(coinbase, privateKey)
+        await persistTestValidation(toHexString(signature), coinbase, state)
+      } catch (e) {
+        console.error('cannot persist training validation', e)
+      }
+    }
 
-  //   if (coinbase && state.timestamp && state.shouldPersist) {
-  //     persist()
-  //   }
-  // }, [coinbase, privateKey, state])
+    if (coinbase && state.timestamp && state.shouldPersist) {
+      persist()
+    }
+  }, [coinbase, privateKey, state])
 
   const checkValidation = async id => {
     if (!state.current) return
@@ -176,7 +176,7 @@ function TestValidationProvider({children}) {
     if (type === CertificateType.Sample) {
       id = 'sample-validation'
       const dt = new Date()
-      startTime = dt.setMinutes(dt.getMinutes() + 1)
+      startTime = dt.setSeconds(dt.getSeconds() + 30)
     } else {
       ;({id, startTime} = await requestTestValidation(
         toHexString(signature),
@@ -218,6 +218,26 @@ function TestValidationProvider({children}) {
         },
       },
     }))
+  }
+
+  const cancelCurrentValidation = async () => {
+    setState(prevState => {
+      if (!prevState.current) {
+        return prevState
+      }
+      return {
+        ...prevState,
+        timestamp: new Date().getTime(),
+        shouldPersist: true,
+        current: null,
+        validations: {
+          ...prevState.validations,
+          [prevState.current.type]: {
+            actionType: CertificateActionType.None,
+          },
+        },
+      }
+    })
   }
 
   useInterval(
@@ -294,7 +314,12 @@ function TestValidationProvider({children}) {
       value={{...state, epoch, hasSuccessTrainingValidation}}
     >
       <TestVlidationDispatchContext.Provider
-        value={{scheduleValidation, checkValidation, cancelValidation}}
+        value={{
+          scheduleValidation,
+          checkValidation,
+          cancelValidation,
+          cancelCurrentValidation,
+        }}
       >
         {children}
       </TestVlidationDispatchContext.Provider>

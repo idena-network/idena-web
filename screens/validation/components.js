@@ -28,6 +28,7 @@ import {
   VStack,
   SlideFade,
   keyframes,
+  CloseButton,
 } from '@chakra-ui/react'
 import {useSwipeable} from 'react-swipeable'
 import {Trans, useTranslation} from 'react-i18next'
@@ -49,6 +50,7 @@ import {
   DrawerFooter,
   Drawer,
   DrawerBody,
+  WarningAlert,
 } from '../../shared/components/components'
 import {
   availableReportsNumber,
@@ -469,7 +471,9 @@ function FlipHolder({css, showWrongAnswer, isZoomHovered = false, ...props}) {
         direction="column"
         position="relative"
         h={[
-          `calc(${windowHeight}px - 290px)`,
+          showWrongAnswer
+            ? `calc(${windowHeight}px - 340px)`
+            : `calc(${windowHeight}px - 290px)`,
           showWrongAnswer ? 'calc(100vh - 310px)' : 'calc(100vh - 260px)',
         ]}
         w={['100%', 'calc((100vh - 240px) / 3)']}
@@ -1998,6 +2002,7 @@ export function ValidationScreen({
   longSessionDuration,
   isExceededTooltipOpen,
   onValidationFailed,
+  onClose,
 }) {
   const router = useRouter()
 
@@ -2107,7 +2112,7 @@ export function ValidationScreen({
     <ValidationScene
       bg={isShortSession(state) ? theme.colors.black : theme.colors.white}
     >
-      <Header order={[1, 1]}>
+      <Header>
         <Heading
           display={['block', 'none']}
           color={isShortSession(state) ? 'white' : 'brandGray.500'}
@@ -2121,31 +2126,57 @@ export function ValidationScreen({
         <Title
           color={['muted', isShortSession(state) ? 'white' : 'brandGray.500']}
           zIndex={[2, 'auto']}
+          w={['130px', 'auto']}
+          textAlign="center"
         >
           {/* eslint-disable-next-line no-nested-ternary */}
           {['shortSession', 'longSession'].some(state.matches) &&
           !isLongSessionKeywords(state)
             ? isDesktop
               ? t('Select meaningful story: left or right', {nsSeparator: '!'})
-              : t('Select meaningful story:', {nsSeparator: '!'})
+              : t('Select meaningful story', {nsSeparator: '!'})
             : isDesktop
             ? t('Check flips quality')
             : ''}
+          {t(` (${currentIndex + 1} of ${flips.length})`)}
         </Title>
-        <Flex align="center">
-          <Title
-            color={['muted', isShortSession(state) ? 'white' : 'brandGray.500']}
-            mr={[0, 6]}
-            zIndex={[2, 'auto']}
+        {isTraining && (
+          <ChakraFlex
+            position="absolute"
+            top={[-2, 5]}
+            right={4}
+            alignItems="center"
           >
-            {!isDesktop && !isLongSessionKeywords(state) && 'left or right ('}
-            {currentIndex + 1}{' '}
-            <Text as="span" color="muted">
-              {t('out of')} {flips.length}
-            </Text>
-            {!isDesktop && !isLongSessionKeywords(state) && ')'}
-          </Title>
-        </Flex>
+            <ChakraFlex
+              bg="warning.020"
+              fontSize="md"
+              color="warning.500"
+              fontWeight={500}
+              borderRadius="15px"
+              px={4}
+              py={1}
+              display={['none', 'block']}
+            >
+              {t('Training validation')}
+            </ChakraFlex>
+            <Divider
+              display={['none', 'flex']}
+              h={8}
+              orientation="vertical"
+              color="gray.100"
+              ml={4}
+              mr={1}
+            />
+            <CloseButton
+              _hover={{
+                bg: 'none',
+              }}
+              size="lg"
+              color={isShortSession(state) ? 'white' : 'brandGray.500'}
+              onClick={() => onClose && onClose()}
+            ></CloseButton>
+          </ChakraFlex>
+        )}
       </Header>
       <ChakraBox order={[3, 2]}>
         <ChakraBox

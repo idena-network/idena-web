@@ -587,8 +587,10 @@ export function WarningAlert({children, ...props}) {
       py={2}
       {...props}
     >
-      <InfoIcon color="warning.500" boxSize={5} mr={3} />
-      {children}
+      <Flex>
+        <InfoIcon color="warning.500" boxSize={5} mr={3} />
+        {children}
+      </Flex>
     </Alert>
   )
 }
