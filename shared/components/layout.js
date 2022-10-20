@@ -91,11 +91,9 @@ function NormalApp({children, canRedirect = true, skipBanner, hasRotatingAds}) {
   const isDesktop = useIsDesktop()
 
   useAutoStartLottery()
-
-  useAutoStartTestLottery()
-
   useValidationToast()
 
+  useAutoStartTestLottery()
   useTestValidationToast()
 
   return (

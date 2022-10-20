@@ -24,7 +24,7 @@ import {useAutoStartTestValidation} from '../../screens/try/hooks/use-start-test
 export default function LotteryPage() {
   const {t} = useTranslation()
 
-  const {auth} = useAuthState()
+  const {auth, coinbase} = useAuthState()
 
   const {current, epoch} = useTestValidationState()
 
@@ -61,7 +61,20 @@ export default function LotteryPage() {
       >
         <ApiStatus position="relative" />
         <NextLink href="/try" passHref>
-          <CloseButton boxSize={4} color="white" />
+          <CloseButton
+            boxSize={4}
+            color="white"
+            onClick={() => {
+              if (coinbase && epoch) {
+                sessionStorage.setItem(
+                  'didCloseTestLotteryScreen',
+                  JSON.stringify({
+                    address: coinbase,
+                  })
+                )
+              }
+            }}
+          />
         </NextLink>
       </Flex>
 
