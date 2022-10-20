@@ -179,7 +179,7 @@ export default function FlipListPage() {
               <PopoverTrigger>
                 <Box onClick={dismissCurrentTask}>
                   <IconLink
-                    icon={<PlusSolidIcon boxSize={5} mt={1} />}
+                    icon={<PlusSolidIcon boxSize={5} />}
                     href="/flips/new"
                     bg="white"
                     position={
