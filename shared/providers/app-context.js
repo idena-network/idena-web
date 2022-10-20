@@ -5,7 +5,7 @@ import {useRouter} from 'next/router'
 import cookie from 'cookie-cutter'
 import {useInterval} from '../hooks/use-interval'
 
-import {didValidate} from '../../screens/validation/utils'
+import {clearValidationState, didValidate} from '../../screens/validation/utils'
 import {
   archiveFlips,
   didArchiveFlips,
@@ -27,6 +27,7 @@ import {hexToUint8Array, toHexString} from '../utils/buffers'
 import {useExpired} from '../hooks/use-expired'
 import {useIdenaBot} from '../hooks/hooks'
 import {checkRestoringConnection} from '../../screens/node/utils'
+import {loadPersistentState, persistState} from '../utils/persist'
 
 const AppContext = React.createContext()
 
@@ -89,6 +90,19 @@ export function AppProvider({tabId, ...props}) {
       archiveFlips()
       markFlipsArchived(epoch.epoch)
     }
+  }, [epoch])
+
+  // hotfix 93 epoch
+  useEffect(() => {
+    const key = 'hotfix-93-epoch'
+
+    if (epoch?.epoch !== 93) return
+
+    const hotFixDone = loadPersistentState(key)
+    if (hotFixDone) return
+
+    clearValidationState()
+    persistState(key, true)
   }, [epoch])
 
   // time checking
