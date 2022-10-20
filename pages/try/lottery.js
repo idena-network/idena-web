@@ -1,6 +1,7 @@
 import {
   Box,
   Center,
+  chakra,
   CloseButton,
   Flex,
   Heading,
@@ -11,6 +12,7 @@ import dayjs from 'dayjs'
 import NextLink from 'next/link'
 import React from 'react'
 import {useTranslation} from 'react-i18next'
+import {isValidMotionProp, motion} from 'framer-motion'
 import {ValidationAdPromotion} from '../../screens/validation/components/ads'
 import {ValidationCountdown} from '../../screens/validation/components/countdown'
 import {ApiStatus} from '../../shared/components/components'
@@ -20,6 +22,14 @@ import Auth from '../../shared/components/auth'
 import {useAutoCloseTestValidationToast} from '../../screens/try/hooks/use-test-validation-toast'
 import {useTestValidationState} from '../../shared/providers/test-validation-context'
 import {useAutoStartTestValidation} from '../../screens/try/hooks/use-start-test-validation'
+import {useRotatingAds} from '../../screens/ads/hooks'
+
+const shouldForwardProp = prop =>
+  isValidMotionProp(prop) || ['children'].includes(prop)
+
+const MotionBox = chakra(motion.div, {
+  shouldForwardProp,
+})
 
 export default function LotteryPage() {
   const {t} = useTranslation()
@@ -31,6 +41,9 @@ export default function LotteryPage() {
   useAutoStartTestValidation()
 
   useAutoCloseTestValidationToast()
+
+  const ads = useRotatingAds()
+  const isRotatingAds = ads.length > 0
 
   if (!auth) {
     return (
@@ -80,27 +93,57 @@ export default function LotteryPage() {
 
       <Center minH="100vh">
         <Stack spacing="12" w={['xs', '640px']}>
-          <Stack spacing="6">
-            <Stack spacing="2">
-              <Heading fontSize="lg" fontWeight={500}>
-                {t('Idena training validation will start soon')}
-              </Heading>
-              <Text color="xwhite.050" fontSize="mdx">
-                {t(
-                  'Get ready! Make sure you have a stable internet connection'
-                )}
-              </Text>
-            </Stack>
+          <Box>
+            <MotionBox
+              initial={{
+                y: isRotatingAds ? 180 : 0,
+              }}
+              animate={{
+                y: 0,
+              }}
+              transition={{
+                delay: 2.5,
+                duration: 0.5,
+              }}
+            >
+              <Stack spacing="6">
+                <Stack spacing="2">
+                  <Heading fontSize="lg" fontWeight={500}>
+                    {t('Idena training validation will start soon')}
+                  </Heading>
+                  <Text color="xwhite.050" fontSize="mdx">
+                    {t(
+                      'Get ready! Make sure you have a stable internet connection'
+                    )}
+                  </Text>
+                </Stack>
 
-            {epoch ? (
-              <ValidationCountdown
-                duration={Math.floor(
-                  Math.max(dayjs(current?.startTime).diff(), 0)
-                )}
-              />
-            ) : null}
-          </Stack>
-          <ValidationAdPromotion />
+                {epoch ? (
+                  <ValidationCountdown
+                    duration={Math.floor(
+                      Math.max(dayjs(current?.startTime).diff(), 0)
+                    )}
+                  />
+                ) : null}
+              </Stack>
+            </MotionBox>
+          </Box>
+          <Box>
+            <MotionBox
+              initial={{
+                x: isRotatingAds ? 1499 : 0,
+              }}
+              animate={{
+                x: 0,
+              }}
+              transition={{
+                duration: 1,
+                delay: 3,
+              }}
+            >
+              <ValidationAdPromotion />
+            </MotionBox>
+          </Box>
         </Stack>
       </Center>
     </Box>
