@@ -72,7 +72,21 @@ export default function LotteryPage() {
       >
         <ApiStatus position="relative" />
         <NextLink href="/home" passHref>
-          <CloseButton boxSize={4} color="white" />
+          <CloseButton
+            boxSize={4}
+            color="white"
+            onClick={() => {
+              if (identity && epoch) {
+                sessionStorage.setItem(
+                  'didCloseLotteryScreen',
+                  JSON.stringify({
+                    address: identity.address,
+                    epoch: epoch.epoch,
+                  })
+                )
+              }
+            }}
+          />
         </NextLink>
       </Flex>
 
