@@ -625,71 +625,76 @@ export function ReviewVotingDrawer({
             })
           }}
         >
-          <OracleFormControl label={t('Transfer from')}>
-            <Input name="fromInput" defaultValue={from} isDisabled />
-            <OracleFormHelper label={t('Available')} value={toDna(available)} />
-          </OracleFormControl>
-          <OracleFormControl label={t('Send')}>
-            <DnaInput
-              name="balanceInput"
-              value={sendAmount}
-              onChange={e => setSendAmount(e.target.value)}
-              isInvalid={hasRequiredAmount && sendAmount < ownerDeposit}
-            />
-            <OracleFormHelper
-              label={t('Required to launch')}
-              value={toDna(ownerDeposit)}
-            />
-            <OracleFormHelper
-              mt={4}
-              label={t('Oracles rewards')}
-              value={toDna(oraclesReward)}
-            />
-            <OracleFormHelper
-              label={t('Owner refund')}
-              value={toDna(ownerRefund)}
-            />
-          </OracleFormControl>
-          <FormControl>
-            <FormLabel mb={2}>
-              <Tooltip
-                label={t(
-                  '50% of the stake will be refunded to your address after termination'
-                )}
-                placement="top"
-                zIndex="tooltip"
-              >
-                <Text
-                  borderBottom="dotted 1px"
-                  borderBottomColor="muted"
-                  cursor="help"
-                  as="span"
+          <Stack spacing="5">
+            <OracleFormControl label={t('Transfer from')}>
+              <Input name="fromInput" defaultValue={from} isDisabled />
+              <OracleFormHelper
+                label={t('Available')}
+                value={toDna(available)}
+              />
+            </OracleFormControl>
+            <OracleFormControl label={t('Send')}>
+              <DnaInput
+                name="balanceInput"
+                value={sendAmount}
+                onChange={e => setSendAmount(e.target.value)}
+                isInvalid={hasRequiredAmount && sendAmount < ownerDeposit}
+              />
+              <OracleFormHelper
+                label={t('Required to launch')}
+                value={toDna(ownerDeposit)}
+              />
+              <OracleFormHelper
+                mt={4}
+                label={t('Oracles rewards')}
+                value={toDna(oraclesReward)}
+              />
+              <OracleFormHelper
+                label={t('Owner refund')}
+                value={toDna(ownerRefund)}
+              />
+            </OracleFormControl>
+            <FormControl>
+              <FormLabel mb={2}>
+                <Tooltip
+                  label={t(
+                    '50% of the stake will be refunded to your address after termination'
+                  )}
+                  placement="top"
+                  zIndex="tooltip"
                 >
-                  {t('Stake')}
-                </Text>
-              </Tooltip>
-            </FormLabel>
-            <DnaInput name="stakeInput" defaultValue={minStake} isDisabled />
-          </FormControl>
-          <OracleFormControl>
-            <OracleFormHelper
-              label={t('Secret voting')}
-              value={t('About {{duration}}', {
-                duration: humanizeDuration(votingDuration),
-              })}
-            />
-            <OracleFormHelper
-              label={t('Public voting')}
-              value={t('About {{duration}}', {
-                duration: humanizeDuration(publicVotingDuration),
-              })}
-            />
-            <OracleFormHelper
-              mt={4}
-              label={t('Total amount')}
-              value={toDna(sendAmount + minStake)}
-            />
-          </OracleFormControl>
+                  <Text
+                    borderBottom="dotted 1px"
+                    borderBottomColor="muted"
+                    cursor="help"
+                    as="span"
+                  >
+                    {t('Stake')}
+                  </Text>
+                </Tooltip>
+              </FormLabel>
+              <DnaInput name="stakeInput" defaultValue={minStake} isDisabled />
+            </FormControl>
+            <OracleFormControl>
+              <OracleFormHelper
+                label={t('Secret voting')}
+                value={t('About {{duration}}', {
+                  duration: humanizeDuration(votingDuration),
+                })}
+              />
+              <OracleFormHelper
+                label={t('Public voting')}
+                value={t('About {{duration}}', {
+                  duration: humanizeDuration(publicVotingDuration),
+                })}
+              />
+              <OracleFormHelper
+                mt={4}
+                label={t('Total amount')}
+                value={toDna(sendAmount + minStake)}
+              />
+            </OracleFormControl>
+          </Stack>
         </form>
       </OracleDrawerBody>
       <DrawerFooter>
