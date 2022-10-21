@@ -1,7 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, {useState} from 'react'
 import {
-  AspectRatio,
   Box,
   Center,
   Flex,
@@ -153,14 +152,11 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
                   key={`${image}-${idx}`}
                   h="88px"
                   w="88px"
-                  bg={thumbnail === selectedImage ? 'blue.032' : 'white'}
-                  borderColor={
-                    thumbnail === selectedImage ? 'blue.500' : 'gray.50'
-                  }
+                  borderColor="gray.50"
                   borderWidth={1}
                   borderRadius="md"
-                  overflow="hidden"
                   transition="all 0.6s cubic-bezier(0.16, 1, 0.3, 1)"
+                  position="relative"
                   onClick={() => {
                     send('PICK', {image: thumbnail})
                   }}
@@ -172,13 +168,19 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
                     src={thumbnail}
                     objectFit="contain"
                     objectPosition="center"
-                    borderColor={
-                      thumbnail === selectedImage ? 'blue.500' : 'transparent'
-                    }
-                    borderWidth={1}
-                    borderRadius="md"
+                    h="88px"
                     w="88px"
                   />
+                  {thumbnail === selectedImage && (
+                    <Box
+                      position="absolute"
+                      inset="-px"
+                      bg="blue.032"
+                      borderColor="blue.500"
+                      borderWidth={2}
+                      borderRadius="md"
+                    />
+                  )}
                 </Center>
               ))}
             </SimpleGrid>
