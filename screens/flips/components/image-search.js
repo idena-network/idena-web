@@ -3,6 +3,7 @@ import React, {useState} from 'react'
 import {
   AspectRatio,
   Box,
+  Center,
   Flex,
   Image,
   InputGroup,
@@ -14,7 +15,7 @@ import {
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
-import {Machine} from 'xstate'
+import {createMachine} from 'xstate'
 import {assign, log} from 'xstate/lib/actions'
 import axios from 'axios'
 import {SearchIcon} from '@chakra-ui/icons'
@@ -31,69 +32,72 @@ async function searchImages(q) {
   return axios.get('/api/image-search', {params: {q}}).then(x => x.data)
 }
 
+const imageSearchMachine = createMachine({
+  context: {
+    images: [],
+  },
+  initial: 'idle',
+  states: {
+    idle: {},
+    searching: {
+      invoke: {
+        src: (_, {query}) => searchImages(query),
+        onDone: {
+          target: 'done',
+          actions: [
+            assign({
+              images: (_, {data}) => data,
+            }),
+            log(),
+          ],
+        },
+        onError: 'fail',
+      },
+    },
+    done: {
+      on: {
+        PICK: {
+          actions: [
+            assign({
+              selectedImage: (_, {image}) => image,
+            }),
+            log(),
+          ],
+        },
+      },
+    },
+    fail: {
+      entry: ['onError', log()],
+    },
+  },
+  on: {
+    SEARCH: 'searching',
+  },
+})
+
 export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
   const {t} = useTranslation()
 
   const searchInputRef = React.useRef()
 
-  const [current, send] = useMachine(
-    Machine({
-      context: {
-        images: [],
-      },
-      initial: 'idle',
-      states: {
-        idle: {},
-        searching: {
-          invoke: {
-            // eslint-disable-next-line no-shadow
-            src: (_, {query}) => searchImages(query),
-            onDone: {
-              target: 'done',
-              actions: [
-                assign({
-                  images: (_, {data}) => data,
-                }),
-                log(),
-              ],
-            },
-            onError: 'fail',
-          },
-        },
-        done: {
-          on: {
-            PICK: {
-              actions: [
-                assign({
-                  selectedImage: (_, {image}) => image,
-                }),
-                log(),
-              ],
-            },
-          },
-        },
-        fail: {
-          entry: [(_, {data: {message}}) => onError(message), log()],
-        },
-      },
-      on: {
-        SEARCH: 'searching',
-      },
-    })
-  )
-
+  const [current, send] = useMachine(imageSearchMachine, {
+    actions: {
+      onError: (_, {data: {message}}) => onError(message),
+    },
+  })
   const {images, selectedImage} = current.context
+
   const [query, setQuery] = useState()
 
   return (
     <Dialog
-      size="lg"
+      size="md"
       initialFocusRef={searchInputRef}
       onClose={onClose}
       {...props}
     >
-      <DialogBody d="flex">
-        <Stack minH="sm" maxH="sm" spacing={4} flex={1}>
+      <DialogBody display="flex">
+        <Stack minH="sm" maxH="sm" spacing="4" flex={1}>
           <Stack
             isInline
             as="form"
@@ -103,8 +107,8 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
             }}
           >
             <InputGroup w="full">
-              <InputLeftElement w={5} h={5} top={1.5} left={3}>
-                <SearchIcon boxSize={3} color="gray.200" />
+              <InputLeftElement w={5} h={5} top="1.5" left={3}>
+                <SearchIcon boxSize={5} color="gray.300" />
               </InputLeftElement>
               <Input
                 ref={searchInputRef}
@@ -123,7 +127,7 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
             <Flex direction="column" flex={1} align="center" justify="center">
               <Stack spacing={4} align="center" w="3xs">
                 <Box p={3}>
-                  <SearchIcon boxSize="56px" color="gray.100" />
+                  <SearchIcon boxSize="14" color="gray.100" />
                 </Box>
                 <Text color="muted" textAlign="center" w="full">
                   {t(
@@ -138,14 +142,17 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
               columns={4}
               spacing={2}
               overflow="auto"
-              px={6}
-              style={{marginLeft: '-24px', marginRight: '-24px'}}
+              px="8"
+              sx={{
+                marginInlineStart: '-32px !important',
+                marginInlineEnd: '-32px !important',
+              }}
             >
-              {images.map(({thumbnail}) => (
-                <AspectRatio
-                  ratio={1}
-                  w={28}
-                  minH={28}
+              {images.map(({thumbnail, image}, idx) => (
+                <Center
+                  key={`${image}-${idx}`}
+                  h="88px"
+                  w="88px"
                   bg={thumbnail === selectedImage ? 'blue.032' : 'white'}
                   borderColor={
                     thumbnail === selectedImage ? 'blue.500' : 'gray.50'
@@ -153,7 +160,6 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
                   borderWidth={1}
                   borderRadius="md"
                   overflow="hidden"
-                  position="relative"
                   transition="all 0.6s cubic-bezier(0.16, 1, 0.3, 1)"
                   onClick={() => {
                     send('PICK', {image: thumbnail})
@@ -171,8 +177,9 @@ export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
                     }
                     borderWidth={1}
                     borderRadius="md"
+                    w="88px"
                   />
-                </AspectRatio>
+                </Center>
               ))}
             </SimpleGrid>
           )}
