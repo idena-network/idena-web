@@ -306,7 +306,6 @@ export function AuthLayout({children}) {
       justify={['flex-start', 'center']}
       flex="1"
       height={[`${windowHeight}px`, '100vh']}
-      position={['fixed', 'initial']}
     >
       {children}
     </Flex>
