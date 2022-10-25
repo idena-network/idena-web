@@ -295,7 +295,7 @@ export default function Auth() {
   return !encryptedKey || !coinbase ? <Init /> : <RestoreKey />
 }
 
-export function AuthLayout({children}) {
+export function AuthLayout({children, ...props}) {
   const windowHeight = use100vh()
   return (
     <Flex
@@ -308,6 +308,7 @@ export function AuthLayout({children}) {
       height={[`${windowHeight}px`, '100vh']}
       position={['fixed', 'auto']}
       width={['100%', 'auto']}
+      {...props}
     >
       {children}
     </Flex>
