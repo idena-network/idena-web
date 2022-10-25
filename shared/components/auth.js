@@ -44,6 +44,7 @@ import {useAppContext} from '../providers/app-context'
 import {useLanguage} from '../hooks/use-language'
 import {AVAILABLE_LANGS, isoLangs} from '../../i18n'
 import {useIsDesktop} from '../utils/utils'
+import {use100vh} from '../hooks/use-100vh'
 
 function RestoreKey() {
   const [warning, showWarning] = useState(false)
@@ -295,6 +296,7 @@ export default function Auth() {
 }
 
 export function AuthLayout({children}) {
+  const windowHeight = use100vh()
   return (
     <Flex
       background="gray.500"
@@ -303,7 +305,8 @@ export function AuthLayout({children}) {
       align="center"
       justify={['flex-start', 'center']}
       flex="1"
-      height="100vh"
+      height={[`${windowHeight}px`, '100vh']}
+      position={['fixed', 'initial']}
     >
       {children}
     </Flex>
