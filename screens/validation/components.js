@@ -639,7 +639,7 @@ export function Thumbnail({
     }
   }, [isBest, isCurrent])
   useEffect(() => {
-    if (!isCurrent) {
+    if (!isCurrent || !isBest) {
       setBestRewardTooltipOpen(false)
     }
     if (bestRewardTooltipOpen) {
@@ -647,7 +647,7 @@ export function Thumbnail({
         setBestRewardTooltipOpen(false)
       }, 5000)
     }
-  }, [bestRewardTooltipOpen, isCurrent])
+  }, [bestRewardTooltipOpen, isBest, isCurrent])
 
   return (
     <ThumbnailHolder
