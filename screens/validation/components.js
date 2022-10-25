@@ -632,12 +632,10 @@ export function Thumbnail({
     'top-start',
   ])
 
-  const [bestRewardTooltipShowed, setBestRewardTooltipShowed] = useState(false)
   const [bestRewardTooltipOpen, setBestRewardTooltipOpen] = useState(false)
   useEffect(() => {
-    if (isBest && isCurrent && !bestRewardTooltipShowed) {
+    if (isBest && isCurrent) {
       setBestRewardTooltipOpen(true)
-      setBestRewardTooltipShowed(true)
     }
   }, [isBest, isCurrent])
   useEffect(() => {
@@ -2261,8 +2259,13 @@ export function ValidationScreen({
                   </QualificationActions>
                   {isDesktop && (
                     <SlideFade
-                      direction="top"
-                      offsetY="80px"
+                      style={{
+                        zIndex:
+                          currentFlip.relevance === RelevanceType.Relevant
+                            ? 'auto'
+                            : -1,
+                      }}
+                      offsetY="-80px"
                       in={
                         currentFlip.relevance === RelevanceType.Relevant &&
                         (Object.keys(bestFlipHashes).length < 1 ||
@@ -2272,9 +2275,23 @@ export function ValidationScreen({
                       <Divider mt={1} />
                       <ChakraFlex direction="column" align="center">
                         <Button
+                          backgroundColor="transparent"
+                          border="solid 1px #d2d4d9"
+                          color="brandGray.500"
+                          borderRadius={6}
                           mt={5}
-                          variant="bordered"
                           w={['100%', 'auto']}
+                          isActive={!!bestFlipHashes[currentFlip.hash]}
+                          _hover={{
+                            backgroundColor: 'transparent',
+                            _disabled: {
+                              backgroundColor: 'transparent',
+                              color: '#DCDEDF',
+                            },
+                          }}
+                          _active={{
+                            backgroundColor: '#F5F6F7',
+                          }}
                           onClick={() =>
                             send({
                               type: 'FAVORITE',
