@@ -312,6 +312,7 @@ export default function CreateKey() {
         </AuthLayout>
       )}
       {state.step === steps.BACKUP && (
+        // hack to set full height in case of opened keyboard on previous step
         <AuthLayout height={[`${windowHeight}px`, '100vh']}>
           <Box
             w="100%"

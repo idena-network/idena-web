@@ -82,7 +82,7 @@ export default function Welcome() {
           </Text>
           <Text mt={2} color="muted" fontSize={['16px', '14px']}>
             {t(
-              'Run polls and democratic votes driven by “one person one” vote principle'
+              'Run polls and democratic votes driven by “one person - one vote” principle'
             )}
           </Text>
           <Image mt={8} src="/static/welcome/step-3.png" />
