@@ -2261,7 +2261,9 @@ export function ValidationScreen({
                     <SlideFade
                       style={{
                         zIndex:
-                          currentFlip.relevance === RelevanceType.Relevant
+                          currentFlip.relevance === RelevanceType.Relevant &&
+                          (Object.keys(bestFlipHashes).length < 1 ||
+                            bestFlipHashes[currentFlip.hash])
                             ? 'auto'
                             : -1,
                       }}

@@ -1644,6 +1644,12 @@ export const createValidationMachine = ({
             actions: [
               'onExceededReports',
               assign({
+                bestFlipHashes: ({bestFlipHashes}, {hash}) => {
+                  if (bestFlipHashes[hash]) {
+                    delete bestFlipHashes[hash]
+                  }
+                  return bestFlipHashes
+                },
                 longFlips: ({longFlips}, {hash}) =>
                   mergeFlipsByHash(longFlips, [
                     {hash, relevance: RelevanceType.Abstained},
