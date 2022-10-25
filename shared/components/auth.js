@@ -307,7 +307,7 @@ export function AuthLayout({children, ...props}) {
       flex="1"
       height={[`${windowHeight}px`, '100vh']}
       position={['fixed', 'auto']}
-      width={['100%', 'auto']}
+      width={['100%', 'unset']}
       {...props}
     >
       {children}
