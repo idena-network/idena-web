@@ -225,8 +225,13 @@ function Init() {
   return (
     <AuthLayout>
       <AuthLayout.New showLanguage pb={hasDnaUrl ? [0, 0] : 'unset'}>
-        <Flex width="100%" direction="column">
-          <Flex justify="center" mb={['100px', '35px']} mt={['100px', 0]}>
+        <Flex width="100%" direction="column" flex={1}>
+          <Flex
+            justify="center"
+            flex={0.5}
+            alignItems="center"
+            mb={[0, '35px']}
+          >
             <Image
               src="/static/idena-logo-round-white.svg"
               alt="logo"
@@ -235,40 +240,47 @@ function Init() {
             />
           </Flex>
 
-          <Box display={hasDnaUrl ? 'none' : 'block'}>
-            <Flex justify="center">
-              <SubHeading color="white">Proof-Of-Person Blockchain</SubHeading>
-            </Flex>
+          <Flex direction="column">
+            <Box display={hasDnaUrl ? 'none' : 'block'}>
+              <Flex justify="center">
+                <SubHeading color="white">
+                  Proof-Of-Person Blockchain
+                </SubHeading>
+              </Flex>
 
-            <Text
-              color="xwhite.050"
-              fontSize="mdx"
-              textAlign="center"
-              marginBottom="45px"
+              <Text
+                color="xwhite.050"
+                fontSize="mdx"
+                textAlign="center"
+                marginBottom="45px"
+              >
+                {t('Join the mining of the first human-centric cryptocurrency')}
+              </Text>
+            </Box>
+
+            <WarningAlert
+              color="warning.500"
+              display={hasDnaUrl ? 'block' : 'none'}
+              mb={6}
+              fontSize={['14px', '13px']}
             >
-              {t('Join the mining of the first human-centric cryptocurrency')}
-            </Text>
-          </Box>
+              {t('Create a new Idena account or Sign in with existing one')}
+            </WarningAlert>
 
-          <WarningAlert
-            color="warning.500"
-            display={hasDnaUrl ? 'block' : 'none'}
-            mb={6}
-            fontSize={['14px', '13px']}
-          >
-            {t('Create a new Idena account or Sign in with existing one')}
-          </WarningAlert>
-
-          <PrimaryButton size={size} onClick={() => Router.push('/key/create')}>
-            {t('Create an account')}
-          </PrimaryButton>
-          <SecondaryButton
-            mt={2}
-            size={size}
-            onClick={() => Router.push('/key/import')}
-          >
-            {t('Sign in')}
-          </SecondaryButton>
+            <PrimaryButton
+              size={size}
+              onClick={() => Router.push('/key/create')}
+            >
+              {t('Create an account')}
+            </PrimaryButton>
+            <SecondaryButton
+              mt={2}
+              size={size}
+              onClick={() => Router.push('/key/import')}
+            >
+              {t('Sign in')}
+            </SecondaryButton>
+          </Flex>
         </Flex>
         {hasDnaUrl && (
           <DnaAppUrlNew
@@ -362,7 +374,7 @@ AuthLayout.New = function({children, showLanguage, ...props}) {
     >
       <Flex
         flex={[1, 0]}
-        align-items="center"
+        alignItems="center"
         direction="column"
         w={['full', '360px']}
         background={['unset', 'rgba(0, 0, 0, 0.16)']}
