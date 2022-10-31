@@ -2040,7 +2040,7 @@ export function ValidationScreen({
         setBestRewardTipOpen(false)
       }, 5000)
     }
-  }, [bestRewardTipOpen, currentFlip])
+  }, [bestRewardTipOpen])
 
   return (
     <ValidationScene
