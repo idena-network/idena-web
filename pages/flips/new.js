@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react'
+import React, {useEffect, useState} from 'react'
 import {useRouter} from 'next/router'
 import {Box, Flex, useToast, Divider, useDisclosure} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
@@ -23,6 +23,7 @@ import {
   FlipSubmitStep,
   CommunityTranslationUnavailable,
   PublishFlipDrawer,
+  FlipProtectStep,
 } from '../../screens/flips/components'
 import Layout from '../../shared/components/layout'
 import {flipMasterMachine} from '../../screens/flips/machines'
@@ -30,6 +31,8 @@ import {
   publishFlip,
   isPendingKeywordPair,
   getRandomKeywordPair,
+  protectFlip,
+  checkIfFlipNoiseEnabled,
 } from '../../screens/flips/utils'
 import {Step} from '../../screens/flips/types'
 import {
@@ -95,6 +98,7 @@ export default function NewFlipPage() {
 
         return {keywordPairId, availableKeywords, didShowBadFlip}
       },
+      protectFlip: async flip => protectFlip(flip),
       submitFlip: async context => {
         const result = await publishFlip(context)
         waitFlipsUpdate()
@@ -120,6 +124,7 @@ export default function NewFlipPage() {
     keywordPairId,
     keywords,
     images,
+    protectedImages,
     originalOrder,
     order,
     showTranslation,
@@ -149,6 +154,9 @@ export default function NewFlipPage() {
       router.push('/flips/list')
     }, [router, send]),
   })
+
+  const isFlipNoiseEnabled = checkIfFlipNoiseEnabled(epochState?.epoch)
+  const maybeProtectedImages = isFlipNoiseEnabled ? protectedImages : images
 
   return (
     <Layout showHamburger={false}>
@@ -196,6 +204,20 @@ export default function NewFlipPage() {
                 >
                   {t('Select images')}
                 </FlipMasterNavbarItem>
+                {isFlipNoiseEnabled ? (
+                  <FlipMasterNavbarItem
+                    step={
+                      // eslint-disable-next-line no-nested-ternary
+                      is('protect')
+                        ? Step.Active
+                        : is('keywords') || is('images')
+                        ? Step.Next
+                        : Step.Completed
+                    }
+                  >
+                    {t('Protect images')}
+                  </FlipMasterNavbarItem>
+                ) : null}
                 <FlipMasterNavbarItem
                   step={
                     // eslint-disable-next-line no-nested-ternary
@@ -299,9 +321,22 @@ export default function NewFlipPage() {
                   onPainting={() => send('PAINTING')}
                 />
               )}
+              {is('protect') && (
+                <FlipProtectStep
+                  keywords={keywords}
+                  showTranslation={showTranslation}
+                  originalOrder={originalOrder}
+                  images={images}
+                  protectedImages={protectedImages}
+                  onProtecting={() => send('PROTECTING')}
+                  onProtectImage={(image, currentIndex) =>
+                    send('CHANGE_PROTECTED_IMAGES', {image, currentIndex})
+                  }
+                />
+              )}
               {is('shuffle') && (
                 <FlipShuffleStep
-                  images={images}
+                  images={maybeProtectedImages}
                   originalOrder={originalOrder}
                   order={order}
                   onShuffle={() => send('SHUFFLE')}
@@ -319,7 +354,7 @@ export default function NewFlipPage() {
                   onSwitchLocale={() => send('SWITCH_LOCALE')}
                   originalOrder={originalOrder}
                   order={order}
-                  images={images}
+                  images={maybeProtectedImages}
                 />
               )}
             </FlipMaster>
@@ -328,7 +363,7 @@ export default function NewFlipPage() {
         <FlipMasterFooter>
           {not('keywords') && (
             <SecondaryButton
-              isDisabled={is('images.painting')}
+              isDisabled={is('images.painting') || is('protect.protecting')}
               onClick={() => send('PREV')}
             >
               {t('Previous step')}
@@ -336,7 +371,7 @@ export default function NewFlipPage() {
           )}
           {not('submit') && (
             <PrimaryButton
-              isDisabled={is('images.painting')}
+              isDisabled={is('images.painting') || is('protect.protecting')}
               onClick={() => send('NEXT')}
             >
               {t('Next step')}
@@ -374,7 +409,7 @@ export default function NewFlipPage() {
           isPending={either('submit.submitting', 'submit.mining')}
           flip={{
             keywords: showTranslation ? keywords.translations : keywords.words,
-            images,
+            images: maybeProtectedImages,
             originalOrder,
             order,
           }}

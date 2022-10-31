@@ -11,6 +11,7 @@ import {
   updateFlipType,
   DEFAULT_FLIP_ORDER,
   createOrUpdateFlip,
+  checkIfFlipNoiseEnabled,
 } from './utils'
 import {callRpc} from '../../shared/utils/utils'
 import {shuffle} from '../../shared/utils/arr'
@@ -94,6 +95,7 @@ export const flipsMachine = Machine(
                 hash,
                 keywords: keywords[idx],
                 images: Array.from({length: 4}),
+                protectedImages: Array.from({length: 4}),
               }))
             }
 
@@ -542,6 +544,7 @@ export const flipMasterMachine = Machine(
         translations: [[], []],
       },
       images: Array.from({length: 4}),
+      protectedImages: Array.from({length: 4}),
       originalOrder: DEFAULT_FLIP_ORDER,
       order: DEFAULT_FLIP_ORDER,
       orderPermutations: DEFAULT_FLIP_ORDER,
@@ -756,7 +759,15 @@ export const flipMasterMachine = Machine(
                 ],
               },
               PAINTING: '.painting',
-              NEXT: 'shuffle',
+              NEXT: [
+                {
+                  target: 'protect',
+                  cond: 'isFlipNoiseEnabled',
+                },
+                {
+                  target: 'shuffle',
+                },
+              ],
               PREV: 'keywords',
             },
             initial: 'idle',
@@ -773,6 +784,65 @@ export const flipMasterMachine = Machine(
                     target: 'idle',
                     actions: [
                       assign((context, {flip}) => ({...context, ...flip})),
+                      log(),
+                    ],
+                  },
+                },
+              },
+            },
+          },
+          protect: {
+            on: {
+              CHANGE_PROTECTED_IMAGES: {
+                target: '.idle',
+                actions: [
+                  assign({
+                    protectedImages: (
+                      {protectedImages},
+                      {image, currentIndex}
+                    ) => [
+                      ...protectedImages.slice(0, currentIndex),
+                      image,
+                      ...protectedImages.slice(currentIndex + 1),
+                    ],
+                  }),
+                  log(),
+                ],
+              },
+              PROTECTING: '.protecting',
+              NEXT: 'shuffle',
+              PREV: {
+                target: 'images',
+                actions: [
+                  assign({
+                    protectedImages: Array.from({length: 4}),
+                  }),
+                ],
+              },
+            },
+            initial: 'idle',
+            states: {
+              idle: {
+                on: {
+                  '': [
+                    {
+                      target: 'protecting',
+                      cond: ({images, protectedImages}) =>
+                        images.some(x => x) && !protectedImages.some(x => x),
+                    },
+                  ],
+                },
+              },
+              protecting: {
+                invoke: {
+                  src: 'protectFlip',
+                  onDone: {
+                    target: 'idle',
+                    actions: [
+                      assign((context, {data: {protectedImages}}) => ({
+                        ...context,
+                        protectedImages,
+                      })),
                       log(),
                     ],
                   },
@@ -814,7 +884,15 @@ export const flipMasterMachine = Machine(
                 actions: ['changeOrder', log()],
               },
               NEXT: 'submit',
-              PREV: 'images',
+              PREV: [
+                {
+                  target: 'protect',
+                  cond: 'isFlipNoiseEnabled',
+                },
+                {
+                  target: 'images',
+                },
+              ],
             },
             initial: 'idle',
             states: {
@@ -876,6 +954,7 @@ export const flipMasterMachine = Machine(
         },
         on: {
           PICK_IMAGES: '.images',
+          PICK_PROTECT: '.protect',
           PICK_KEYWORDS: '.keywords',
           PICK_SHUFFLE: '.shuffle',
           PICK_SUBMIT: '.submit',
@@ -908,6 +987,7 @@ export const flipMasterMachine = Machine(
           order,
           orderPermutations,
           images,
+          protectedImages,
           keywords,
           type,
           createdAt,
@@ -927,6 +1007,7 @@ export const flipMasterMachine = Machine(
             order,
             orderPermutations,
             images,
+            protectedImages,
             keywords,
           }
 
@@ -973,6 +1054,9 @@ export const flipMasterMachine = Machine(
           order.map(n => originalOrder.findIndex(o => o === n)),
       }),
       persistFlip: async context => createOrUpdateFlip(context),
+    },
+    guards: {
+      isFlipNoiseEnabled: ({epoch}) => checkIfFlipNoiseEnabled(epoch),
     },
   }
 )
