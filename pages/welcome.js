@@ -178,7 +178,7 @@ export default function Welcome() {
           </Text>
           <Image mt={8} src="/static/welcome/step-7.png" />
         </Flex>
-        <Flex mt={['auto', 5]} justifyContent="space-between">
+        <Flex mt={['auto', 5]} justifyContent="space-between" w="full">
           <Button
             variant="link"
             color="blue.500"
