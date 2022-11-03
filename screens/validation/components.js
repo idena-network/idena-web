@@ -2205,7 +2205,7 @@ export function ValidationScreen({
                     </QualificationButton>
                     <Tooltip
                       label={t(
-                        'Please remove Report status from some other flips to continue'
+                        'All available reports are used. You can skip this flip or remove Report status from other flips.'
                       )}
                       isOpen={isExceededTooltipOpen}
                       placement="top"
