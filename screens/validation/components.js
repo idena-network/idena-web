@@ -26,6 +26,7 @@ import {
   useMediaQuery,
   ModalBody,
   VStack,
+  SlideFade,
 } from '@chakra-ui/react'
 import {useSwipeable} from 'react-swipeable'
 import {Trans, useTranslation} from 'react-i18next'
@@ -77,6 +78,8 @@ import {
   ArrowBackIcon,
   ZoomFlipIcon,
   CrossSmallIcon,
+  NewStarIcon,
+  HollowStarIcon,
 } from '../../shared/components/icons'
 import {use100vh} from '../../shared/hooks/use-100vh'
 import {useIsDesktop} from '../../shared/utils/utils'
@@ -616,18 +619,45 @@ export function Thumbnail({
   relevance,
   isCurrent,
   isLong,
+  isBest,
+  isDesktop,
   onPick,
 }) {
   const isQualified = !!relevance
   const hasIrrelevantWords = relevance === RelevanceType.Irrelevant
   const flipPreviewSize = useBreakpointValue(['100%', 32])
   const flipPreviewBorderRadius = useBreakpointValue(['16px', '12px'])
+  const bestRewardTooltipPlacement = useBreakpointValue([
+    'bottom-start',
+    'top-start',
+  ])
+
+  const [bestRewardTooltipShowed, setBestRewardTooltipShowed] = useState(false)
+  const [bestRewardTooltipOpen, setBestRewardTooltipOpen] = useState(false)
+  useEffect(() => {
+    if (isBest && isCurrent && !bestRewardTooltipShowed) {
+      setBestRewardTooltipOpen(true)
+      setBestRewardTooltipShowed(true)
+    }
+  }, [isBest, isCurrent, bestRewardTooltipShowed])
+  useEffect(() => {
+    if (!isCurrent || !isBest) {
+      setBestRewardTooltipOpen(false)
+    }
+    if (bestRewardTooltipOpen) {
+      setTimeout(() => {
+        setBestRewardTooltipOpen(false)
+      }, 5000)
+    }
+  }, [bestRewardTooltipOpen, isBest, isCurrent])
 
   return (
     <ThumbnailHolder
       name={flipId}
       isCurrent={isCurrent}
       isLong={isLong}
+      isBest={isBest}
+      isDesktop={isDesktop}
       border={[
         `solid 1px ${
           // eslint-disable-next-line no-nested-ternary
@@ -665,6 +695,31 @@ export function Thumbnail({
               hasIrrelevantWords={hasIrrelevantWords}
             />
           )}
+          <ChakraFlex
+            justify="center"
+            align={['flex-end', 'flex-start']}
+            w="100%"
+            h="100%"
+            position="absolute"
+          >
+            <ChakraBox>
+              <Tooltip
+                isOpen={bestRewardTooltipOpen}
+                label="This flip will be rewarded with an 8x reward if other members also mark it as the best"
+                fontSize="mdx"
+                fontWeight={400}
+                mt={[2, 0]}
+                mb={[0, 2]}
+                px={3}
+                py={[2, '10px']}
+                w={['228px', 'auto']}
+                placement={bestRewardTooltipPlacement}
+                openDelay={100}
+              >
+                {' '}
+              </Tooltip>
+            </ChakraBox>
+          </ChakraFlex>
           <FlipImage
             src={images[0]}
             alt={images[0]}
@@ -684,7 +739,14 @@ export function Thumbnail({
   )
 }
 
-function ThumbnailHolder({isCurrent, isLong, children, ...props}) {
+function ThumbnailHolder({
+  isCurrent,
+  isLong,
+  isBest,
+  isDesktop,
+  children,
+  ...props
+}) {
   const currentColor = isLong ? 'gray.500' : 'xwhite.500'
 
   return (
@@ -705,6 +767,22 @@ function ThumbnailHolder({isCurrent, isLong, children, ...props}) {
         w={['44px', '32px']}
         m={[0.5, 1]}
       >
+        {isBest && (
+          <ChakraFlex
+            position="absolute"
+            top={['-4px', '-8px']}
+            right={['-4px', '-8px']}
+            w={5}
+            h={5}
+            align="center"
+            justify="center"
+            borderRadius="50%"
+            backgroundColor="white"
+            zIndex={2}
+          >
+            <NewStarIcon w={2} h={2} color="white" />
+          </ChakraFlex>
+        )}
         {children}
       </ChakraBox>
     </ChakraFlex>
@@ -1899,6 +1977,7 @@ export function ValidationScreen({
 
   const {
     currentIndex,
+    bestFlipHashes,
     translations,
     reports,
     longFlips,
@@ -1943,6 +2022,25 @@ export function ValidationScreen({
   }
 
   const reportsCount = Object.keys(reports).length
+
+  const [bestRewardTipOpen, setBestRewardTipOpen] = useState(false)
+  useEffect(() => {
+    if (currentFlip && currentFlip.relevance === RelevanceType.Relevant) {
+      setBestRewardTipOpen(true)
+    }
+  }, [currentFlip])
+  useEffect(() => {
+    if (bestFlipHashes[currentFlip?.hash]) {
+      setBestRewardTipOpen(false)
+    }
+  }, [bestFlipHashes, currentFlip])
+  useEffect(() => {
+    if (bestRewardTipOpen) {
+      setTimeout(() => {
+        setBestRewardTipOpen(false)
+      }, 5000)
+    }
+  }, [bestRewardTipOpen])
 
   return (
     <ValidationScene
@@ -2107,7 +2205,7 @@ export function ValidationScreen({
                     </QualificationButton>
                     <Tooltip
                       label={t(
-                        'Please remove Report status from some other flips to continue'
+                        'All available reports are used. You can skip this flip or remove Report status from other flips.'
                       )}
                       isOpen={isExceededTooltipOpen}
                       placement="top"
@@ -2161,6 +2259,73 @@ export function ValidationScreen({
                       </QualificationButton>
                     </Tooltip>
                   </QualificationActions>
+                  {isDesktop && (
+                    <SlideFade
+                      style={{
+                        zIndex:
+                          currentFlip.relevance === RelevanceType.Relevant &&
+                          (Object.keys(bestFlipHashes).length < 1 ||
+                            bestFlipHashes[currentFlip.hash])
+                            ? 'auto'
+                            : -1,
+                      }}
+                      offsetY="-80px"
+                      in={
+                        currentFlip.relevance === RelevanceType.Relevant &&
+                        (Object.keys(bestFlipHashes).length < 1 ||
+                          bestFlipHashes[currentFlip.hash])
+                      }
+                    >
+                      <Divider mt={1} />
+                      <ChakraFlex direction="column" align="center">
+                        <Button
+                          backgroundColor="transparent"
+                          border="solid 1px #d2d4d9"
+                          color="brandGray.500"
+                          borderRadius={6}
+                          mt={5}
+                          w={['100%', 'auto']}
+                          isActive={!!bestFlipHashes[currentFlip.hash]}
+                          _hover={{
+                            backgroundColor: 'transparent',
+                            _disabled: {
+                              backgroundColor: 'transparent',
+                              color: '#DCDEDF',
+                            },
+                          }}
+                          _active={{
+                            backgroundColor: '#F5F6F7',
+                          }}
+                          onClick={() =>
+                            send({
+                              type: 'FAVORITE',
+                              hash: currentFlip.hash,
+                            })
+                          }
+                        >
+                          {bestFlipHashes[currentFlip.hash] ? (
+                            <NewStarIcon
+                              h="12.5px"
+                              w="13px"
+                              mr="5.5px"
+                              fill="brandGray.500"
+                            />
+                          ) : (
+                            <HollowStarIcon
+                              h="12.5px"
+                              w="13px"
+                              mr="5.5px"
+                              fill="brandGray.500"
+                            />
+                          )}
+                          {t('Mark as the best')}
+                        </Button>
+                        <Text fontSize="11px" color="#B8BABC" mt={2}>
+                          {t('You can mark this flip as the best')}
+                        </Text>
+                      </ChakraFlex>
+                    </SlideFade>
+                  )}
                 </Stack>
               </FlipWords>
             )}
@@ -2181,6 +2346,48 @@ export function ValidationScreen({
           />
         </ActionBarItem>
         <ActionBarItem justify="flex-end">
+          {!isDesktop &&
+            currentFlip &&
+            currentFlip.relevance === RelevanceType.Relevant &&
+            (Object.keys(bestFlipHashes).length < 1 ||
+              bestFlipHashes[currentFlip.hash]) && (
+              <Tooltip
+                isOpen={bestRewardTipOpen}
+                hasArrow={false}
+                label={t('You can mark this flip as the best')}
+                placement="top"
+                zIndex="tooltip"
+                fontSize="mdx"
+                px={3}
+                py="10px"
+                mr={5}
+              >
+                <ChakraFlex
+                  align="center"
+                  justify="center"
+                  position="absolute"
+                  top="-100px"
+                  right={5}
+                  w={14}
+                  h={14}
+                  borderRadius="50%"
+                  boxShadow="0px 2px 4px rgba(0, 0, 0, 0.16)"
+                  backgroundColor="white"
+                  onClick={() =>
+                    send({
+                      type: 'FAVORITE',
+                      hash: currentFlip.hash,
+                    })
+                  }
+                >
+                  {bestFlipHashes[currentFlip.hash] ? (
+                    <NewStarIcon h={5} w={5} fill="brandGray.500" />
+                  ) : (
+                    <HollowStarIcon h={5} w={5} fill="brandGray.500" />
+                  )}
+                </ChakraFlex>
+              </Tooltip>
+            )}
           <ChakraBox
             display={['block', 'none']}
             position="fixed"
@@ -2276,6 +2483,8 @@ export function ValidationScreen({
             {...flip}
             isCurrent={currentIndex === idx}
             isLong={isLongSessionFlips(state) || isLongSessionKeywords(state)}
+            isBest={bestFlipHashes[flip.hash]}
+            isDesktop={isDesktop}
             onPick={() => send({type: 'PICK', index: idx})}
           />
         ))}
