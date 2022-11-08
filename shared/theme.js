@@ -719,5 +719,13 @@ export const uiTheme = {
         }),
       },
     },
+    Form: {
+      baseStyle: {
+        container: {
+          px: 'px',
+          pb: 'px',
+        },
+      },
+    },
   },
 }

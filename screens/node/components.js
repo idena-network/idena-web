@@ -1,6 +1,5 @@
 /* eslint-disable react/prop-types */
 import {
-  Box,
   Flex,
   FormControl,
   FormHelperText,
@@ -12,6 +11,7 @@ import {
   useBreakpointValue,
   Text,
   Button,
+  HStack,
 } from '@chakra-ui/react'
 import dayjs from 'dayjs'
 import {useEffect, useMemo, useState} from 'react'
@@ -188,31 +188,18 @@ export function BuySharedNodeForm({
         </PrimaryButton>
       </DrawerBody>
       <DrawerFooter display={['none', 'flex']}>
-        <Box
-          alignSelf="stretch"
-          borderTop="1px"
-          borderTopColor="gray.100"
-          mt="auto"
-          pt={5}
-          width="100%"
-        >
-          <Stack isInline spacing={2} justify="flex-end">
-            <SecondaryButton
-              fontSize={13}
-              onClick={onClose}
-              isDisabled={waiting}
-            >
-              {t('Not now')}
-            </SecondaryButton>
-            <PrimaryButton
-              onClick={transfer}
-              isLoading={waiting}
-              loadingText={t('Mining...')}
-            >
-              {t('Transfer')}
-            </PrimaryButton>
-          </Stack>
-        </Box>
+        <HStack spacing={2} justify="flex-end">
+          <SecondaryButton isDisabled={waiting} onClick={onClose}>
+            {t('Not now')}
+          </SecondaryButton>
+          <PrimaryButton
+            onClick={transfer}
+            isLoading={waiting}
+            loadingText={t('Mining...')}
+          >
+            {t('Transfer')}
+          </PrimaryButton>
+        </HStack>
       </DrawerFooter>
     </AdDrawer>
   )
