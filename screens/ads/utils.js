@@ -96,27 +96,44 @@ export async function getAdVoting(address) {
   return voting
 }
 
+const findContractData = (batchData, key) => batchData.find(x => x.key === key)
+
 async function fetchAdVoting(address) {
-  const readContractKey = createContractDataReader(address)
+  const batchData = await callRpc('contract_batchReadData', address, [
+    {key: 'state', format: 'byte'},
+    {key: 'fact', format: 'hex'},
+    {key: 'result', format: 'byte'},
+  ])
 
   try {
-    const [state, fact, result] = await Promise.all([
-      readContractKey('state', 'byte').catch(e => {
-        if (e.message === 'data is nil') return VotingStatus.Terminated
-        throw e
-      }),
-      readContractKey('fact', 'hex'),
-      readContractKey('result', 'byte'),
-    ])
+    const {value: state, error: stateError} = findContractData(
+      batchData,
+      'state'
+    )
+
+    const fact = findContractData(batchData, 'fact')
+    const result = findContractData(batchData, 'result')
+
+    if (Boolean(fact.error) || Boolean(result.error)) {
+      throw new Error('Voting does not exist')
+    }
+
+    if (Boolean(stateError) && stateError !== 'data is nil')
+      throw new Error(stateError)
+
+    const status =
+      stateError === 'data is nil'
+        ? VotingStatus.Terminated
+        : mapToVotingStatus(state)
 
     return {
-      status: mapToVotingStatus(state),
-      ...hexToObject(fact),
-      result,
+      status,
+      ...hexToObject(fact.value),
+      result: result.value,
       isFetched: true,
     }
   } catch (e) {
-    console.error(e)
+    console.error(e, address)
   }
 }
 
