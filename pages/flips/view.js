@@ -141,7 +141,7 @@ export default function ViewFlipPage() {
                       {originalOrder.map((num, idx) => (
                         <FlipImageListItem
                           key={num}
-                          src={protectedImages[num]}
+                          src={images?.[num]}
                           isFirst={idx === 0}
                           isLast={idx === images.length - 1}
                           width={130}
@@ -152,7 +152,7 @@ export default function ViewFlipPage() {
                       {order.map((num, idx) => (
                         <FlipImageListItem
                           key={num}
-                          src={protectedImages[num]}
+                          src={images?.[num]}
                           isFirst={idx === 0}
                           isLast={idx === images.length - 1}
                           width={130}
@@ -184,7 +184,7 @@ export default function ViewFlipPage() {
         {current.matches('loaded') && (
           <DeleteFlipDrawer
             hash={hash}
-            cover={protectedImages[originalOrder[0]]}
+            cover={images?.[originalOrder[0]]}
             isOpen={isOpenDeleteForm}
             onClose={onCloseDeleteForm}
             onDelete={() => {
