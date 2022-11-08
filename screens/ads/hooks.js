@@ -366,6 +366,7 @@ export function useProfileAds() {
           queryFn: async () => ({
             ...ad,
             cid,
+            target,
             status: AdStatus.Published,
           }),
         }
