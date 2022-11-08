@@ -577,7 +577,7 @@ export function SendDrawer(props) {
               display={['flex', 'none']}
               fontSize="mobile"
               size="lg"
-              isLoading={state.status === 'pending'}
+              isLoading={isPending}
               loadingText={t('Mining...')}
             >
               {t('Send')}

@@ -736,16 +736,7 @@ export default function HomePage() {
 
         <ReplenishStakeDrawer
           {...replenishStakeDisclosure}
-          onSuccess={React.useCallback(
-            hash => {
-              toast({
-                title: t('Transaction sent'),
-                description: hash,
-              })
-              onCloseReplenishStakeDisclosure()
-            },
-            [onCloseReplenishStakeDisclosure, t, toast]
-          )}
+          onMined={onCloseReplenishStakeDisclosure}
           onError={failToast}
         />
 
