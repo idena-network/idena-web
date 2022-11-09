@@ -3,7 +3,7 @@ import React from 'react'
 import {useInterval} from '../../../shared/hooks/use-interval'
 import {useAuthState} from '../../../shared/providers/auth-context'
 import {useTestValidationState} from '../../../shared/providers/test-validation-context'
-import {EpochPeriod} from '../../../shared/types'
+import {CertificateType, EpochPeriod} from '../../../shared/types'
 
 export function useAutoStartTestValidation() {
   const start = useStartTestValidation()
@@ -20,10 +20,14 @@ export function useAutoStartTestValidation() {
 
 export function useStartTestValidation() {
   const {push: redirect} = useRouter()
+  const {current} = useTestValidationState()
 
   return React.useCallback(() => {
+    if (current?.type === CertificateType.Sample) {
+      return redirect('/try/sample')
+    }
     redirect('/try/validation')
-  }, [redirect])
+  }, [current, redirect])
 }
 
 export function useAutoStartTestLottery() {

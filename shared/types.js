@@ -91,6 +91,7 @@ export const CertificateType = {
   Easy: 0,
   Medium: 1,
   Hard: 2,
+  Sample: 3,
 }
 
 export const CertificateActionType = {

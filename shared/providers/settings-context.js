@@ -305,8 +305,10 @@ function SettingsProvider({children}) {
     [dispatch]
   )
 
+  const isNewUser = !state.url && !state.apiKey
+
   return (
-    <SettingsStateContext.Provider value={state}>
+    <SettingsStateContext.Provider value={{...state, isNewUser}}>
       <SettingsDispatchContext.Provider
         value={{
           saveEncryptedKey,

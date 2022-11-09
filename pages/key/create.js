@@ -44,6 +44,7 @@ import {
 } from '../../shared/components/icons'
 import {useSuccessToast} from '../../shared/hooks/use-toast'
 import {sendSignUp} from '../../shared/utils/analytics'
+import {use100vh} from '../../shared/hooks/use-100vh'
 
 const steps = {
   AVATAR: 0,
@@ -58,6 +59,8 @@ export default function CreateKey() {
   const variant = useBreakpointValue(['mobile', 'initial'])
   const buttonVariant = useBreakpointValue(['primaryFlat', 'secondary'])
   const successToast = useSuccessToast()
+
+  const windowHeight = use100vh()
 
   const router = useRouter()
   const [state, setState] = useState({
@@ -309,7 +312,8 @@ export default function CreateKey() {
         </AuthLayout>
       )}
       {state.step === steps.BACKUP && (
-        <AuthLayout>
+        // hack to set full height in case of opened keyboard on previous step
+        <AuthLayout height={[`${windowHeight}px`, '100vh']}>
           <Box
             w="100%"
             h={6}

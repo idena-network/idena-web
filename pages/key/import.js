@@ -30,7 +30,7 @@ export default function ImportKey() {
     password: '',
     saveKey: true,
   })
-  const {apiKey} = useSettingsState()
+  const {apiKey, isNewUser} = useSettingsState()
   const {setNewKey, decryptKey} = useAuthDispatch()
   const [error, setError] = useState()
   const [isScanningQr, setIsScanningQr] = useState(false)
@@ -47,8 +47,12 @@ export default function ImportKey() {
         setRestrictedKey()
       }
       sendSignIn(privateKeyToAddress(key))
-      router.push('/home')
       resetRestrictedModal()
+      if (isNewUser) {
+        router.push('/welcome')
+      } else {
+        router.push('/home')
+      }
     } else {
       setError(t('Key or password is invalid. Try again.'))
     }

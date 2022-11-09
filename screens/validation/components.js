@@ -1,7 +1,7 @@
 /* eslint-disable no-shadow */
 /* eslint-disable react/prop-types */
 import React, {useEffect, useRef, useState} from 'react'
-import {margin, borderRadius, cover, transparentize, rgba} from 'polished'
+import {borderRadius, cover, transparentize, rgba} from 'polished'
 import {FiCheck, FiXCircle, FiChevronLeft, FiChevronRight} from 'react-icons/fi'
 import {
   Box as ChakraBox,
@@ -27,6 +27,8 @@ import {
   ModalBody,
   VStack,
   SlideFade,
+  keyframes,
+  CloseButton,
 } from '@chakra-ui/react'
 import {useSwipeable} from 'react-swipeable'
 import {Trans, useTranslation} from 'react-i18next'
@@ -48,6 +50,7 @@ import {
   DrawerFooter,
   Drawer,
   DrawerBody,
+  WarningAlert,
 } from '../../shared/components/components'
 import {
   availableReportsNumber,
@@ -171,6 +174,33 @@ export function FlipChallenge(props) {
   )
 }
 
+const shake = keyframes`
+  from, to {
+    -webkit-transform: translate3d(0, 0, 0);
+    transform: translate3d(0, 0, 0);
+  }
+
+  10%{
+    -webkit-transform: translate3d(0, -30px, 0);
+    transform: translate3d(0, -30px, 0);
+  }
+
+  50% {
+    -webkit-transform: translate3d(0, -15px, 0);
+    transform: translate3d(0, -15px, 0);
+  }
+
+  30%{
+    -webkit-transform: translate3d(0, 10px, 0);
+    transform: translate3d(0, 10px, 0);
+  }
+
+  80% {
+    -webkit-transform: translate3d(0, 5px, 0);
+    transform: translate3d(0, 5px, 0);
+  }
+`
+
 export function Flip({
   hash,
   images,
@@ -183,7 +213,10 @@ export function Flip({
   timerDetails,
   onChoose,
   isTrainingValidation,
+  isWrongAnswer,
 }) {
+  const {t} = useTranslation()
+  const chakraTheme = useTheme()
   const radius = useBreakpointValue(['12px', '8px'])
   const windowHeight = use100vh()
   const isDesktop = useIsDesktop()
@@ -216,21 +249,33 @@ export function Flip({
   if ((fetched && !decoded) || failed) return <FailedFlip />
   if (!fetched) return <LoadingFlip />
 
+  const isSelected = option === variant
+  const showWrongAnswer = isWrongAnswer && isSelected
+
   return (
-    <div ref={refFlipHover}>
+    <ChakraBox ref={refFlipHover}>
       <FlipHolder
+        showWrongAnswer={showWrongAnswer}
         isZoomHovered={isZoomIconHovered}
         css={
           // eslint-disable-next-line no-nested-ternary
           option
-            ? option === variant
+            ? isSelected
               ? {
-                  border: `solid ${rem(2)} ${theme.colors.primary}`,
+                  border: `solid ${rem(2)} ${
+                    isWrongAnswer
+                      ? chakraTheme.colors.red['500']
+                      : chakraTheme.colors.blue['500']
+                  }`,
                   boxShadow: `0 0 ${rem(2)} ${rem(3)} ${transparentize(
                     0.75,
-                    theme.colors.primary
+                    isWrongAnswer
+                      ? chakraTheme.colors.red['500']
+                      : chakraTheme.colors.blue['500']
                   )}`,
-                  transition: 'all .3s cubic-bezier(.5, 0, .5, 1)',
+                  transition:
+                    !isWrongAnswer && 'all .3s cubic-bezier(.5, 0, .5, 1)',
+                  animation: isWrongAnswer && `${shake} ${600}ms`,
                 }
               : {
                   opacity: 0.3,
@@ -249,7 +294,6 @@ export function Flip({
             ]}
             borderRadius={getFlipBorderRadius(idx, images.length - 1, radius)}
             css={{
-              // height: 'calc((100vh - 260px) / 4)',
               position: 'relative',
               overflow: 'hidden',
             }}
@@ -393,11 +437,26 @@ export function Flip({
           </ModalContent>
         </Modal>
       </FlipHolder>
-    </div>
+      {showWrongAnswer && (
+        <ChakraFlex justifyContent="center" alignItems="center" mt={2} w="100%">
+          <ChakraFlex
+            bg="red.020"
+            color="red.500"
+            borderRadius="10px"
+            px={2}
+            py={1}
+            fontSize="sm"
+            fontWeight={500}
+          >
+            {t('Wrong')}
+          </ChakraFlex>
+        </ChakraFlex>
+      )}
+    </ChakraBox>
   )
 }
 
-function FlipHolder({css, isZoomHovered = false, ...props}) {
+function FlipHolder({css, showWrongAnswer, isZoomHovered = false, ...props}) {
   const windowHeight = use100vh()
   return (
     <Tooltip
@@ -411,7 +470,12 @@ function FlipHolder({css, isZoomHovered = false, ...props}) {
         justify="center"
         direction="column"
         position="relative"
-        h={[`calc(${windowHeight}px - 290px)`, 'calc(100vh - 260px)']}
+        h={[
+          showWrongAnswer
+            ? `calc(${windowHeight}px - 340px)`
+            : `calc(${windowHeight}px - 290px)`,
+          showWrongAnswer ? 'calc(100vh - 310px)' : 'calc(100vh - 260px)',
+        ]}
         w={['100%', 'calc((100vh - 240px) / 3)']}
         mx={['6px', '10px']}
         my={0}
@@ -1938,6 +2002,7 @@ export function ValidationScreen({
   longSessionDuration,
   isExceededTooltipOpen,
   onValidationFailed,
+  onClose,
 }) {
   const router = useRouter()
 
@@ -1982,6 +2047,7 @@ export function ValidationScreen({
     reports,
     longFlips,
     isTraining,
+    isSample,
   } = state.context
 
   const flips = sessionFlips(state)
@@ -2046,7 +2112,7 @@ export function ValidationScreen({
     <ValidationScene
       bg={isShortSession(state) ? theme.colors.black : theme.colors.white}
     >
-      <Header order={[1, 1]}>
+      <Header>
         <Heading
           display={['block', 'none']}
           color={isShortSession(state) ? 'white' : 'brandGray.500'}
@@ -2060,31 +2126,57 @@ export function ValidationScreen({
         <Title
           color={['muted', isShortSession(state) ? 'white' : 'brandGray.500']}
           zIndex={[2, 'auto']}
+          w={['130px', 'auto']}
+          textAlign="center"
         >
           {/* eslint-disable-next-line no-nested-ternary */}
           {['shortSession', 'longSession'].some(state.matches) &&
           !isLongSessionKeywords(state)
             ? isDesktop
               ? t('Select meaningful story: left or right', {nsSeparator: '!'})
-              : t('Select meaningful story:', {nsSeparator: '!'})
+              : t('Select meaningful story', {nsSeparator: '!'})
             : isDesktop
             ? t('Check flips quality')
             : ''}
+          {t(` (${currentIndex + 1} of ${flips.length})`)}
         </Title>
-        <Flex align="center">
-          <Title
-            color={['muted', isShortSession(state) ? 'white' : 'brandGray.500']}
-            mr={[0, 6]}
-            zIndex={[2, 'auto']}
+        {isTraining && (
+          <ChakraFlex
+            position="absolute"
+            top={[-2, 5]}
+            right={4}
+            alignItems="center"
           >
-            {!isDesktop && !isLongSessionKeywords(state) && 'left or right ('}
-            {currentIndex + 1}{' '}
-            <Text as="span" color="muted">
-              {t('out of')} {flips.length}
-            </Text>
-            {!isDesktop && !isLongSessionKeywords(state) && ')'}
-          </Title>
-        </Flex>
+            <ChakraFlex
+              bg="warning.020"
+              fontSize="md"
+              color="warning.500"
+              fontWeight={500}
+              borderRadius="15px"
+              px={4}
+              py={1}
+              display={['none', 'block']}
+            >
+              {t('Training validation')}
+            </ChakraFlex>
+            <Divider
+              display={['none', 'flex']}
+              h={8}
+              orientation="vertical"
+              color="gray.100"
+              ml={4}
+              mr={1}
+            />
+            <CloseButton
+              _hover={{
+                bg: 'none',
+              }}
+              size="lg"
+              color={isShortSession(state) ? 'white' : 'brandGray.500'}
+              onClick={() => onClose && onClose()}
+            ></CloseButton>
+          </ChakraFlex>
+        )}
       </Header>
       <ChakraBox order={[3, 2]}>
         <ChakraBox
@@ -2102,7 +2194,7 @@ export function ValidationScreen({
               w={['100%', 'auto']}
               pb={[isLongSessionKeywords(state) ? '96px' : '16px', 0]}
               justify="center"
-              align="center"
+              align="flex-start"
               position="relative"
               {...handlers}
             >
@@ -2537,7 +2629,7 @@ export function ValidationScreen({
         />
       )}
 
-      {state.matches('validationFailed') && (
+      {state.matches('validationFailed') && !isSample && (
         <ValidationFailedDialog
           isOpen
           isDesktop={isDesktop}
@@ -2696,7 +2788,7 @@ function canSubmit(state) {
     )
 }
 
-function sessionFlips(state) {
+export function sessionFlips(state) {
   const {
     context: {shortFlips, longFlips},
   } = state
