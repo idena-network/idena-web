@@ -43,7 +43,6 @@ import {
   DialogHeader,
   ErrorAlert,
 } from '../../shared/components/components'
-import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {GetReasonDesc} from '../../screens/try/components'
 
 export default function SamplePage() {
@@ -356,22 +355,6 @@ function ValidationSession({
           </Stack>
         </DialogBody>
         <DialogFooter>
-          <Button
-            size={size}
-            order={[3, 1]}
-            w={['100%', 'auto']}
-            variant={variantSecondary}
-            onClick={() => router.push('/home')}
-          >
-            {t('Skip')}
-          </Button>
-          <Divider
-            order={2}
-            display={['block', 'none']}
-            h={10}
-            orientation="vertical"
-            color="gray.100"
-          />
           <Button
             size={size}
             order={[1, 3]}
