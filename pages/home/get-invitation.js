@@ -53,6 +53,8 @@ export default function GetInvitation() {
 
   const size = useBreakpointValue(['lg', 'md'])
 
+  const followersCount = process.env.NEXT_PUBLIC_TWITTER_MINIMUM_SUBS_COUNT || 100
+
   const invitationCodeRef = useRef()
 
   const {scrollTo: scrollToCode} = useScroll(invitationCodeRef)
@@ -201,8 +203,8 @@ export default function GetInvitation() {
                           </Link>{' '}
                           with a hashtag #IdenaInvite from your account. To get
                           an invite, your account should be older than 1 year or
-                          older than two months and have at least 50 followers.
-                          The tweet should say:
+                          older than two months and have at least{' '}
+                          {{followersCount}} followers. The tweet should say:
                         </Trans>
                       </Text>
                       <Flex mt={4} p={[7, 10]} borderRadius="md" bg="gray.50">
