@@ -112,7 +112,8 @@ export default async (req, res) => {
       access_token_secret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
     })
 
-    const minTwitterSubs = process.env.TWITTER_MINIMUM_SUBS_COUNT || 100
+    const minTwitterSubs =
+      process.env.NEXT_PUBLIC_TWITTER_MINIMUM_SUBS_COUNT || 100
     const minTwitterAge = process.env.TWITTER_AGE_MILLIS || 5184000000
 
     const currentEpoch = await getLastEpoch()
