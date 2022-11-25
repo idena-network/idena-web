@@ -1994,6 +1994,52 @@ function ReviewShortSessionDialog({
   )
 }
 
+function ValidationCloseDialog({onSubmit, onClose, isDesktop, ...props}) {
+  const {t} = useTranslation()
+
+  const size = useBreakpointValue(['mdx', 'md'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
+  const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
+
+  return (
+    <Dialog
+      title={t('Are you sure?')}
+      onClose={onClose}
+      isDesktop={isDesktop}
+      isCloseable={false}
+      {...props}
+    >
+      <DialogBody>
+        <Text>{t('Do you want to exit training validation?')}</Text>
+      </DialogBody>
+      <DialogFooter>
+        <Button
+          variant={variantSecondary}
+          size={size}
+          w={['100%', 'auto']}
+          onClick={onSubmit}
+        >
+          {t('Exit')}
+        </Button>
+        <Divider
+          display={['block', 'none']}
+          h={10}
+          orientation="vertical"
+          color="gray.100"
+        />
+        <Button
+          variant={variantPrimary}
+          size={size}
+          w={['100%', 'auto']}
+          onClick={onClose}
+        >
+          {t('Cancel')}
+        </Button>
+      </DialogFooter>
+    </Dialog>
+  )
+}
+
 export function ValidationScreen({
   state,
   send,
@@ -2038,6 +2084,12 @@ export function ValidationScreen({
     isOpen: isReportTipOpen,
     onOpen: onOpenReportTip,
     onClose: onCloseReportTip,
+  } = useDisclosure()
+
+  const {
+    isOpen: isCloseDialogOpen,
+    onOpen: onOpenCloseDialog,
+    onClose: onCloseCloseDialog,
   } = useDisclosure()
 
   const {
@@ -2173,7 +2225,7 @@ export function ValidationScreen({
               }}
               size="lg"
               color={isShortSession(state) ? 'white' : 'brandGray.500'}
-              onClick={() => onClose && onClose()}
+              onClick={() => onOpenCloseDialog()}
             ></CloseButton>
           </ChakraFlex>
         )}
@@ -2448,11 +2500,11 @@ export function ValidationScreen({
                 hasArrow={false}
                 label={t('You can mark this flip as the best')}
                 placement="top"
-                zIndex="tooltip"
                 fontSize="mdx"
                 px={3}
                 py="10px"
                 mr={5}
+                variant="z-index-1000"
               >
                 <ChakraFlex
                   align="center"
@@ -2720,6 +2772,12 @@ export function ValidationScreen({
         onCancel={() => {
           send('CANCEL')
         }}
+      />
+
+      <ValidationCloseDialog
+        isOpen={isCloseDialogOpen}
+        onSubmit={() => onClose && onClose()}
+        onClose={onCloseCloseDialog}
       />
     </ValidationScene>
   )

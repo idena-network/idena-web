@@ -728,5 +728,12 @@ export const uiTheme = {
         },
       },
     },
+    Tooltip: {
+      variants: {
+        'z-index-1000': {
+          zIndex: 1000,
+        },
+      },
+    },
   },
 }

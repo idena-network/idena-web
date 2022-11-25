@@ -99,7 +99,7 @@ export default function LotteryPage() {
           <Box>
             <MotionBox
               initial={{
-                y: isRotatingAds ? 180 : 0,
+                y: isRotatingAds && !isSample ? 180 : 0,
               }}
               animate={{
                 y: 0,

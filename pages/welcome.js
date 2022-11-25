@@ -33,6 +33,13 @@ export default function Welcome() {
   const [step, setStep] = useState(1)
   const [next, setNext] = useState(true)
 
+  const skip = () => {
+    if (step < 5) {
+      return setStep(5)
+    }
+    router.push('/home')
+  }
+
   return (
     <AuthLayout>
       <AuthLayout.New>
@@ -40,10 +47,10 @@ export default function Welcome() {
           variant="link"
           color="blue.500"
           fontSize="16px"
-          display={['flex', 'none']}
+          display={[step >= 5 ? 'none' : 'flex', 'none']}
           alignSelf="flex-end"
           mb={10}
-          onClick={() => router.push('/home')}
+          onClick={skip}
         >
           {t('Skip')}
         </Button>
@@ -182,13 +189,14 @@ export default function Welcome() {
           <Button
             variant="link"
             color="blue.500"
-            display={['none', 'flex']}
-            onClick={() => router.push('/home')}
+            display={['none', step >= 5 ? 'none' : 'flex']}
+            onClick={skip}
           >
             {t('Skip')}
           </Button>
           <PrimaryButton
             w={['full', 'auto']}
+            ml="auto"
             size={buttonSize}
             onClick={async () => {
               if (step === 5) {

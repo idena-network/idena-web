@@ -100,22 +100,13 @@ export function GetSampleShortHashes() {
 
 export function GetSampleLongHashes() {
   return shuffle([
-    {hash: 'bafkreibhlte3ft5zkor7fxqqketkdyqas2lqlshj74wuubouhbvpjva63m'},
     {hash: 'bafkreie4gxb72g73cnfwncynyfyfgltcuokfna7mpzxmuxbwg66fam5n3a'},
-    {hash: 'bafkreiatnxmcz3e657ldnoewppxvq3yfpdwsem7ctbgqllrbjvuhlx7e64'},
-    {hash: 'bafkreigetvqvfhkei2gd4exxie4hyujab2ukrcv5m77hngude23ldd3faa'},
-    {hash: 'bafkreidb5nl6xwte6focuiattodjmibqshmimy3ttzpomdrvu2bjey5jmm'},
     {hash: 'bafkreihdqtiuqfnilhrh5wgxojlsm3yql2wbfimi7nbpph4amtwa2ar5qa'},
-    {hash: 'bafkreidsq3ymfflpqhe34cdqgcjiovvldnhvobzqmgk5iqqyqdqbbb2ufq'},
     {hash: 'bafkreiejdoua6h2brvhqhpzqypzjwt55ibtrzcpdvux2r2zwfqqutv7v44'},
-    {hash: 'bafkreiealngtcjazrazjvnzy5vy63bm4wve2ffcfkzasg735mgcmfio4am'},
     {hash: 'bafkreiegngisqdb6z3lmfpmspl57w3xwwlpoxrmax5pgcf4ol2rh3jmy6y'},
-    {hash: 'bafkreiakkasavkn7kqc7uogxdg7eovtjerqq7ki627p3qcocr64vgeq2le'},
     {hash: 'bafybeiaqi5mqlcpugjyolkvncggloixw3sqd7hngdnujqtumbxzbk65dsu'},
     {hash: 'bafybeiccmvsb5ohtz6fpuw2hakvha4w2k4xro2bzto7ijisr7a6zqxnxhq'},
-    {hash: 'bafybeigu63twj3fffrzpbakhbxktzyjhv62iph4onv3ny6beqkmjvclqam'},
     {hash: 'bafkreiabzk4giiskufg6wlx2odqjyxa66hebxzdtsq2zjp3nux6pjt4awu'},
-    {hash: 'bafkreihqela3j6d65xbb327frxab5qctxv3o6dtnwykqh4hqxzkfaj3sfu'},
     {hash: 'bafkreicly7zdoolpr5ewbmndtyluewyzz3yoas2xnavea72nt2uhnddn3m'},
     {hash: 'bafkreiapbkynui6ziybpiwrkvqrws4tzqnaxvwtfv6f3kx24jcdr24gvw4'},
   ])
