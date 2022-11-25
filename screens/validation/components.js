@@ -2500,11 +2500,11 @@ export function ValidationScreen({
                 hasArrow={false}
                 label={t('You can mark this flip as the best')}
                 placement="top"
-                zIndex="tooltip"
                 fontSize="mdx"
                 px={3}
                 py="10px"
                 mr={5}
+                variant="z-index-1000"
               >
                 <ChakraFlex
                   align="center"
