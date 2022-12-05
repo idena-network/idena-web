@@ -26,13 +26,17 @@ import {
   FlipProtectStep,
 } from '../../screens/flips/components'
 import Layout from '../../shared/components/layout'
-import {flipMasterMachine} from '../../screens/flips/machines'
+import {
+  flipMasterMachine,
+  imageSearchMachine,
+} from '../../screens/flips/machines'
 import {
   publishFlip,
   isPendingKeywordPair,
   getRandomKeywordPair,
   protectFlip,
   checkIfFlipNoiseEnabled,
+  prepareAdversarialImages,
 } from '../../screens/flips/utils'
 import {Step} from '../../screens/flips/types'
 import {
@@ -113,6 +117,26 @@ export default function NewFlipPage() {
     logger: msg => console.log(redact(msg)),
   })
 
+  const [currentSearch, sendSearch] = useMachine(imageSearchMachine, {
+    actions: {
+      onError: (_, {data: {message}}) => {
+        console.log(`ERROR ${message}`)
+      },
+    },
+  })
+
+  useEffect(() => {
+    if (eitherState(current, 'searching')) {
+      console.log(new Date(Date.now()).toISOString())
+    }
+    if (eitherState(currentSearch, 'done')) {
+      prepareAdversarialImages(
+        currentSearch.context.images,
+        send
+      ).catch(() => {})
+    }
+  }, [currentSearch])
+
   useEffect(() => {
     if (epochState && privateKey) {
       send('PREPARE_FLIP', {epoch: epochState.epoch, privateKey})
@@ -125,6 +149,8 @@ export default function NewFlipPage() {
     keywords,
     images,
     protectedImages,
+    adversarialImages,
+    adversarialImageId,
     originalOrder,
     order,
     showTranslation,
@@ -311,6 +337,7 @@ export default function NewFlipPage() {
                   showTranslation={showTranslation}
                   originalOrder={originalOrder}
                   images={images}
+                  adversarialImageId={adversarialImageId}
                   onChangeImage={(image, currentIndex) =>
                     send('CHANGE_IMAGES', {image, currentIndex})
                   }
@@ -319,6 +346,11 @@ export default function NewFlipPage() {
                     send('CHANGE_ORIGINAL_ORDER', {order})
                   }
                   onPainting={() => send('PAINTING')}
+                  searchAdversarial={() =>
+                    sendSearch('SEARCH', {
+                      query: `${keywords.words[0]?.name} ${keywords.words[1]?.name}`,
+                    })
+                  }
                 />
               )}
               {is('protect') && (
@@ -327,6 +359,8 @@ export default function NewFlipPage() {
                   showTranslation={showTranslation}
                   originalOrder={originalOrder}
                   images={images}
+                  adversarialImages={adversarialImages}
+                  adversarialImageId={adversarialImageId}
                   protectedImages={protectedImages}
                   onProtecting={() => send('PROTECTING')}
                   onProtectImage={(image, currentIndex) =>

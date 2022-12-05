@@ -52,6 +52,7 @@ const BottomMenu = {
   Main: 0,
   Crop: 1,
   Erase: 2,
+  None: 3,
 }
 
 const RightMenu = {
@@ -71,6 +72,7 @@ export default function FlipEditor({
   idx = 0,
   src,
   visible,
+  isLocked,
   onChange,
   onChanging,
 }) {
@@ -83,7 +85,9 @@ export default function FlipEditor({
   const [showContextMenu, setShowContextMenu] = useState(false)
   const [contextMenuCursor, setContextMenuCursor] = useState({x: 0, y: 0})
 
-  const [bottomMenuPanel, setBottomMenuPanel] = useState(BottomMenu.Main)
+  const [bottomMenuPanel, setBottomMenuPanel] = useState(
+    isLocked ? BottomMenu.None : BottomMenu.Main
+  )
   const [rightMenuPanel, setRightMenuPanel] = useState(RightMenu.None)
 
   const [brush, setBrush] = useState(20)

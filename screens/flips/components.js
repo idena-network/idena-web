@@ -36,12 +36,17 @@ import {
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd'
 import {useTranslation} from 'react-i18next'
 import {transparentize} from 'polished'
-import {useService} from '@xstate/react'
+import {useMachine, useService} from '@xstate/react'
 import {EditIcon, ViewIcon} from '@chakra-ui/icons'
 import Jimp from 'jimp'
 import FlipEditor from './components/flip-editor'
 import {Step} from './types'
-import {formatKeywords, protectFlipImage, watermarkedDataURL} from './utils'
+import {
+  formatKeywords,
+  getAdversarialImage,
+  protectFlipImage,
+  watermarkedDataURL,
+} from './utils'
 import {PageTitle} from '../app/components'
 import {
   PrimaryButton,
@@ -61,7 +66,7 @@ import {
   GoogleTranslateButton,
   DrawerFooter,
 } from '../../shared/components/components'
-import {openExternalUrl} from '../../shared/utils/utils'
+import {eitherState, openExternalUrl} from '../../shared/utils/utils'
 import {
   ChevronDownIcon,
   CommunityIcon,
@@ -69,6 +74,7 @@ import {
   DeleteIcon,
   GtranslateIcon,
   InfoSolidIcon,
+  LockedImageIcon,
   MoreIcon,
   MoveIcon,
   OkIcon,
@@ -83,6 +89,7 @@ import {
 import {WideLink} from '../home/components'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {AdDrawer} from '../ads/containers'
+import {imageSearchMachine} from './machines'
 
 export function FlipPageTitle({onClose, ...props}) {
   return (
@@ -714,9 +721,11 @@ export function FlipEditorStep({
   showTranslation,
   originalOrder,
   images,
+  adversarialImageId,
   onChangeImage,
   onChangeOriginalOrder,
   onPainting,
+  searchAdversarial,
 }) {
   const {t} = useTranslation()
 
@@ -728,6 +737,10 @@ export function FlipEditorStep({
     (acc, {length}) => !!length && acc,
     true
   )
+
+  useEffect(() => {
+    searchAdversarial()
+  }, [])
 
   return (
     <FlipStep>
@@ -788,6 +801,7 @@ export function FlipEditorStep({
                         <FlipImageListItem
                           isFirst={idx === 0}
                           isLast={idx === images.length - 1}
+                          isLocked={num === adversarialImageId}
                           src={images[num]}
                         />
                       </SelectableItem>
@@ -806,6 +820,7 @@ export function FlipEditorStep({
               idx={num}
               visible={currentIndex === idx}
               src={images[num]}
+              isLocked={idx === adversarialImageId}
               onChange={url => {
                 onChangeImage(url, num)
               }}
@@ -822,6 +837,8 @@ export function FlipProtectStep({
   originalOrder,
   images,
   protectedImages,
+  adversarialImages,
+  adversarialImageId,
   onProtecting,
   onProtectImage,
 }) {
@@ -833,12 +850,17 @@ export function FlipProtectStep({
 
   const regenerateImage = async () => {
     onProtecting()
-    const protectedImageSrc = await protectFlipImage(
-      images[originalOrder[currentIndex]]
-    )
+    let regeneratedImageSrc
+    if (originalOrder[currentIndex] === adversarialImageId) {
+      regeneratedImageSrc = await getAdversarialImage(adversarialImages)
+    } else {
+      regeneratedImageSrc = await protectFlipImage(
+        images[originalOrder[currentIndex]]
+      )
+    }
     const compressedImage = await new Promise(resolve =>
       resolve(
-        Jimp.read(protectedImageSrc).then(raw =>
+        Jimp.read(regeneratedImageSrc).then(raw =>
           raw
             .resize(240, 180)
             .quality(60) // jpeg quality
@@ -873,6 +895,7 @@ export function FlipProtectStep({
                 src={protectedImages[num]}
                 isFirst={idx === 0}
                 isLast={idx === images.length - 1}
+                isLocked={num === adversarialImageId}
                 onClick={() => setCurrentIdx(idx)}
               />
             </SelectableItem>
@@ -1149,9 +1172,10 @@ function DraggableItem({draggableId, index, ...props}) {
   )
 }
 
-export function FlipImageListItem({isFirst, isLast, ...props}) {
+export function FlipImageListItem({isFirst, isLast, isLocked, ...props}) {
   return (
     <FlipImage
+      isLocked={isLocked}
       roundedTop={isFirst ? 'md' : 0}
       roundedBottom={isLast ? 'md' : 0}
       borderBottomWidth={isLast ? '1px' : 0}
@@ -1166,6 +1190,7 @@ export function FlipImage({
   objectFit = 'scale-down',
   roundedTop,
   roundedBottom,
+  isLocked,
   ...props
 }) {
   return (
@@ -1186,6 +1211,8 @@ export function FlipImage({
           roundedTop={roundedTop}
           roundedBottom={roundedBottom}
         />
+      ) : isLocked ? (
+        <LockedFlipImage />
       ) : (
         <EmptyFlipImage />
       )}
@@ -1197,6 +1224,14 @@ export function EmptyFlipImage(props) {
   return (
     <Flex align="center" justify="center" px={10} py={6} {...props}>
       <PicIcon boxSize={10} color="gray.200" />
+    </Flex>
+  )
+}
+
+export function LockedFlipImage(props) {
+  return (
+    <Flex align="center" justify="center" px={10} py={6} {...props}>
+      <LockedImageIcon boxSize={8} color="gray.200" />
     </Flex>
   )
 }

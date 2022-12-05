@@ -1,4 +1,4 @@
-import {Machine, assign, spawn, sendParent} from 'xstate'
+import {Machine, assign, spawn, sendParent, createMachine} from 'xstate'
 import {log, send} from 'xstate/lib/actions'
 import nanoid from 'nanoid'
 import {Evaluate} from '@idena/vrf-js'
@@ -26,6 +26,7 @@ import {privateKeyToAddress} from '../../shared/utils/crypto'
 import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
 import {FlipDeleteAttachment} from '../../shared/models/flipDeleteAttachment'
 import {Transaction} from '../../shared/models/transaction'
+import axios from 'axios'
 
 export const flipsMachine = Machine(
   {
@@ -100,6 +101,7 @@ export const flipsMachine = Machine(
                 keywords: keywords[idx],
                 images: Array.from({length: 4}),
                 protectedImages: Array.from({length: 4}),
+                adversarialImages: Array.from({length: 4}),
               }))
             }
 
@@ -549,9 +551,11 @@ export const flipMasterMachine = Machine(
       },
       images: Array.from({length: 4}),
       protectedImages: Array.from({length: 4}),
+      adversarialImages: Array.from({length: 4}),
       originalOrder: DEFAULT_FLIP_ORDER,
       order: DEFAULT_FLIP_ORDER,
       orderPermutations: DEFAULT_FLIP_ORDER,
+      adversarialImageId: 3,
       didShowBadFlip: true,
     },
     on: {
@@ -758,6 +762,21 @@ export const flipMasterMachine = Machine(
                   assign({
                     originalOrder: (_, {order}) => order,
                     order: (_, {order}) => order,
+                  }),
+                  log(),
+                ],
+              },
+              CHANGE_ADVERSARIAL: {
+                actions: [
+                  assign({
+                    adversarialImages: (
+                      {adversarialImages},
+                      {image, currentIndex}
+                    ) => [
+                      ...adversarialImages.slice(0, currentIndex),
+                      image,
+                      ...adversarialImages.slice(currentIndex + 1),
+                    ],
                   }),
                   log(),
                 ],
@@ -1200,3 +1219,50 @@ export const createViewFlipMachine = () =>
       },
     }
   )
+
+export const imageSearchMachine = createMachine({
+  context: {
+    images: [],
+  },
+  initial: 'idle',
+  states: {
+    idle: {},
+    searching: {
+      invoke: {
+        src: (_, {query}) => searchImages(query),
+        onDone: {
+          target: 'done',
+          actions: [
+            assign({
+              images: (_, {data}) => data,
+            }),
+            log(),
+          ],
+        },
+        onError: 'fail',
+      },
+    },
+    done: {
+      on: {
+        PICK: {
+          actions: [
+            assign({
+              selectedImage: (_, {image}) => image,
+            }),
+            log(),
+          ],
+        },
+      },
+    },
+    fail: {
+      entry: ['onError', log()],
+    },
+  },
+  on: {
+    SEARCH: 'searching',
+  },
+})
+
+async function searchImages(q) {
+  return axios.get('/api/image-search', {params: {q}}).then(x => x.data)
+}
