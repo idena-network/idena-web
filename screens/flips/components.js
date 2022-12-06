@@ -511,9 +511,7 @@ export function FlipStoryStep({children}) {
       <FlipStepHeader mb={8}>
         <FlipStepTitle>{t('Think up a story')}</FlipStepTitle>
         <FlipStepSubtitle>
-          {t(
-            `Think up a short story about someone/something related to the two key words below according to the template "Before — Something happens — After"`
-          )}
+          {t(`Think up a single logical storyline related to both keywords`)}
         </FlipStepSubtitle>
       </FlipStepHeader>
       {children}
@@ -726,6 +724,7 @@ export function FlipEditorStep({
   onChangeOriginalOrder,
   onPainting,
   searchAdversarial,
+  onChangeAdversarialId,
 }) {
   const {t} = useTranslation()
 
@@ -745,9 +744,11 @@ export function FlipEditorStep({
   return (
     <FlipStep>
       <FlipStepHeader>
-        <FlipStepTitle>{t('Select 4 images to tell your story')}</FlipStepTitle>
+        <FlipStepTitle>{t('Select images to tell your story')}</FlipStepTitle>
         <FlipStepSubtitle>
-          {t(`Use keywords for the story`)}{' '}
+          {t(
+            `To confuse bots, make up a story that only a human can interpret. Both`
+          )}{' '}
           <Text as="mark">
             {formatKeywords(
               hasBothTranslations && showTranslation
@@ -758,9 +759,7 @@ export function FlipEditorStep({
                 : words
             )}
           </Text>{' '}
-          {t(`and template "Before
-          – Something happens – After"`)}
-          .
+          {t(`should be clearly visible.`)}
         </FlipStepSubtitle>
       </FlipStepHeader>
       <Stack isInline spacing={10}>
@@ -820,11 +819,12 @@ export function FlipEditorStep({
               idx={num}
               visible={currentIndex === idx}
               src={images[num]}
-              isLocked={idx === adversarialImageId}
+              adversarialId={adversarialImageId}
               onChange={url => {
                 onChangeImage(url, num)
               }}
               onChanging={onPainting}
+              onChangeAdversarial={onChangeAdversarialId}
             />
           ))}
         </Box>

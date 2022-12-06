@@ -351,6 +351,10 @@ export default function NewFlipPage() {
                       query: `${keywords.words[0]?.name} ${keywords.words[1]?.name}`,
                     })
                   }
+                  onChangeAdversarialId={newIndex => {
+                    console.log(newIndex)
+                    send('CHANGE_ADVERSARIAL_ID', {newIndex})
+                  }}
                 />
               )}
               {is('protect') && (

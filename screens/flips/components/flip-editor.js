@@ -7,6 +7,7 @@ import {
   Box,
   Flex,
   Stack,
+  Text,
   VisuallyHidden,
   useToast,
   Menu,
@@ -38,6 +39,7 @@ import {
   UndoIcon,
   CopyIcon,
   DeleteIcon,
+  LockedImageIcon,
 } from '../../../shared/components/icons'
 import {useSuccessToast} from '../../../shared/hooks/use-toast'
 import {rem} from '../../../shared/theme'
@@ -72,9 +74,10 @@ export default function FlipEditor({
   idx = 0,
   src,
   visible,
-  isLocked,
+  adversarialId,
   onChange,
   onChanging,
+  onChangeAdversarial,
 }) {
   const {t} = useTranslation()
   const toast = useToast()
@@ -86,13 +89,15 @@ export default function FlipEditor({
   const [contextMenuCursor, setContextMenuCursor] = useState({x: 0, y: 0})
 
   const [bottomMenuPanel, setBottomMenuPanel] = useState(
-    isLocked ? BottomMenu.None : BottomMenu.Main
+    idx === adversarialId ? BottomMenu.None : BottomMenu.Main
   )
   const [rightMenuPanel, setRightMenuPanel] = useState(RightMenu.None)
 
   const [brush, setBrush] = useState(20)
   const [brushColor, setBrushColor] = useState('ff6666dd')
-  const [showArrowHint, setShowArrowHint] = useState(!src && idx === 0)
+  const [showArrowHint, setShowArrowHint] = useState(
+    !src && idx === 0 && idx !== adversarialId
+  )
 
   const theme = useTheme()
 
@@ -349,6 +354,12 @@ export default function FlipEditor({
   const handleOnClear = () => {
     if (rightMenuPanel === RightMenu.Erase) {
       setRightMenuPanel(RightMenu.None)
+    }
+    if (adversarialId === -1 && !src) {
+      onChangeAdversarial(idx)
+      setBottomMenuPanel(BottomMenu.None)
+      setShowArrowHint(false)
+      setChangesCnt(changesCnt + 1)
     }
     setImageUrl({url: null})
   }
@@ -656,6 +667,48 @@ export default function FlipEditor({
               }}
               usageStatistics={false}
             />
+            {idx === adversarialId && (
+              <Flex
+                position="absolute"
+                top={0}
+                w={IMAGE_WIDTH}
+                h={IMAGE_HEIGHT}
+                px={10}
+                direction="column"
+                align="center"
+                justify="center"
+              >
+                <LockedImageIcon boxSize={9} color="gray.200" />
+                <Text align="center" fontSize="md" color="#DCDEDF" my={5}>
+                  {t(
+                    'Please keep this image locked. To mislead bots, a nonsense image will be generated at the next step.'
+                  )}
+                </Text>
+                <Button
+                  color="#56585A"
+                  fontWeight={500}
+                  backgroundColor="transparent"
+                  border="solid 1px #d2d4d9"
+                  _hover={{
+                    backgroundColor: 'transparent',
+                    _disabled: {
+                      backgroundColor: 'transparent',
+                      color: '#DCDEDF',
+                    },
+                  }}
+                  _active={{
+                    backgroundColor: '#F5F6F7',
+                  }}
+                  onClick={() => {
+                    onChangeAdversarial(-1)
+                    setBottomMenuPanel(BottomMenu.Main)
+                    setChangesCnt(changesCnt + 1)
+                  }}
+                >
+                  {t('Unlock image')}
+                </Button>
+              </Flex>
+            )}
           </Box>
 
           {bottomMenuPanel === BottomMenu.Main && (
@@ -837,7 +890,7 @@ export default function FlipEditor({
                 icon={<BasketIcon />}
                 color="red.500"
                 _hover={{color: 'red.500'}}
-                onClick={handleOnClear}
+                onClick={() => handleOnClear(idx)}
               />
             </Stack>
           )}
