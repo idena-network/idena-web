@@ -1048,7 +1048,7 @@ export async function getAdversarialImage(images) {
     0,
     initialImgData.width,
     initialImgData.height,
-    20
+    16
   )
   const blurredImage = getImageFromImageData(initialImgData)
   await new Promise(resolve => (blurredImage.onload = resolve))
@@ -1149,6 +1149,185 @@ export async function getAdversarialImage(images) {
           nosensePixels[i + 1] = color.green
           nosensePixels[i + 2] = color.blue
           break
+      }
+    }
+  }
+
+  const getBluredColor = (leftColor, rightColor, modifier) => {
+    return (leftColor + rightColor * modifier) / (1 + modifier)
+  }
+
+  // Try to blur
+  for (let i = 0; i < resizedImageDataCopy.length; i += 4) {
+    const color =
+      palette4.find(el => resizedImageDataCopy[i] < el.red) || commonColor
+    const colorNext =
+      palette4.find(el => resizedImageDataCopy[i + 4] < el.red) || commonColor
+    if (color !== colorNext) {
+      if (i > ING_WIDTH * 4 && i < nosensePixels.length - ING_WIDTH * 4) {
+        nosensePixels[i - 4] =
+          (getBluredColor(nosensePixels[i - 8], nosensePixels[i + 4], 1 / 2) +
+            getBluredColor(
+              nosensePixels[i + ING_WIDTH * 4 - 4],
+              nosensePixels[i - ING_WIDTH * 4 - 4],
+              1
+            )) /
+          2
+        nosensePixels[i - 3] =
+          (getBluredColor(nosensePixels[i - 7], nosensePixels[i + 5], 1 / 2) +
+            getBluredColor(
+              nosensePixels[i + ING_WIDTH * 4 - 3],
+              nosensePixels[i - ING_WIDTH * 4 - 3],
+              1
+            )) /
+          2
+        nosensePixels[i - 2] =
+          (getBluredColor(nosensePixels[i - 6], nosensePixels[i + 6], 1 / 2) +
+            getBluredColor(
+              nosensePixels[i + ING_WIDTH * 4 - 2],
+              nosensePixels[i - ING_WIDTH * 4 - 2],
+              1
+            )) /
+          2
+
+        nosensePixels[i] =
+          (getBluredColor(nosensePixels[i - 4], nosensePixels[i + 4], 1) +
+            getBluredColor(
+              nosensePixels[i + ING_WIDTH * 4],
+              nosensePixels[i - ING_WIDTH * 4],
+              1
+            )) /
+          2
+        nosensePixels[i + 1] =
+          (getBluredColor(nosensePixels[i - 3], nosensePixels[i + 5], 1) +
+            getBluredColor(
+              nosensePixels[i + ING_WIDTH * 4 + 1],
+              nosensePixels[i - ING_WIDTH * 4 + 1],
+              1
+            )) /
+          2
+        nosensePixels[i + 2] =
+          (getBluredColor(nosensePixels[i - 2], nosensePixels[i + 6], 1) +
+            getBluredColor(
+              nosensePixels[i + ING_WIDTH * 4 + 2],
+              nosensePixels[i - ING_WIDTH * 4 + 2],
+              1
+            )) /
+          2
+
+        nosensePixels[i + 4] =
+          (getBluredColor(nosensePixels[i], nosensePixels[i + 8], 1) +
+            getBluredColor(
+              nosensePixels[i + ING_WIDTH * 4 + 4],
+              nosensePixels[i - ING_WIDTH * 4 + 4],
+              1
+            )) /
+          2
+        nosensePixels[i + 5] =
+          (getBluredColor(nosensePixels[i + 1], nosensePixels[i + 9], 1) +
+            getBluredColor(
+              nosensePixels[i + ING_WIDTH * 4 + 5],
+              nosensePixels[i - ING_WIDTH * 4 + 5],
+              1
+            )) /
+          2
+        nosensePixels[i + 6] =
+          (getBluredColor(nosensePixels[i + 2], nosensePixels[i + 10], 1) +
+            getBluredColor(
+              nosensePixels[i + ING_WIDTH * 4 + 6],
+              nosensePixels[i - ING_WIDTH * 4 + 6],
+              1
+            )) /
+          2
+
+        nosensePixels[i + 8] =
+          (getBluredColor(nosensePixels[i], nosensePixels[i + 8], 2) +
+            getBluredColor(
+              nosensePixels[i + ING_WIDTH * 4 + 8],
+              nosensePixels[i - ING_WIDTH * 4 + 8],
+              1
+            )) /
+          2
+        nosensePixels[i + 9] =
+          (getBluredColor(nosensePixels[i + 1], nosensePixels[i + 9], 2) +
+            getBluredColor(
+              nosensePixels[i + ING_WIDTH * 4 + 9],
+              nosensePixels[i - ING_WIDTH * 4 + 9],
+              1
+            )) /
+          2
+        nosensePixels[i + 10] =
+          (getBluredColor(nosensePixels[i + 2], nosensePixels[i + 10], 2) +
+            getBluredColor(
+              nosensePixels[i + ING_WIDTH * 4 + 10],
+              nosensePixels[i - ING_WIDTH * 4 + 10],
+              1
+            )) /
+          2
+      } else {
+        nosensePixels[i - 4] = getBluredColor(
+          nosensePixels[i - 8],
+          nosensePixels[i + 4],
+          1 / 2
+        )
+        nosensePixels[i - 3] = getBluredColor(
+          nosensePixels[i - 7],
+          nosensePixels[i + 5],
+          1 / 2
+        )
+        nosensePixels[i - 2] = getBluredColor(
+          nosensePixels[i - 6],
+          nosensePixels[i + 6],
+          1 / 2
+        )
+
+        nosensePixels[i] = getBluredColor(
+          nosensePixels[i - 4],
+          nosensePixels[i + 4],
+          1
+        )
+        nosensePixels[i + 1] = getBluredColor(
+          nosensePixels[i - 3],
+          nosensePixels[i + 5],
+          1
+        )
+        nosensePixels[i + 2] = getBluredColor(
+          nosensePixels[i - 2],
+          nosensePixels[i + 6],
+          1
+        )
+
+        nosensePixels[i + 4] = getBluredColor(
+          nosensePixels[i],
+          nosensePixels[i + 8],
+          1
+        )
+        nosensePixels[i + 5] = getBluredColor(
+          nosensePixels[i + 1],
+          nosensePixels[i + 9],
+          1
+        )
+        nosensePixels[i + 6] = getBluredColor(
+          nosensePixels[i + 2],
+          nosensePixels[i + 10],
+          1
+        )
+
+        nosensePixels[i + 8] = getBluredColor(
+          nosensePixels[i],
+          nosensePixels[i + 8],
+          2
+        )
+        nosensePixels[i + 9] = getBluredColor(
+          nosensePixels[i + 1],
+          nosensePixels[i + 9],
+          2
+        )
+        nosensePixels[i + 10] = getBluredColor(
+          nosensePixels[i + 2],
+          nosensePixels[i + 10],
+          2
+        )
       }
     }
   }
