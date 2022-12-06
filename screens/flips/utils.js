@@ -702,6 +702,16 @@ const blurToWatershed = image => {
   return output
 }
 
+const convertImageDataToGray = imageData => {
+  const pixels = imageData.data
+  for (let i = 0; i < pixels.length; i += 4) {
+    const lightness = parseInt((pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3)
+    pixels[i] = lightness
+    pixels[i + 1] = lightness
+    pixels[i + 2] = lightness
+  }
+}
+
 const getImageData = image => {
   const vMin = 0
   const vMax = 1
@@ -767,7 +777,7 @@ const getImageFromImageData = imageData => {
 const resizeImageToImageData = (image, newWidth, newHeight) => {
   const canvas = document.createElement('canvas')
   const ctx = canvas.getContext('2d')
-  canvas.width = image.naturalWidth
+  canvas.width = newWidth
   canvas.height = newHeight
   ctx.drawImage(image, 0, 0, newWidth, newHeight)
 
@@ -793,18 +803,6 @@ export async function protectFlipImage(imgSrc) {
     const extractColors = require('extract-colors').default
     palette = await extractColors(imgSrc)
   } catch (e) {}
-
-  const convertImageDataToGray = imageData => {
-    const pixels = imageData.data
-    for (let i = 0; i < pixels.length; i += 4) {
-      const lightness = parseInt(
-        (pixels[i] + pixels[i + 1] + pixels[i + 2]) / 3
-      )
-      pixels[i] = lightness
-      pixels[i + 1] = lightness
-      pixels[i + 2] = lightness
-    }
-  }
 
   const mergeMeshPixels = (sourceImageData, meshImageData) => {
     const pixels = sourceImageData.data
@@ -953,7 +951,9 @@ export async function protectFlip({
   adversarialImages,
 }) {
   const protectedFlips = []
-  const adversarialIndex = originalOrder.findIndex(idx => idx === adversarialImageId)
+  const adversarialIndex = originalOrder.findIndex(
+    idx => idx === adversarialImageId
+  )
 
   // eslint-disable-next-line no-plusplus
   for (let i = 0; i < images.length; i++) {
@@ -1000,9 +1000,8 @@ export async function prepareAdversarialImages(images, send) {
     ids.map((img, idx) =>
       Jimp.read(img.thumbnail).then(image => {
         image.getBase64Async('image/png').then(async nextUrl => {
-          const resizedNextUrl = await imageResizeSoft(nextUrl, 440, 330)
           send('CHANGE_ADVERSARIAL', {
-            image: resizedNextUrl,
+            image: nextUrl,
             currentIndex: idx,
           })
         })
@@ -1017,28 +1016,45 @@ export async function getAdversarialImage(images) {
   const initialImage = document.createElement('img')
   initialImage.src = images[0]
   await new Promise(resolve => (initialImage.onload = resolve))
-  const initialImgData = getImageDataFromImage(initialImage)
+  const initialImgData = resizeImageToImageData(
+    initialImage,
+    ING_WIDTH,
+    IMG_HEIGHT
+  )
+  const initialImageDataCopy = new Uint8ClampedArray(initialImgData.data)
 
   const imagesImageData = []
   const image1 = document.createElement('img')
   image1.src = images[1]
   await new Promise(resolve => (image1.onload = resolve))
-  const imageData1 = getImageDataFromImage(image1)
+  const imageData1 = resizeImageToImageData(image1, ING_WIDTH, IMG_HEIGHT)
 
   const image2 = document.createElement('img')
   image2.src = images[2]
   await new Promise(resolve => (image2.onload = resolve))
-  const imageData2 = getImageDataFromImage(image2)
+  const imageData2 = resizeImageToImageData(image2, ING_WIDTH, IMG_HEIGHT)
 
   const image3 = document.createElement('img')
   image3.src = images[3]
   await new Promise(resolve => (image3.onload = resolve))
-  const imageData3 = getImageDataFromImage(image3)
+  const imageData3 = resizeImageToImageData(image3, ING_WIDTH, IMG_HEIGHT)
 
   imagesImageData.push(imageData1.data, imageData2.data, imageData3.data)
 
+  convertImageDataToGray(initialImgData)
+  StackBlur.imageDataRGBA(
+    initialImgData,
+    0,
+    0,
+    initialImgData.width,
+    initialImgData.height,
+    20
+  )
+  const blurredImage = getImageFromImageData(initialImgData)
+  await new Promise(resolve => (blurredImage.onload = resolve))
+
   const imageAccess = ImageAccess.fromHTMLImage(
-    initialImage,
+    blurredImage,
     ING_WIDTH,
     ING_WIDTH,
     'stretch'
@@ -1109,9 +1125,9 @@ export async function getAdversarialImage(images) {
       const id = palette0.findIndex(el => el === color)
       switch (id) {
         case 0: // main image
-          nosensePixels[i] = initialImgData.data[i]
-          nosensePixels[i + 1] = initialImgData.data[i + 1]
-          nosensePixels[i + 2] = initialImgData.data[i + 2]
+          nosensePixels[i] = initialImageDataCopy[i]
+          nosensePixels[i + 1] = initialImageDataCopy[i + 1]
+          nosensePixels[i + 2] = initialImageDataCopy[i + 2]
           break
         case 1:
           nosensePixels[i] = imagesImageData[0][i]
