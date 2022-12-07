@@ -151,6 +151,7 @@ export default function NewFlipPage() {
     keywords,
     images,
     protectedImages,
+    adversarialImage,
     adversarialImages,
     adversarialImageId,
     originalOrder,
@@ -339,6 +340,7 @@ export default function NewFlipPage() {
                   showTranslation={showTranslation}
                   originalOrder={originalOrder}
                   images={images}
+                  adversarialImages={adversarialImages}
                   adversarialImageId={adversarialImageId}
                   onChangeImage={(image, currentIndex) =>
                     send('CHANGE_IMAGES', {image, currentIndex})
@@ -365,9 +367,9 @@ export default function NewFlipPage() {
                   showTranslation={showTranslation}
                   originalOrder={originalOrder}
                   images={images}
-                  adversarialImages={adversarialImages}
-                  adversarialImageId={adversarialImageId}
                   protectedImages={protectedImages}
+                  adversarialImage={adversarialImage}
+                  adversarialImageId={adversarialImageId}
                   onProtecting={() => send('PROTECTING')}
                   onProtectImage={(image, currentIndex) =>
                     send('CHANGE_PROTECTED_IMAGES', {image, currentIndex})

@@ -955,6 +955,7 @@ export async function protectFlip({
   adversarialImages,
 }) {
   const protectedFlips = []
+  let adversarialImage = ''
   const adversarialIndex = originalOrder.findIndex(
     idx => idx === adversarialImageId
   )
@@ -966,7 +967,8 @@ export async function protectFlip({
       protectedFlips[i] = protectedImageSrc
     } else if (i === originalOrder[adversarialIndex]) {
       const adversarialImageSrc = await getAdversarialImage(adversarialImages)
-      protectedFlips[i] = adversarialImageSrc
+      adversarialImage = adversarialImageSrc.slice()
+      protectedFlips[i] = await protectFlipImage(adversarialImageSrc)
     } else {
       protectedFlips[i] = images[i]
     }
@@ -985,7 +987,10 @@ export async function protectFlip({
     )
   )
 
-  return {protectedImages: compressedImages}
+  return {
+    protectedImages: compressedImages,
+    adversarialImage,
+  }
 }
 
 export const checkIfFlipNoiseEnabled = epochNumber =>
@@ -1157,9 +1162,8 @@ export async function getAdversarialImage(images) {
     }
   }
 
-  const getBluredColor = (leftColor, rightColor, modifier) => {
-    return (leftColor + rightColor * modifier) / (1 + modifier)
-  }
+  const getBluredColor = (leftColor, rightColor, modifier) =>
+    (leftColor + rightColor * modifier) / (1 + modifier)
 
   // Try to blur
   for (let i = 0; i < resizedImageDataCopy.length; i += 4) {

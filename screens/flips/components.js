@@ -719,6 +719,7 @@ export function FlipEditorStep({
   showTranslation,
   originalOrder,
   images,
+  adversarialImages,
   adversarialImageId,
   onChangeImage,
   onChangeOriginalOrder,
@@ -738,8 +739,10 @@ export function FlipEditorStep({
   )
 
   useEffect(() => {
-    searchAdversarial()
-  }, [])
+    if (adversarialImages.some(x => !x)) {
+      searchAdversarial()
+    }
+  }, [adversarialImages])
 
   return (
     <FlipStep>
@@ -837,7 +840,7 @@ export function FlipProtectStep({
   originalOrder,
   images,
   protectedImages,
-  adversarialImages,
+  adversarialImage,
   adversarialImageId,
   onProtecting,
   onProtectImage,
@@ -852,7 +855,7 @@ export function FlipProtectStep({
     onProtecting()
     let regeneratedImageSrc
     if (originalOrder[currentIndex] === adversarialImageId) {
-      regeneratedImageSrc = await getAdversarialImage(adversarialImages)
+      regeneratedImageSrc = await protectFlipImage(adversarialImage)
     } else {
       regeneratedImageSrc = await protectFlipImage(
         images[originalOrder[currentIndex]]

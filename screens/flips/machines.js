@@ -551,6 +551,7 @@ export const flipMasterMachine = Machine(
       },
       images: Array.from({length: 4}),
       protectedImages: Array.from({length: 4}),
+      adversarialImage: '',
       adversarialImages: Array.from({length: 4}),
       originalOrder: DEFAULT_FLIP_ORDER,
       order: DEFAULT_FLIP_ORDER,
@@ -892,10 +893,16 @@ export const flipMasterMachine = Machine(
                   onDone: {
                     target: 'idle',
                     actions: [
-                      assign((context, {data: {protectedImages}}) => ({
-                        ...context,
-                        protectedImages,
-                      })),
+                      assign(
+                        (
+                          context,
+                          {data: {protectedImages, adversarialImage}}
+                        ) => ({
+                          ...context,
+                          protectedImages,
+                          adversarialImage,
+                        })
+                      ),
                       log(),
                     ],
                   },
