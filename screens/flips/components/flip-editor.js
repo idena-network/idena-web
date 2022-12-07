@@ -20,10 +20,18 @@ import {
   Button,
   useTheme,
   Divider,
+  useDisclosure,
 } from '@chakra-ui/react'
 import {SearchIcon} from '@chakra-ui/icons'
 import {useInterval} from '../../../shared/hooks/use-interval'
-import {Toast, Tooltip} from '../../../shared/components/components'
+import {
+  Dialog,
+  DialogBody,
+  DialogFooter,
+  DialogHeader,
+  Toast,
+  Tooltip,
+} from '../../../shared/components/components'
 import {resizing, imageResize, imageResizeSoft} from '../../../shared/utils/img'
 import {writeImageURLToClipboard} from '../../../shared/utils/clipboard'
 import {ImageSearchDialog} from './image-search'
@@ -259,6 +267,12 @@ export default function FlipEditor({
   )
 
   const [showImageSearch, setShowImageSearch] = React.useState()
+
+  const {
+    isOpen: isOpenModal,
+    onOpen: onOpenModal,
+    onClose: onCloseModal,
+  } = useDisclosure()
 
   // File upload handling
   const handleUpload = e => {
@@ -699,11 +713,7 @@ export default function FlipEditor({
                   _active={{
                     backgroundColor: '#F5F6F7',
                   }}
-                  onClick={() => {
-                    onChangeAdversarial(-1)
-                    setBottomMenuPanel(BottomMenu.Main)
-                    setChangesCnt(changesCnt + 1)
-                  }}
+                  onClick={onOpenModal}
                 >
                   {t('Unlock image')}
                 </Button>
@@ -1068,6 +1078,38 @@ export default function FlipEditor({
           })
         }
       />
+
+      <Dialog onClose={onCloseModal} isOpen={isOpenModal} isCentered>
+        <DialogHeader fontSize="lg" fontWeight={500}>
+          {t('Are you sure?')}
+        </DialogHeader>
+        <DialogBody>
+          <Flex h="100%" w="100%" direction="column" align="center">
+            <Text>
+              {t(
+                'We recommend using 3 images to tell your story so a generated nonsense image could be added to mislead bots.'
+              )}
+            </Text>
+            <Flex w="100%" justify="flex-end"></Flex>
+          </Flex>
+        </DialogBody>
+        <DialogFooter>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => {
+              onChangeAdversarial(-1)
+              setBottomMenuPanel(BottomMenu.Main)
+              onCloseModal()
+            }}
+          >
+            {t('Yes, unlock image')}
+          </Button>
+          <Button variant="secondary" onClick={onCloseModal}>
+            {t('Cancel')}
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </Box>
   )
 }
