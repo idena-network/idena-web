@@ -5,7 +5,7 @@ import Jimp from 'jimp'
 import CID from 'cids'
 import {loadPersistentStateValue, persistItem} from '../../shared/utils/persist'
 import {FlipType} from '../../shared/types'
-import {areSame, areEual} from '../../shared/utils/arr'
+import {areSame, areEual, areEualExceptOne} from '../../shared/utils/arr'
 import {getRawTx, submitRawFlip} from '../../shared/api'
 import {
   dnaSign,
@@ -162,6 +162,7 @@ export async function publishFlip({
   protectedImages,
   originalOrder,
   order,
+  adversarialImageId,
   orderPermutations,
   privateKey,
   epoch,
@@ -194,7 +195,10 @@ export async function publishFlip({
   )
     throw new Error('You already submitted this flip')
 
-  if (areEual(order, originalOrder))
+  if (
+    areEual(order, originalOrder) ||
+    areEualExceptOne(originalOrder, order, adversarialImageId)
+  )
     throw new Error('You must shuffle flip before submit')
 
   const compressedImages = checkIfFlipNoiseEnabled(epoch)
@@ -1340,4 +1344,21 @@ export async function getAdversarialImage(images) {
 
   const resultImageSrc = canvas.toDataURL()
   return resultImageSrc
+}
+
+export async function shuffleAdversarial({originalOrder, adversarialImageId}) {
+  const newPosition = Math.floor(Math.random() * 4)
+  const order = []
+  if (newPosition === adversarialImageId) {
+    return Promise.resolve({order: originalOrder})
+  }
+
+  for (let i = 0; i < originalOrder.length; i++) {
+    if (i === newPosition) {
+      order.push(originalOrder[adversarialImageId], originalOrder[i])
+    } else if (i !== adversarialImageId) {
+      order.push(originalOrder[i])
+    }
+  }
+  return Promise.resolve({order})
 }

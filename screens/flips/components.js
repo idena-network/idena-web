@@ -875,10 +875,12 @@ export function FlipProtectStep({
     <FlipStep>
       <FlipStepHeader>
         <FlipStepTitle>
-          {t('Protect your images with adversarial noise')}
+          {t('Protect your flip with anti-bot techniques')}
         </FlipStepTitle>
         <FlipStepSubtitle>
-          {t(`Adversarial noise makes your flip more AI-resistant`)}
+          {t(
+            `Adversarial noise makes your flip more resistant to bots. Please make sure your images are still recognizable.`
+          )}
         </FlipStepSubtitle>
       </FlipStepHeader>
       <Stack isInline spacing={10}>
@@ -945,7 +947,9 @@ export function FlipShuffleStep({
       <FlipStepHeader>
         <FlipStepTitle>{t('Shuffle images')}</FlipStepTitle>
         <FlipStepSubtitle>
-          {t('Shuffle images in order to make a nonsense sequence of images')}
+          {t(
+            'To prevent bots from solving the flip, make the shuffled story meaningless to humans only'
+          )}
         </FlipStepSubtitle>
       </FlipStepHeader>
       <Stack isInline spacing={10} align="center" mx="auto">

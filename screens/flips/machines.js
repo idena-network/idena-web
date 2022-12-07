@@ -838,6 +838,15 @@ export const flipMasterMachine = Machine(
                   log(),
                 ],
               },
+              CHANGE_ADVERSARIAL_POSITION: {
+                actions: [
+                  assign({
+                    originalOrder: (_, {order}) => order,
+                    order: (_, {order}) => order,
+                  }),
+                  log(),
+                ],
+              },
               PROTECTING: '.protecting',
               NEXT: 'shuffle',
               PREV: {
@@ -855,11 +864,26 @@ export const flipMasterMachine = Machine(
                 on: {
                   '': [
                     {
-                      target: 'protecting',
+                      target: 'shuffling',
                       cond: ({images, protectedImages}) =>
                         images.some(x => x) && !protectedImages.some(x => x),
                     },
                   ],
+                },
+              },
+              shuffling: {
+                invoke: {
+                  src: 'shuffleAdversarial',
+                  onDone: {
+                    target: 'protecting',
+                    actions: [
+                      assign({
+                        originalOrder: (_, {data: {order}}) => order,
+                        order: (_, {data: {order}}) => order,
+                      }),
+                      log(),
+                    ],
+                  },
                 },
               },
               protecting: {

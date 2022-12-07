@@ -36,6 +36,7 @@ import {
   protectFlip,
   checkIfFlipNoiseEnabled,
   prepareAdversarialImages,
+  shuffleAdversarial,
 } from '../../screens/flips/utils'
 import {Step} from '../../screens/flips/types'
 import {
@@ -105,6 +106,7 @@ export default function EditFlipPage() {
         }
       },
       protectFlip: async flip => protectFlip(flip),
+      shuffleAdversarial: async flip => shuffleAdversarial(flip),
       submitFlip: async context => {
         const result = await publishFlip(context)
         waitFlipsUpdate()
