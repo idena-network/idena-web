@@ -800,9 +800,17 @@ export const flipMasterMachine = Machine(
               ],
               PREV: 'keywords',
             },
-            initial: 'idle',
+            initial: 'loading',
             states: {
               idle: {},
+              loading: {
+                invoke: {
+                  src: 'loadAdversarial',
+                  onDone: {
+                    target: 'idle',
+                  },
+                },
+              },
               painting: {},
               persisting: {
                 invoke: {

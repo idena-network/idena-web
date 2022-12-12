@@ -738,12 +738,6 @@ export function FlipEditorStep({
     true
   )
 
-  useEffect(() => {
-    if (adversarialImages.some(x => !x)) {
-      searchAdversarial()
-    }
-  }, [adversarialImages])
-
   return (
     <FlipStep>
       <FlipStepHeader>

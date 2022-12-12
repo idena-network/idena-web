@@ -69,6 +69,14 @@ export default function NewFlipPage() {
 
   const failToast = useFailToast()
 
+  const [currentSearch, sendSearch] = useMachine(imageSearchMachine, {
+    actions: {
+      onError: (_, {data: {message}}) => {
+        console.log(`ERROR ${message}`)
+      },
+    },
+  })
+
   const [current, send] = useMachine(flipMasterMachine, {
     context: {
       locale: 'en',
@@ -104,6 +112,14 @@ export default function NewFlipPage() {
         return {keywordPairId, availableKeywords, didShowBadFlip}
       },
       protectFlip: async flip => protectFlip(flip),
+      loadAdversarial: async flip => {
+        console.log('START_SEARCH')
+        sendSearch('SEARCH', {
+          query: `${flip.keywords.words[0]?.name} ${flip.keywords.words[1]?.name}`,
+        })
+        console.log('END_SEARCH')
+        return Promise.resolve()
+      },
       shuffleAdversarial: async flip => shuffleAdversarial(flip),
       submitFlip: async context => {
         const result = await publishFlip(context)
@@ -119,18 +135,7 @@ export default function NewFlipPage() {
     logger: msg => console.log(redact(msg)),
   })
 
-  const [currentSearch, sendSearch] = useMachine(imageSearchMachine, {
-    actions: {
-      onError: (_, {data: {message}}) => {
-        console.log(`ERROR ${message}`)
-      },
-    },
-  })
-
   useEffect(() => {
-    if (eitherState(current, 'searching')) {
-      console.log(new Date(Date.now()).toISOString())
-    }
     if (eitherState(currentSearch, 'done')) {
       prepareAdversarialImages(
         currentSearch.context.images,
@@ -350,11 +355,6 @@ export default function NewFlipPage() {
                     send('CHANGE_ORIGINAL_ORDER', {order})
                   }
                   onPainting={() => send('PAINTING')}
-                  searchAdversarial={() =>
-                    sendSearch('SEARCH', {
-                      query: `${keywords.words[0]?.name} ${keywords.words[1]?.name}`,
-                    })
-                  }
                   onChangeAdversarialId={newIndex => {
                     console.log(newIndex)
                     send('CHANGE_ADVERSARIAL_ID', {newIndex})
