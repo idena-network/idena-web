@@ -71,6 +71,14 @@ export default function EditFlipPage() {
 
   const failToast = useFailToast()
 
+  const [currentSearch, sendSearch] = useMachine(imageSearchMachine, {
+    actions: {
+      onError: (_, {data: {message}}) => {
+        console.log(`ERROR ${message}`)
+      },
+    },
+  })
+
   const [current, send] = useMachine(flipMasterMachine, {
     context: {
       locale: 'en',
@@ -106,6 +114,14 @@ export default function EditFlipPage() {
         }
       },
       protectFlip: async flip => protectFlip(flip),
+      loadAdversarial: async flip => {
+        console.log('START_SEARCH')
+        sendSearch('SEARCH', {
+          query: `${flip.keywords.words[0]?.name} ${flip.keywords.words[1]?.name}`,
+        })
+        console.log('END_SEARCH')
+        return Promise.resolve()
+      },
       shuffleAdversarial: async flip => shuffleAdversarial(flip),
       submitFlip: async context => {
         const result = await publishFlip(context)
@@ -121,18 +137,7 @@ export default function EditFlipPage() {
     logger: msg => console.log(redact(msg)),
   })
 
-  const [currentSearch, sendSearch] = useMachine(imageSearchMachine, {
-    actions: {
-      onError: (_, {data: {message}}) => {
-        console.log(`ERROR ${message}`)
-      },
-    },
-  })
-
   useEffect(() => {
-    if (eitherState(current, 'searching')) {
-      console.log(new Date(Date.now()).toISOString())
-    }
     if (eitherState(currentSearch, 'done')) {
       prepareAdversarialImages(
         currentSearch.context.images,
@@ -152,7 +157,6 @@ export default function EditFlipPage() {
     keywords,
     images,
     protectedImages,
-    adversarialImage,
     adversarialImages,
     adversarialImageId,
     originalOrder,
@@ -344,11 +348,6 @@ export default function EditFlipPage() {
                     send('CHANGE_ORIGINAL_ORDER', {order})
                   }
                   onPainting={() => send('PAINTING')}
-                  searchAdversarial={() =>
-                    sendSearch('SEARCH', {
-                      query: `${keywords.words[0]?.name} ${keywords.words[1]?.name}`,
-                    })
-                  }
                 />
               )}
               {is('protect') && (
@@ -358,11 +357,14 @@ export default function EditFlipPage() {
                   originalOrder={originalOrder}
                   images={images}
                   protectedImages={protectedImages}
-                  adversarialImage={adversarialImage}
+                  adversarialImages={adversarialImages}
                   adversarialImageId={adversarialImageId}
                   onProtecting={() => send('PROTECTING')}
                   onProtectImage={(image, currentIndex) =>
                     send('CHANGE_PROTECTED_IMAGES', {image, currentIndex})
+                  }
+                  onChangeAdversarial={image =>
+                    send('CHANGE_ADVERSARIAL_IMAGE', {image})
                   }
                 />
               )}

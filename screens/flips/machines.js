@@ -847,6 +847,14 @@ export const flipMasterMachine = Machine(
                   log(),
                 ],
               },
+              CHANGE_ADVERSARIAL_IMAGE: {
+                actions: [
+                  assign({
+                    adversarialImage: ({adversarialImage}, {image}) => image,
+                  }),
+                  log(),
+                ],
+              },
               CHANGE_ADVERSARIAL_POSITION: {
                 actions: [
                   assign({

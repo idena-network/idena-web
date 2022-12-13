@@ -834,10 +834,11 @@ export function FlipProtectStep({
   originalOrder,
   images,
   protectedImages,
-  adversarialImage,
+  adversarialImages,
   adversarialImageId,
   onProtecting,
   onProtectImage,
+  onChangeAdversarial,
 }) {
   const {t} = useTranslation()
   const BLANK_IMAGE_DATAURL =
@@ -848,8 +849,10 @@ export function FlipProtectStep({
   const regenerateImage = async () => {
     onProtecting()
     let regeneratedImageSrc
+    let advImageScr
     if (originalOrder[currentIndex] === adversarialImageId) {
-      regeneratedImageSrc = await protectFlipImage(adversarialImage)
+      advImageScr = await getAdversarialImage(adversarialImages)
+      regeneratedImageSrc = await protectFlipImage(advImageScr)
     } else {
       regeneratedImageSrc = await protectFlipImage(
         images[originalOrder[currentIndex]]
@@ -865,6 +868,9 @@ export function FlipProtectStep({
         )
       )
     )
+    if (advImageScr) {
+      onChangeAdversarial(advImageScr)
+    }
     onProtectImage(compressedImage, originalOrder[currentIndex])
   }
 

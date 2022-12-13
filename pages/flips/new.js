@@ -156,7 +156,6 @@ export default function NewFlipPage() {
     keywords,
     images,
     protectedImages,
-    adversarialImage,
     adversarialImages,
     adversarialImageId,
     originalOrder,
@@ -356,7 +355,6 @@ export default function NewFlipPage() {
                   }
                   onPainting={() => send('PAINTING')}
                   onChangeAdversarialId={newIndex => {
-                    console.log(newIndex)
                     send('CHANGE_ADVERSARIAL_ID', {newIndex})
                   }}
                 />
@@ -368,11 +366,14 @@ export default function NewFlipPage() {
                   originalOrder={originalOrder}
                   images={images}
                   protectedImages={protectedImages}
-                  adversarialImage={adversarialImage}
+                  adversarialImages={adversarialImages}
                   adversarialImageId={adversarialImageId}
                   onProtecting={() => send('PROTECTING')}
                   onProtectImage={(image, currentIndex) =>
                     send('CHANGE_PROTECTED_IMAGES', {image, currentIndex})
+                  }
+                  onChangeAdversarial={image =>
+                    send('CHANGE_ADVERSARIAL_IMAGE', {image})
                   }
                 />
               )}

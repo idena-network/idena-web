@@ -1022,33 +1022,28 @@ export async function prepareAdversarialImages(images, send) {
 export async function getAdversarialImage(images) {
   const ING_WIDTH = 440
   const IMG_HEIGHT = 330
-  const initialImage = document.createElement('img')
-  initialImage.src = images[0]
-  await new Promise(resolve => (initialImage.onload = resolve))
-  const initialImgData = resizeImageToImageData(
-    initialImage,
-    ING_WIDTH,
-    IMG_HEIGHT
+
+  const imagesImageData = await Promise.all(
+    images.map(async imgSrc => {
+      const image = document.createElement('img')
+      image.src = imgSrc
+      await new Promise(resolve => (image.onload = resolve))
+      const imageData = resizeImageToImageData(image, ING_WIDTH, IMG_HEIGHT)
+      return Promise.resolve(imageData)
+    })
   )
+
+  const randImageIndex = Math.floor(Math.random() * 4)
+  let initialImgData
+  const secondaryImageData = []
+  imagesImageData.map((imgData, idx) => {
+    if (idx === randImageIndex) {
+      initialImgData = imgData
+    } else {
+      secondaryImageData.push(imgData.data)
+    }
+  })
   const initialImageDataCopy = new Uint8ClampedArray(initialImgData.data)
-
-  const imagesImageData = []
-  const image1 = document.createElement('img')
-  image1.src = images[1]
-  await new Promise(resolve => (image1.onload = resolve))
-  const imageData1 = resizeImageToImageData(image1, ING_WIDTH, IMG_HEIGHT)
-
-  const image2 = document.createElement('img')
-  image2.src = images[2]
-  await new Promise(resolve => (image2.onload = resolve))
-  const imageData2 = resizeImageToImageData(image2, ING_WIDTH, IMG_HEIGHT)
-
-  const image3 = document.createElement('img')
-  image3.src = images[3]
-  await new Promise(resolve => (image3.onload = resolve))
-  const imageData3 = resizeImageToImageData(image3, ING_WIDTH, IMG_HEIGHT)
-
-  imagesImageData.push(imageData1.data, imageData2.data, imageData3.data)
 
   convertImageDataToGray(initialImgData)
   StackBlur.imageDataRGBA(
@@ -1139,19 +1134,19 @@ export async function getAdversarialImage(images) {
           nosensePixels[i + 2] = initialImageDataCopy[i + 2]
           break
         case 1:
-          nosensePixels[i] = imagesImageData[0][i]
-          nosensePixels[i + 1] = imagesImageData[0][i + 1]
-          nosensePixels[i + 2] = imagesImageData[0][i + 2]
+          nosensePixels[i] = secondaryImageData[0][i]
+          nosensePixels[i + 1] = secondaryImageData[0][i + 1]
+          nosensePixels[i + 2] = secondaryImageData[0][i + 2]
           break
         case 2:
-          nosensePixels[i] = imagesImageData[1][i]
-          nosensePixels[i + 1] = imagesImageData[1][i + 1]
-          nosensePixels[i + 2] = imagesImageData[1][i + 2]
+          nosensePixels[i] = secondaryImageData[1][i]
+          nosensePixels[i + 1] = secondaryImageData[1][i + 1]
+          nosensePixels[i + 2] = secondaryImageData[1][i + 2]
           break
         case 3:
-          nosensePixels[i] = imagesImageData[2][i]
-          nosensePixels[i + 1] = imagesImageData[2][i + 1]
-          nosensePixels[i + 2] = imagesImageData[2][i + 2]
+          nosensePixels[i] = secondaryImageData[2][i]
+          nosensePixels[i + 1] = secondaryImageData[2][i + 1]
+          nosensePixels[i + 2] = secondaryImageData[2][i + 2]
           break
         default:
           nosensePixels[i] = color.red
