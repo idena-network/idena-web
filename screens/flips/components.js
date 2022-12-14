@@ -836,9 +836,11 @@ export function FlipProtectStep({
   protectedImages,
   adversarialImages,
   adversarialImageId,
+  didShowShuffleAdversarial,
   onProtecting,
   onProtectImage,
   onChangeAdversarial,
+  onShowAdversarialShuffle,
 }) {
   const {t} = useTranslation()
   const BLANK_IMAGE_DATAURL =
@@ -874,6 +876,15 @@ export function FlipProtectStep({
     onProtectImage(compressedImage, originalOrder[currentIndex])
   }
 
+  useEffect(() => {
+    if (!didShowShuffleAdversarial) {
+      setTimeout(() => {
+        localStorage.setItem('didShowShuffleAdversarial', true)
+        onShowAdversarialShuffle()
+      }, 5000)
+    }
+  }, [didShowShuffleAdversarial])
+
   return (
     <FlipStep>
       <FlipStepHeader>
@@ -895,6 +906,34 @@ export function FlipProtectStep({
               isLast={idx === images.length - 1}
               onClick={() => setCurrentIdx(idx)}
             >
+              <Flex
+                justify="flex-end"
+                align="center"
+                w="100%"
+                h="100%"
+                position="absolute"
+              >
+                <Box>
+                  <Tooltip
+                    isOpen={
+                      !didShowShuffleAdversarial &&
+                      originalOrder[idx] === adversarialImageId
+                    }
+                    label="Nonsense image is successfully generated and shuffled"
+                    fontSize="mdx"
+                    fontWeight={400}
+                    mt={[2, 0]}
+                    mb={[0, 2]}
+                    px={3}
+                    py={[2, '10px']}
+                    w={['228px', 'auto']}
+                    placement="right"
+                    openDelay={100}
+                  >
+                    {' '}
+                  </Tooltip>
+                </Box>
+              </Flex>
               <FlipImageListItem
                 key={num}
                 src={protectedImages[num]}
@@ -1605,5 +1644,21 @@ export function PublishFlipDrawer({isPending, flip, onSubmit, ...props}) {
         </HStack>
       </DrawerFooter>
     </AdDrawer>
+  )
+}
+
+export function ShuffleAdversarialPopover({label, children, ...props}) {
+  return (
+    <Popover placement="right">
+      <PopoverTrigger>{children}</PopoverTrigger>
+      <PopoverContent border="none" fontSize="sm" w="max-content">
+        <PopoverArrow bg="graphite.500" />
+        <PopoverBody bg="graphite.500" borderRadius="sm" p="2" pt="1">
+          <Text color="white" fontSize="sm">
+            {label}
+          </Text>
+        </PopoverBody>
+      </PopoverContent>
+    </Popover>
   )
 }

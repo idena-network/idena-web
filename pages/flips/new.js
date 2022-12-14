@@ -92,11 +92,21 @@ export default function NewFlipPage() {
           }
         })()
 
+        // eslint-disable-next-line no-shadow
+        const didShowShuffleAdversarial = (() => {
+          try {
+            return localStorage.getItem('didShowShuffleAdversarial')
+          } catch {
+            return false
+          }
+        })()
+
         if (!wordPairs || wordPairs.every(({used}) => used))
           return {
             keywordPairId: 0,
             availableKeywords: [getRandomKeywordPair()],
             didShowBadFlip,
+            didShowShuffleAdversarial,
           }
 
         const persistedFlips = await db.table('ownFlips').toArray()
@@ -109,7 +119,12 @@ export default function NewFlipPage() {
         // eslint-disable-next-line no-shadow
         const [{id: keywordPairId}] = availableKeywords
 
-        return {keywordPairId, availableKeywords, didShowBadFlip}
+        return {
+          keywordPairId,
+          availableKeywords,
+          didShowBadFlip,
+          didShowShuffleAdversarial,
+        }
       },
       protectFlip: async flip => protectFlip(flip),
       loadAdversarial: async flip => {
@@ -163,6 +178,7 @@ export default function NewFlipPage() {
     showTranslation,
     isCommunityTranslationsExpanded,
     didShowBadFlip,
+    didShowShuffleAdversarial,
     txHash,
   } = current.context
 
@@ -368,12 +384,16 @@ export default function NewFlipPage() {
                   protectedImages={protectedImages}
                   adversarialImages={adversarialImages}
                   adversarialImageId={adversarialImageId}
+                  didShowShuffleAdversarial={didShowShuffleAdversarial}
                   onProtecting={() => send('PROTECTING')}
                   onProtectImage={(image, currentIndex) =>
                     send('CHANGE_PROTECTED_IMAGES', {image, currentIndex})
                   }
                   onChangeAdversarial={image =>
                     send('CHANGE_ADVERSARIAL_IMAGE', {image})
+                  }
+                  onShowAdversarialShuffle={() =>
+                    send('SHOW_SHUFFLE_ADVERSARIAL')
                   }
                 />
               )}
