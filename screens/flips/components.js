@@ -945,7 +945,7 @@ export function FlipProtectStep({
             </SelectableItem>
           ))}
         </FlipImageList>
-        <Box>
+        <Box minH="330px" minW="440px">
           <ChakraImage
             h="330px"
             w="440px"
