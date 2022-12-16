@@ -72,6 +72,7 @@ import {
   CommunityIcon,
   CycleIcon,
   DeleteIcon,
+  FlatCycleIcon,
   GtranslateIcon,
   InfoSolidIcon,
   LockedImageIcon,
@@ -879,7 +880,6 @@ export function FlipProtectStep({
   useEffect(() => {
     if (!didShowShuffleAdversarial) {
       setTimeout(() => {
-        localStorage.setItem('didShowShuffleAdversarial', true)
         onShowAdversarialShuffle()
       }, 5000)
     }
@@ -956,15 +956,21 @@ export function FlipProtectStep({
               BLANK_IMAGE_DATAURL
             }
           />
-          <Box mt={2}>
+          <Flex justify="space-between" mt={2}>
+            <Text fontSize="md" fontWeight={500}>
+              {originalOrder[currentIndex] === adversarialImageId
+                ? t('Nonsense image')
+                : t('Adversarial noise')}
+            </Text>
             <Tooltip label={t('Regenerate adversarial noise')}>
-              <CycleIcon
-                boxSize={5}
-                color="blue.500"
-                onClick={regenerateImage}
-              />
+              <Flex onClick={regenerateImage} align="center" cursor="pointer">
+                <FlatCycleIcon boxSize={3} color="blue.500" />
+                <Text ml="6px" fontSize="md" fontWeight={500} color="blue.500">
+                  {t('Regenerate')}
+                </Text>
+              </Flex>
             </Tooltip>
-          </Box>
+          </Flex>
         </Box>
       </Stack>
     </FlipStep>

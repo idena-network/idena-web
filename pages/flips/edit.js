@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react'
+import React, {useEffect, useState} from 'react'
 import {useRouter} from 'next/router'
 import {Box, Flex, useToast, Divider, useDisclosure} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
@@ -70,6 +70,10 @@ export default function EditFlipPage() {
   const [, {waitFlipsUpdate}] = useIdentity()
 
   const failToast = useFailToast()
+
+  const [didShowShuffleAdversarial, setDidShowShuffleAdversarial] = useState(
+    false
+  )
 
   const [currentSearch, sendSearch] = useMachine(imageSearchMachine, {
     actions: {
@@ -173,7 +177,6 @@ export default function EditFlipPage() {
     order,
     showTranslation,
     isCommunityTranslationsExpanded,
-    didShowShuffleAdversarial,
     txHash,
   } = current.context
 
@@ -373,13 +376,13 @@ export default function EditFlipPage() {
                   didShowShuffleAdversarial={didShowShuffleAdversarial}
                   onProtecting={() => send('PROTECTING')}
                   onProtectImage={(image, currentIndex) =>
-                      send('CHANGE_PROTECTED_IMAGES', {image, currentIndex})
+                    send('CHANGE_PROTECTED_IMAGES', {image, currentIndex})
                   }
                   onChangeAdversarial={image =>
-                      send('CHANGE_ADVERSARIAL_IMAGE', {image})
+                    send('CHANGE_ADVERSARIAL_IMAGE', {image})
                   }
                   onShowAdversarialShuffle={() =>
-                      send('SHOW_SHUFFLE_ADVERSARIAL')
+                    setDidShowShuffleAdversarial(true)
                   }
                 />
               )}

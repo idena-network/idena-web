@@ -369,7 +369,7 @@ export default function FlipEditor({
     if (rightMenuPanel === RightMenu.Erase) {
       setRightMenuPanel(RightMenu.None)
     }
-    if (adversarialId === -1 && !src) {
+    if (adversarialId === -1) {
       onChangeAdversarial(idx)
       setBottomMenuPanel(BottomMenu.None)
       setShowArrowHint(false)

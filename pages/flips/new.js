@@ -69,6 +69,10 @@ export default function NewFlipPage() {
 
   const failToast = useFailToast()
 
+  const [didShowShuffleAdversarial, setDidShowShuffleAdversarial] = useState(
+    false
+  )
+
   const [currentSearch, sendSearch] = useMachine(imageSearchMachine, {
     actions: {
       onError: (_, {data: {message}}) => {
@@ -178,7 +182,6 @@ export default function NewFlipPage() {
     showTranslation,
     isCommunityTranslationsExpanded,
     didShowBadFlip,
-    didShowShuffleAdversarial,
     txHash,
   } = current.context
 
@@ -393,7 +396,7 @@ export default function NewFlipPage() {
                     send('CHANGE_ADVERSARIAL_IMAGE', {image})
                   }
                   onShowAdversarialShuffle={() =>
-                    send('SHOW_SHUFFLE_ADVERSARIAL')
+                    setDidShowShuffleAdversarial(true)
                   }
                 />
               )}

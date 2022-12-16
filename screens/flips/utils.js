@@ -952,10 +952,11 @@ export async function protectFlip({
   images,
   originalOrder,
   adversarialImageId,
+  adversarialImage,
   adversarialImages,
 }) {
   const protectedFlips = []
-  let adversarialImage = ''
+  let adversarialImg = ''
   const adversarialIndex = originalOrder.findIndex(
     idx => idx === adversarialImageId
   )
@@ -966,8 +967,13 @@ export async function protectFlip({
       const protectedImageSrc = await protectFlipImage(images[i])
       protectedFlips[i] = protectedImageSrc
     } else if (i === originalOrder[adversarialIndex]) {
-      const adversarialImageSrc = await getAdversarialImage(adversarialImages)
-      adversarialImage = adversarialImageSrc.slice()
+      let adversarialImageSrc
+      if (adversarialImage) {
+        adversarialImageSrc = adversarialImage
+      } else {
+        adversarialImageSrc = await getAdversarialImage(adversarialImages)
+      }
+      adversarialImg = adversarialImageSrc.slice()
       protectedFlips[i] = await protectFlipImage(adversarialImageSrc)
     } else {
       protectedFlips[i] = images[i]
@@ -989,7 +995,7 @@ export async function protectFlip({
 
   return {
     protectedImages: compressedImages,
-    adversarialImage,
+    adversarialImage: adversarialImg,
   }
 }
 
@@ -998,8 +1004,8 @@ export const checkIfFlipNoiseEnabled = epochNumber =>
 
 export async function prepareAdversarialImages(images, send) {
   const ids = []
-  while (ids.length < 4) {
-    const rand = Math.floor(Math.random() * 20)
+  while (ids.length < 8) {
+    const rand = Math.floor(Math.random() * 25)
     if (!ids.includes(rand)) {
       ids.push(images[rand])
     }
@@ -1023,8 +1029,16 @@ export async function getAdversarialImage(images) {
   const ING_WIDTH = 440
   const IMG_HEIGHT = 330
 
+  const selectedImages = []
+  while (selectedImages.length < 4) {
+    const rand = Math.floor(Math.random() * images.length)
+    if (!selectedImages.includes(rand)) {
+      selectedImages.push(images[rand])
+    }
+  }
+
   const imagesImageData = await Promise.all(
-    images.map(async imgSrc => {
+    selectedImages.map(async imgSrc => {
       const image = document.createElement('img')
       image.src = imgSrc
       await new Promise(resolve => (image.onload = resolve))
@@ -1052,7 +1066,7 @@ export async function getAdversarialImage(images) {
     0,
     initialImgData.width,
     initialImgData.height,
-    16
+    13
   )
   const blurredImage = getImageFromImageData(initialImgData)
   await new Promise(resolve => (blurredImage.onload = resolve))
@@ -1350,18 +1364,22 @@ export async function shuffleAdversarial({originalOrder, adversarialImageId}) {
     return Promise.resolve({order: originalOrder})
   }
 
+  const position = originalOrder.findIndex(elem => elem === adversarialImageId)
   const newPosition = Math.floor(Math.random() * 4)
-  const order = []
-  if (newPosition === adversarialImageId) {
+
+  if (newPosition === position) {
     return Promise.resolve({order: originalOrder})
   }
 
-  for (let i = 0; i < originalOrder.length; i++) {
-    if (i === newPosition) {
-      order.push(originalOrder[adversarialImageId], originalOrder[i])
-    } else if (i !== adversarialImageId) {
-      order.push(originalOrder[i])
-    }
-  }
-  return Promise.resolve({order})
+  const userImages = [
+    ...originalOrder.slice(0, position),
+    ...originalOrder.slice(position + 1),
+  ]
+  const newOrder = [
+    ...userImages.slice(0, newPosition),
+    adversarialImageId,
+    ...userImages.slice(newPosition),
+  ]
+
+  return Promise.resolve({order: newOrder})
 }

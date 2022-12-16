@@ -101,7 +101,7 @@ export const flipsMachine = Machine(
                 keywords: keywords[idx],
                 images: Array.from({length: 4}),
                 protectedImages: Array.from({length: 4}),
-                adversarialImages: Array.from({length: 4}),
+                adversarialImages: Array.from({length: 8}),
               }))
             }
 
@@ -552,13 +552,12 @@ export const flipMasterMachine = Machine(
       images: Array.from({length: 4}),
       protectedImages: Array.from({length: 4}),
       adversarialImage: '',
-      adversarialImages: Array.from({length: 4}),
+      adversarialImages: Array.from({length: 8}),
       originalOrder: DEFAULT_FLIP_ORDER,
       order: DEFAULT_FLIP_ORDER,
       orderPermutations: DEFAULT_FLIP_ORDER,
       adversarialImageId: 3,
       didShowBadFlip: true,
-      didShowShuffleAdversarial: true,
     },
     on: {
       SWITCH_LOCALE: {
@@ -1036,9 +1035,6 @@ export const flipMasterMachine = Machine(
           PICK_SHUFFLE: '.shuffle',
           PICK_SUBMIT: '.submit',
           SKIP_BAD_FLIP: {actions: [assign({didShowBadFlip: () => true})]},
-          SHOW_SHUFFLE_ADVERSARIAL: {
-            actions: [assign({didShowShuffleAdversarial: () => true})],
-          },
         },
       },
     },
