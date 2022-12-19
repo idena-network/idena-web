@@ -1066,7 +1066,7 @@ export async function getAdversarialImage(images) {
     0,
     initialImgData.width,
     initialImgData.height,
-    13
+    10
   )
   const blurredImage = getImageFromImageData(initialImgData)
   await new Promise(resolve => (blurredImage.onload = resolve))
