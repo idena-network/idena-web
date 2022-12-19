@@ -962,7 +962,13 @@ export function FlipProtectStep({
                 ? t('Nonsense image')
                 : t('Adversarial noise')}
             </Text>
-            <Tooltip label={t('Regenerate adversarial noise')}>
+            <Tooltip
+              label={
+                originalOrder[currentIndex] === adversarialImageId
+                  ? t('Regenerate nonsense image')
+                  : t('Regenerate adversarial noise')
+              }
+            >
               <Flex onClick={regenerateImage} align="center" cursor="pointer">
                 <FlatCycleIcon boxSize={3} color="blue.500" />
                 <Text ml="6px" fontSize="md" fontWeight={500} color="blue.500">

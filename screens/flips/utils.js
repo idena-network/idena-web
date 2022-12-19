@@ -1006,7 +1006,7 @@ export async function prepareAdversarialImages(images, send) {
   const ids = []
   while (ids.length < 8) {
     const rand = Math.floor(Math.random() * 25)
-    if (!ids.includes(rand)) {
+    if (!ids.includes(images[rand])) {
       ids.push(images[rand])
     }
   }
@@ -1032,7 +1032,7 @@ export async function getAdversarialImage(images) {
   const selectedImages = []
   while (selectedImages.length < 4) {
     const rand = Math.floor(Math.random() * images.length)
-    if (!selectedImages.includes(rand)) {
+    if (!selectedImages.includes(images[rand])) {
       selectedImages.push(images[rand])
     }
   }
