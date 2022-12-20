@@ -850,6 +850,9 @@ export function FlipProtectStep({
   const [currentIndex, setCurrentIdx] = React.useState(0)
 
   const regenerateImage = async () => {
+    if (!images.some(x => x)) {
+      return
+    }
     onProtecting()
     let regeneratedImageSrc
     let advImageScr
@@ -917,7 +920,8 @@ export function FlipProtectStep({
                   <Tooltip
                     isOpen={
                       !didShowShuffleAdversarial &&
-                      originalOrder[idx] === adversarialImageId
+                      originalOrder[idx] === adversarialImageId &&
+                      images.some(x => x)
                     }
                     label="Nonsense image is successfully generated and shuffled"
                     fontSize="mdx"
