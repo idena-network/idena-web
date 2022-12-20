@@ -849,36 +849,42 @@ export function FlipProtectStep({
 
   const [currentIndex, setCurrentIdx] = React.useState(0)
 
-  const regenerateImage = async () => {
+  const regenerateImage = React.useCallback(async () => {
     if (!images.some(x => x)) {
       return
     }
     onProtecting()
-    let regeneratedImageSrc
     let advImageScr
+    let imageSrc
     if (originalOrder[currentIndex] === adversarialImageId) {
       advImageScr = await getAdversarialImage(adversarialImages)
-      regeneratedImageSrc = await protectFlipImage(advImageScr)
+      imageSrc = advImageScr.slice()
     } else {
-      regeneratedImageSrc = await protectFlipImage(
-        images[originalOrder[currentIndex]]
-      )
+      imageSrc = images[originalOrder[currentIndex]]
     }
-    const compressedImage = await new Promise(resolve =>
-      resolve(
-        Jimp.read(regeneratedImageSrc).then(raw =>
-          raw
-            .resize(240, 180)
-            .quality(60) // jpeg quality
-            .getBase64Async('image/jpeg')
-        )
-      )
+
+    const regeneratedImageSrc = await protectFlipImage(imageSrc)
+
+    const compressedImage = await Jimp.read(regeneratedImageSrc).then(raw =>
+      raw
+        .resize(240, 180)
+        .quality(60) // jpeg quality
+        .getBase64Async('image/jpeg')
     )
     if (advImageScr) {
       onChangeAdversarial(advImageScr)
     }
     onProtectImage(compressedImage, originalOrder[currentIndex])
-  }
+  }, [
+    adversarialImageId,
+    adversarialImages,
+    currentIndex,
+    images,
+    onChangeAdversarial,
+    onProtectImage,
+    onProtecting,
+    originalOrder,
+  ])
 
   useEffect(() => {
     if (!didShowShuffleAdversarial) {
