@@ -57,12 +57,11 @@ export function areEual(arr1, arr2) {
 
 export function areEualExceptOne(arr1, arr2, ignoreId) {
   const newArr1 = [...arr1]
-  newArr1.splice(ignoreId, 1)
   const newArr2 = [...arr2]
-  newArr2.splice(
-    arr2.findIndex(elem => elem === arr1[ignoreId]),
-    1
-  )
+  const ignoreIdx1 = arr1.findIndex(x => x === ignoreId)
+  const ignoreIdx2 = arr2.findIndex(x => x === ignoreId)
+  newArr1.splice(ignoreIdx1, 1)
+  newArr2.splice(ignoreIdx2, 1)
 
   return areSame(newArr1, newArr2)
 }
