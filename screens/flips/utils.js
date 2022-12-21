@@ -1066,7 +1066,7 @@ export async function getAdversarialImage(images) {
     0,
     initialImgData.width,
     initialImgData.height,
-    16
+    11
   )
   const blurredImage = getImageFromImageData(initialImgData)
   await new Promise(resolve => (blurredImage.onload = resolve))
@@ -1081,7 +1081,6 @@ export async function getAdversarialImage(images) {
   const sectorsImageData = getImageData(watershedImageAccess)
   const sectorsImage = getImageFromImageData(sectorsImageData)
   let palette0 = []
-  let palette4 = []
   let commonColor = 0
   const options = {
     pixels: 10000,
@@ -1094,9 +1093,8 @@ export async function getAdversarialImage(images) {
     // eslint-disable-next-line global-require
     const extractColors = require('extract-colors').default
     palette0 = await extractColors(sectorsImage.src, options)
-    palette4 = palette0.slice(0, 4)
     commonColor = palette0[0]
-    palette4.sort((a, b) => a.red - b.red)
+    palette0.sort((a, b) => a.red - b.red)
   } catch (e) {}
 
   const nosenseImageData = getImageDataFromImage(sectorsImage)
@@ -1136,11 +1134,11 @@ export async function getAdversarialImage(images) {
   // Paint sectors to images
   for (let i = 0; i < nosensePixels.length; i += 4) {
     if (nosensePixels[i] > 0) {
-      let color = palette4.find(el => nosensePixels[i] < el.red) || commonColor
+      let color = palette0.find(el => nosensePixels[i] < el.red) || commonColor
       if (!color) {
         color = commonColor
       }
-      const id = palette0.findIndex(el => el === color)
+      const id = palette0.findIndex(el => el === color) % 4
       switch (id) {
         case 0: // main image
           nosensePixels[i] = initialImageDataCopy[i]
@@ -1177,9 +1175,9 @@ export async function getAdversarialImage(images) {
   // Try to blur
   for (let i = 0; i < resizedImageDataCopy.length; i += 4) {
     const color =
-      palette4.find(el => resizedImageDataCopy[i] < el.red) || commonColor
+      palette0.find(el => resizedImageDataCopy[i] < el.red) || commonColor
     const colorNext =
-      palette4.find(el => resizedImageDataCopy[i + 4] < el.red) || commonColor
+      palette0.find(el => resizedImageDataCopy[i + 4] < el.red) || commonColor
     if (color !== colorNext) {
       if (i > ING_WIDTH * 4 && i < nosensePixels.length - ING_WIDTH * 4) {
         nosensePixels[i - 4] =

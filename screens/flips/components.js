@@ -927,6 +927,7 @@ export function FlipProtectStep({
                     isOpen={
                       !didShowShuffleAdversarial &&
                       originalOrder[idx] === adversarialImageId &&
+                      protectedImages.some(x => x) &&
                       images.some(x => x)
                     }
                     label="Nonsense image is successfully generated and shuffled"
