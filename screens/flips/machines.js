@@ -637,6 +637,8 @@ export const flipMasterMachine = Machine(
                     const {id} = availableKeywords[nextIdx]
                     return id
                   },
+                  adversarialImage: '',
+                  adversarialImages: Array.from({length: 8}),
                 }),
               },
               TOGGLE_COMMUNITY_TRANSLATIONS: {

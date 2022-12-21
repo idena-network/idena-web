@@ -129,11 +129,11 @@ export default function EditFlipPage() {
       },
       protectFlip: async flip => protectFlip(flip),
       loadAdversarial: async flip => {
-        console.log('START_SEARCH')
-        sendSearch('SEARCH', {
-          query: `${flip.keywords.words[0]?.name} ${flip.keywords.words[1]?.name}`,
-        })
-        console.log('END_SEARCH')
+        if (!flip.adversarialImages.some(x => x)) {
+          sendSearch('SEARCH', {
+            query: `${flip.keywords.words[0]?.name} ${flip.keywords.words[1]?.name}`,
+          })
+        }
         return Promise.resolve()
       },
       shuffleAdversarial: async flip => shuffleAdversarial(flip),
