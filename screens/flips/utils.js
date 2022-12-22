@@ -815,7 +815,10 @@ export async function protectFlipImage(imgSrc) {
       const isRecolor = Math.random() * 100 + 1 < 21
       const isWhite = mesh[i] > 0 && mesh[i + 1] > 0 && mesh[i + 2] > 0
       if (isRecolor && isWhite) {
-        const newColorId = Math.floor(Math.random() * (palette.length - 1)) + 1
+        const newColorId =
+          palette.length === 1
+            ? 0
+            : Math.floor(Math.random() * (palette.length - 1)) + 1
         pixels[i] = palette[newColorId].red
         pixels[i + 1] = palette[newColorId].green
         pixels[i + 2] = palette[newColorId].blue
@@ -1066,7 +1069,7 @@ export async function getAdversarialImage(images) {
     0,
     initialImgData.width,
     initialImgData.height,
-    11
+    8
   )
   const blurredImage = getImageFromImageData(initialImgData)
   await new Promise(resolve => (blurredImage.onload = resolve))
