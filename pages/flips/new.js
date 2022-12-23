@@ -132,7 +132,10 @@ export default function NewFlipPage() {
       },
       protectFlip: async flip => protectFlip(flip),
       loadAdversarial: async flip => {
-        if (!flip.adversarialImages.some(x => x)) {
+        if (
+          !flip.adversarialImages.some(x => x) &&
+          !eitherState(currentSearch, 'searching')
+        ) {
           sendSearch('SEARCH', {
             query: `${flip.keywords.words[0]?.name} ${flip.keywords.words[1]?.name}`,
           })
