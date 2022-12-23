@@ -863,6 +863,8 @@ export function FlipProtectStep({
       imageSrc = images[originalOrder[currentIndex]]
     }
 
+    if (!imageSrc) return
+
     const regeneratedImageSrc = await protectFlipImage(imageSrc)
 
     const compressedImage = await Jimp.read(regeneratedImageSrc).then(raw =>
@@ -892,7 +894,7 @@ export function FlipProtectStep({
         onShowAdversarialShuffle()
       }, 5000)
     }
-  }, [didShowShuffleAdversarial])
+  }, [didShowShuffleAdversarial, onShowAdversarialShuffle])
 
   return (
     <FlipStep>

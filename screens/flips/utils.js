@@ -973,11 +973,15 @@ export async function protectFlip({
       let adversarialImageSrc
       if (adversarialImage) {
         adversarialImageSrc = adversarialImage
-      } else {
+      } else if (adversarialImages.some(x => x)) {
         adversarialImageSrc = await getAdversarialImage(adversarialImages)
+        adversarialImg = adversarialImageSrc?.slice()
       }
-      adversarialImg = adversarialImageSrc.slice()
-      protectedFlips[i] = await protectFlipImage(adversarialImageSrc)
+      if (adversarialImageSrc) {
+        protectedFlips[i] = await protectFlipImage(adversarialImageSrc)
+      } else {
+        protectedFlips[i] = undefined
+      }
     } else {
       protectedFlips[i] = images[i]
     }
@@ -1031,6 +1035,17 @@ export async function prepareAdversarialImages(images, send) {
 export async function getAdversarialImage(images) {
   const ING_WIDTH = 440
   const IMG_HEIGHT = 330
+
+  let loadedImagesLength = 0
+  for (let i = 0; i < images.length; i++) {
+    if (images[i]) {
+      // eslint-disable-next-line no-plusplus
+      loadedImagesLength++
+    }
+  }
+  if (loadedImagesLength < 4) {
+    return ''
+  }
 
   const selectedImages = []
   while (selectedImages.length < 4) {

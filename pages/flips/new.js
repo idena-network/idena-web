@@ -432,7 +432,12 @@ export default function NewFlipPage() {
         <FlipMasterFooter>
           {not('keywords') && (
             <SecondaryButton
-              isDisabled={is('images.painting') || is('protect.protecting')}
+              isDisabled={
+                is('images.painting') ||
+                is('protect.protecting') ||
+                is('protect.shuffling') ||
+                is('protect.preparing')
+              }
               onClick={() => send('PREV')}
             >
               {t('Previous step')}
@@ -440,7 +445,12 @@ export default function NewFlipPage() {
           )}
           {not('submit') && (
             <PrimaryButton
-              isDisabled={is('images.painting') || is('protect.protecting')}
+              isDisabled={
+                is('images.painting') ||
+                is('protect.protecting') ||
+                is('protect.shuffling') ||
+                is('protect.preparing')
+              }
               onClick={() => send('NEXT')}
             >
               {t('Next step')}

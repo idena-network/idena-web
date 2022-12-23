@@ -769,21 +769,6 @@ export const flipMasterMachine = Machine(
                   log(),
                 ],
               },
-              CHANGE_ADVERSARIAL: {
-                actions: [
-                  assign({
-                    adversarialImages: (
-                      {adversarialImages},
-                      {image, currentIndex}
-                    ) => [
-                      ...adversarialImages.slice(0, currentIndex),
-                      image,
-                      ...adversarialImages.slice(currentIndex + 1),
-                    ],
-                  }),
-                  log(),
-                ],
-              },
               CHANGE_ADVERSARIAL_ID: {
                 actions: assign({
                   adversarialImageId: ({adversarialImageId}, {newIndex}) =>
@@ -890,11 +875,12 @@ export const flipMasterMachine = Machine(
                   ],
                 },
               },
+              protecting: {},
               shuffling: {
                 invoke: {
                   src: 'shuffleAdversarial',
                   onDone: {
-                    target: 'protecting',
+                    target: 'preparing',
                     actions: [
                       assign({
                         originalOrder: (_, {data: {order}}) => order,
@@ -905,7 +891,7 @@ export const flipMasterMachine = Machine(
                   },
                 },
               },
-              protecting: {
+              preparing: {
                 invoke: {
                   src: 'protectFlip',
                   onDone: {
@@ -1037,6 +1023,21 @@ export const flipMasterMachine = Machine(
           PICK_SHUFFLE: '.shuffle',
           PICK_SUBMIT: '.submit',
           SKIP_BAD_FLIP: {actions: [assign({didShowBadFlip: () => true})]},
+          CHANGE_ADVERSARIAL: {
+            actions: [
+              assign({
+                adversarialImages: (
+                  {adversarialImages},
+                  {image, currentIndex}
+                ) => [
+                  ...adversarialImages.slice(0, currentIndex),
+                  image,
+                  ...adversarialImages.slice(currentIndex + 1),
+                ],
+              }),
+              log(),
+            ],
+          },
         },
       },
     },
