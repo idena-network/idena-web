@@ -63,5 +63,5 @@ export function areEualExceptOne(arr1, arr2, ignoreId) {
   newArr1.splice(ignoreIdx1, 1)
   newArr2.splice(ignoreIdx2, 1)
 
-  return areSame(newArr1, newArr2)
+  return areEual(newArr1, newArr2)
 }
