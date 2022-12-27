@@ -1381,6 +1381,10 @@ export async function shuffleAdversarial({originalOrder, adversarialImageId}) {
   }
 
   const position = originalOrder.findIndex(elem => elem === adversarialImageId)
+  if (position !== 3) {
+    return Promise.resolve({order: originalOrder})
+  }
+
   const newPosition = Math.floor(Math.random() * 4)
 
   if (newPosition === position) {

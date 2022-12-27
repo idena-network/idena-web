@@ -155,7 +155,12 @@ export function FlipCard({flipService, onDelete}) {
               </FlipOverlayStatus>
             </FlipOverlay>
           )}
-          <FlipCardImage src={images[originalOrder ? originalOrder[0] : 0] || images[originalOrder ? originalOrder[1] : 1]} />
+          <FlipCardImage
+            src={
+              images[originalOrder ? originalOrder[0] : 0] ||
+              images[originalOrder ? originalOrder[1] : 1]
+            }
+          />
         </FlipCardImageBox>
         <Flex justifyContent="space-between" alignItems="flex-start" mt={4}>
           <Box>
