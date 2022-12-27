@@ -139,7 +139,8 @@ export default function EditFlipPage() {
         }
         return Promise.resolve()
       },
-      shuffleAdversarial: async flip => shuffleAdversarial(flip),
+      shuffleAdversarial: async flip =>
+        shuffleAdversarial(flip, setDidShowShuffleAdversarial),
       submitFlip: async context => {
         const result = await publishFlip(context)
         waitFlipsUpdate()

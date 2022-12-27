@@ -1375,13 +1375,17 @@ export async function getAdversarialImage(images) {
   return resultImageSrc
 }
 
-export async function shuffleAdversarial({originalOrder, adversarialImageId}) {
+export async function shuffleAdversarial(
+  {originalOrder, adversarialImageId},
+  setDidShowShuffleAdversarial
+) {
   if (adversarialImageId === -1) {
     return Promise.resolve({order: originalOrder})
   }
 
   const position = originalOrder.findIndex(elem => elem === adversarialImageId)
   if (position !== 3) {
+    setDidShowShuffleAdversarial(true)
     return Promise.resolve({order: originalOrder})
   }
 
