@@ -335,7 +335,9 @@ export default function FlipEditor({
 
   const handleOnPaste = () => {
     setShowContextMenu(false)
-    handleImageFromClipboard()
+    if (idx !== adversarialId) {
+      handleImageFromClipboard()
+    }
   }
 
   const handleUndo = () => {
