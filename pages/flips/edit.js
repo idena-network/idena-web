@@ -366,6 +366,9 @@ export default function EditFlipPage() {
                     send('CHANGE_ORIGINAL_ORDER', {order})
                   }
                   onPainting={() => send('PAINTING')}
+                  onChangeAdversarialId={newIndex => {
+                    send('CHANGE_ADVERSARIAL_ID', {newIndex})
+                  }}
                 />
               )}
               {is('protect') && (
