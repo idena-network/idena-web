@@ -96,21 +96,11 @@ export default function NewFlipPage() {
           }
         })()
 
-        // eslint-disable-next-line no-shadow
-        const didShowShuffleAdversarial = (() => {
-          try {
-            return localStorage.getItem('didShowShuffleAdversarial')
-          } catch {
-            return false
-          }
-        })()
-
         if (!wordPairs || wordPairs.every(({used}) => used))
           return {
             keywordPairId: 0,
             availableKeywords: [getRandomKeywordPair()],
             didShowBadFlip,
-            didShowShuffleAdversarial,
           }
 
         const persistedFlips = await db.table('ownFlips').toArray()
@@ -127,7 +117,6 @@ export default function NewFlipPage() {
           keywordPairId,
           availableKeywords,
           didShowBadFlip,
-          didShowShuffleAdversarial,
         }
       },
       protectFlip: async flip => protectFlip(flip),

@@ -92,15 +92,6 @@ export default function EditFlipPage() {
       prepareFlip: async ({id, wordPairs}) => {
         const persistedFlips = await db.table('ownFlips').toArray()
 
-        // eslint-disable-next-line no-shadow
-        const didShowShuffleAdversarial = (() => {
-          try {
-            return localStorage.getItem('didShowShuffleAdversarial')
-          } catch {
-            return false
-          }
-        })()
-
         const {
           // eslint-disable-next-line no-shadow
           images,
@@ -124,7 +115,6 @@ export default function EditFlipPage() {
           protectedImages,
           keywordPairId,
           availableKeywords,
-          didShowShuffleAdversarial,
         }
       },
       protectFlip: async flip => protectFlip(flip),

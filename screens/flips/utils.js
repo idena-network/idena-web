@@ -5,7 +5,7 @@ import Jimp from 'jimp'
 import CID from 'cids'
 import {loadPersistentStateValue, persistItem} from '../../shared/utils/persist'
 import {FlipType} from '../../shared/types'
-import {areSame, areEual, areEualExceptOne} from '../../shared/utils/arr'
+import {areSame, areEqual, areEqualExceptOne} from '../../shared/utils/arr'
 import {getRawTx, submitRawFlip} from '../../shared/api'
 import {
   dnaSign,
@@ -196,8 +196,8 @@ export async function publishFlip({
     throw new Error('You already submitted this flip')
 
   if (
-    areEual(order, originalOrder) ||
-    areEualExceptOne(originalOrder, order, adversarialImageId)
+    areEqual(order, originalOrder) ||
+    areEqualExceptOne(originalOrder, order, adversarialImageId)
   )
     throw new Error('You must shuffle flip before submit')
 
