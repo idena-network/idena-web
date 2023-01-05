@@ -7,6 +7,7 @@ import {
   Box,
   Flex,
   Stack,
+  Text,
   VisuallyHidden,
   useToast,
   Menu,
@@ -19,10 +20,18 @@ import {
   Button,
   useTheme,
   Divider,
+  useDisclosure,
 } from '@chakra-ui/react'
 import {SearchIcon} from '@chakra-ui/icons'
 import {useInterval} from '../../../shared/hooks/use-interval'
-import {Toast, Tooltip} from '../../../shared/components/components'
+import {
+  Dialog,
+  DialogBody,
+  DialogFooter,
+  DialogHeader,
+  Toast,
+  Tooltip,
+} from '../../../shared/components/components'
 import {resizing, imageResize, imageResizeSoft} from '../../../shared/utils/img'
 import {writeImageURLToClipboard} from '../../../shared/utils/clipboard'
 import {ImageSearchDialog} from './image-search'
@@ -38,6 +47,7 @@ import {
   UndoIcon,
   CopyIcon,
   DeleteIcon,
+  LockedImageIcon,
 } from '../../../shared/components/icons'
 import {useSuccessToast} from '../../../shared/hooks/use-toast'
 import {rem} from '../../../shared/theme'
@@ -52,6 +62,7 @@ const BottomMenu = {
   Main: 0,
   Crop: 1,
   Erase: 2,
+  None: 3,
 }
 
 const RightMenu = {
@@ -71,8 +82,10 @@ export default function FlipEditor({
   idx = 0,
   src,
   visible,
+  adversarialId,
   onChange,
   onChanging,
+  onChangeAdversarial,
 }) {
   const {t} = useTranslation()
   const toast = useToast()
@@ -83,12 +96,16 @@ export default function FlipEditor({
   const [showContextMenu, setShowContextMenu] = useState(false)
   const [contextMenuCursor, setContextMenuCursor] = useState({x: 0, y: 0})
 
-  const [bottomMenuPanel, setBottomMenuPanel] = useState(BottomMenu.Main)
+  const [bottomMenuPanel, setBottomMenuPanel] = useState(
+    idx === adversarialId ? BottomMenu.None : BottomMenu.Main
+  )
   const [rightMenuPanel, setRightMenuPanel] = useState(RightMenu.None)
 
   const [brush, setBrush] = useState(20)
   const [brushColor, setBrushColor] = useState('ff6666dd')
-  const [showArrowHint, setShowArrowHint] = useState(!src && idx === 0)
+  const [showArrowHint, setShowArrowHint] = useState(
+    !src && idx === 0 && idx !== adversarialId
+  )
 
   const theme = useTheme()
 
@@ -251,6 +268,12 @@ export default function FlipEditor({
 
   const [showImageSearch, setShowImageSearch] = React.useState()
 
+  const {
+    isOpen: isOpenModal,
+    onOpen: onOpenModal,
+    onClose: onCloseModal,
+  } = useDisclosure()
+
   // File upload handling
   const handleUpload = e => {
     e.preventDefault()
@@ -312,7 +335,9 @@ export default function FlipEditor({
 
   const handleOnPaste = () => {
     setShowContextMenu(false)
-    handleImageFromClipboard()
+    if (idx !== adversarialId) {
+      handleImageFromClipboard()
+    }
   }
 
   const handleUndo = () => {
@@ -345,6 +370,12 @@ export default function FlipEditor({
   const handleOnClear = () => {
     if (rightMenuPanel === RightMenu.Erase) {
       setRightMenuPanel(RightMenu.None)
+    }
+    if (adversarialId === -1) {
+      onChangeAdversarial(idx)
+      setBottomMenuPanel(BottomMenu.None)
+      setShowArrowHint(false)
+      setChangesCnt(changesCnt + 1)
     }
     setImageUrl({url: null})
   }
@@ -652,6 +683,44 @@ export default function FlipEditor({
               }}
               usageStatistics={false}
             />
+            {idx === adversarialId && (
+              <Flex
+                position="absolute"
+                top={0}
+                w={IMAGE_WIDTH}
+                h={IMAGE_HEIGHT}
+                px={10}
+                direction="column"
+                align="center"
+                justify="center"
+              >
+                <LockedImageIcon boxSize={9} color="gray.200" />
+                <Text align="center" fontSize="md" color="#DCDEDF" my={5}>
+                  {t(
+                    'Please keep this image locked. To mislead bots, a nonsense image will be generated at the next step.'
+                  )}
+                </Text>
+                <Button
+                  color="#56585A"
+                  fontWeight={500}
+                  backgroundColor="transparent"
+                  border="solid 1px #d2d4d9"
+                  _hover={{
+                    backgroundColor: 'transparent',
+                    _disabled: {
+                      backgroundColor: 'transparent',
+                      color: '#DCDEDF',
+                    },
+                  }}
+                  _active={{
+                    backgroundColor: '#F5F6F7',
+                  }}
+                  onClick={onOpenModal}
+                >
+                  {t('Unlock image')}
+                </Button>
+              </Flex>
+            )}
           </Box>
 
           {bottomMenuPanel === BottomMenu.Main && (
@@ -833,7 +902,7 @@ export default function FlipEditor({
                 icon={<BasketIcon />}
                 color="red.500"
                 _hover={{color: 'red.500'}}
-                onClick={handleOnClear}
+                onClick={() => handleOnClear(idx)}
               />
             </Stack>
           )}
@@ -1011,6 +1080,38 @@ export default function FlipEditor({
           })
         }
       />
+
+      <Dialog onClose={onCloseModal} isOpen={isOpenModal} isCentered>
+        <DialogHeader fontSize="lg" fontWeight={500}>
+          {t('Are you sure?')}
+        </DialogHeader>
+        <DialogBody>
+          <Flex h="100%" w="100%" direction="column" align="center">
+            <Text>
+              {t(
+                'We recommend using 3 images to tell your story so a generated nonsense image could be added to mislead bots.'
+              )}
+            </Text>
+            <Flex w="100%" justify="flex-end"></Flex>
+          </Flex>
+        </DialogBody>
+        <DialogFooter>
+          <Button
+            variant="primary"
+            size="md"
+            onClick={() => {
+              onChangeAdversarial(-1)
+              setBottomMenuPanel(BottomMenu.Main)
+              onCloseModal()
+            }}
+          >
+            {t('Yes, unlock image')}
+          </Button>
+          <Button variant="secondary" onClick={onCloseModal}>
+            {t('Cancel')}
+          </Button>
+        </DialogFooter>
+      </Dialog>
     </Box>
   )
 }

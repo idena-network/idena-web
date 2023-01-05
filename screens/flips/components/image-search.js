@@ -16,8 +16,8 @@ import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
 import {createMachine} from 'xstate'
 import {assign, log} from 'xstate/lib/actions'
-import axios from 'axios'
 import {SearchIcon} from '@chakra-ui/icons'
+import {imageSearchMachine} from '../machines'
 import {PrimaryButton, SecondaryButton} from '../../../shared/components/button'
 import {
   Dialog,
@@ -26,53 +26,6 @@ import {
   Input,
 } from '../../../shared/components/components'
 import {eitherState} from '../../../shared/utils/utils'
-
-async function searchImages(q) {
-  return axios.get('/api/image-search', {params: {q}}).then(x => x.data)
-}
-
-const imageSearchMachine = createMachine({
-  context: {
-    images: [],
-  },
-  initial: 'idle',
-  states: {
-    idle: {},
-    searching: {
-      invoke: {
-        src: (_, {query}) => searchImages(query),
-        onDone: {
-          target: 'done',
-          actions: [
-            assign({
-              images: (_, {data}) => data,
-            }),
-            log(),
-          ],
-        },
-        onError: 'fail',
-      },
-    },
-    done: {
-      on: {
-        PICK: {
-          actions: [
-            assign({
-              selectedImage: (_, {image}) => image,
-            }),
-            log(),
-          ],
-        },
-      },
-    },
-    fail: {
-      entry: ['onError', log()],
-    },
-  },
-  on: {
-    SEARCH: 'searching',
-  },
-})
 
 export function ImageSearchDialog({onPick, onClose, onError, ...props}) {
   const {t} = useTranslation()

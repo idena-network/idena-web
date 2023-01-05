@@ -1,4 +1,4 @@
-import React, {useEffect} from 'react'
+import React, {useEffect, useState} from 'react'
 import {useRouter} from 'next/router'
 import {Box, Flex, useToast, Divider, useDisclosure} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
@@ -26,12 +26,17 @@ import {
   FlipProtectStep,
 } from '../../screens/flips/components'
 import Layout from '../../shared/components/layout'
-import {flipMasterMachine} from '../../screens/flips/machines'
+import {
+  flipMasterMachine,
+  imageSearchMachine,
+} from '../../screens/flips/machines'
 import {
   publishFlip,
   isPendingKeywordPair,
   protectFlip,
   checkIfFlipNoiseEnabled,
+  prepareAdversarialImages,
+  shuffleAdversarial,
 } from '../../screens/flips/utils'
 import {Step} from '../../screens/flips/types'
 import {
@@ -65,6 +70,18 @@ export default function EditFlipPage() {
   const [, {waitFlipsUpdate}] = useIdentity()
 
   const failToast = useFailToast()
+
+  const [didShowShuffleAdversarial, setDidShowShuffleAdversarial] = useState(
+    false
+  )
+
+  const [currentSearch, sendSearch] = useMachine(imageSearchMachine, {
+    actions: {
+      onError: (_, {data: {message}}) => {
+        console.log(`ERROR ${message}`)
+      },
+    },
+  })
 
   const [current, send] = useMachine(flipMasterMachine, {
     context: {
@@ -101,6 +118,19 @@ export default function EditFlipPage() {
         }
       },
       protectFlip: async flip => protectFlip(flip),
+      loadAdversarial: async flip => {
+        if (
+          !flip.adversarialImages.some(x => x) &&
+          !eitherState(currentSearch, 'searching')
+        ) {
+          sendSearch('SEARCH', {
+            query: `${flip.keywords.words[0]?.name} ${flip.keywords.words[1]?.name}`,
+          })
+        }
+        return Promise.resolve()
+      },
+      shuffleAdversarial: async flip =>
+        shuffleAdversarial(flip, setDidShowShuffleAdversarial),
       submitFlip: async context => {
         const result = await publishFlip(context)
         waitFlipsUpdate()
@@ -116,6 +146,15 @@ export default function EditFlipPage() {
   })
 
   useEffect(() => {
+    if (eitherState(currentSearch, 'done')) {
+      prepareAdversarialImages(
+        currentSearch.context.images,
+        send
+      ).catch(() => {})
+    }
+  }, [currentSearch])
+
+  useEffect(() => {
     if (id && epochState && privateKey) {
       send('PREPARE_FLIP', {id, epoch: epochState.epoch, privateKey})
     }
@@ -126,6 +165,8 @@ export default function EditFlipPage() {
     keywords,
     images,
     protectedImages,
+    adversarialImages,
+    adversarialImageId,
     originalOrder,
     order,
     showTranslation,
@@ -305,6 +346,8 @@ export default function EditFlipPage() {
                   showTranslation={showTranslation}
                   originalOrder={originalOrder}
                   images={images}
+                  adversarialImages={adversarialImages}
+                  adversarialImageId={adversarialImageId}
                   onChangeImage={(image, currentIndex) =>
                     send('CHANGE_IMAGES', {image, currentIndex})
                   }
@@ -313,6 +356,9 @@ export default function EditFlipPage() {
                     send('CHANGE_ORIGINAL_ORDER', {order})
                   }
                   onPainting={() => send('PAINTING')}
+                  onChangeAdversarialId={newIndex => {
+                    send('CHANGE_ADVERSARIAL_ID', {newIndex})
+                  }}
                 />
               )}
               {is('protect') && (
@@ -322,9 +368,18 @@ export default function EditFlipPage() {
                   originalOrder={originalOrder}
                   images={images}
                   protectedImages={protectedImages}
+                  adversarialImages={adversarialImages}
+                  adversarialImageId={adversarialImageId}
+                  didShowShuffleAdversarial={didShowShuffleAdversarial}
                   onProtecting={() => send('PROTECTING')}
                   onProtectImage={(image, currentIndex) =>
                     send('CHANGE_PROTECTED_IMAGES', {image, currentIndex})
+                  }
+                  onChangeAdversarial={image =>
+                    send('CHANGE_ADVERSARIAL_IMAGE', {image})
+                  }
+                  onShowAdversarialShuffle={() =>
+                    setDidShowShuffleAdversarial(true)
                   }
                 />
               )}
@@ -357,7 +412,12 @@ export default function EditFlipPage() {
         <FlipMasterFooter>
           {not('keywords') && (
             <SecondaryButton
-              isDisabled={is('images.painting') || is('protect.protecting')}
+              isDisabled={
+                is('images.painting') ||
+                is('protect.protecting') ||
+                is('protect.shuffling') ||
+                is('protect.preparing')
+              }
               onClick={() => send('PREV')}
             >
               {t('Previous step')}
@@ -365,7 +425,12 @@ export default function EditFlipPage() {
           )}
           {not('submit') && (
             <PrimaryButton
-              isDisabled={is('images.painting') || is('protect.protecting')}
+              isDisabled={
+                is('images.painting') ||
+                is('protect.protecting') ||
+                is('protect.shuffling') ||
+                is('protect.preparing')
+              }
               onClick={() => send('NEXT')}
             >
               {t('Next step')}
