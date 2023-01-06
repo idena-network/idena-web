@@ -96,6 +96,7 @@ const {ScrollElement} = Scroll
 const {scroller} = Scroll
 const ElementThumbnail = ScrollElement(Thumbnail)
 const ElementFlipImage = ScrollElement(AspectRatio)
+const ElementBadFlipNum = ScrollElement(BadFlipListItemMobile)
 
 export function ValidationScene(props) {
   return (
@@ -1520,21 +1521,34 @@ ReviewValidationDialog.LinkButton = ReviewValidationDialogLinkButton
 export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
   const {t} = useTranslation()
 
+  const isNewFlipRules = true
   const [flipCase, setFlipCase] = React.useState(0)
 
   const isMobile = useBreakpointValue([true, false])
   const BadFlipNotice = isMobile ? Drawer : Modal
   const BadFlipNoticeBody = isMobile ? DrawerBody : ModalContent
 
+  const scrollToExample = exampleId => {
+    scroller.scrollTo(`badFlipExample${exampleId}`, {
+      duration: 250,
+      smooth: true,
+      containerId: 'badFlipExamples',
+      horizontal: true,
+    })
+  }
+
+  const examplesLength = isNewFlipRules ? 8 : 4
   const badFlipDialogHandlers = useSwipeable({
     onSwipedLeft: () => {
       if (isMobile) {
-        setFlipCase(flipCase === 4 ? flipCase : flipCase + 1)
+        setFlipCase(flipCase === examplesLength ? flipCase : flipCase + 1)
+        scrollToExample(flipCase === examplesLength ? flipCase : flipCase + 1)
       }
     },
     onSwipedRight: () => {
       if (isMobile) {
         setFlipCase(flipCase === 0 ? flipCase : flipCase - 1)
+        scrollToExample(flipCase === 0 ? flipCase : flipCase - 1)
       }
     },
     delta: 50,
@@ -1548,6 +1562,10 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
     '3-labels',
     '4-text',
     '5-inappropriate-content',
+    '6-unrelated-stories',
+    '7-waking-up',
+    '8-thumbs-up',
+    '9-painter',
   ]
 
   // eslint-disable-next-line no-shadow
@@ -1607,38 +1625,50 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
             justify="center"
             align={['center', 'initial']}
             flexGrow={1}
+            bg={isNewFlipRules ? 'white' : 'transparent'}
+            borderRadius="8px"
           >
-            <Stack
-              spacing={0}
-              borderColor="brandGray.016"
-              borderWidth={[0, 1]}
-              flexGrow={1}
+            <ChakraFlex
+              bg={['white', isNewFlipRules ? 'red.016' : 'white']}
+              px={isNewFlipRules ? 14 : 'auto'}
+              py={['initial', isNewFlipRules ? 20 : 'initial']}
+              w={isNewFlipRules ? '240px' : 120}
               h="100%"
-              minW={['42%', 120]}
-              position="relative"
             >
-              <BadFlipPartFrame flipCase={flipCase} />
-              <BadFlipImage src={flipUrl(flipCase, 1)} roundedTop="md" />
-              <BadFlipImage src={flipUrl(flipCase, 2)} />
-              <BadFlipImage src={flipUrl(flipCase, 3)} />
-              <BadFlipImage src={flipUrl(flipCase, 4)} roundedBottom="md" />
-            </Stack>
+              <Stack
+                spacing={0}
+                borderColor="brandGray.016"
+                borderWidth={[0, 1]}
+                flexGrow={1}
+                h="100%"
+                minW={['42%', 120]}
+                position="relative"
+              >
+                <BadFlipPartFrame flipCase={flipCase} />
+                <BadFlipImage src={flipUrl(flipCase, 1)} roundedTop="md" />
+                <BadFlipImage src={flipUrl(flipCase, 2)} />
+                <BadFlipImage src={flipUrl(flipCase, 3)} />
+                <BadFlipImage src={flipUrl(flipCase, 4)} roundedBottom="md" />
+              </Stack>
+            </ChakraFlex>
             <ChakraFlex
               direction="column"
               justify="space-between"
               spacing={7}
               bg="white"
               borderRadius="lg"
-              ml={[0, 7]}
+              ml={[0, isNewFlipRules ? 2 : 7]}
               p={[0, 8]}
-              w={['100%', 440]}
+              w={['100%', isNewFlipRules ? 512 : 440]}
             >
               <Stack mt={[4, 0]} spacing={[5, 4]}>
                 <ChakraBox display={['none', 'block']}>
                   <Heading fontSize="lg" fontWeight={500} lineHeight="32px">
                     {title}
                   </Heading>
-                  <Text color="muted">{subtitle}</Text>
+                  <Text fontSize={isNewFlipRules ? 'mdx' : 'md'} color="muted">
+                    {subtitle}
+                  </Text>
                 </ChakraBox>
                 <List
                   as="ul"
@@ -1646,6 +1676,7 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
                   p={['28px', 0]}
                   borderRadius={['8px', 0]}
                   backgroundColor={['gray.50', 'transparent']}
+                  mb={['68px', 'auto']}
                 >
                   <BadFlipListItem
                     flipCase={0}
@@ -1664,7 +1695,7 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
                     }}
                   >
                     {t(
-                      'One of the keywords is not clearly visible in the story'
+                      'One of the keywords is not clearly visible in the images'
                     )}
                   </BadFlipListItem>
                   <BadFlipListItem
@@ -1674,7 +1705,7 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
                       setFlipCase(1)
                     }}
                   >
-                    {t('There are numbers or letters indicating the order')}
+                    {t('Numbers or letters indicating the order')}
                   </BadFlipListItem>
                   <BadFlipListItem
                     flipCase={2}
@@ -1683,7 +1714,7 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
                       setFlipCase(2)
                     }}
                   >
-                    {t('There is a sequence of enumerated objects')}
+                    {t('Sequence of enumerated objects')}
                   </BadFlipListItem>
                   <BadFlipListItem
                     flipCase={3}
@@ -1695,9 +1726,7 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
                       setFlipCase(3)
                     }}
                   >
-                    {t(
-                      'There is text that is necessary to read to solve the flip'
-                    )}
+                    {t('Text necessary to read to solve the flip')}
                   </BadFlipListItem>
                   <BadFlipListItem
                     flipCase={4}
@@ -1706,51 +1735,56 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
                       setFlipCase(4)
                     }}
                   >
-                    {t('There is inappropriate content')}
+                    {t('Inappropriate content')}
                   </BadFlipListItem>
+                  {isNewFlipRules && (
+                    <BadFlipListItem
+                      flipCase={5}
+                      isActive={flipCase === 5}
+                      onClick={() => {
+                        setFlipCase(5)
+                      }}
+                    >
+                      {t('Several unrelated stories')}
+                    </BadFlipListItem>
+                  )}
+                  {isNewFlipRules && (
+                    <BadFlipListItem
+                      flipCase={6}
+                      isActive={flipCase === 6}
+                      onClick={() => {
+                        setFlipCase(6)
+                      }}
+                    >
+                      {t('Waking up template')}
+                    </BadFlipListItem>
+                  )}
+                  {isNewFlipRules && (
+                    <BadFlipListItem
+                      flipCase={7}
+                      isActive={flipCase === 7}
+                      onClick={() => {
+                        setFlipCase(7)
+                      }}
+                    >
+                      {t('Thumbs up/down image at the end')}
+                    </BadFlipListItem>
+                  )}
+                  {isNewFlipRules && (
+                    <BadFlipListItem
+                      flipCase={8}
+                      isActive={flipCase === 8}
+                      onClick={() => {
+                        setFlipCase(8)
+                      }}
+                    >
+                      {t(
+                        'Images of both keywords are inserted into a page/screen/painting'
+                      )}
+                    </BadFlipListItem>
+                  )}
                 </List>
-                <ChakraFlex
-                  display={['flex', 'none']}
-                  justify="center"
-                  h={12}
-                  w="100%"
-                >
-                  <BadFlipListItemMobile
-                    isActive={flipCase === 0}
-                    number={1}
-                    onClick={() => {
-                      setFlipCase(0)
-                    }}
-                  />
-                  <BadFlipListItemMobile
-                    isActive={flipCase === 1}
-                    number={2}
-                    onClick={() => {
-                      setFlipCase(1)
-                    }}
-                  />
-                  <BadFlipListItemMobile
-                    isActive={flipCase === 2}
-                    number={3}
-                    onClick={() => {
-                      setFlipCase(2)
-                    }}
-                  />
-                  <BadFlipListItemMobile
-                    isActive={flipCase === 3}
-                    number={4}
-                    onClick={() => {
-                      setFlipCase(3)
-                    }}
-                  />
-                  <BadFlipListItemMobile
-                    isActive={flipCase === 4}
-                    number={5}
-                    onClick={() => {
-                      setFlipCase(4)
-                    }}
-                  />
-                </ChakraFlex>
+                <ChakraBox display={['block', 'none']} w="100%" h="48px" />
               </Stack>
               <Stack display={['none', 'flex']} isInline justify="flex-end">
                 <SecondaryButton onClick={onClose}>{t('Skip')}</SecondaryButton>
@@ -1769,6 +1803,96 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
             </ChakraFlex>
           </ChakraFlex>
         </div>
+        <ChakraFlex
+          id="badFlipExamples"
+          display={['flex', 'none']}
+          justify={isNewFlipRules ? 'normal' : 'center'}
+          position="fixed"
+          bottom={4}
+          left={0}
+          h={12}
+          w="100%"
+          maxW="-webkit-fill-available"
+          mx={8}
+          overflowX="scroll"
+          sx={{
+            '&::-webkit-scrollbar': {
+              display: 'none',
+            },
+          }}
+        >
+          <ElementBadFlipNum
+            isActive={flipCase === 0}
+            number={1}
+            onClick={() => {
+              setFlipCase(0)
+            }}
+          />
+          <ElementBadFlipNum
+            isActive={flipCase === 1}
+            number={2}
+            onClick={() => {
+              setFlipCase(1)
+            }}
+          />
+          <ElementBadFlipNum
+            isActive={flipCase === 2}
+            number={3}
+            onClick={() => {
+              setFlipCase(2)
+            }}
+          />
+          <ElementBadFlipNum
+            isActive={flipCase === 3}
+            number={4}
+            onClick={() => {
+              setFlipCase(3)
+            }}
+          />
+          <ElementBadFlipNum
+            isActive={flipCase === 4}
+            number={5}
+            onClick={() => {
+              setFlipCase(4)
+            }}
+          />
+          {isNewFlipRules && (
+            <ElementBadFlipNum
+              isActive={flipCase === 5}
+              number={6}
+              onClick={() => {
+                setFlipCase(5)
+              }}
+            />
+          )}
+          {isNewFlipRules && (
+            <ElementBadFlipNum
+              isActive={flipCase === 6}
+              number={7}
+              onClick={() => {
+                setFlipCase(6)
+              }}
+            />
+          )}
+          {isNewFlipRules && (
+            <ElementBadFlipNum
+              isActive={flipCase === 7}
+              number={8}
+              onClick={() => {
+                setFlipCase(7)
+              }}
+            />
+          )}
+          {isNewFlipRules && (
+            <ElementBadFlipNum
+              isActive={flipCase === 8}
+              number={9}
+              onClick={() => {
+                setFlipCase(8)
+              }}
+            />
+          )}
+        </ChakraFlex>
       </BadFlipNoticeBody>
     </BadFlipNotice>
   )
@@ -1844,6 +1968,7 @@ function BadFlipListItemCircle(props) {
 function BadFlipListItemMobile({isActive, number, ...props}) {
   return (
     <ChakraBox
+      name={`badFlipExample${number}`}
       borderRadius="18px"
       border="1px solid"
       borderColor={isActive ? 'red.012' : 'transparent'}
@@ -1856,8 +1981,8 @@ function BadFlipListItemMobile({isActive, number, ...props}) {
         align="center"
         borderRadius="16px"
         bg={isActive ? 'red.012' : 'gray.212'}
-        h="100%"
-        w="100%"
+        h="42px"
+        w="42px"
       >
         <BadFlipListItemCircle
           bg={isActive ? 'red.500' : 'gray.200'}
@@ -1871,14 +1996,20 @@ function BadFlipListItemMobile({isActive, number, ...props}) {
 }
 
 function BadFlipPartFrame({flipCase, ...props}) {
-  const topH = useBreakpointValue(['calc(25% - 4px)', `${100 * 1 - 4}px`])
-  const botH = useBreakpointValue(['calc(50% - 4px)', `${100 * 2 - 4}px`])
+  const topFirst = useBreakpointValue(['calc(0% - 4px)', `${100 * 0 - 4}px`])
+  const botFirst = useBreakpointValue(['calc(75% - 4px)', `${100 * 3 - 4}px`])
+  const topSecond = useBreakpointValue(['calc(25% - 4px)', `${100 * 1 - 4}px`])
+  const botSecond = useBreakpointValue(['calc(50% - 4px)', `${100 * 2 - 4}px`])
   const framePosition = [
     {},
     {},
     {},
-    {top: topH, bottom: botH},
-    {top: topH, bottom: botH},
+    {top: topSecond, bottom: botSecond},
+    {top: topSecond, bottom: botSecond},
+    {},
+    {top: topFirst, bottom: botFirst},
+    {},
+    {},
   ]
   return (
     <ChakraBox
