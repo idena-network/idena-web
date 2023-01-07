@@ -259,3 +259,6 @@ export const transformLog = data => {
   }
   return data
 }
+
+export const checkIfNewBadFlipRules = epochNumber =>
+  epochNumber >= (process.env.NEXT_PUBLIC_NEW_FLIP_RULES_START ?? 100)

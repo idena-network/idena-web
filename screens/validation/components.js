@@ -54,6 +54,7 @@ import {
 } from '../../shared/components/components'
 import {
   availableReportsNumber,
+  checkIfNewBadFlipRules,
   decodedWithKeywords,
   filterRegularFlips,
   filterSolvableFlips,
@@ -1518,10 +1519,17 @@ function ReviewValidationDialogLinkButton(props) {
 }
 ReviewValidationDialog.LinkButton = ReviewValidationDialogLinkButton
 
-export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
+export function BadFlipDialog({
+  title,
+  subtitle,
+  epochNum,
+  isOpen,
+  onClose,
+  ...props
+}) {
   const {t} = useTranslation()
 
-  const isNewFlipRules = true
+  const isNewFlipRules = checkIfNewBadFlipRules(epochNum)
   const [flipCase, setFlipCase] = React.useState(0)
 
   const isMobile = useBreakpointValue([true, false])
@@ -1791,11 +1799,11 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
                 <PrimaryButton
                   ref={nextButtonRef}
                   onClick={() => {
-                    if (flipCase === dirs.length - 1) onClose()
+                    if (flipCase === examplesLength) onClose()
                     else setFlipCase(flipCase + 1)
                   }}
                 >
-                  {flipCase === dirs.length - 1
+                  {flipCase === examplesLength
                     ? t('Ok, I understand')
                     : t('Next')}
                 </PrimaryButton>
@@ -1813,7 +1821,7 @@ export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
           h={12}
           w="100%"
           maxW="-webkit-fill-available"
-          mx={8}
+          px={8}
           overflowX="scroll"
           sx={{
             '&::-webkit-scrollbar': {
@@ -2000,6 +2008,8 @@ function BadFlipPartFrame({flipCase, ...props}) {
   const botFirst = useBreakpointValue(['calc(75% - 4px)', `${100 * 3 - 4}px`])
   const topSecond = useBreakpointValue(['calc(25% - 4px)', `${100 * 1 - 4}px`])
   const botSecond = useBreakpointValue(['calc(50% - 4px)', `${100 * 2 - 4}px`])
+  const topFourth = useBreakpointValue(['calc(75% - 4px)', `${100 * 3 - 4}px`])
+  const botFourth = useBreakpointValue(['calc(0% - 4px)', `${100 * 0 - 4}px`])
   const framePosition = [
     {},
     {},
@@ -2008,7 +2018,7 @@ function BadFlipPartFrame({flipCase, ...props}) {
     {top: topSecond, bottom: botSecond},
     {},
     {top: topFirst, bottom: botFirst},
-    {},
+    {top: topFourth, bottom: botFourth},
     {},
   ]
   return (
@@ -2229,6 +2239,7 @@ export function ValidationScreen({
     translations,
     reports,
     longFlips,
+    epoch,
     isTraining,
     isSample,
   } = state.context
@@ -2860,6 +2871,7 @@ export function ValidationScreen({
         subtitle={t(
           'Report bad flips and get rewarded if these flips are reported by more than 50% of other participants'
         )}
+        epochNum={epoch}
         onClose={() => {
           if (state.matches('longSession.solve.answer.finishFlips')) {
             flipsToLeft()
