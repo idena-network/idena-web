@@ -1821,7 +1821,7 @@ export function BadFlipDialog({
           h={12}
           w="100%"
           maxW="-webkit-fill-available"
-          px={8}
+          mx={8}
           overflowX="scroll"
           sx={{
             '&::-webkit-scrollbar': {
@@ -1834,6 +1834,7 @@ export function BadFlipDialog({
             number={1}
             onClick={() => {
               setFlipCase(0)
+              scrollToExample(0)
             }}
           />
           <ElementBadFlipNum
@@ -1841,6 +1842,7 @@ export function BadFlipDialog({
             number={2}
             onClick={() => {
               setFlipCase(1)
+              scrollToExample(1)
             }}
           />
           <ElementBadFlipNum
@@ -1848,6 +1850,7 @@ export function BadFlipDialog({
             number={3}
             onClick={() => {
               setFlipCase(2)
+              scrollToExample(2)
             }}
           />
           <ElementBadFlipNum
@@ -1855,6 +1858,7 @@ export function BadFlipDialog({
             number={4}
             onClick={() => {
               setFlipCase(3)
+              scrollToExample(3)
             }}
           />
           <ElementBadFlipNum
@@ -1862,6 +1866,7 @@ export function BadFlipDialog({
             number={5}
             onClick={() => {
               setFlipCase(4)
+              scrollToExample(4)
             }}
           />
           {isNewFlipRules && (
@@ -1870,6 +1875,7 @@ export function BadFlipDialog({
               number={6}
               onClick={() => {
                 setFlipCase(5)
+                scrollToExample(5)
               }}
             />
           )}
@@ -1879,6 +1885,7 @@ export function BadFlipDialog({
               number={7}
               onClick={() => {
                 setFlipCase(6)
+                scrollToExample(6)
               }}
             />
           )}
@@ -1888,6 +1895,7 @@ export function BadFlipDialog({
               number={8}
               onClick={() => {
                 setFlipCase(7)
+                scrollToExample(7)
               }}
             />
           )}
@@ -1897,6 +1905,7 @@ export function BadFlipDialog({
               number={9}
               onClick={() => {
                 setFlipCase(8)
+                scrollToExample(8)
               }}
             />
           )}
