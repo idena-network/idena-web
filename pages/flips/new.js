@@ -56,6 +56,7 @@ import {InfoIcon, RefreshIcon} from '../../shared/components/icons'
 import {useTrackTx} from '../../screens/ads/hooks'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import {eitherState} from '../../shared/utils/utils'
+import {checkIfNewBadFlipRules} from '../../screens/validation/utils'
 
 export default function NewFlipPage() {
   const {t, i18n} = useTranslation()
@@ -69,6 +70,7 @@ export default function NewFlipPage() {
 
   const failToast = useFailToast()
 
+  const isNewFlipRules = checkIfNewBadFlipRules(epochState?.epoch)
   const [didShowShuffleAdversarial, setDidShowShuffleAdversarial] = useState(
     false
   )
@@ -90,7 +92,9 @@ export default function NewFlipPage() {
         // eslint-disable-next-line no-shadow
         const didShowBadFlip = (() => {
           try {
-            return localStorage.getItem('didShowBadFlip')
+            return localStorage.getItem(
+              isNewFlipRules ? 'didShowBadFlipNew' : 'didShowBadFlip'
+            )
           } catch {
             return false
           }
@@ -466,8 +470,12 @@ export default function NewFlipPage() {
           subtitle={t(
             'Please read the rules carefully. You can lose all your validation rewards if any of your flips is reported.'
           )}
+          epochNum={epochState?.epoch}
           onClose={async () => {
-            localStorage.setItem('didShowBadFlip', true)
+            localStorage.setItem(
+              isNewFlipRules ? 'didShowBadFlipNew' : 'didShowBadFlip',
+              true
+            )
             send('SKIP_BAD_FLIP')
             onCloseBadFlipDialog()
           }}
