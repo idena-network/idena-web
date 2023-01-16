@@ -387,7 +387,7 @@ export default function ValidationReport() {
                 </Tr>
               </Thead>
               <Tbody>
-                {(inviteeReward || missedInviteeReward) && (
+                {(!!inviteeReward || !!missedInviteeReward) && (
                   <>
                     <Tr>
                       <ValidationReportColumn>
@@ -449,9 +449,9 @@ export default function ValidationReport() {
                           description={
                             isMobile
                               ? t('Category')
-                              : t('Rewards for the successfull validation')
+                              : t('Rewards for the successful validation')
                           }
-                          info={t('Rewards for the successfull validation')}
+                          info={t('Rewards for the successful validation')}
                         />
                       </ValidationReportColumn>
                       <ValidationReportColumn>
