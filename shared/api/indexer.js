@@ -2,7 +2,7 @@ import axios from 'axios'
 
 function apiClient() {
   return axios.create({
-    baseURL: 'https://api.idena.io/api/',
+    baseURL: process.env.NEXT_PUBLIC_INDEXER_URL,
   })
 }
 
