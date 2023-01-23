@@ -35,6 +35,7 @@ import {
 } from '../../shared/components/components'
 import {
   ChevronDownIcon,
+  ChevronRightIcon,
   SendOutIcon,
   TimerIcon,
   TwitterIcon,
@@ -624,6 +625,35 @@ export function TableFlipsDesc({
   )
 }
 
+export function TableExtraFlipsDesc({
+  validationResult,
+  missedFlipReward,
+  flipReward,
+  t,
+}) {
+  return validationResult === ValidationResult.Penalty ? (
+    <TableDescText color="red.500">
+      {t('Your flips were reported.')}
+    </TableDescText>
+  ) : missedFlipReward > 0 ? (
+    <TableDescText color="red.500">
+      {t('Make all flips carefully')}
+    </TableDescText>
+  ) : flipReward ? (
+    <>
+      <TableDescText color="green.500">
+        {t('Great job! To increase your rewards ')}
+      </TableDescText>
+      <TextLink href="/home">
+        {t('Add stake')}
+        <ChevronRightIcon />
+      </TextLink>
+    </>
+  ) : (
+    '–'
+  )
+}
+
 export function TableInvitationsDesc({
   validationResult,
   missedInvitationReward,
@@ -641,6 +671,24 @@ export function TableInvitationsDesc({
   ) : invitationReward ? (
     <TableDescText color="green.500">
       {t('Great job! You have earned maximum reward')}
+    </TableDescText>
+  ) : (
+    '–'
+  )
+}
+
+export function TableInviteeDesc({
+  missedInvitationReward,
+  invitationReward,
+  t,
+}) {
+  return missedInvitationReward > 0 ? (
+    <TableDescText color="red.500">
+      {t('Your inviter was reported or failed validation')}
+    </TableDescText>
+  ) : invitationReward ? (
+    <TableDescText color="green.500">
+      {t('Great job! You have passed validation')}
     </TableDescText>
   ) : (
     '–'

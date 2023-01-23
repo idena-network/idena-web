@@ -19,6 +19,8 @@ import {Page, PageTitleNew} from '../screens/app/components'
 import {
   TableFlipReportsDesc,
   TableFlipsDesc,
+  TableExtraFlipsDesc,
+  TableInviteeDesc,
   TableHiddenDescRow,
   TableInvitationsDesc,
   TableValidationDesc,
@@ -81,8 +83,12 @@ export default function ValidationReport() {
     missedValidationReward,
     invitationReward,
     missedInvitationReward,
+    inviteeReward,
+    missedInviteeReward,
     flipReward,
     missedFlipReward,
+    extraFlipReward,
+    missedExtraFlipReward,
     flipReportReward,
     missedFlipReportReward,
     totalMissedReward,
@@ -381,6 +387,58 @@ export default function ValidationReport() {
                 </Tr>
               </Thead>
               <Tbody>
+                {(!!inviteeReward || !!missedInviteeReward) && (
+                  <>
+                    <Tr>
+                      <ValidationReportColumn>
+                        <ValidationReportCategoryLabel
+                          isFirst
+                          label={t('Newbie reward')}
+                          description={
+                            isMobile
+                              ? t('Category')
+                              : t('Reward based on your inviter stake')
+                          }
+                          info={t('Reward based on your inviter stake')}
+                        />
+                      </ValidationReportColumn>
+                      <ValidationReportColumn>
+                        <ValidationReportCategoryLabel
+                          label={maybeDna(flipReward)}
+                          description={isMobile ? t('Earned') : ''}
+                        />
+                      </ValidationReportColumn>
+                      <ValidationReportColumn>
+                        <ValidationReportCategoryLabel
+                          label={
+                            <Text
+                              color={missedInviteeReward > 0 ? 'red.500' : ''}
+                            >
+                              {maybeDna(missedInviteeReward)}
+                            </Text>
+                          }
+                          description={isMobile ? t('Missed') : ''}
+                        />
+                      </ValidationReportColumn>
+                      <ValidationReportColumn display={['none', 'table-cell']}>
+                        <TableInviteeDesc
+                          t={t}
+                          validationResult={validationResult}
+                          missedFlipReward={missedInviteeReward}
+                          flipReward={inviteeReward}
+                        />
+                      </ValidationReportColumn>
+                    </Tr>
+                    <TableHiddenDescRow>
+                      <TableInviteeDesc
+                        t={t}
+                        validationResult={validationResult}
+                        missedFlipReward={missedInviteeReward}
+                        flipReward={inviteeReward}
+                      />
+                    </TableHiddenDescRow>
+                  </>
+                )}
                 {stakingReward === 0 && candidateReward === 0 ? (
                   <>
                     <Tr>
@@ -391,9 +449,9 @@ export default function ValidationReport() {
                           description={
                             isMobile
                               ? t('Category')
-                              : t('Rewards for the successfull validation')
+                              : t('Rewards for the successful validation')
                           }
-                          info={t('Rewards for the successfull validation')}
+                          info={t('Rewards for the successful validation')}
                         />
                       </ValidationReportColumn>
                       <ValidationReportColumn>
@@ -579,6 +637,54 @@ export default function ValidationReport() {
                     validationResult={validationResult}
                     missedFlipReward={missedFlipReward}
                     flipReward={flipReward}
+                  />
+                </TableHiddenDescRow>
+                <Tr>
+                  <ValidationReportColumn>
+                    <ValidationReportCategoryLabel
+                      isFirst
+                      label={t('Extra flips')}
+                      description={
+                        isMobile
+                          ? t('Category')
+                          : t('Rewards for qualified extra flips')
+                      }
+                      info={t('Rewards for qualified extra flips')}
+                    />
+                  </ValidationReportColumn>
+                  <ValidationReportColumn>
+                    <ValidationReportCategoryLabel
+                      label={maybeDna(extraFlipReward)}
+                      description={isMobile ? t('Earned') : ''}
+                    />
+                  </ValidationReportColumn>
+                  <ValidationReportColumn>
+                    <ValidationReportCategoryLabel
+                      label={
+                        <Text
+                          color={missedExtraFlipReward > 0 ? 'red.500' : ''}
+                        >
+                          {maybeDna(missedExtraFlipReward)}
+                        </Text>
+                      }
+                      description={isMobile ? t('Missed') : ''}
+                    />
+                  </ValidationReportColumn>
+                  <ValidationReportColumn display={['none', 'table-cell']}>
+                    <TableExtraFlipsDesc
+                      t={t}
+                      validationResult={validationResult}
+                      missedFlipReward={missedExtraFlipReward}
+                      flipReward={extraFlipReward}
+                    />
+                  </ValidationReportColumn>
+                </Tr>
+                <TableHiddenDescRow>
+                  <TableExtraFlipsDesc
+                    t={t}
+                    validationResult={validationResult}
+                    missedFlipReward={missedExtraFlipReward}
+                    flipReward={extraFlipReward}
                   />
                 </TableHiddenDescRow>
                 <Tr>
