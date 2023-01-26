@@ -44,6 +44,7 @@ import {
   ErrorAlert,
 } from '../../shared/components/components'
 import {GetReasonDesc} from '../../screens/try/components'
+import {useEpoch} from "../../shared/providers/epoch-context";
 
 export default function SamplePage() {
   const {auth, privateKey, coinbase} = useAuthState()
@@ -108,6 +109,7 @@ function ValidationSession({
   const {i18n} = useTranslation()
 
   const router = useRouter()
+  const epoch = useEpoch()
 
   const {
     isOpen: isExceededTooltipOpen,
@@ -120,7 +122,7 @@ function ValidationSession({
       createValidationMachine({
         privateKey,
         coinbase,
-        epoch: 0,
+        epoch: epoch?.epoch,
         validationStart,
         shortSessionDuration,
         longSessionDuration,
@@ -130,6 +132,7 @@ function ValidationSession({
       }),
     [
       coinbase,
+      epoch,
       i18n.language,
       longSessionDuration,
       privateKey,
