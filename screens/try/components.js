@@ -467,6 +467,14 @@ export function GetReasonDesc(t, reason) {
       return t('Text necessary to read to solve the flip')
     case 5:
       return t('Inappropriate content')
+    case 6:
+      return t('Several unrelated stories')
+    case 7:
+      return t('Waking up')
+    case 8:
+      return t('Thumbs up/down')
+    case 9:
+      return t('Images inserted into page/painting')
     default:
       return '—'
   }
