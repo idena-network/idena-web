@@ -22,11 +22,13 @@ import {signMessage} from '../../shared/utils/crypto'
 import {toHexString} from '../../shared/utils/buffers'
 import {useAutoCloseTestValidationToast} from '../../screens/try/hooks/use-test-validation-toast'
 import {fetchFlips, loadWords} from '../../screens/try/utils'
+import {useEpoch} from '../../shared/providers/epoch-context'
 
 export default function TrainingPage() {
   const {auth, privateKey, coinbase} = useAuthState()
   const {current, timestamp, last} = useTestValidationState()
   const router = useRouter()
+  const epoch = useEpoch()
 
   // hack to redirect only when new page /try/validation is opened
   // and do not redirect right after validation ends.
@@ -53,6 +55,7 @@ export default function TrainingPage() {
       <ValidationSession
         id={current?.id || last?.id}
         coinbase={coinbase}
+        epoch={epoch?.epoch}
         privateKey={privateKey}
         validationStart={current?.startTime || last?.startTime}
         shortSessionDuration={TEST_SHORT_SESSION_INTERVAL_SEC}
@@ -67,6 +70,7 @@ function ValidationSession({
   id,
   privateKey,
   coinbase,
+  epoch,
   validationStart,
   shortSessionDuration,
   longSessionDuration,
@@ -88,7 +92,7 @@ function ValidationSession({
       createValidationMachine({
         privateKey,
         coinbase,
-        epoch: 0,
+        epoch,
         validationStart,
         shortSessionDuration,
         longSessionDuration,
@@ -97,6 +101,7 @@ function ValidationSession({
       }),
     [
       coinbase,
+      epoch,
       i18n.language,
       longSessionDuration,
       privateKey,
