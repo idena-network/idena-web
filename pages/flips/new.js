@@ -158,7 +158,7 @@ export default function NewFlipPage() {
         send
       ).catch(() => {})
     }
-  }, [currentSearch])
+  }, [currentSearch, send])
 
   useEffect(() => {
     if (epochState && privateKey) {
