@@ -3,6 +3,7 @@ import {log, send} from 'xstate/lib/actions'
 import nanoid from 'nanoid'
 import {Evaluate} from '@idena/vrf-js'
 import CID from 'cids'
+import axios from 'axios'
 import {
   fetchKeywordTranslations,
   voteForKeywordTranslation,
@@ -26,7 +27,6 @@ import {privateKeyToAddress} from '../../shared/utils/crypto'
 import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
 import {FlipDeleteAttachment} from '../../shared/models/flipDeleteAttachment'
 import {Transaction} from '../../shared/models/transaction'
-import axios from 'axios'
 
 export const flipsMachine = Machine(
   {
@@ -1078,6 +1078,8 @@ export const flipMasterMachine = Machine(
           'CHANGE_IMAGES',
           'CHANGE_ORIGINAL_ORDER',
           'CHANGE_ORDER',
+          'CHANGE_ADVERSARIAL_ID',
+          'CHANGE_PROTECTED_IMAGES',
         ]
 
         if (persistingEventTypes.includes(event.type)) {

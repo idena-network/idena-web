@@ -86,6 +86,9 @@ export function ValidationReportSummary({onClose, ...props}) {
 
   const dna = toLocaleDna(i18n.language, {maximumFractionDigits: 3})
 
+  const maybeDna = amount =>
+    !amount || Number.isNaN(amount) ? '–' : dna(amount)
+
   const tweet = () =>
     openExternalUrl(`
   https://twitter.com/intent/tweet?text=${encodeURIComponent(
@@ -227,11 +230,11 @@ export function ValidationReportSummary({onClose, ...props}) {
                   <Skeleton isLoaded={!isLoading} w="auto">
                     {validationResult === ValidationResult.Success ? (
                       <ValidationReportGaugeStatValue>
-                        {dna(earnings)}
+                        {maybeDna(earnings)}
                       </ValidationReportGaugeStatValue>
                     ) : (
                       <ValidationReportGaugeStatValue color="red.500">
-                        {dna(totalMissedReward)}
+                        {maybeDna(totalMissedReward)}
                       </ValidationReportGaugeStatValue>
                     )}
                   </Skeleton>
