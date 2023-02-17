@@ -404,7 +404,7 @@ export default function ValidationReport() {
                       </ValidationReportColumn>
                       <ValidationReportColumn>
                         <ValidationReportCategoryLabel
-                          label={maybeDna(flipReward)}
+                          label={maybeDna(inviteeReward)}
                           description={isMobile ? t('Earned') : ''}
                         />
                       </ValidationReportColumn>

@@ -196,11 +196,15 @@ export function useReplenishStake({onSuccess, onError}) {
 export function useStakingAlert() {
   const {t} = useTranslation()
 
-  const [{state, age}] = useIdentity()
+  const [{state, age, stake}] = useIdentity()
 
   const calculateStakeLoss = useCalculateStakeLoss()
 
   return React.useMemo(() => {
+    if (stake && Number(stake) === 0) {
+      return null
+    }
+
     if ([IdentityStatus.Candidate, IdentityStatus.Newbie].includes(state)) {
       return t(
         'You will lose 100% of the stake if you fail or miss the upcoming validation.'
@@ -241,7 +245,7 @@ export function useStakingAlert() {
     }
 
     return null
-  }, [state, age, t, calculateStakeLoss])
+  }, [stake, state, age, t, calculateStakeLoss])
 }
 
 export function useCalculateStakeLoss() {

@@ -386,7 +386,7 @@ export default function HomePage() {
                                 fontWeight={[400, 500]}
                                 lineHeight="4"
                               >
-                                {t('Balance')}
+                                {t('Staked')}
                               </UserStatLabel>
                               <UserStatValue
                                 fontSize={['mdx', 'md']}
