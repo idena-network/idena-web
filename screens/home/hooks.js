@@ -301,11 +301,18 @@ export function useStakingApy() {
   const lastInvitee = invitees && invitees.reverse()[0].TxHash
   const secondToLastInvitee =
     invitees && invitees.length > 1 && invitees.reverse()[1].TxHash
+  const maxInvitesCount =
+    // eslint-disable-next-line no-nested-ternary
+    state === IdentityStatus.Human
+      ? 2
+      : state === IdentityStatus.Verified
+      ? 1
+      : 0
 
   const {data: lastInviteTx} = useQuery({
     queryKey: ['bcn_transaction', [lastInvitee]],
     queryFn: rpcFetcher,
-    enabled: Boolean(lastInvitee),
+    enabled: maxInvitesCount - invites > 0 && Boolean(lastInvitee),
     staleTime: Infinity,
     notifyOnChangeProps: 'tracked',
   })
@@ -313,7 +320,7 @@ export function useStakingApy() {
   const {data: secondToLastInviteTx} = useQuery({
     queryKey: ['bcn_transaction', [secondToLastInvitee]],
     queryFn: rpcFetcher,
-    enabled: Boolean(secondToLastInvitee),
+    enabled: maxInvitesCount - invites > 1 && Boolean(secondToLastInvitee),
     staleTime: Infinity,
     notifyOnChangeProps: 'tracked',
   })
