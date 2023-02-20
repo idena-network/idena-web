@@ -152,7 +152,7 @@ export default function EditFlipPage() {
         send
       ).catch(() => {})
     }
-  }, [currentSearch])
+  }, [currentSearch, send])
 
   useEffect(() => {
     if (id && epochState && privateKey) {
