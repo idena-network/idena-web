@@ -42,7 +42,7 @@ export const setVotingStatus = status =>
   })
 
 export function apiUrl(path) {
-  return new URL(path, 'https://api.idena.io/api/')
+  return new URL(path, process.env.NEXT_PUBLIC_INDEXER_URL)
 }
 
 export async function fetchVotings({
