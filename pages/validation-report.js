@@ -107,6 +107,9 @@ export default function ValidationReport() {
 
   const toDna = toLocaleDna(i18n.language, {maximumFractionDigits: 3})
 
+  const maybeLocaleDna = amount =>
+    !amount || Number.isNaN(amount) ? '–' : toDna(amount)
+
   const maybeDna = amount =>
     !amount || Number.isNaN(amount)
       ? '–'
@@ -298,11 +301,11 @@ export default function ValidationReport() {
                       <Skeleton isLoaded={!isLoading} w="auto">
                         {validationResult === ValidationResult.Success ? (
                           <ValidationReportGaugeStatValue>
-                            {toDna(earnings)}
+                            {maybeLocaleDna(earnings)}
                           </ValidationReportGaugeStatValue>
                         ) : (
                           <ValidationReportGaugeStatValue color="red.500">
-                            {toDna(totalMissedReward)}
+                            {maybeLocaleDna(totalMissedReward)}
                           </ValidationReportGaugeStatValue>
                         )}
                       </Skeleton>
@@ -317,7 +320,7 @@ export default function ValidationReport() {
                     <Flex direction={['column', 'row']} justify="space-between">
                       <ValidationReportStat
                         label={t('Missed invitation earnings')}
-                        value={toDna(missedInvitationReward)}
+                        value={maybeLocaleDna(missedInvitationReward)}
                       />
 
                       <Divider
@@ -327,7 +330,7 @@ export default function ValidationReport() {
                       />
                       <ValidationReportStat
                         label={t('Missed reporting earnings')}
-                        value={toDna(missedFlipReportReward)}
+                        value={maybeLocaleDna(missedFlipReportReward)}
                       />
                     </Flex>
                     <Divider
@@ -338,7 +341,7 @@ export default function ValidationReport() {
                     <Flex justify="space-between">
                       <ValidationReportStat
                         label={t('Missed flip earnings')}
-                        value={toDna(missedFlipReward)}
+                        value={maybeLocaleDna(missedFlipReward)}
                       />
                     </Flex>
                   </Stack>
