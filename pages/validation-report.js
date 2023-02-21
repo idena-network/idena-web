@@ -219,7 +219,7 @@ export default function ValidationReport() {
                     </ValidationReportGaugeStat>
                   </ValidationReportGauge>
                 </Box>
-                <Stack spacing={[2, 4]} isInline={!isMobile}>
+                <Stack spacing={[2, 4]}>
                   <Flex justify="space-between">
                     <Skeleton isLoaded={!isLoading}>
                       <ValidationReportStat
@@ -312,43 +312,37 @@ export default function ValidationReport() {
                     </ValidationReportGaugeStat>
                   </ValidationReportGauge>
                 </Box>
-
-                <Flex justify="space-between" flexWrap="wrap">
-                  <Flex mr={4} mb={[0, 4]}>
-                    <Skeleton isLoaded={!isLoading}>
+                <Skeleton isLoaded={!isLoading}>
+                  <Stack spacing={[2, 4]}>
+                    <Flex direction={['column', 'row']} justify="space-between">
                       <ValidationReportStat
                         label={t('Missed invitation earnings')}
                         value={toDna(missedInvitationReward)}
                       />
-                    </Skeleton>
-                  </Flex>
-                  <Divider
-                    orientation="horizontal"
-                    display={['initial', 'none']}
-                    my={2}
-                  />
-                  <Flex mr={4} mb={[0, 4]}>
-                    <Skeleton isLoaded={!isLoading}>
+
+                      <Divider
+                        orientation="horizontal"
+                        display={['initial', 'none']}
+                        my={2}
+                      />
                       <ValidationReportStat
                         label={t('Missed reporting earnings')}
                         value={toDna(missedFlipReportReward)}
                       />
-                    </Skeleton>
-                  </Flex>
-                  <Divider
-                    orientation="horizontal"
-                    display={['initial', 'none']}
-                    my={2}
-                  />
-                  <Flex mr={4} mb={[0, 4]}>
-                    <Skeleton isLoaded={!isLoading}>
+                    </Flex>
+                    <Divider
+                      orientation="horizontal"
+                      display={['initial', 'none']}
+                      my={2}
+                    />
+                    <Flex justify="space-between">
                       <ValidationReportStat
                         label={t('Missed flip earnings')}
                         value={toDna(missedFlipReward)}
                       />
-                    </Skeleton>
-                  </Flex>
-                </Flex>
+                    </Flex>
+                  </Stack>
+                </Skeleton>
               </Stack>
             </ValidationReportBlockOverview>
           </Stack>
