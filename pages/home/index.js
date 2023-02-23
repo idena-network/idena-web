@@ -246,6 +246,8 @@ export default function HomePage() {
   const showActivateMiningStatusIcon = canMine && !online && !delegatee
   const showValidateIdentityIcon = !canMine && Number(stake) > 0
 
+  const lockedNewbieStake = (stake - (replenishedStake ?? 0)) * 0.75
+
   return (
     <Layout canRedirect={!dnaUrl} didConnectIdenaBot={idenaBotConnected}>
       {!idenaBotConnected && (
@@ -395,7 +397,7 @@ export default function HomePage() {
                               >
                                 {toDna(
                                   state === IdentityStatus.Newbie
-                                    ? (stake - (replenishedStake ?? 0)) * 0.25
+                                    ? stake - lockedNewbieStake
                                     : stake
                                 )}
                               </UserStatValue>
@@ -427,9 +429,7 @@ export default function HomePage() {
                               'You need to get Verified status to get the locked funds into the normal wallet'
                             )}
                             label={t('Locked')}
-                            value={toDna(
-                              (stake - (replenishedStake ?? 0)) * 0.75
-                            )}
+                            value={toDna(lockedNewbieStake)}
                           />
                         )}
                       </Stack>
@@ -485,7 +485,7 @@ export default function HomePage() {
                         <ExternalLink
                           href={`https://idena.io/staking?amount=${Math.floor(
                             state === IdentityStatus.Newbie
-                              ? (stake - (replenishedStake ?? 0)) * 0.25
+                              ? stake - lockedNewbieStake
                               : stake
                           )}`}
                           display={['none', 'inline-flex']}
@@ -514,7 +514,7 @@ export default function HomePage() {
                           openExternalUrl(
                             `https://idena.io/staking?amount=${Math.floor(
                               state === IdentityStatus.Newbie
-                                ? (stake - (replenishedStake ?? 0)) * 0.25
+                                ? stake - lockedNewbieStake
                                 : stake
                             )}`
                           )
