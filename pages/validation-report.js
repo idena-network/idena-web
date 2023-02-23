@@ -107,6 +107,9 @@ export default function ValidationReport() {
 
   const toDna = toLocaleDna(i18n.language, {maximumFractionDigits: 3})
 
+  const maybeLocaleDna = amount =>
+    !amount || Number.isNaN(amount) ? '–' : toDna(amount)
+
   const maybeDna = amount =>
     !amount || Number.isNaN(amount)
       ? '–'
@@ -219,7 +222,7 @@ export default function ValidationReport() {
                     </ValidationReportGaugeStat>
                   </ValidationReportGauge>
                 </Box>
-                <Stack spacing={[2, 4]} isInline={!isMobile}>
+                <Stack spacing={[2, 4]}>
                   <Flex justify="space-between">
                     <Skeleton isLoaded={!isLoading}>
                       <ValidationReportStat
@@ -298,11 +301,11 @@ export default function ValidationReport() {
                       <Skeleton isLoaded={!isLoading} w="auto">
                         {validationResult === ValidationResult.Success ? (
                           <ValidationReportGaugeStatValue>
-                            {toDna(earnings)}
+                            {maybeLocaleDna(earnings)}
                           </ValidationReportGaugeStatValue>
                         ) : (
                           <ValidationReportGaugeStatValue color="red.500">
-                            {toDna(totalMissedReward)}
+                            {maybeLocaleDna(totalMissedReward)}
                           </ValidationReportGaugeStatValue>
                         )}
                       </Skeleton>
@@ -312,43 +315,37 @@ export default function ValidationReport() {
                     </ValidationReportGaugeStat>
                   </ValidationReportGauge>
                 </Box>
-
-                <Flex justify="space-between" flexWrap="wrap">
-                  <Flex mr={4} mb={[0, 4]}>
-                    <Skeleton isLoaded={!isLoading}>
+                <Skeleton isLoaded={!isLoading}>
+                  <Stack spacing={[2, 4]}>
+                    <Flex direction={['column', 'row']} justify="space-between">
                       <ValidationReportStat
                         label={t('Missed invitation earnings')}
-                        value={toDna(missedInvitationReward)}
+                        value={maybeLocaleDna(missedInvitationReward)}
                       />
-                    </Skeleton>
-                  </Flex>
-                  <Divider
-                    orientation="horizontal"
-                    display={['initial', 'none']}
-                    my={2}
-                  />
-                  <Flex mr={4} mb={[0, 4]}>
-                    <Skeleton isLoaded={!isLoading}>
+
+                      <Divider
+                        orientation="horizontal"
+                        display={['initial', 'none']}
+                        my={2}
+                      />
                       <ValidationReportStat
                         label={t('Missed reporting earnings')}
-                        value={toDna(missedFlipReportReward)}
+                        value={maybeLocaleDna(missedFlipReportReward)}
                       />
-                    </Skeleton>
-                  </Flex>
-                  <Divider
-                    orientation="horizontal"
-                    display={['initial', 'none']}
-                    my={2}
-                  />
-                  <Flex mr={4} mb={[0, 4]}>
-                    <Skeleton isLoaded={!isLoading}>
+                    </Flex>
+                    <Divider
+                      orientation="horizontal"
+                      display={['initial', 'none']}
+                      my={2}
+                    />
+                    <Flex justify="space-between">
                       <ValidationReportStat
                         label={t('Missed flip earnings')}
-                        value={toDna(missedFlipReward)}
+                        value={maybeLocaleDna(missedFlipReward)}
                       />
-                    </Skeleton>
-                  </Flex>
-                </Flex>
+                    </Flex>
+                  </Stack>
+                </Skeleton>
               </Stack>
             </ValidationReportBlockOverview>
           </Stack>
@@ -404,7 +401,7 @@ export default function ValidationReport() {
                       </ValidationReportColumn>
                       <ValidationReportColumn>
                         <ValidationReportCategoryLabel
-                          label={maybeDna(flipReward)}
+                          label={maybeDna(inviteeReward)}
                           description={isMobile ? t('Earned') : ''}
                         />
                       </ValidationReportColumn>
@@ -439,160 +436,107 @@ export default function ValidationReport() {
                     </TableHiddenDescRow>
                   </>
                 )}
-                {stakingReward === 0 && candidateReward === 0 ? (
-                  <>
-                    <Tr>
-                      <ValidationReportColumn>
-                        <ValidationReportCategoryLabel
-                          isFirst
-                          label={t('Validation')}
-                          description={
-                            isMobile
-                              ? t('Category')
-                              : t('Rewards for the successful validation')
-                          }
-                          info={t('Rewards for the successful validation')}
-                        />
-                      </ValidationReportColumn>
-                      <ValidationReportColumn>
-                        <ValidationReportCategoryLabel
-                          label={maybeDna(validationReward)}
-                          description={isMobile ? t('Earned') : ''}
-                        />
-                      </ValidationReportColumn>
-                      <ValidationReportColumn>
-                        <ValidationReportCategoryLabel
-                          label={
-                            <Text
-                              color={
-                                missedValidationReward > 0 ? 'red.500' : ''
-                              }
-                            >
-                              {maybeDna(missedValidationReward)}
-                            </Text>
-                          }
-                          description={isMobile ? t('Missed') : ''}
-                        />
-                      </ValidationReportColumn>
-                      <ValidationReportColumn display={['none', 'table-cell']}>
-                        <TableValidationDesc
-                          t={t}
-                          validationResult={validationResult}
-                          missedValidationReward={missedValidationReward}
-                        />
-                      </ValidationReportColumn>
-                    </Tr>
-                    <TableHiddenDescRow>
-                      <TableValidationDesc
-                        t={t}
-                        validationResult={validationResult}
-                        missedValidationReward={missedValidationReward}
+                <>
+                  <Tr>
+                    <ValidationReportColumn>
+                      <ValidationReportCategoryLabel
+                        isFirst
+                        label={t('Staking')}
+                        description={t('Quadratic staking rewards')}
+                        info={t('Quadratic staking rewards')}
                       />
-                    </TableHiddenDescRow>
-                  </>
-                ) : (
-                  <>
-                    <Tr>
-                      <ValidationReportColumn>
-                        <ValidationReportCategoryLabel
-                          isFirst
-                          label={t('Staking')}
-                          description={t('Quadratic staking rewards')}
-                          info={t('Quadratic staking rewards')}
-                        />
-                      </ValidationReportColumn>
-                      <ValidationReportColumn>
-                        <ValidationReportCategoryLabel
-                          label={maybeDna(stakingReward)}
-                          description={isMobile ? t('Earned') : ''}
-                        />
-                      </ValidationReportColumn>
-                      <ValidationReportColumn>
-                        <ValidationReportCategoryLabel
-                          label={
-                            <Text
-                              color={missedStakingReward > 0 ? 'red.500' : ''}
-                            >
-                              {maybeDna(missedStakingReward)}
-                            </Text>
-                          }
-                          description={isMobile ? t('Missed') : ''}
-                        />
-                      </ValidationReportColumn>
-                      <ValidationReportColumn display={['none', 'table-cell']}>
-                        <TextLink href="/home?replenishStake">
-                          {t('Add stake')}
-                          <ChevronRightIcon />
-                        </TextLink>
-                      </ValidationReportColumn>
-                    </Tr>
-                    <TableHiddenDescRow>
-                      <TextLink href="/home">
+                    </ValidationReportColumn>
+                    <ValidationReportColumn>
+                      <ValidationReportCategoryLabel
+                        label={maybeDna(stakingReward)}
+                        description={isMobile ? t('Earned') : ''}
+                      />
+                    </ValidationReportColumn>
+                    <ValidationReportColumn>
+                      <ValidationReportCategoryLabel
+                        label={
+                          <Text
+                            color={missedStakingReward > 0 ? 'red.500' : ''}
+                          >
+                            {maybeDna(missedStakingReward)}
+                          </Text>
+                        }
+                        description={isMobile ? t('Missed') : ''}
+                      />
+                    </ValidationReportColumn>
+                    <ValidationReportColumn display={['none', 'table-cell']}>
+                      <TextLink href="/home?replenishStake">
                         {t('Add stake')}
                         <ChevronRightIcon />
                       </TextLink>
-                    </TableHiddenDescRow>
-                    {state === IdentityStatus.Newbie &&
-                      prevState === IdentityStatus.Candidate && (
-                        <>
-                          <Tr>
-                            <ValidationReportColumn>
-                              <ValidationReportCategoryLabel
-                                isFirst
-                                label={t('Validation')}
-                                description={
-                                  isMobile
-                                    ? t('Category')
-                                    : t(
-                                        'Rewards for the 1st successful validation'
-                                      )
-                                }
-                                info={t(
-                                  'Rewards for the 1st successful validation'
-                                )}
-                              />
-                            </ValidationReportColumn>
-                            <ValidationReportColumn>
-                              <ValidationReportCategoryLabel
-                                label={maybeDna(candidateReward)}
-                                description={isMobile ? t('Earned') : ''}
-                              />
-                            </ValidationReportColumn>
-                            <ValidationReportColumn>
-                              <ValidationReportCategoryLabel
-                                label={
-                                  <Text
-                                    color={
-                                      missedCandidateReward > 0 ? 'red.500' : ''
-                                    }
-                                  >
-                                    {maybeDna(missedCandidateReward)}
-                                  </Text>
-                                }
-                                description={isMobile ? t('Missed') : ''}
-                              />
-                            </ValidationReportColumn>
-                            <ValidationReportColumn
-                              display={['none', 'table-cell']}
-                            >
-                              <TableValidationDesc
-                                t={t}
-                                validationResult={validationResult}
-                                missedValidationReward={missedCandidateReward}
-                              />
-                            </ValidationReportColumn>
-                          </Tr>
-                          <TableHiddenDescRow>
+                    </ValidationReportColumn>
+                  </Tr>
+                  <TableHiddenDescRow>
+                    <TextLink href="/home">
+                      {t('Add stake')}
+                      <ChevronRightIcon />
+                    </TextLink>
+                  </TableHiddenDescRow>
+                  {state === IdentityStatus.Newbie &&
+                    prevState === IdentityStatus.Candidate && (
+                      <>
+                        <Tr>
+                          <ValidationReportColumn>
+                            <ValidationReportCategoryLabel
+                              isFirst
+                              label={t('Validation')}
+                              description={
+                                isMobile
+                                  ? t('Category')
+                                  : t(
+                                      'Rewards for the 1st successful validation'
+                                    )
+                              }
+                              info={t(
+                                'Rewards for the 1st successful validation'
+                              )}
+                            />
+                          </ValidationReportColumn>
+                          <ValidationReportColumn>
+                            <ValidationReportCategoryLabel
+                              label={maybeDna(candidateReward)}
+                              description={isMobile ? t('Earned') : ''}
+                            />
+                          </ValidationReportColumn>
+                          <ValidationReportColumn>
+                            <ValidationReportCategoryLabel
+                              label={
+                                <Text
+                                  color={
+                                    missedCandidateReward > 0 ? 'red.500' : ''
+                                  }
+                                >
+                                  {maybeDna(missedCandidateReward)}
+                                </Text>
+                              }
+                              description={isMobile ? t('Missed') : ''}
+                            />
+                          </ValidationReportColumn>
+                          <ValidationReportColumn
+                            display={['none', 'table-cell']}
+                          >
                             <TableValidationDesc
                               t={t}
                               validationResult={validationResult}
                               missedValidationReward={missedCandidateReward}
                             />
-                          </TableHiddenDescRow>
-                        </>
-                      )}
-                  </>
-                )}
+                          </ValidationReportColumn>
+                        </Tr>
+                        <TableHiddenDescRow>
+                          <TableValidationDesc
+                            t={t}
+                            validationResult={validationResult}
+                            missedValidationReward={missedCandidateReward}
+                          />
+                        </TableHiddenDescRow>
+                      </>
+                    )}
+                </>
                 <Tr>
                   <ValidationReportColumn>
                     <ValidationReportCategoryLabel
