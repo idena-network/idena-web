@@ -421,8 +421,8 @@ export default function ValidationReport() {
                         <TableInviteeDesc
                           t={t}
                           validationResult={validationResult}
-                          missedFlipReward={missedInviteeReward}
-                          flipReward={inviteeReward}
+                          missedInvitationReward={missedInviteeReward}
+                          invitationReward={inviteeReward}
                         />
                       </ValidationReportColumn>
                     </Tr>
@@ -430,8 +430,8 @@ export default function ValidationReport() {
                       <TableInviteeDesc
                         t={t}
                         validationResult={validationResult}
-                        missedFlipReward={missedInviteeReward}
-                        flipReward={inviteeReward}
+                        missedInvitationReward={missedInviteeReward}
+                        invitationReward={inviteeReward}
                       />
                     </TableHiddenDescRow>
                   </>
