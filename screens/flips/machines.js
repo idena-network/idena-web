@@ -12,7 +12,6 @@ import {
   updateFlipType,
   DEFAULT_FLIP_ORDER,
   createOrUpdateFlip,
-  checkIfFlipNoiseEnabled,
 } from './utils'
 import {callRpc} from '../../shared/utils/utils'
 import {shuffle} from '../../shared/utils/arr'
@@ -786,10 +785,6 @@ export const flipMasterMachine = Machine(
               NEXT: [
                 {
                   target: 'protect',
-                  cond: 'isFlipNoiseEnabled',
-                },
-                {
-                  target: 'shuffle',
                 },
               ],
               PREV: 'keywords',
@@ -958,10 +953,6 @@ export const flipMasterMachine = Machine(
               PREV: [
                 {
                   target: 'protect',
-                  cond: 'isFlipNoiseEnabled',
-                },
-                {
-                  target: 'images',
                 },
               ],
             },
@@ -1146,9 +1137,6 @@ export const flipMasterMachine = Machine(
           order.map(n => originalOrder.findIndex(o => o === n)),
       }),
       persistFlip: async context => createOrUpdateFlip(context),
-    },
-    guards: {
-      isFlipNoiseEnabled: ({epoch}) => checkIfFlipNoiseEnabled(epoch),
     },
   }
 )

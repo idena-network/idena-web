@@ -54,7 +54,6 @@ import {
 } from '../../shared/components/components'
 import {
   availableReportsNumber,
-  checkIfNewBadFlipRules,
   decodedWithKeywords,
   filterRegularFlips,
   filterSolvableFlips,
@@ -1509,7 +1508,6 @@ export function BadFlipDialog({
 }) {
   const {t} = useTranslation()
 
-  const isNewFlipRules = checkIfNewBadFlipRules(epochNum)
   const [flipCase, setFlipCase] = React.useState(0)
 
   const isMobile = useBreakpointValue([true, false])
@@ -1525,7 +1523,7 @@ export function BadFlipDialog({
     })
   }
 
-  const examplesLength = isNewFlipRules ? 8 : 4
+  const examplesLength = 8
   const badFlipDialogHandlers = useSwipeable({
     onSwipedLeft: () => {
       if (isMobile) {
@@ -1613,14 +1611,14 @@ export function BadFlipDialog({
             justify="center"
             align={['center', 'initial']}
             flexGrow={1}
-            bg={isNewFlipRules ? 'white' : 'transparent'}
+            bg="white"
             borderRadius="8px"
           >
             <ChakraFlex
-              bg={['white', isNewFlipRules ? 'red.016' : 'white']}
-              px={isNewFlipRules ? 14 : 'auto'}
-              py={['initial', isNewFlipRules ? 20 : 'initial']}
-              w={isNewFlipRules ? '240px' : 120}
+              bg={['white', 'red.016']}
+              px={14}
+              py={['initial', 20]}
+              w="240px"
               h="100%"
             >
               <Stack
@@ -1645,16 +1643,16 @@ export function BadFlipDialog({
               spacing={7}
               bg="white"
               borderRadius="lg"
-              ml={[0, isNewFlipRules ? 2 : 7]}
+              ml={[0, 2]}
               p={[0, 8]}
-              w={['100%', isNewFlipRules ? 512 : 440]}
+              w={['100%', 512]}
             >
               <Stack mt={[4, 0]} spacing={[5, 4]}>
                 <ChakraBox display={['none', 'block']}>
                   <Heading fontSize="lg" fontWeight={500} lineHeight="32px">
                     {title}
                   </Heading>
-                  <Text fontSize={isNewFlipRules ? 'mdx' : 'md'} color="muted">
+                  <Text fontSize="mdx" color="muted">
                     {subtitle}
                   </Text>
                 </ChakraBox>
@@ -1725,52 +1723,44 @@ export function BadFlipDialog({
                   >
                     {t('Inappropriate content')}
                   </BadFlipListItem>
-                  {isNewFlipRules && (
-                    <BadFlipListItem
-                      flipCase={5}
-                      isActive={flipCase === 5}
-                      onClick={() => {
-                        setFlipCase(5)
-                      }}
-                    >
-                      {t('Several unrelated stories')}
-                    </BadFlipListItem>
-                  )}
-                  {isNewFlipRules && (
-                    <BadFlipListItem
-                      flipCase={6}
-                      isActive={flipCase === 6}
-                      onClick={() => {
-                        setFlipCase(6)
-                      }}
-                    >
-                      {t('Waking up template')}
-                    </BadFlipListItem>
-                  )}
-                  {isNewFlipRules && (
-                    <BadFlipListItem
-                      flipCase={7}
-                      isActive={flipCase === 7}
-                      onClick={() => {
-                        setFlipCase(7)
-                      }}
-                    >
-                      {t('Thumbs up/down image at the end')}
-                    </BadFlipListItem>
-                  )}
-                  {isNewFlipRules && (
-                    <BadFlipListItem
-                      flipCase={8}
-                      isActive={flipCase === 8}
-                      onClick={() => {
-                        setFlipCase(8)
-                      }}
-                    >
-                      {t(
-                        'Images of both keywords are inserted into a page/screen/painting'
-                      )}
-                    </BadFlipListItem>
-                  )}
+                  <BadFlipListItem
+                    flipCase={5}
+                    isActive={flipCase === 5}
+                    onClick={() => {
+                      setFlipCase(5)
+                    }}
+                  >
+                    {t('Several unrelated stories')}
+                  </BadFlipListItem>
+                  <BadFlipListItem
+                    flipCase={6}
+                    isActive={flipCase === 6}
+                    onClick={() => {
+                      setFlipCase(6)
+                    }}
+                  >
+                    {t('Waking up template')}
+                  </BadFlipListItem>
+                  <BadFlipListItem
+                    flipCase={7}
+                    isActive={flipCase === 7}
+                    onClick={() => {
+                      setFlipCase(7)
+                    }}
+                  >
+                    {t('Thumbs up/down image at the end')}
+                  </BadFlipListItem>
+                  <BadFlipListItem
+                    flipCase={8}
+                    isActive={flipCase === 8}
+                    onClick={() => {
+                      setFlipCase(8)
+                    }}
+                  >
+                    {t(
+                      'Images of both keywords are inserted into a page/screen/painting'
+                    )}
+                  </BadFlipListItem>
                 </List>
                 <ChakraBox display={['block', 'none']} w="100%" h="48px" />
               </Stack>
@@ -1794,7 +1784,7 @@ export function BadFlipDialog({
         <ChakraFlex
           id="badFlipExamples"
           display={['flex', 'none']}
-          justify={isNewFlipRules ? 'normal' : 'center'}
+          justify="normal"
           position="fixed"
           bottom={4}
           left={0}
@@ -1849,46 +1839,38 @@ export function BadFlipDialog({
               scrollToExample(4)
             }}
           />
-          {isNewFlipRules && (
-            <ElementBadFlipNum
-              isActive={flipCase === 5}
-              number={6}
-              onClick={() => {
-                setFlipCase(5)
-                scrollToExample(5)
-              }}
-            />
-          )}
-          {isNewFlipRules && (
-            <ElementBadFlipNum
-              isActive={flipCase === 6}
-              number={7}
-              onClick={() => {
-                setFlipCase(6)
-                scrollToExample(6)
-              }}
-            />
-          )}
-          {isNewFlipRules && (
-            <ElementBadFlipNum
-              isActive={flipCase === 7}
-              number={8}
-              onClick={() => {
-                setFlipCase(7)
-                scrollToExample(7)
-              }}
-            />
-          )}
-          {isNewFlipRules && (
-            <ElementBadFlipNum
-              isActive={flipCase === 8}
-              number={9}
-              onClick={() => {
-                setFlipCase(8)
-                scrollToExample(8)
-              }}
-            />
-          )}
+          <ElementBadFlipNum
+            isActive={flipCase === 5}
+            number={6}
+            onClick={() => {
+              setFlipCase(5)
+              scrollToExample(5)
+            }}
+          />
+          <ElementBadFlipNum
+            isActive={flipCase === 6}
+            number={7}
+            onClick={() => {
+              setFlipCase(6)
+              scrollToExample(6)
+            }}
+          />
+          <ElementBadFlipNum
+            isActive={flipCase === 7}
+            number={8}
+            onClick={() => {
+              setFlipCase(7)
+              scrollToExample(7)
+            }}
+          />
+          <ElementBadFlipNum
+            isActive={flipCase === 8}
+            number={9}
+            onClick={() => {
+              setFlipCase(8)
+              scrollToExample(8)
+            }}
+          />
         </ChakraFlex>
       </BadFlipNoticeBody>
     </BadFlipNotice>
