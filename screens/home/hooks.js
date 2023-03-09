@@ -31,7 +31,6 @@ import {
 import {loadPersistentState} from '../../shared/utils/persist'
 import {toPercent, validateInvitationCode} from '../../shared/utils/utils'
 import {apiUrl} from '../oracles/utils'
-import db from '../../shared/utils/db'
 import {useRpcFetcher} from '../ads/hooks'
 
 export function useInviteActivation() {
@@ -75,16 +74,16 @@ export function useInviteActivation() {
 
       if (needToPurchase) {
         const providers = await getAvailableProviders()
-
         const result = await activateKey(coinbase, `0x${hex}`, providers)
         savePurchase(result.id, result.provider)
       } else {
         const result = await sendRawTx(`0x${hex}`)
         setHash(result)
-
-        // need to wait identity state update manually, because nothing changes in memory
-        waitStateUpdate()
       }
+
+      // need to wait identity state update manually, because nothing changes in memory
+      waitStateUpdate()
+
       sendActivateInvitation(coinbase)
     } catch (e) {
       failToast(
