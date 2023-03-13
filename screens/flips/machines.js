@@ -88,18 +88,20 @@ export const flipsMachine = Machine(
             )
 
             if (missingFlips.length) {
-              const keywords = availableKeywords
-                .filter(
-                  ({id, used}) =>
-                    used &&
-                    persistedFlips.some(
-                      ({keywordPairId}) => keywordPairId !== id
-                    )
-                )
-                .map(async ({id, words}) => ({
-                  id,
-                  words: await Promise.all(words.map(loadKeyword)),
-                }))
+              const keywords = await Promise.all(
+                availableKeywords
+                  .filter(
+                    ({id, used}) =>
+                      used &&
+                      persistedFlips.some(
+                        ({keywordPairId}) => keywordPairId !== id
+                      )
+                  )
+                  .map(async ({id, words}) => ({
+                    id,
+                    words: await Promise.all(words.map(loadKeyword)),
+                  }))
+              )
 
               missingFlips = missingFlips.map((hash, idx) => ({
                 hash,
