@@ -9,7 +9,6 @@ import {ValidationScreen} from '../../screens/validation/components'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {LayoutContainer} from '../../screens/app/components'
 import Auth from '../../shared/components/auth'
-import {decodedWithoutKeywords} from '../../screens/validation/utils'
 import {
   TEST_LONG_SESSION_INTERVAL_SEC,
   TEST_SHORT_SESSION_INTERVAL_SEC,
@@ -23,6 +22,7 @@ import {toHexString} from '../../shared/utils/buffers'
 import {useAutoCloseTestValidationToast} from '../../screens/try/hooks/use-test-validation-toast'
 import {fetchFlips, loadWords} from '../../screens/try/utils'
 import {useEpoch} from '../../shared/providers/epoch-context'
+import {decodedWithoutKeywords} from '../../screens/validation/utils'
 
 export default function TrainingPage() {
   const {auth, privateKey, coinbase} = useAuthState()

@@ -29,6 +29,7 @@ import durationPlugin from 'dayjs/plugin/duration'
 import React, {useEffect, useRef, useState} from 'react'
 import {useTranslation} from 'react-i18next'
 import {useQuery} from 'react-query'
+import {loadKeyword} from '../../shared/api'
 import {getFlip, getFlipCache} from '../../shared/api/self'
 import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {
@@ -57,7 +58,6 @@ import {
 } from '../../shared/providers/test-validation-context'
 import {AnswerType, CertificateActionType} from '../../shared/types'
 import {reorderList} from '../../shared/utils/arr'
-import {keywords} from '../../shared/utils/keywords'
 import {capitalize} from '../../shared/utils/string'
 import {toBlob, useIsDesktop} from '../../shared/utils/utils'
 import {canScheduleValidation, GetAnswerTitle} from './utils'
@@ -582,6 +582,16 @@ export function LongFlipWithIcon({hash, onClick}) {
     }
   )
 
+  const {data: words, isLoading: isWordsLoading} = useQuery(
+    ['get-words', hash],
+    () => Promise.all(data.keywords?.map(idx => loadKeyword(idx))),
+    {
+      enabled: !!data,
+      retry: false,
+      refetchOnWindowFocus: false,
+    }
+  )
+
   useEffect(() => {
     async function convert() {
       if (data) {
@@ -595,12 +605,10 @@ export function LongFlipWithIcon({hash, onClick}) {
 
   const getWords = () => {
     try {
-      const words = data.keywords
       if (words) {
-        return `${capitalize(keywords[words[0]].name)} / ${capitalize(
-          keywords[words[1]].name
-        )}`
+        return `${capitalize(words[0].name)} / ${capitalize(words[1].name)}`
       }
+      return 'No words'
     } catch {
       return 'No words'
     }
@@ -626,7 +634,7 @@ export function LongFlipWithIcon({hash, onClick}) {
         </Flex>
         <Flex direction="column" lineHeight={1} overflow="hidden">
           <Flex order={[2, 1]} color={['muted', 'gray.500']} fontWeight={500}>
-            {isLoading ? (
+            {isLoading || isWordsLoading ? (
               <Skeleton w={10} h={3} />
             ) : (
               <Text
@@ -796,7 +804,7 @@ function FlipWords({
 
   const getWordName = idx => {
     try {
-      return capitalize(keywords[words[idx]].name)
+      return capitalize(words[idx].name)
     } catch {
       return 'No words'
     }
@@ -804,7 +812,7 @@ function FlipWords({
 
   const getWordDesc = idx => {
     try {
-      return capitalize(keywords[words[idx]].desc)
+      return capitalize(words[idx].desc)
     } catch {
       return ''
     }
@@ -904,6 +912,16 @@ export function FlipView({
     }
   )
 
+  const {data: words, isLoading: isWordsLoading} = useQuery(
+    ['get-words', hash],
+    () => Promise.all(data.keywords?.map(idx => loadKeyword(idx))),
+    {
+      enabled: !!data,
+      retry: false,
+      refetchOnWindowFocus: false,
+    }
+  )
+
   return (
     <Dialog onClose={onClose} {...props} size={withWords ? '2xl' : 'sm'}>
       <DialogHeader>
@@ -953,10 +971,10 @@ export function FlipView({
           </Flex>
           {withWords && (
             <FlipWords
-              isLoading={isFetching}
+              isLoading={isWordsLoading}
               isCorrectReport={isCorrectReport}
               shouldBeReported={shouldBeReported}
-              words={data.keywords}
+              words={words}
               flex={1}
               ml={[0, 8]}
               w={['100%', 'auto']}

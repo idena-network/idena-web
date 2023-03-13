@@ -17,11 +17,16 @@ import {
 import {callRpc} from '../../shared/utils/utils'
 import {shuffle} from '../../shared/utils/arr'
 import {FlipType, FlipFilter} from '../../shared/types'
-import {fetchTx, fetchWordsSeed, getRawTx, sendRawTx} from '../../shared/api'
+import {
+  fetchTx,
+  fetchWordsSeed,
+  loadKeyword,
+  getRawTx,
+  sendRawTx,
+} from '../../shared/api'
 import {HASH_IN_MEMPOOL} from '../../shared/hooks/use-tx'
 import {persistState} from '../../shared/utils/persist'
 import db from '../../shared/utils/db'
-import {keywords as allKeywords} from '../../shared/utils/keywords'
 import {fetchWordPairs} from '../../shared/api/validation'
 import {privateKeyToAddress} from '../../shared/utils/crypto'
 import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
@@ -91,9 +96,9 @@ export const flipsMachine = Machine(
                       ({keywordPairId}) => keywordPairId !== id
                     )
                 )
-                .map(({id, words}) => ({
+                .map(async ({id, words}) => ({
                   id,
-                  words: words.map(idx => allKeywords[idx]),
+                  words: await Promise.all(words.map(loadKeyword)),
                 }))
 
               missingFlips = missingFlips.map((hash, idx) => ({
@@ -1052,7 +1057,9 @@ export const flipMasterMachine = Machine(
       },
       loadKeywords: async ({availableKeywords, keywordPairId}) => {
         const {words} = availableKeywords.find(({id}) => id === keywordPairId)
-        return words.map(id => ({id, ...allKeywords[id]}))
+        return Promise.all(
+          words.map(async id => ({id, ...(await loadKeyword(id))}))
+        )
       },
       loadTranslations: async ({availableKeywords, keywordPairId, locale}) => {
         const {words} = availableKeywords.find(({id}) => id === keywordPairId)

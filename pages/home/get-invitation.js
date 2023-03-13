@@ -53,7 +53,8 @@ export default function GetInvitation() {
 
   const size = useBreakpointValue(['lg', 'md'])
 
-  const followersCount = process.env.NEXT_PUBLIC_TWITTER_MINIMUM_SUBS_COUNT || 100
+  const followersCount =
+    process.env.NEXT_PUBLIC_TWITTER_MINIMUM_SUBS_COUNT || 100
 
   const invitationCodeRef = useRef()
 

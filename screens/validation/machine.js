@@ -13,7 +13,7 @@ import {
   sendPrivateEncryptionKeysPackage,
   sendPublicEncryptionKey,
 } from '../../shared/api/validation'
-import {sendRawTx, getRawTx} from '../../shared/api/chain'
+import {sendRawTx, getRawTx, loadKeyword} from '../../shared/api/chain'
 import {FlipGrade, RelevanceType, SessionType} from '../../shared/types'
 import {fetchFlipKeys, fetchRawFlip} from '../../shared/api'
 import {fetchWordsSeed, fetchIdentity} from '../../shared/api/dna'
@@ -41,7 +41,6 @@ import {
   generateShortAnswersSalt,
   preparePublicFlipKey,
 } from '../../shared/utils/crypto'
-import {keywords} from '../../shared/utils/keywords'
 import {Transaction} from '../../shared/models/transaction'
 import {toHexString, hexToUint8Array} from '../../shared/utils/buffers'
 import {ShortAnswerAttachment} from '../../shared/models/shortAnswerAttachment'
@@ -1140,16 +1139,7 @@ export const createValidationMachine = ({
                                   target: 'check',
                                   actions: assign({
                                     longFlips: ({longFlips}, {data}) =>
-                                      mergeFlipsByHash(
-                                        longFlips,
-                                        data.map(({hash, words = []}) => ({
-                                          hash,
-                                          words: words.map(id => ({
-                                            id,
-                                            ...keywords[id],
-                                          })),
-                                        }))
-                                      ),
+                                      mergeFlipsByHash(longFlips, data),
                                   }),
                                 },
                                 onError: {
@@ -1749,8 +1739,16 @@ async function loadWords(hashes) {
   const res = []
   await forEachAsync(hashes, async hash =>
     fetchWords(hash)
-      .then(({result}) => res.push({hash, ...result}))
-      .catch()
+      .then(async ({result}) => ({
+        hash,
+        words: await Promise.all(
+          result?.words?.map(async id => ({
+            id,
+            ...(await loadKeyword(id)),
+          })) ?? []
+        ),
+      }))
+      .catch(() => ({hash}))
   )
   return res
 }
