@@ -1,5 +1,6 @@
 /* eslint-disable react/prop-types */
 import React, {useState} from 'react'
+import {useRouter} from 'next/router'
 import {
   Flex,
   Icon,
@@ -727,7 +728,11 @@ export function DeferredVotes() {
 
   const currentVote = state.votes[state.index]
 
-  const canOpen = epoch?.currentPeriod === EpochPeriod.None
+  const router = useRouter()
+
+  const isDnaUrl = router.pathname.startsWith('/dna')
+
+  const canOpen = epoch?.currentPeriod === EpochPeriod.None && !isDnaUrl
 
   const openModal = () => {
     if (isOpen) return

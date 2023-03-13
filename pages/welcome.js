@@ -61,7 +61,7 @@ export default function Welcome() {
           <HStack mt={3} spacing={4} alignItems="center">
             <Avatar
               size={['48px', 9]}
-              address="0x1"
+              address={coinbase}
               borderRadius={['12px', '10px']}
             />
             <Flex
