@@ -1,4 +1,5 @@
 import dayjs from 'dayjs'
+import {loadKeyword} from '../../shared/api'
 import {getFlip} from '../../shared/api/self'
 import {AnswerType, CertificateType} from '../../shared/types'
 import {shuffle} from '../../shared/utils/arr'
@@ -50,7 +51,17 @@ export function GetAnswerTitle(t, answer) {
 }
 
 export async function loadWords(flips) {
-  return Promise.resolve(flips.map(x => ({hash: x.hash, words: x.keywords})))
+  return Promise.all(
+    flips.map(async x => ({
+      hash: x.hash,
+      words: await Promise.all(
+        x.keywords?.map(async id => ({
+          id,
+          ...(await loadKeyword(id)),
+        })) ?? []
+      ),
+    }))
+  )
 }
 
 export async function fetchFlips(hashes, cb) {

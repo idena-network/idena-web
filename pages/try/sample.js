@@ -44,7 +44,7 @@ import {
   ErrorAlert,
 } from '../../shared/components/components'
 import {GetReasonDesc} from '../../screens/try/components'
-import {useEpoch} from "../../shared/providers/epoch-context";
+import {useEpoch} from '../../shared/providers/epoch-context'
 
 export default function SamplePage() {
   const {auth, privateKey, coinbase} = useAuthState()

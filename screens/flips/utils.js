@@ -1,3 +1,12 @@
+/* eslint-disable array-callback-return */
+/* eslint-disable no-shadow */
+/* eslint-disable no-var */
+/* eslint-disable camelcase */
+/* eslint-disable vars-on-top */
+/* eslint-disable block-scoped-var */
+/* eslint-disable prefer-destructuring */
+/* eslint-disable no-plusplus */
+/* eslint-disable prefer-const */
 /* eslint-disable no-use-before-define */
 import {encode} from 'rlp'
 import axios from 'axios'
@@ -20,7 +29,6 @@ import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
 import {Transaction} from '../../shared/models/transaction'
 import db from '../../shared/utils/db'
 import ImageAccess from './ImageAccess'
-import {imageResizeSoft} from '../../shared/utils/img'
 
 const convert = require('color-convert')
 const StackBlur = require('stackblur-canvas')
@@ -808,6 +816,7 @@ export async function protectFlipImage(imgSrc) {
     // eslint-disable-next-line global-require
     const extractColors = require('extract-colors').default
     palette = await extractColors(imgSrc)
+    // eslint-disable-next-line no-empty
   } catch (e) {}
 
   const mergeMeshPixels = (sourceImageData, meshImageData) => {
@@ -905,6 +914,7 @@ export async function protectFlipImage(imgSrc) {
 
   const protectedImage = getImageFromImageData(resultImageData)
   await new Promise(resolve => (protectedImage.onload = resolve))
+  // eslint-disable-next-line eqeqeq
   const flip = Math.floor(Math.random() * 2) == 0
   resultCanvasContext.scale(flip ? -1 : 1, 1)
   resultCanvasContext.drawImage(
@@ -1115,6 +1125,7 @@ export async function getAdversarialImage(images) {
     palette0 = await extractColors(sectorsImage.src, options)
     commonColor = palette0[0]
     palette0.sort((a, b) => a.red - b.red)
+    // eslint-disable-next-line no-empty
   } catch (e) {}
 
   const nosenseImageData = getImageDataFromImage(sectorsImage)

@@ -101,3 +101,19 @@ export async function getBlockAt(block) {
   if (error) throw new Error(error.message)
   return result
 }
+
+export async function loadKeyword(index) {
+  try {
+    const {data} = await api().post('/', {
+      method: 'bcn_keyWord',
+      params: [index],
+      id: 1,
+    })
+    const {result, error} = data
+    if (error) throw new Error(error.message)
+    const {Name: name, Desc: desc} = result
+    return {name, desc}
+  } catch (error) {
+    return {name: '', desc: ''}
+  }
+}

@@ -1,3 +1,4 @@
+/* eslint-disable no-nested-ternary */
 /* eslint-disable react/prop-types */
 import React, {useEffect} from 'react'
 import NextLink from 'next/link'
@@ -36,17 +37,12 @@ import {
 import {DragDropContext, Droppable, Draggable} from 'react-beautiful-dnd'
 import {useTranslation} from 'react-i18next'
 import {transparentize} from 'polished'
-import {useMachine, useService} from '@xstate/react'
+import {useService} from '@xstate/react'
 import {EditIcon, ViewIcon} from '@chakra-ui/icons'
 import Jimp from 'jimp'
 import FlipEditor from './components/flip-editor'
 import {Step} from './types'
-import {
-  formatKeywords,
-  getAdversarialImage,
-  protectFlipImage,
-  watermarkedDataURL,
-} from './utils'
+import {formatKeywords, getAdversarialImage, protectFlipImage} from './utils'
 import {PageTitle} from '../app/components'
 import {
   PrimaryButton,
@@ -66,7 +62,7 @@ import {
   GoogleTranslateButton,
   DrawerFooter,
 } from '../../shared/components/components'
-import {eitherState, openExternalUrl} from '../../shared/utils/utils'
+import {openExternalUrl} from '../../shared/utils/utils'
 import {
   ChevronDownIcon,
   CommunityIcon,
@@ -90,7 +86,6 @@ import {
 import {WideLink} from '../home/components'
 import {useAuthState} from '../../shared/providers/auth-context'
 import {AdDrawer} from '../ads/containers'
-import {imageSearchMachine} from './machines'
 
 export function FlipPageTitle({onClose, ...props}) {
   return (
@@ -725,12 +720,10 @@ export function FlipEditorStep({
   showTranslation,
   originalOrder,
   images,
-  adversarialImages,
   adversarialImageId,
   onChangeImage,
   onChangeOriginalOrder,
   onPainting,
-  searchAdversarial,
   onChangeAdversarialId,
 }) {
   const {t} = useTranslation()
@@ -1674,21 +1667,5 @@ export function PublishFlipDrawer({isPending, flip, onSubmit, ...props}) {
         </HStack>
       </DrawerFooter>
     </AdDrawer>
-  )
-}
-
-export function ShuffleAdversarialPopover({label, children, ...props}) {
-  return (
-    <Popover placement="right">
-      <PopoverTrigger>{children}</PopoverTrigger>
-      <PopoverContent border="none" fontSize="sm" w="max-content">
-        <PopoverArrow bg="graphite.500" />
-        <PopoverBody bg="graphite.500" borderRadius="sm" p="2" pt="1">
-          <Text color="white" fontSize="sm">
-            {label}
-          </Text>
-        </PopoverBody>
-      </PopoverContent>
-    </Popover>
   )
 }
