@@ -1736,21 +1736,21 @@ export const createValidationMachine = ({
   )
 
 async function loadWords(hashes) {
-  const res = []
-  await forEachAsync(hashes, async hash =>
-    fetchWords(hash)
-      .then(async ({result}) => ({
-        hash,
-        words: await Promise.all(
-          result?.words?.map(async id => ({
-            id,
-            ...(await loadKeyword(id)),
-          })) ?? []
-        ),
-      }))
-      .catch(() => ({hash}))
+  return Promise.all(
+    hashes.map(async hash =>
+      fetchWords(hash)
+        .then(async ({result}) => ({
+          hash,
+          words: await Promise.all(
+            result?.words?.map(async id => ({
+              id,
+              ...(await loadKeyword(id)),
+            })) ?? []
+          ),
+        }))
+        .catch(() => ({hash}))
+    )
   )
-  return res
 }
 
 function fetchFlips(addr, privateKey, hashes, cb) {
