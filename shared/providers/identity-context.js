@@ -101,7 +101,7 @@ export function IdentityProvider(props) {
     () => {
       refetch()
     },
-    waitForUpdate.until ? 10 * 1000 : null
+    waitForUpdate.until ? 5 * 1000 : null
   )
 
   const forceUpdate = useCallback(() => {
@@ -165,6 +165,7 @@ export function IdentityProvider(props) {
           ].includes(identity?.state),
           canInvite: identity?.invites > 0,
           canTerminate,
+          isWaitingForUpdate: waitForUpdate.fields.length > 0,
         },
         {
           killMe,

@@ -1541,8 +1541,8 @@ export function ActivateInvitationDialog({onClose, ...props}) {
   const size = useBreakpointValue(['lg', 'md'])
 
   useEffect(() => {
-    if (!isMining && isSuccess) onClose()
-  }, [isMining, isSuccess, onClose])
+    if (isSuccess) onClose()
+  }, [isSuccess, onClose])
 
   return (
     <Dialog title={t('Invite activation')} onClose={onClose} {...props}>
