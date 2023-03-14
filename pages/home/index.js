@@ -496,7 +496,12 @@ export default function HomePage() {
                       <HDivider />
 
                       <Flex justify="flex-end" display={['none', 'flex']}>
-                        <Button variant="outline">Add stake</Button>
+                        <Button
+                          variant="outline"
+                          onClick={replenishStakeDisclosure.onOpen}
+                        >
+                          Add stake
+                        </Button>
                       </Flex>
 
                       <Stack display={['inline-flex', 'none']}>
