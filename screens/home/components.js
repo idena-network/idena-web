@@ -1538,8 +1538,6 @@ export function ActivateInvitationDialog({onClose, ...props}) {
 
   const [{isMining, isSuccess}, {activateInvite}] = useInviteActivation()
 
-  const isWaiting = isMining && !isSuccess
-
   const size = useBreakpointValue(['lg', 'md'])
 
   useEffect(() => {
@@ -1564,7 +1562,7 @@ export function ActivateInvitationDialog({onClose, ...props}) {
                   {t('Enter invitation code')}
                 </FormLabel>
                 <PasteButton
-                  isDisabled={isWaiting}
+                  isDisabled={isMining}
                   onClick={() =>
                     navigator.clipboard.readText().then(text => setCode(text))
                   }
@@ -1573,7 +1571,7 @@ export function ActivateInvitationDialog({onClose, ...props}) {
               <Input
                 size={size}
                 value={code}
-                isDisabled={isWaiting}
+                isDisabled={isMining}
                 onChange={e => setCode(e.target.value)}
               />
             </Stack>
@@ -1590,7 +1588,7 @@ export function ActivateInvitationDialog({onClose, ...props}) {
               size={size}
               w={['100%', 'auto']}
               type="submit"
-              isLoading={isWaiting}
+              isLoading={isMining}
               loadingText={t('Mining...')}
             >
               {t('Activate invitation')}

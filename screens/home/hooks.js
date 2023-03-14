@@ -36,7 +36,7 @@ import {useRpcFetcher} from '../ads/hooks'
 export function useInviteActivation() {
   const failToast = useFailToast()
 
-  const [{state}, {waitStateUpdate}] = useIdentity()
+  const [{state, isWaitingForUpdate}, {waitStateUpdate}] = useIdentity()
   const {coinbase, privateKey} = useAuthState()
   const [submitting, setSubmitting] = useState(false)
 
@@ -95,7 +95,7 @@ export function useInviteActivation() {
     }
   }
 
-  const waiting = submitting || isPurchasing || mining
+  const waiting = submitting || isPurchasing || mining || isWaitingForUpdate
 
   return [
     {isSuccess: state === IdentityStatus.Candidate, isMining: waiting},
