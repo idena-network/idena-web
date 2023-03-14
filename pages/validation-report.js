@@ -79,8 +79,6 @@ export default function ValidationReport() {
     totalScore,
     earnings,
     earningsScore,
-    validationReward,
-    missedValidationReward,
     invitationReward,
     missedInvitationReward,
     inviteeReward,
