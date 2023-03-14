@@ -35,7 +35,6 @@ import {
   isPendingKeywordPair,
   getRandomKeywordPair,
   protectFlip,
-  checkIfFlipNoiseEnabled,
   prepareAdversarialImages,
   shuffleAdversarial,
 } from '../../screens/flips/utils'
@@ -56,7 +55,6 @@ import {InfoIcon, RefreshIcon} from '../../shared/components/icons'
 import {useTrackTx} from '../../screens/ads/hooks'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import {eitherState} from '../../shared/utils/utils'
-import {checkIfNewBadFlipRules} from '../../screens/validation/utils'
 
 export default function NewFlipPage() {
   const {t, i18n} = useTranslation()
@@ -70,7 +68,6 @@ export default function NewFlipPage() {
 
   const failToast = useFailToast()
 
-  const isNewFlipRules = checkIfNewBadFlipRules(epochState?.epoch)
   const [didShowShuffleAdversarial, setDidShowShuffleAdversarial] = useState(
     false
   )
@@ -92,9 +89,7 @@ export default function NewFlipPage() {
         // eslint-disable-next-line no-shadow
         const didShowBadFlip = (() => {
           try {
-            return localStorage.getItem(
-              isNewFlipRules ? 'didShowBadFlipNew' : 'didShowBadFlip'
-            )
+            return localStorage.getItem('didShowBadFlipNew')
           } catch {
             return false
           }
@@ -204,9 +199,6 @@ export default function NewFlipPage() {
     }, [router, send]),
   })
 
-  const isFlipNoiseEnabled = checkIfFlipNoiseEnabled(epochState?.epoch)
-  const maybeProtectedImages = isFlipNoiseEnabled ? protectedImages : images
-
   return (
     <Layout showHamburger={false}>
       <Page px={0} py={0}>
@@ -253,20 +245,18 @@ export default function NewFlipPage() {
                 >
                   {t('Select images')}
                 </FlipMasterNavbarItem>
-                {isFlipNoiseEnabled ? (
-                  <FlipMasterNavbarItem
-                    step={
-                      // eslint-disable-next-line no-nested-ternary
-                      is('protect')
-                        ? Step.Active
-                        : is('keywords') || is('images')
-                        ? Step.Next
-                        : Step.Completed
-                    }
-                  >
-                    {t('Protect images')}
-                  </FlipMasterNavbarItem>
-                ) : null}
+                <FlipMasterNavbarItem
+                  step={
+                    // eslint-disable-next-line no-nested-ternary
+                    is('protect')
+                      ? Step.Active
+                      : is('keywords') || is('images')
+                      ? Step.Next
+                      : Step.Completed
+                  }
+                >
+                  {t('Protect images')}
+                </FlipMasterNavbarItem>
                 <FlipMasterNavbarItem
                   step={
                     // eslint-disable-next-line no-nested-ternary
@@ -399,7 +389,7 @@ export default function NewFlipPage() {
               )}
               {is('shuffle') && (
                 <FlipShuffleStep
-                  images={maybeProtectedImages}
+                  images={protectedImages}
                   originalOrder={originalOrder}
                   order={order}
                   onShuffle={() => send('SHUFFLE')}
@@ -417,7 +407,7 @@ export default function NewFlipPage() {
                   onSwitchLocale={() => send('SWITCH_LOCALE')}
                   originalOrder={originalOrder}
                   order={order}
-                  images={maybeProtectedImages}
+                  images={protectedImages}
                 />
               )}
             </FlipMaster>
@@ -472,10 +462,7 @@ export default function NewFlipPage() {
           )}
           epochNum={epochState?.epoch}
           onClose={async () => {
-            localStorage.setItem(
-              isNewFlipRules ? 'didShowBadFlipNew' : 'didShowBadFlip',
-              true
-            )
+            localStorage.setItem('didShowBadFlipNew', true)
             send('SKIP_BAD_FLIP')
             onCloseBadFlipDialog()
           }}
@@ -486,7 +473,7 @@ export default function NewFlipPage() {
           isPending={either('submit.submitting', 'submit.mining')}
           flip={{
             keywords: showTranslation ? keywords.translations : keywords.words,
-            images: maybeProtectedImages,
+            images: protectedImages,
             originalOrder,
             order,
           }}
