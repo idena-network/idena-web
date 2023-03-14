@@ -59,6 +59,7 @@ export function IdentityProvider(props) {
       enabled: !!coinbase,
       onSuccess: (nextIdentity = {}) => {
         if (!deepEqual(identity, nextIdentity)) {
+          console.log('new identity state!')
           const state =
             identity &&
             identity.state === IdentityStatus.Terminating &&

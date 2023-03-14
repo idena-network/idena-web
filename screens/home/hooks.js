@@ -71,7 +71,6 @@ export function useInviteActivation() {
       tx.sign(trimmedCode || privateKey)
 
       const hex = tx.toHex()
-
       if (needToPurchase) {
         const providers = await getAvailableProviders()
         const result = await activateKey(coinbase, `0x${hex}`, providers)

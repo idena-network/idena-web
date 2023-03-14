@@ -1535,21 +1535,16 @@ export function ActivateInvitationDialog({onClose, ...props}) {
   const {t} = useTranslation()
 
   const [code, setCode] = useState('')
-  const [isActivating, setIsActivating] = useState(false)
 
   const [{isMining, isSuccess}, {activateInvite}] = useInviteActivation()
+
+  const isWaiting = isMining && !isSuccess
 
   const size = useBreakpointValue(['lg', 'md'])
 
   useEffect(() => {
     if (isSuccess) onClose()
   }, [isSuccess, onClose])
-
-  useEffect(() => {
-    if (isMining) setIsActivating(true)
-    if (!isMining && isActivating)
-      setTimeout(() => setIsActivating(false), 10 * 1000)
-  }, [isActivating, isMining])
 
   return (
     <Dialog title={t('Invite activation')} onClose={onClose} {...props}>
@@ -1569,7 +1564,7 @@ export function ActivateInvitationDialog({onClose, ...props}) {
                   {t('Enter invitation code')}
                 </FormLabel>
                 <PasteButton
-                  isDisabled={isMining || isActivating}
+                  isDisabled={isWaiting}
                   onClick={() =>
                     navigator.clipboard.readText().then(text => setCode(text))
                   }
@@ -1578,7 +1573,7 @@ export function ActivateInvitationDialog({onClose, ...props}) {
               <Input
                 size={size}
                 value={code}
-                isDisabled={isMining || isActivating}
+                isDisabled={isWaiting}
                 onChange={e => setCode(e.target.value)}
               />
             </Stack>
@@ -1595,7 +1590,7 @@ export function ActivateInvitationDialog({onClose, ...props}) {
               size={size}
               w={['100%', 'auto']}
               type="submit"
-              isLoading={isMining || isActivating}
+              isLoading={isWaiting}
               loadingText={t('Mining...')}
             >
               {t('Activate invitation')}
