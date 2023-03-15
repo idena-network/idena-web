@@ -2516,18 +2516,81 @@ export function StackProtectionBadge({type}) {
   }, [age, blue, red, state, type])
 
   const tooltip = React.useMemo(() => {
-    if (type === 'miss') {
-      return progress.color === blue
-        ? 'If you miss the upcoming validation your stake will be protected'
-        : 'You will lose 100% of the stake if you miss the upcoming validation'
+    if (progress.color === blue) {
+      return (
+        <Stack>
+          <Stack spacing="0.5">
+            <Text color="muted" lineHeight="shorter">
+              Stake protection: 100%
+            </Text>
+            <Text color="white" lineHeight="4">
+              Great job!
+            </Text>
+          </Stack>
+          <Stack spacing="0.5">
+            <Text color="muted" lineHeight="shorter">
+              Risk: low
+            </Text>
+            <Text color="white" lineHeight="4">
+              {`If you ${
+                type === 'fail' ? 'fail' : 'miss'
+              } the upcoming validation your stake will be protected`}
+            </Text>
+          </Stack>
+        </Stack>
+      )
     }
 
-    if (type === 'fail') {
-      return progress.color === blue
-        ? 'If you fail the upcoming validation your stake will be protected'
-        : 'You will lose 4% of the stake if you fail the upcoming validation'
+    if (progress.color === red) {
+      if (type === 'miss') {
+        return (
+          <Stack>
+            <Stack spacing="0.5">
+              <Text color="muted" lineHeight="shorter">
+                Stake protection: 0%
+              </Text>
+              <Text color="white" lineHeight="4">
+                You need to get Human status to get stake protection
+              </Text>
+            </Stack>
+            <Stack spacing="0.5">
+              <Text color="muted" lineHeight="shorter">
+                Risk: high
+              </Text>
+              <Text color="white" lineHeight="4">
+                You will lose 100% of the stake if you miss the upcoming
+                validation
+              </Text>
+            </Stack>
+          </Stack>
+        )
+      }
+
+      if (type === 'fail') {
+        return (
+          <Stack>
+            <Stack spacing="0.5">
+              <Text color="muted" lineHeight="shorter">
+                Stake protection: 96%
+              </Text>
+              <Text color="white" lineHeight="4">
+                You need to get Human status to get stake protection
+              </Text>
+            </Stack>
+            <Stack spacing="0.5">
+              <Text color="muted" lineHeight="shorter">
+                Risk: moderate
+              </Text>
+              <Text color="white" lineHeight="4">
+                You will lose 4% of the stake if you fail the upcoming
+                validation
+              </Text>
+            </Stack>
+          </Stack>
+        )
+      }
     }
-  }, [blue, progress.color, type])
+  }, [blue, progress.color, red, type])
 
   const radius = 16
   const innerRadius = 15.5
@@ -2541,19 +2604,28 @@ export function StackProtectionBadge({type}) {
   const offset = arc - progress.value * arc
 
   return (
-    <Stack
-      direction="row"
-      spacing="2"
-      align="center"
-      flex={1}
-      rounded={20}
-      p="1"
-      pr="3"
-      bg="white"
-      borderWidth={1}
-      borderColor="rgba(220, 222, 223, 1)"
+    <Tooltip
+      placement="top-start"
+      label={tooltip}
+      gutter={16}
+      bg="graphite.500"
+      borderRadius="sm"
+      fontWeight="normal"
+      p="2"
+      pt="1"
     >
-      <Tooltip placement="top-start" label={tooltip} gutter={16}>
+      <Stack
+        direction="row"
+        spacing="2"
+        align="center"
+        flex={1}
+        rounded={20}
+        p="1"
+        pr="3"
+        bg="white"
+        borderWidth={1}
+        borderColor="rgba(220, 222, 223, 1)"
+      >
         <Box>
           <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
             {type === 'miss' && (
@@ -2595,14 +2667,16 @@ export function StackProtectionBadge({type}) {
             />
           </svg>
         </Box>
-      </Tooltip>
-      <Box fontSize="8px">
-        <Text fontWeight="medium">
-          {type === 'miss' && 'Missing validation protection'}
-          {type === 'fail' && 'Validation failure protection'}
-        </Text>
-        <Text>{toPercent(progress.value)} stake protection</Text>
-      </Box>
-    </Stack>
+        <Box>
+          <Text fontSize="sm" fontWeight="medium">
+            {type === 'miss' && 'Miss validation'}
+            {type === 'fail' && 'Fail validation'}
+          </Text>
+          <Text fontSize="8px">
+            {toPercent(progress.value)} stake protection
+          </Text>
+        </Box>
+      </Stack>
+    </Tooltip>
   )
 }

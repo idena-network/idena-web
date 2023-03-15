@@ -268,10 +268,7 @@ export default function HomePage() {
               align={['center', 'initial']}
               ref={activateInviteRef}
             >
-              <UserProfileCard
-                identity={identity}
-                my={[4, 0]}
-              ></UserProfileCard>
+              <UserProfileCard identity={identity} my={[4, 0]} />
 
               {canActivateInvite && (
                 <Box w={['100%', 'initial']} pb={[8, 0]}>
