@@ -373,7 +373,7 @@ export default function HomePage() {
                 {Boolean(state) && state !== IdentityStatus.Undefined && (
                   <UserStatList title={t('Stake')}>
                     <Stack spacing={['6']}>
-                      <Stack direction={['column', 'row']} spacing={['5', 0]}>
+                      <Stack direction={['column', 'row']} spacing={['5', '2']}>
                         <Stack spacing={['5', '3']} flex={1}>
                           <UserStat>
                             <Flex
@@ -407,72 +407,70 @@ export default function HomePage() {
                             />
                           )}
                         </Stack>
-                        <Stack spacing="5px" flex={1}>
-                          <UserStat flex={0}>
-                            <Flex
-                              direction={['row', 'column']}
-                              justify={['space-between', 'flex-start']}
+                        <UserStat flex={1}>
+                          <Flex
+                            direction={['row', 'column']}
+                            justify={['space-between', 'flex-start']}
+                          >
+                            <UserStatLabel
+                              color={[null, 'muted']}
+                              fontSize={['mdx', 'md']}
+                              fontWeight={[400, 500]}
+                              lineHeight="4"
                             >
-                              <UserStatLabel
-                                color={[null, 'muted']}
-                                fontSize={['mdx', 'md']}
-                                fontWeight={[400, 500]}
-                                lineHeight="4"
-                              >
-                                {t('APY')}
-                              </UserStatLabel>
-                              <UserStatValue
-                                fontSize={['mdx', 'md']}
-                                lineHeight="4"
-                                mt={[null, '3px']}
-                              >
-                                <Stack direction={['row']} spacing="2">
-                                  <Text as="span">
-                                    {stakingApy > 0
-                                      ? toPercent(stakingApy)
-                                      : '--'}
-                                    {(showActivateMiningStatusIcon ||
-                                      showValidateIdentityIcon) && (
-                                      <Tooltip
-                                        shouldWrapChildren
-                                        bg="graphite.500"
-                                        placement="top"
-                                        hasArrow
-                                        label={
-                                          showActivateMiningStatusIcon
-                                            ? t(
-                                                'Please activate your mining status to earn the staking rewards'
-                                              )
-                                            : t(
-                                                'Please validate your account to earn the staking rewards'
-                                              )
-                                        }
-                                        w="130px"
-                                      >
-                                        <InfoIcon
-                                          boxSize={[5, 4]}
-                                          color="red.500"
-                                          mt={[-1, -1 / 2]}
-                                          ml={1}
-                                        />
-                                      </Tooltip>
-                                    )}
-                                  </Text>
-                                  <ExternalLink
-                                    href={`https://idena.io/staking?amount=${Math.floor(
-                                      state === IdentityStatus.Newbie
-                                        ? stake - lockedNewbieStake
-                                        : stake
-                                    )}`}
-                                    display={['none', 'inline-flex']}
-                                  >
-                                    {t('Staking calculator')}
-                                  </ExternalLink>
-                                </Stack>
-                              </UserStatValue>
-                            </Flex>
-                          </UserStat>
-                        </Stack>
+                              {t('APY')}
+                            </UserStatLabel>
+                            <UserStatValue
+                              fontSize={['mdx', 'md']}
+                              lineHeight="4"
+                              mt={[null, '3px']}
+                            >
+                              <Stack direction={['row']} spacing="2">
+                                <Text as="span">
+                                  {stakingApy > 0
+                                    ? toPercent(stakingApy)
+                                    : '--'}
+                                  {(showActivateMiningStatusIcon ||
+                                    showValidateIdentityIcon) && (
+                                    <Tooltip
+                                      shouldWrapChildren
+                                      bg="graphite.500"
+                                      placement="top"
+                                      hasArrow
+                                      label={
+                                        showActivateMiningStatusIcon
+                                          ? t(
+                                              'Please activate your mining status to earn the staking rewards'
+                                            )
+                                          : t(
+                                              'Please validate your account to earn the staking rewards'
+                                            )
+                                      }
+                                      w="130px"
+                                    >
+                                      <InfoIcon
+                                        boxSize={[5, 4]}
+                                        color="red.500"
+                                        mt={[-1, -1 / 2]}
+                                        ml={1}
+                                      />
+                                    </Tooltip>
+                                  )}
+                                </Text>
+                                <ExternalLink
+                                  href={`https://idena.io/staking?amount=${Math.floor(
+                                    state === IdentityStatus.Newbie
+                                      ? stake - lockedNewbieStake
+                                      : stake
+                                  )}`}
+                                  display={['none', 'inline-flex']}
+                                >
+                                  {t('Staking calculator')}
+                                </ExternalLink>
+                              </Stack>
+                            </UserStatValue>
+                          </Flex>
+                        </UserStat>
                       </Stack>
 
                       {Number(stake) > 0 && (

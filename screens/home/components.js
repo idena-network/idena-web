@@ -2668,11 +2668,11 @@ export function StackProtectionBadge({type}) {
           </svg>
         </Box>
         <Box>
-          <Text fontSize="sm" fontWeight="medium">
+          <Text fontSize="12px" fontWeight="medium">
             {type === 'miss' && 'Miss validation'}
             {type === 'fail' && 'Fail validation'}
           </Text>
-          <Text fontSize="8px">
+          <Text fontSize="sm">
             {toPercent(progress.value)} stake protection
           </Text>
         </Box>
