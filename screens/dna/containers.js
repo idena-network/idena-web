@@ -150,7 +150,7 @@ export function DnaSignInDialog({
                   onCompleteSignIn()
                 } else {
                   setIsAuthenticating(false)
-                  onSignInError('Invalid callback URL')
+                  onSignInError(`Invalid callback URL: ${callbackUrl}`)
                 }
               })
               .catch(error => {
