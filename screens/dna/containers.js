@@ -123,6 +123,13 @@ export function DnaSignInDialog({
           isLoading={isAuthenticating}
           onClick={() => {
             setIsAuthenticating(true)
+
+            let win
+            const canOpenCallbackUrl = isValidUrl(callbackUrl)
+            if (canOpenCallbackUrl) {
+              win = window?.open()
+            }
+
             startSession(nonceEndpoint, {
               token,
               coinbase,
@@ -135,12 +142,15 @@ export function DnaSignInDialog({
                 })
               )
               .then(() => {
-                if (isValidUrl(callbackUrl)) {
-                  openExternalUrl(callbackUrl)
+                if (canOpenCallbackUrl) {
+                  if (win) {
+                    win.location = callbackUrl
+                    win.focus()
+                  }
                   onCompleteSignIn()
                 } else {
                   setIsAuthenticating(false)
-                  onSignInError('Invalid callback URL')
+                  onSignInError(`Invalid callback URL: ${callbackUrl}`)
                 }
               })
               .catch(error => {
