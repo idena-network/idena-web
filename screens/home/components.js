@@ -108,7 +108,12 @@ import {
   OnboardingPopoverContent,
   OnboardingPopoverContentIconRow,
 } from '../../shared/components/onboarding'
-import {useInviteActivation, useInviteScore, useReplenishStake} from './hooks'
+import {
+  useCalculateStakeLoss,
+  useInviteActivation,
+  useInviteScore,
+  useReplenishStake,
+} from './hooks'
 import {useTotalValidationScore} from '../validation-report/hooks'
 import {DnaInput} from '../oracles/components'
 import {BLOCK_TIME} from '../oracles/utils'
@@ -282,40 +287,36 @@ export function AnnotatedUserStat({
   )
 }
 
-export function AnnotatedUserStatistics({
-  annotation,
-  label,
-  value,
-  children,
-  ...props
-}) {
-  const {colors} = useTheme()
+export function AnnotatedUserStatistics({label, value, tooltip}) {
   return (
-    <Flex
-      fontSize={['mdx', 'md']}
-      direction={['row', 'column']}
-      justify={['space-between', 'flex-start']}
-      {...props}
-    >
-      <Box
-        w="fit-content"
-        borderBottom={['none', `dotted 1px ${colors.muted}`]}
-        cursor="help"
-        fontWeight={[400, 500]}
-        color={['auto', colors.muted]}
+    <UserStat>
+      <Stack
+        direction={['row', 'column']}
+        spacing="1"
+        justify={['space-between', null]}
+        fontSize={['mdx', 'md']}
       >
-        <UserStatLabelTooltip label={[annotation]}>
-          {label}
+        <UserStatLabelTooltip label={tooltip}>
+          <UserStatLabel
+            color={[null, 'muted']}
+            fontSize={['mdx', 'md']}
+            fontWeight={[400, 500]}
+            lineHeight={['19px']}
+            borderBottom={['none', `dotted 1px`]}
+            borderBottomColor="muted"
+            cursor={[null, 'help']}
+          >
+            {label}
+          </UserStatLabel>
         </UserStatLabelTooltip>
-      </Box>
-      {value && <Box fontWeight="500">{value}</Box>}
-      {children}
-    </Flex>
+        {value && <UserStatValue>{value}</UserStatValue>}
+      </Stack>
+    </UserStat>
   )
 }
 
 export function UserStat(props) {
-  return <Stat as={Stack} spacing="3px" {...props} />
+  return <Stat as={Stack} spacing="1" {...props} />
 }
 
 export function UserStatistics({label, value, children, ...props}) {
@@ -338,23 +339,25 @@ export function UserStatistics({label, value, children, ...props}) {
   )
 }
 
-export function UserStatLabel(props) {
+export const UserStatLabel = React.forwardRef(function UserStatLabel(
+  props,
+  ref
+) {
   return (
     <StatLabel
+      ref={ref}
       style={{display: 'inline-block'}}
       color="muted"
       alignSelf="flex-start"
       fontSize="md"
-      lineHeight="short"
+      lineHeight="5"
       {...props}
     />
   )
-}
+})
 
 export function UserStatValue(props) {
-  return (
-    <StatNumber fontSize="md" fontWeight={500} lineHeight="base" {...props} />
-  )
+  return <StatNumber fontSize="md" fontWeight={500} lineHeight="5" {...props} />
 }
 
 export function UserStatLabelTooltip(props) {
@@ -2515,6 +2518,8 @@ export function StackProtectionBadge({type}) {
     return {color: 'transparent', value: 0}
   }, [age, blue, red, state, type])
 
+  const calculateStakeLoss = useCalculateStakeLoss()
+
   const tooltip = React.useMemo(() => {
     if (progress.color === blue) {
       return (
@@ -2571,7 +2576,7 @@ export function StackProtectionBadge({type}) {
           <Stack>
             <Stack spacing="0.5">
               <Text color="muted" lineHeight="shorter">
-                Stake protection: 96%
+                Stake protection: {toPercent(1 - calculateStakeLoss(age))}
               </Text>
               <Text color="white" lineHeight="4">
                 You need to get Human status to get stake protection
@@ -2582,15 +2587,15 @@ export function StackProtectionBadge({type}) {
                 Risk: moderate
               </Text>
               <Text color="white" lineHeight="4">
-                You will lose 4% of the stake if you fail the upcoming
-                validation
+                You will lose {toPercent(calculateStakeLoss(age))} of the stake
+                if you fail the upcoming validation
               </Text>
             </Stack>
           </Stack>
         )
       }
     }
-  }, [blue, progress.color, red, type])
+  }, [age, blue, calculateStakeLoss, progress.color, red, type])
 
   const radius = 16
   const innerRadius = 15.5

@@ -374,57 +374,49 @@ export default function HomePage() {
                   <UserStatList title={t('Stake')}>
                     <Stack spacing={['6']}>
                       <Stack direction={['column', 'row']} spacing={['5', '2']}>
-                        <Stack spacing={['5', '3']} flex={1}>
+                        <Stack spacing={['5', '4']} flex={1}>
                           <UserStat>
-                            <Flex
+                            <Stack
                               direction={['row', 'column']}
-                              justify={['space-between', 'flex-start']}
+                              spacing="1"
+                              justify={['space-between', null]}
                             >
                               <UserStatLabel
                                 color={[null, 'muted']}
                                 fontSize={['mdx', 'md']}
                                 fontWeight={[400, 500]}
-                                lineHeight="4"
                               >
                                 {t('Amount')}
                               </UserStatLabel>
-                              <UserStatValue
-                                fontSize={['mdx', 'md']}
-                                lineHeight="4"
-                                mt={[null, '3px']}
-                              >
+                              <UserStatValue fontSize={['mdx', 'md']}>
                                 {toDna(availableStake)}
                               </UserStatValue>
-                            </Flex>
+                            </Stack>
                           </UserStat>
                           {stake > 0 && state === IdentityStatus.Newbie && (
                             <AnnotatedUserStatistics
-                              annotation={t(
-                                'You need to get Verified status to get the locked funds into the normal wallet'
-                              )}
                               label={t('Locked')}
                               value={toDna(lockedNewbieStake)}
+                              tooltip={t(
+                                'You need to get Verified status to get the locked funds into the normal wallet'
+                              )}
                             />
                           )}
                         </Stack>
                         <UserStat flex={1}>
-                          <Flex
+                          <Stack
                             direction={['row', 'column']}
-                            justify={['space-between', 'flex-start']}
+                            spacing="1"
+                            justify={['space-between', null]}
                           >
                             <UserStatLabel
                               color={[null, 'muted']}
                               fontSize={['mdx', 'md']}
                               fontWeight={[400, 500]}
-                              lineHeight="4"
                             >
                               {t('APY')}
                             </UserStatLabel>
-                            <UserStatValue
-                              fontSize={['mdx', 'md']}
-                              lineHeight="4"
-                              mt={[null, '3px']}
-                            >
+                            <UserStatValue fontSize={['mdx', 'md']}>
                               <Stack direction={['row']} spacing="2">
                                 <Text as="span">
                                   {stakingApy > 0
@@ -465,11 +457,11 @@ export default function HomePage() {
                                   )}`}
                                   display={['none', 'inline-flex']}
                                 >
-                                  {t('Staking calculator')}
+                                  {t('Calculator')}
                                 </ExternalLink>
                               </Stack>
                             </UserStatValue>
-                          </Flex>
+                          </Stack>
                         </UserStat>
                       </Stack>
 
@@ -529,7 +521,7 @@ export default function HomePage() {
                           border="none"
                           borderColor="transparent"
                         >
-                          {t('Staking calculator')}
+                          {t('Calculator')}
                         </Button>
                       </Stack>
                     </Stack>
