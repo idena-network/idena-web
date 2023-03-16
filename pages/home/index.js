@@ -37,7 +37,7 @@ import {
   ReplenishStakeDrawer,
   AdCarousel,
   SpoilInviteDrawer,
-  StackProtectionBadge,
+  StakeProtectionBadge,
 } from '../../screens/home/components'
 import Layout from '../../shared/components/layout'
 import {IdentityStatus, OnboardingStep} from '../../shared/types'
@@ -468,12 +468,12 @@ export default function HomePage() {
 
                       {Number(stake) > 0 && (
                         <Stack direction="row" spacing="2">
-                          <StackProtectionBadge
+                          <StakeProtectionBadge
                             type="miss"
                             amount={1}
                             status="ok"
                           />
-                          <StackProtectionBadge
+                          <StakeProtectionBadge
                             type="fail"
                             amount={2}
                             status="validated"

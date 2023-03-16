@@ -2429,7 +2429,7 @@ export function SpoilInviteDrawer({onSuccess, onFail, ...props}) {
 }
 
 /** @param {{ type: "miss" | "fail", amount: number, status: string }} */
-export function StackProtectionBadge({type}) {
+export function StakeProtectionBadge({type}) {
   const [{state, age}] = useIdentity()
 
   const {colors} = useTheme()
