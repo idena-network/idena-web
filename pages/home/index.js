@@ -455,6 +455,7 @@ export default function HomePage() {
                                       ? stake - lockedNewbieStake
                                       : stake
                                   )}`}
+                                  alignSelf="center"
                                   display={['none', 'inline-flex']}
                                 >
                                   {t('Calculator')}
