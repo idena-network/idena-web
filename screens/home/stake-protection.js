@@ -57,6 +57,24 @@ function useProtectionLevel({type}) {
 }
 
 /** @param {{ type: Reason }} */
+function useProtectionValue({type}) {
+  const [{age}] = useIdentity()
+
+  const level = useProtectionLevel({type})
+
+  switch (level) {
+    case 'safe':
+      return 1
+    case 'moderateRisk':
+      return 1 - calculateStakeLoss(age)
+    case 'highRisk':
+      return 0
+    default:
+      break
+  }
+}
+
+/** @param {{ type: Reason }} */
 function useProtectionProgress({type}) {
   const [{state, age}] = useIdentity()
 
@@ -146,7 +164,7 @@ function useProtectionColor({type}) {
 
 /** @param {{ type: Reason }} */
 export function StakeProtectionBadge({type}) {
-  const progress = useProtectionProgress({type})
+  const protection = useProtectionValue({type})
 
   return (
     <Tooltip
@@ -179,7 +197,7 @@ export function StakeProtectionBadge({type}) {
             {type === 'miss' && 'Miss validation'}
             {type === 'fail' && 'Fail validation'}
           </Text>
-          <Text fontSize="sm">{toPercent(progress)} stake protection</Text>
+          <Text fontSize="sm">{toPercent(protection)} stake protection</Text>
         </Box>
       </Stack>
     </Tooltip>
@@ -188,9 +206,8 @@ export function StakeProtectionBadge({type}) {
 
 /** @param {{ type: Reason }} */
 function TooltipLabel({type}) {
-  const [{age}] = useIdentity()
-
   const level = useProtectionLevel({type})
+  const protection = useProtectionValue({type})
 
   switch (level) {
     case 'safe':
@@ -206,7 +223,7 @@ function TooltipLabel({type}) {
           </Stack>
           <Stack spacing="0.5">
             <Text color="muted" lineHeight="shorter">
-              Risk: low
+              Risk: Low
             </Text>
             <Text color="white" lineHeight="4">
               {`If you ${
@@ -229,7 +246,7 @@ function TooltipLabel({type}) {
           </Stack>
           <Stack spacing="0.5">
             <Text color="muted" lineHeight="shorter">
-              Risk: high
+              Risk: High
             </Text>
             <Text color="white" lineHeight="4">
               You will lose 100% of the stake if you miss the upcoming
@@ -243,7 +260,7 @@ function TooltipLabel({type}) {
         <Stack>
           <Stack spacing="0.5">
             <Text color="muted" lineHeight="shorter">
-              Stake protection: {toPercent(1 - calculateStakeLoss(age))}
+              Stake protection: {toPercent(protection)}
             </Text>
             <Text color="white" lineHeight="4">
               You need to get Human status to get stake protection
@@ -251,11 +268,11 @@ function TooltipLabel({type}) {
           </Stack>
           <Stack spacing="0.5">
             <Text color="muted" lineHeight="shorter">
-              Risk: moderate
+              Risk: Moderate
             </Text>
             <Text color="white" lineHeight="4">
-              You will lose {toPercent(calculateStakeLoss(age))} of the stake if
-              you fail the upcoming validation
+              You will lose {toPercent(1 - protection)} of the stake if you fail
+              the upcoming validation
             </Text>
           </Stack>
         </Stack>
