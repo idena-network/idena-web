@@ -1,6 +1,5 @@
 import dayjs from 'dayjs'
 import React, {useEffect, useReducer, useState} from 'react'
-import {useTranslation} from 'react-i18next'
 import {useMutation, useQuery} from 'react-query'
 import {
   activateKey,
@@ -29,7 +28,7 @@ import {
   privateKeyToPublicKey,
 } from '../../shared/utils/crypto'
 import {loadPersistentState} from '../../shared/utils/persist'
-import {toPercent, validateInvitationCode} from '../../shared/utils/utils'
+import {validateInvitationCode} from '../../shared/utils/utils'
 import {apiUrl} from '../oracles/utils'
 import {useRpcFetcher} from '../ads/hooks'
 
@@ -191,68 +190,6 @@ export function useReplenishStake({onSuccess, onError}) {
   }
 }
 
-export function useStakingAlert() {
-  const {t} = useTranslation()
-
-  const [{state, age, stake}] = useIdentity()
-
-  const calculateStakeLoss = useCalculateStakeLoss()
-
-  return React.useMemo(() => {
-    if (stake && Number(stake) === 0) {
-      return null
-    }
-
-    if ([IdentityStatus.Candidate, IdentityStatus.Newbie].includes(state)) {
-      return t(
-        'You will lose 100% of the stake if you fail or miss the upcoming validation.'
-      )
-    }
-
-    if (state === IdentityStatus.Verified) {
-      return t(
-        'You will lose 100% of the stake if you fail the upcoming validation.'
-      )
-    }
-
-    if (state === IdentityStatus.Zombie) {
-      return age >= 10
-        ? t(
-            'You will lose 100% of the Stake if you miss the upcoming validation.'
-          )
-        : [
-            t(
-              `You will lose {{ratio}} of the stake if you fail the upcoming validation.`,
-              {
-                ratio: toPercent(calculateStakeLoss(age)),
-              }
-            ),
-            t(
-              'You will lose 100% of the stake if you miss the upcoming validation.'
-            ),
-          ]
-    }
-
-    if (state === IdentityStatus.Suspended && age < 10) {
-      return t(
-        'You will lose {{ratio}} of the stake if you fail the upcoming validation.',
-        {
-          ratio: toPercent(calculateStakeLoss(age)),
-        }
-      )
-    }
-
-    return null
-  }, [stake, state, age, t, calculateStakeLoss])
-}
-
-export function useCalculateStakeLoss() {
-  return React.useCallback(
-    age => Math.max(age === 4 ? 1 : (10 - age) / 100, 0),
-    []
-  )
-}
-
 export function useStakingApy() {
   const {
     data: {stake},
@@ -270,6 +207,7 @@ export function useStakingApy() {
 
     return result
   }, [])
+
   const rpcFetcher = useRpcFetcher()
 
   const {data: stakingData} = useQuery({

@@ -37,7 +37,6 @@ import {
   ReplenishStakeDrawer,
   AdCarousel,
   SpoilInviteDrawer,
-  StakeProtectionBadge,
 } from '../../screens/home/components'
 import Layout from '../../shared/components/layout'
 import {IdentityStatus, OnboardingStep} from '../../shared/types'
@@ -85,6 +84,7 @@ import {useStakingApy, useValidationResults} from '../../screens/home/hooks'
 import {ValidationReportSummary} from '../../screens/validation-report/components'
 import {useAppContext} from '../../shared/providers/app-context'
 import {useRotatingAds} from '../../screens/ads/hooks'
+import {StakeProtectionBadge} from '../../screens/home/stake-protection'
 
 export default function HomePage() {
   const queryClient = useQueryClient()
@@ -467,17 +467,9 @@ export default function HomePage() {
                       </Stack>
 
                       {Number(stake) > 0 && (
-                        <Stack direction="row" spacing="2">
-                          <StakeProtectionBadge
-                            type="miss"
-                            amount={1}
-                            status="ok"
-                          />
-                          <StakeProtectionBadge
-                            type="fail"
-                            amount={2}
-                            status="validated"
-                          />
+                        <Stack direction={('column', 'row')} spacing="2">
+                          <StakeProtectionBadge type="miss" />
+                          <StakeProtectionBadge type="fail" />
                         </Stack>
                       )}
 
