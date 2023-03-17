@@ -209,6 +209,8 @@ function TooltipLabel({type}) {
   const level = useProtectionLevel({type})
   const protection = useProtectionValue({type})
 
+  const action = type === 'fail' ? 'fail' : 'miss'
+
   switch (level) {
     case 'safe':
       return (
@@ -226,9 +228,8 @@ function TooltipLabel({type}) {
               Risk: Low
             </Text>
             <Text color="white" lineHeight="4">
-              {`If you ${
-                type === 'fail' ? 'fail' : 'miss'
-              } the upcoming validation your stake will be protected`}
+              If you ${action} the upcoming validation your stake will be
+              protected
             </Text>
           </Stack>
         </Stack>
@@ -249,7 +250,7 @@ function TooltipLabel({type}) {
               Risk: High
             </Text>
             <Text color="white" lineHeight="4">
-              You will lose 100% of the stake if you miss the upcoming
+              You will lose 100% of the stake if you {action} the upcoming
               validation
             </Text>
           </Stack>
@@ -271,7 +272,8 @@ function TooltipLabel({type}) {
               Risk: Moderate
             </Text>
             <Text color="white" lineHeight="4">
-              You will lose {toPercent(1 - protection)} of the stake if you fail
+              You will lose {toPercent(1 - protection)} of the stake if you{' '}
+              {action}
               the upcoming validation
             </Text>
           </Stack>
