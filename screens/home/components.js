@@ -108,12 +108,7 @@ import {
   OnboardingPopoverContent,
   OnboardingPopoverContentIconRow,
 } from '../../shared/components/onboarding'
-import {
-  useInviteActivation,
-  useInviteScore,
-  useReplenishStake,
-  useStakingAlert,
-} from './hooks'
+import {useInviteActivation, useInviteScore, useReplenishStake} from './hooks'
 import {useTotalValidationScore} from '../validation-report/hooks'
 import {DnaInput} from '../oracles/components'
 import {BLOCK_TIME} from '../oracles/utils'
@@ -228,7 +223,7 @@ export function WideLink({
 
 export function UserStatList({title, children, ...props}) {
   return (
-    <Stack spacing={[0, 4]} {...props} w="100%">
+    <Stack spacing={[0, '4']} {...props} w="100%">
       <Heading
         display={['none', 'block']}
         as="h4"
@@ -237,7 +232,13 @@ export function UserStatList({title, children, ...props}) {
       >
         {title}
       </Heading>
-      <Stack spacing={4} bg="gray.50" px={[7, 10]} py={[4, 8]} rounded="lg">
+      <Stack
+        spacing="4"
+        bg="gray.50"
+        px={['7', '10']}
+        py={['4', '8']}
+        rounded="lg"
+      >
         <Heading
           display={['block', 'none']}
           as="h4"
@@ -281,40 +282,36 @@ export function AnnotatedUserStat({
   )
 }
 
-export function AnnotatedUserStatistics({
-  annotation,
-  label,
-  value,
-  children,
-  ...props
-}) {
-  const {colors} = useTheme()
+export function AnnotatedUserStatistics({label, value, tooltip}) {
   return (
-    <Flex
-      fontSize={['mdx', 'md']}
-      direction={['row', 'column']}
-      justify={['space-between', 'flex-start']}
-      {...props}
-    >
-      <Box
-        w="fit-content"
-        borderBottom={['none', `dotted 1px ${colors.muted}`]}
-        cursor="help"
-        fontWeight={[400, 500]}
-        color={['auto', colors.muted]}
+    <UserStat>
+      <Stack
+        direction={['row', 'column']}
+        spacing="1"
+        justify={['space-between', null]}
+        fontSize={['mdx', 'md']}
       >
-        <UserStatLabelTooltip label={[annotation]}>
-          {label}
+        <UserStatLabelTooltip label={tooltip}>
+          <UserStatLabel
+            color={[null, 'muted']}
+            fontSize={['mdx', 'md']}
+            fontWeight={[400, 500]}
+            lineHeight={['19px']}
+            borderBottom={['none', `dotted 1px`]}
+            borderBottomColor="muted"
+            cursor={[null, 'help']}
+          >
+            {label}
+          </UserStatLabel>
         </UserStatLabelTooltip>
-      </Box>
-      {value && <Box fontWeight="500">{value}</Box>}
-      {children}
-    </Flex>
+        {value && <UserStatValue>{value}</UserStatValue>}
+      </Stack>
+    </UserStat>
   )
 }
 
 export function UserStat(props) {
-  return <Stat as={Stack} spacing="3px" {...props} />
+  return <Stat as={Stack} spacing="1" {...props} />
 }
 
 export function UserStatistics({label, value, children, ...props}) {
@@ -337,23 +334,25 @@ export function UserStatistics({label, value, children, ...props}) {
   )
 }
 
-export function UserStatLabel(props) {
+export const UserStatLabel = React.forwardRef(function UserStatLabel(
+  props,
+  ref
+) {
   return (
     <StatLabel
+      ref={ref}
       style={{display: 'inline-block'}}
       color="muted"
       alignSelf="flex-start"
       fontSize="md"
-      lineHeight="short"
+      lineHeight="5"
       {...props}
     />
   )
-}
+})
 
 export function UserStatValue(props) {
-  return (
-    <StatNumber fontSize="md" fontWeight={500} lineHeight="base" {...props} />
-  )
+  return <StatNumber fontSize="md" fontWeight={500} lineHeight="5" {...props} />
 }
 
 export function UserStatLabelTooltip(props) {
@@ -2230,26 +2229,6 @@ export function ReplenishStakeDrawer({
       </DrawerFooter>
     </AdDrawer>
   )
-}
-
-export function StakingAlert(props) {
-  const warning = useStakingAlert()
-
-  return warning ? (
-    <ErrorAlert {...props}>
-      {Array.isArray(warning) ? (
-        <Stack spacing={0}>
-          {warning.map((message, idx) => (
-            <Text key={idx} as="span">
-              {message}
-            </Text>
-          ))}
-        </Stack>
-      ) : (
-        warning
-      )}
-    </ErrorAlert>
-  ) : null
 }
 
 export function AdCarousel() {
