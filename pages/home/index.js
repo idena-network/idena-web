@@ -451,9 +451,7 @@ export default function HomePage() {
                                 </Text>
                                 <ExternalLink
                                   href={`https://idena.io/staking?amount=${Math.floor(
-                                    state === IdentityStatus.Newbie
-                                      ? stake - lockedNewbieStake
-                                      : stake
+                                    availableStake
                                   )}`}
                                   alignSelf="center"
                                   display={['none', 'inline-flex']}
