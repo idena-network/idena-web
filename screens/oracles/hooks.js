@@ -181,6 +181,7 @@ export function useDeferredVotes() {
           if (!skipToast) showError(e.message)
           break
         }
+        case 'wrong vote hash':
         case 'contract is not in running state':
         case 'destination is not a contract': {
           if (!skipToast) showError(e.message)

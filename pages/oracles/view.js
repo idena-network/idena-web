@@ -52,6 +52,7 @@ import {
 } from '../../shared/utils/utils'
 import {
   FillCenter,
+  MissingVoteModal,
   OraclesTxsValueTd,
   ReviewNewPendingVoteDialog,
   VotingBadge,
@@ -113,12 +114,17 @@ import {
 } from '../../screens/ads/utils'
 import {useSuccessToast} from '../../shared/hooks/use-toast'
 import {AdStatus} from '../../screens/ads/types'
+import useSyncing from '../../shared/hooks/use-syncing'
 
 dayjs.extend(relativeTime)
 dayjs.extend(duration)
 
 export default function ViewVotingPage() {
   const {t, i18n} = useTranslation()
+
+  const {
+    data: {currentBlock},
+  } = useSyncing()
 
   const [, {addVote}] = useDeferredVotes()
 
@@ -136,6 +142,8 @@ export default function ViewVotingPage() {
     data: {balance: identityBalance},
   } = useBalance()
 
+  const missingVoteDisclosure = useDisclosure()
+
   const [current, send, service] = useMachine(viewVotingMachine, {
     actions: {
       onError: (context, {data: {message}}) => {
@@ -148,6 +156,7 @@ export default function ViewVotingPage() {
         })
       },
       addVote: (_, {data: {vote}}) => addVote(vote),
+      sendMissingVote: () => missingVoteDisclosure.onOpen(),
     },
   })
 
@@ -188,6 +197,8 @@ export default function ViewVotingPage() {
     adCid,
     issuer,
     epochWithoutGrowth,
+    missingVoteChecked,
+    missingVote,
   } = current.context
 
   const [
@@ -195,7 +206,16 @@ export default function ViewVotingPage() {
     refetchActions,
   ] = useOracleActions(id)
 
-  const isLoaded = !current.matches('loading')
+  const isLoaded =
+    !current.matches('waiting') &&
+    !current.matches('loading') &&
+    !current.matches('loadOwnerDeposit')
+
+  React.useEffect(() => {
+    if (isLoaded && currentBlock && !missingVoteChecked && privateKey) {
+      send('CHECK_MISSING_VOTE', {privateKey, currentBlock})
+    }
+  }, [currentBlock, missingVoteChecked, isLoaded, privateKey, send])
 
   const eitherIdleState = (...states) =>
     eitherState(current, ...states.map(s => `idle.${s}`.toLowerCase())) ||
@@ -904,7 +924,7 @@ export default function ViewVotingPage() {
                       pr={3}
                       _focus={null}
                       onClick={() => {
-                        send('REFRESH')
+                        send('RELOAD', {missingVoteChecked: false})
                         refetchActions()
                       }}
                     >
@@ -1191,6 +1211,12 @@ export default function ViewVotingPage() {
           {...adPreviewDisclosure}
         />
       )}
+
+      <MissingVoteModal
+        contractHash={id}
+        {...missingVoteDisclosure}
+        missingVote={missingVote}
+      />
 
       <Dialog
         isOpen={eitherIdleState('redirecting')}
