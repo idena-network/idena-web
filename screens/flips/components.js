@@ -172,29 +172,31 @@ export function FlipCard({flipService, onDelete}) {
             <FlipCardMenu>
               {isSubmittable && (
                 <FlipCardMenuItem onClick={() => send('PUBLISH', {id})}>
-                  <UploadIcon boxSize={5} mr={2} color="blue.500" />
-                  {t('Submit flip')}
+                  <HStack spacing="2">
+                    <UploadIcon color="blue.500" h="5" w="5" />
+                    <Text as="span">{t('Submit flip')}</Text>
+                  </HStack>
                 </FlipCardMenuItem>
               )}
               {isViewable && (
-                <FlipCardMenuItem>
-                  <NextLink href={`/flips/view?id=${id}`}>
-                    <Flex>
-                      <ViewIcon boxSize={5} mr={2} color="blue.500" />
-                      {t('View flip')}
-                    </Flex>
-                  </NextLink>
-                </FlipCardMenuItem>
+                <NextLink href={`/flips/view?id=${id}`}>
+                  <FlipCardMenuItem>
+                    <HStack spacing="2">
+                      <ViewIcon color="blue.500" h="5" w="5" />
+                      <Text as="span">{t('View flip')}</Text>
+                    </HStack>
+                  </FlipCardMenuItem>
+                </NextLink>
               )}
               {isEditable && (
-                <FlipCardMenuItem>
-                  <NextLink href={`/flips/edit?id=${id}`}>
-                    <Flex>
-                      <EditIcon boxSize={5} mr={2} color="blue.500" />
-                      {t('Edit flip')}
-                    </Flex>
-                  </NextLink>
-                </FlipCardMenuItem>
+                <NextLink href={`/flips/edit?id=${id}`}>
+                  <FlipCardMenuItem>
+                    <HStack spacing="2">
+                      <EditIcon color="blue.500" h="5" w="5" />
+                      <Text as="span">{t('Edit flip')}</Text>
+                    </HStack>
+                  </FlipCardMenuItem>
+                </NextLink>
               )}
               {(isSubmittable || isEditable) && isDeletable && (
                 <MenuDivider color="gray.100" my={2} width={rem(145)} />
@@ -202,8 +204,10 @@ export function FlipCard({flipService, onDelete}) {
 
               {isDeletable && (
                 <FlipCardMenuItem onClick={onDelete}>
-                  <DeleteIcon boxSize={5} mr={2} color="red.500" />
-                  {t('Delete flip')}
+                  <HStack spacing="2">
+                    <DeleteIcon color="red.500" h="5" w="5" />
+                    <Text as="span">{t('Delete flip')}</Text>
+                  </HStack>
                 </FlipCardMenuItem>
               )}
             </FlipCardMenu>
