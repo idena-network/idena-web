@@ -173,7 +173,7 @@ export function FlipCard({flipService, onDelete}) {
               {isSubmittable && (
                 <FlipCardMenuItem onClick={() => send('PUBLISH', {id})}>
                   <HStack spacing="2">
-                    <UploadIcon color="blue.500" h="5" w="5" />
+                    <FlipCardMenuItemIcon icon={UploadIcon} />
                     <Text as="span">{t('Submit flip')}</Text>
                   </HStack>
                 </FlipCardMenuItem>
@@ -182,7 +182,7 @@ export function FlipCard({flipService, onDelete}) {
                 <NextLink href={`/flips/view?id=${id}`}>
                   <FlipCardMenuItem>
                     <HStack spacing="2">
-                      <ViewIcon color="blue.500" h="5" w="5" />
+                      <FlipCardMenuItemIcon icon={ViewIcon} />
                       <Text as="span">{t('View flip')}</Text>
                     </HStack>
                   </FlipCardMenuItem>
@@ -192,7 +192,7 @@ export function FlipCard({flipService, onDelete}) {
                 <NextLink href={`/flips/edit?id=${id}`}>
                   <FlipCardMenuItem>
                     <HStack spacing="2">
-                      <EditIcon color="blue.500" h="5" w="5" />
+                      <FlipCardMenuItemIcon icon={EditIcon} />
                       <Text as="span">{t('Edit flip')}</Text>
                     </HStack>
                   </FlipCardMenuItem>
@@ -205,7 +205,7 @@ export function FlipCard({flipService, onDelete}) {
               {isDeletable && (
                 <FlipCardMenuItem onClick={onDelete}>
                   <HStack spacing="2">
-                    <DeleteIcon color="red.500" h="5" w="5" />
+                    <FlipCardMenuItemIcon icon={DeleteIcon} color="red.500" />
                     <Text as="span">{t('Delete flip')}</Text>
                   </HStack>
                 </FlipCardMenuItem>
@@ -288,6 +288,10 @@ export function FlipCardMenuItem(props) {
       {...props}
     />
   )
+}
+
+export function FlipCardMenuItemIcon({icon: MenuIcon, ...props}) {
+  return <MenuIcon color="blue.500" h="5" w="5" {...props} />
 }
 
 export function RequiredFlipPlaceholder({title}) {
