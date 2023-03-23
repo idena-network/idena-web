@@ -120,8 +120,8 @@ export function FlipCard({flipService, onDelete}) {
   const isDeletable = [FlipType.Published, FlipType.Draft].includes(type)
 
   return (
-    <WrapItem w={150}>
-      <Box position="relative">
+    <WrapItem>
+      <Box w={150} position="relative">
         <FlipCardImageBox>
           {[FlipType.Publishing, FlipType.Deleting, FlipType.Invalid].some(
             x => x === type
@@ -1343,7 +1343,7 @@ export function CommunityTranslations({
     <Stack spacing={isOpen ? 8 : 0}>
       <IconButton
         icon={<CommunityIcon boxSize={5} />}
-        color="brandGray.500"
+        color="gray.500"
         px={0}
         _hover={{background: 'transparent'}}
         onClick={onToggle}
@@ -1473,7 +1473,7 @@ export const FlipKeywordRadio = React.forwardRef(
   ({isChecked, ...props}, ref) => {
     const stateProps = {
       bg: isChecked ? 'brandBlue.500' : 'transparent',
-      color: isChecked ? 'white' : 'brandGray.500',
+      color: isChecked ? 'white' : 'gray.500',
     }
 
     return (
@@ -1499,7 +1499,7 @@ export function VoteButton(props) {
   return (
     <ChakraIconButton
       bg="transparent"
-      color="brandGray.500"
+      color="gray.500"
       fontSize={rem(20)}
       h={5}
       w={5}
@@ -1545,12 +1545,12 @@ export function DeleteFlipDrawer({hash, cover, onDelete, ...props}) {
         >
           <DeleteIcon boxSize={6} color="red.500" />
         </Flex>
-        <Heading fontSize="lg" fontWeight={500} color="brandGray.500" mt={4}>
+        <Heading fontSize="lg" fontWeight={500} color="gray.500" mt="4">
           {t('Delete flip')}
         </Heading>
       </DrawerHeader>
       <DrawerBody>
-        <Text color="brandGray.500" fontSize="md">
+        <Text color="gray.500" fontSize="md">
           {t('Deleted flip will be moved to the drafts.')}
         </Text>
         <FlipImage
