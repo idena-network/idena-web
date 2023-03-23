@@ -127,7 +127,7 @@ export function DnaSignInDialog({
             let win
             const canOpenCallbackUrl = isValidUrl(callbackUrl)
             if (canOpenCallbackUrl) {
-              win = window?.open()
+              win = window?.open('', props.callback_target ?? '_blank')
             }
 
             startSession(nonceEndpoint, {
