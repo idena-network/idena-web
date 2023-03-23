@@ -50,7 +50,6 @@ import {
   DrawerFooter,
   Drawer,
   DrawerBody,
-  WarningAlert,
 } from '../../shared/components/components'
 import {
   availableReportsNumber,
@@ -804,14 +803,7 @@ export function Thumbnail({
   )
 }
 
-function ThumbnailHolder({
-  isCurrent,
-  isLong,
-  isBest,
-  isDesktop,
-  children,
-  ...props
-}) {
+function ThumbnailHolder({isCurrent, isLong, isBest, children, ...props}) {
   const currentColor = isLong ? 'gray.500' : 'xwhite.500'
 
   return (
@@ -1343,7 +1335,6 @@ export function ReviewValidationDialog({
   isSubmitting,
   onSubmit,
   onMisingAnswers,
-  onMisingReports,
   onCancel,
   isDesktop,
   ...props
@@ -1353,7 +1344,6 @@ export function ReviewValidationDialog({
   const answeredFlipsCount = flips.filter(({option}) => option > 0).length
 
   const areFlipsUnanswered = answeredFlipsCount < flips.length
-  const areReportsMissing = reportedFlipsCount < availableReportsCount
 
   const NoticeFooter = isDesktop ? DialogFooter : DrawerFooter
   const size = useBreakpointValue(['mdx', 'md'])
@@ -1498,14 +1488,7 @@ function ReviewValidationDialogLinkButton(props) {
 }
 ReviewValidationDialog.LinkButton = ReviewValidationDialogLinkButton
 
-export function BadFlipDialog({
-  title,
-  subtitle,
-  epochNum,
-  isOpen,
-  onClose,
-  ...props
-}) {
+export function BadFlipDialog({title, subtitle, isOpen, onClose, ...props}) {
   const {t} = useTranslation()
 
   const [flipCase, setFlipCase] = React.useState(0)
@@ -1547,7 +1530,7 @@ export function BadFlipDialog({
     '2-numbers',
     '3-labels',
     '4-text',
-    '5-inappropriate-content',
+    '5-adult',
     '6-unrelated-stories',
     '7-waking-up',
     '8-thumbs-up',
@@ -1721,7 +1704,7 @@ export function BadFlipDialog({
                       setFlipCase(4)
                     }}
                   >
-                    {t('Inappropriate content')}
+                    {t('There is adult content (NSFW)')}
                   </BadFlipListItem>
                   <BadFlipListItem
                     flipCase={5}
