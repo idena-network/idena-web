@@ -925,7 +925,7 @@ export function DeferredVotes() {
 }
 
 export function MissingVoteModal({isOpen, onClose, contractHash, missingVote}) {
-  const [, {sendVote}] = useDeferredVotes()
+  const [, {sendVote, estimateSendVote}] = useDeferredVotes()
 
   const {t, i18n} = useTranslation()
 
@@ -935,19 +935,30 @@ export function MissingVoteModal({isOpen, onClose, contractHash, missingVote}) {
   const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
   const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
 
+  const vote = {
+    id: `missing-vote-${contractHash}`,
+    contractHash,
+    ...missingVote,
+  }
+
   const send = async () => {
-    await sendVote({
-      id: `missing-vote-${contractHash}`,
-      contractHash,
-      ...missingVote,
-    })
+    await sendVote(vote)
 
     onClose()
   }
 
+  const {data: txFeeData} = useQuery(
+    ['bcn_estimateRawTx', 'sendMissingVote', contractHash],
+    () => estimateSendVote(vote),
+    {
+      retry: false,
+      refetchOnWindowFocus: false,
+    }
+  )
+
   return (
     <Dialog isOpen={isOpen} onClose={onClose}>
-      <DialogHeader>{t('You have missing vote')}</DialogHeader>
+      <DialogHeader>{t('Your public vote is about to be sent')}</DialogHeader>
       <DialogBody>
         <Stack
           bg="gray.50"
@@ -967,7 +978,11 @@ export function MissingVoteModal({isOpen, onClose, contractHash, missingVote}) {
           />
           <DeferredVotesModalDesc
             label={t('Amount')}
-            value={dna(missingVote?.amount)}
+            value={dna(missingVote.amount)}
+          />
+          <DeferredVotesModalDesc
+            label={t('Fee')}
+            value={txFeeData?.txFee ? dna(txFeeData?.txFee) : ''}
           />
         </Stack>
       </DialogBody>

@@ -1212,11 +1212,13 @@ export default function ViewVotingPage() {
         />
       )}
 
-      <MissingVoteModal
-        contractHash={id}
-        {...missingVoteDisclosure}
-        missingVote={missingVote}
-      />
+      {missingVote && (
+        <MissingVoteModal
+          contractHash={id}
+          {...missingVoteDisclosure}
+          missingVote={missingVote}
+        />
+      )}
 
       <Dialog
         isOpen={eitherIdleState('redirecting')}
