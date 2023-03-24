@@ -1513,7 +1513,7 @@ export const viewVotingMachine = createMachine(
 
               const startVoting = Number(startBlock) + Number(votingDuration)
 
-              const finishVoting = startBlock + Number(publicVotingDuration)
+              const finishVoting = startVoting + Number(publicVotingDuration)
 
               // can vote
               if (currentBlock > startVoting && currentBlock < finishVoting) {
