@@ -153,7 +153,9 @@ export default function Restricted() {
 
   useEffect(() => {
     if (
-      epochState?.currentPeriod === EpochPeriod.FlipLottery &&
+      [EpochPeriod.None, EpochPeriod.FlipLottery].includes(
+        epochState?.currentPeriod
+      ) &&
       dayjs(epochState?.nextValidation).diff(dayjs(), 'minute') <
         FORCE_SHOW_BEFORE_VALIDATION_MINUTES
     ) {
