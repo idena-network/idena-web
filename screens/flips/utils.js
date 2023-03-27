@@ -14,7 +14,12 @@ import Jimp from 'jimp'
 import CID from 'cids'
 import {loadPersistentStateValue, persistItem} from '../../shared/utils/persist'
 import {FlipType} from '../../shared/types'
-import {areSame, areEqual, areEqualExceptOne} from '../../shared/utils/arr'
+import {
+  areSame,
+  areEqual,
+  areEqualExceptOne,
+  shuffle,
+} from '../../shared/utils/arr'
 import {getRawTx, submitRawFlip} from '../../shared/api'
 import {
   dnaSign,
@@ -166,7 +171,6 @@ export function updateFlipType(flips, {id, type}) {
 
 export async function publishFlip({
   keywordPairId,
-  images,
   protectedImages,
   originalOrder,
   order,
@@ -268,7 +272,7 @@ export async function publishFlip({
 
 export function formatKeywords(keywords) {
   return keywords
-    .map(({name: [f, ...rest]}) => f.toUpperCase() + rest.join(''))
+    .map(({name: [f, ...rest]}) => f?.toUpperCase() + rest.join(''))
     .join(' / ')
 }
 
@@ -424,7 +428,6 @@ let levels = 0 // the number of gray levels
 let nx
 let ny
 let stop = false
-let maxSizeStack = 0
 let outPixels = []
 
 /*
@@ -668,7 +671,6 @@ const getNeighborhood3_4connect = function(x, y, neigh) {
 const blurToWatershed = image => {
   nx = image.width
   ny = image.height
-  let outMessage = ''
   const h = [] // histogram
   const frq = [] // frequency of gray levels
   const pos = [] // position of the first pixel of a certain gray level in the sorted array
@@ -679,13 +681,10 @@ const blurToWatershed = image => {
   for (let i = 0; i < nx; i++) pixelPos[i] = []
 
   stop = false
-  maxSizeStack = 0
   hist(image, h)
   frqfunc(h, frq, pos)
   sort(image, pos, pixelValue, pixelX, pixelY, pixelPos)
   const output = flooding4(image, h, pos, pixelValue, pixelX, pixelY, pixelPos)
-  if (stop) outMessage = `Not Completed: more than ${MAXBASINS} basins.`
-  else outMessage = 'Colorized basins.'
 
   return output
 }
@@ -993,13 +992,7 @@ export async function protectFlip({
 }
 
 export async function prepareAdversarialImages(images, send) {
-  const ids = []
-  while (ids.length < 8) {
-    const rand = Math.floor(Math.random() * 25)
-    if (!ids.includes(images[rand])) {
-      ids.push(images[rand])
-    }
-  }
+  const ids = shuffle(images ?? []).slice(0, 8)
 
   await Promise.all(
     ids.map((img, idx) =>

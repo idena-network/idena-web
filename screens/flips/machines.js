@@ -1,4 +1,4 @@
-import {Machine, assign, spawn, sendParent, createMachine} from 'xstate'
+import {assign, spawn, sendParent, createMachine} from 'xstate'
 import {log, send} from 'xstate/lib/actions'
 import nanoid from 'nanoid'
 import {Evaluate} from '@idena/vrf-js'
@@ -32,7 +32,7 @@ import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
 import {FlipDeleteAttachment} from '../../shared/models/flipDeleteAttachment'
 import {Transaction} from '../../shared/models/transaction'
 
-export const flipsMachine = Machine(
+export const flipsMachine = createMachine(
   {
     id: 'flips',
     context: {
@@ -301,7 +301,7 @@ export const flipsMachine = Machine(
   }
 )
 
-export const flipMachine = Machine(
+export const flipMachine = createMachine(
   {
     id: 'flip',
     initial: 'checkType',
@@ -546,7 +546,7 @@ export const flipMachine = Machine(
   }
 )
 
-export const flipMasterMachine = Machine(
+export const flipMasterMachine = createMachine(
   {
     id: 'flipMaster',
     context: {
@@ -777,8 +777,7 @@ export const flipMasterMachine = Machine(
               },
               CHANGE_ADVERSARIAL_ID: {
                 actions: assign({
-                  adversarialImageId: ({adversarialImageId}, {newIndex}) =>
-                    newIndex,
+                  adversarialImageId: (_, {newIndex}) => newIndex,
                 }),
               },
               PAINTING: '.painting',
@@ -839,7 +838,7 @@ export const flipMasterMachine = Machine(
               CHANGE_ADVERSARIAL_IMAGE: {
                 actions: [
                   assign({
-                    adversarialImage: ({adversarialImage}, {image}) => image,
+                    adversarialImage: (_, {image}) => image,
                   }),
                   log(),
                 ],
@@ -1142,7 +1141,7 @@ export const flipMasterMachine = Machine(
 )
 
 export const createViewFlipMachine = () =>
-  Machine(
+  createMachine(
     {
       context: {
         keywords: {
