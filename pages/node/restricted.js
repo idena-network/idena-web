@@ -48,7 +48,7 @@ import {
   useSettings,
   useSettingsDispatch,
 } from '../../shared/providers/settings-context'
-import {IdentityStatus} from '../../shared/types'
+import {EpochPeriod, IdentityStatus} from '../../shared/types'
 import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
 import {signMessage} from '../../shared/utils/crypto'
 
@@ -153,8 +153,8 @@ export default function Restricted() {
 
   useEffect(() => {
     if (
-      epochState &&
-      dayjs(epochState.nextValidation).diff(dayjs(), 'minute') <
+      epochState?.currentPeriod === EpochPeriod.FlipLottery &&
+      dayjs(epochState?.nextValidation).diff(dayjs(), 'minute') <
         FORCE_SHOW_BEFORE_VALIDATION_MINUTES
     ) {
       setStep(steps.VALIDATION)
