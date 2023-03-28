@@ -45,6 +45,7 @@ export function useExpired() {
   const isRestrictedAccess = apiKeyState === ApiKeyStates.RESTRICTED
 
   const isRedirectAllowed = ![
+    '/node/rent',
     '/node/restricted',
     '/validation',
     '/try/validation',
