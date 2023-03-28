@@ -923,3 +923,96 @@ export function DeferredVotes() {
     </Dialog>
   )
 }
+
+export function MissingVoteModal({isOpen, onClose, contractHash, missingVote}) {
+  const [, {sendVote, estimateSendVote}] = useDeferredVotes()
+
+  const {t, i18n} = useTranslation()
+
+  const dna = toLocaleDna(i18n.language, {maximumFractionDigits: 4})
+
+  const size = useBreakpointValue(['mdx', 'md'])
+  const variantPrimary = useBreakpointValue(['primaryFlat', 'primary'])
+  const variantSecondary = useBreakpointValue(['secondaryFlat', 'secondary'])
+
+  const vote = {
+    id: `missing-vote-${contractHash}`,
+    contractHash,
+    ...missingVote,
+  }
+
+  const send = async () => {
+    await sendVote(vote)
+
+    onClose()
+  }
+
+  const {data: txFeeData} = useQuery(
+    ['bcn_estimateRawTx', 'sendMissingVote', contractHash],
+    () => estimateSendVote(vote),
+    {
+      retry: false,
+      refetchOnWindowFocus: false,
+    }
+  )
+
+  return (
+    <Dialog isOpen={isOpen} onClose={onClose}>
+      <DialogHeader>{t('Your public vote is about to be sent')}</DialogHeader>
+      <DialogBody>
+        <Stack
+          bg="gray.50"
+          borderRadius="md"
+          px={4}
+          py={3}
+          spacing={[3, 3 / 2]}
+        >
+          <DeferredVotesModalDesc
+            label={t('Type')}
+            value={t('Send public vote')}
+          />
+          <DeferredVotesModalDesc
+            label={t('To address')}
+            value={contractHash}
+            maxValueW="50%"
+          />
+          <DeferredVotesModalDesc
+            label={t('Amount')}
+            value={dna(missingVote.amount)}
+          />
+          <DeferredVotesModalDesc
+            label={t('Fee')}
+            value={txFeeData?.txFee ? dna(txFeeData?.txFee) : ''}
+          />
+        </Stack>
+      </DialogBody>
+      <DialogFooter justify={['center', 'auto']}>
+        <Button
+          onClick={onClose}
+          variant={variantSecondary}
+          size={size}
+          w={['100%', 'auto']}
+          order={[3, 1]}
+        >
+          {t('Not now')}
+        </Button>
+        <Divider
+          display={['block', 'none']}
+          h={10}
+          orientation="vertical"
+          color="gray.100"
+          order={2}
+        />
+        <Button
+          onClick={send}
+          variant={variantPrimary}
+          size={size}
+          w={['100%', 'auto']}
+          order={[1, 2]}
+        >
+          {t('Send')}
+        </Button>
+      </DialogFooter>
+    </Dialog>
+  )
+}

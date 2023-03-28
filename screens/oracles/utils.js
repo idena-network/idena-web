@@ -323,6 +323,9 @@ export const createContractReadonlyCaller = ({contractHash}) => (
 export const createContractDataReader = contractHash => (key, format) =>
   callRpc('contract_readData', contractHash, key, format)
 
+export const createContractMapReader = contractHash => (mapName, key, format) =>
+  callRpc('contract_readMap', contractHash, mapName, key, format)
+
 export function objectToHex(obj) {
   return Buffer.from(stringToHex(JSON.stringify(obj)))
 }

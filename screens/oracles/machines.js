@@ -26,6 +26,8 @@ import {
   deployContract,
   normalizeId,
   minOwnerDeposit,
+  createContractMapReader,
+  getDeferredVotes,
 } from './utils'
 import {VotingStatus} from '../../shared/types'
 import {
@@ -1156,13 +1158,13 @@ export const viewVotingMachine = createMachine(
             },
           ],
           TERMINATE: '.terminating',
-          REFRESH: 'loading',
           ERROR: {
             actions: ['onError'],
           },
           REVIEW_PROLONG_VOTING: 'prolong',
           REVIEW_FINISH_VOTING: 'finish',
           FOLLOW_LINK: '.redirecting',
+          CHECK_MISSING_VOTE: 'checkMissingVote',
         },
       },
       review: {
@@ -1201,12 +1203,38 @@ export const viewVotingMachine = createMachine(
           CANCEL: 'idle',
         },
       },
+      checkMissingVote: {
+        invoke: {
+          src: 'checkMissingVote',
+          onDone: {
+            target: 'idle',
+            actions: [
+              'setMissingVote',
+              log(),
+              choose([
+                {
+                  actions: ['sendMissingVote'],
+                  cond: (_, {data: {missingVote}}) => !!missingVote,
+                },
+              ]),
+            ],
+          },
+          onError: {
+            target: 'idle',
+            actions: [log()],
+          },
+        },
+      },
       mining: votingMiningStates('viewVoting'),
       invalid: {},
     },
   },
   {
     actions: {
+      setMissingVote: assign({
+        missingVoteChecked: true,
+        missingVote: (_, {data: {missingVote}}) => missingVote,
+      }),
       applyVoting: assign((context, {data}) => ({
         ...context,
         ...data,
@@ -1421,6 +1449,94 @@ export const viewVotingMachine = createMachine(
 
         return () => {
           clearTimeout(timeoutId)
+        }
+      },
+      checkMissingVote: async (
+        {epoch, address, contractHash, options},
+        {privateKey, currentBlock}
+      ) => {
+        try {
+          const currentDeferredVotes = await getDeferredVotes(address)
+
+          // if we have deferred tx, then skip checking missing vote
+          if (
+            currentDeferredVotes.find(
+              x => x.contractHash?.toLowerCase() === contractHash.toLowerCase()
+            )
+          ) {
+            return {
+              misingVote: null,
+            }
+          }
+
+          const mapReader = createContractMapReader(contractHash)
+
+          const currentVoteHash = await mapReader('voteHashes', address, 'hex')
+
+          if (!currentVoteHash) {
+            return {
+              misingVote: null,
+            }
+          }
+
+          const salt = toHexString(
+            dnaSign(`salt-${contractHash}-${epoch}`, privateKey),
+            true
+          )
+
+          const readonlyCallContract = createContractReadonlyCaller({
+            contractHash,
+          })
+
+          for (let i = 0; i < options.length; i += 1) {
+            const optionId = options[i].id
+            const voteHash = await readonlyCallContract('voteHash', 'hex', [
+              {value: optionId, format: 'byte'},
+              {value: salt},
+            ])
+
+            // we found selected option
+            if (voteHash === currentVoteHash) {
+              const readContractData = createContractDataReader(contractHash)
+
+              const [
+                votingMinPayment,
+                startBlock,
+                votingDuration,
+                publicVotingDuration,
+              ] = await Promise.all([
+                readContractData('votingMinPayment', 'dna'),
+                readContractData('startBlock', 'uint64'),
+                readContractData('votingDuration', 'uint64'),
+                readContractData('publicVotingDuration', 'uint64'),
+              ])
+
+              const startVoting = Number(startBlock) + Number(votingDuration)
+
+              const finishVoting = startVoting + Number(publicVotingDuration)
+
+              // can vote
+              if (currentBlock > startVoting && currentBlock < finishVoting) {
+                return {
+                  missingVote: {
+                    amount: Number(votingMinPayment),
+                    args: [
+                      {value: optionId.toString(), format: 'byte'},
+                      {value: salt},
+                    ],
+                  },
+                }
+              }
+              return {
+                misingVote: null,
+              }
+            }
+          }
+        } catch (e) {
+          console.log('check missing vote error', e)
+          return {
+            misingVote: null,
+          }
         }
       },
     },
