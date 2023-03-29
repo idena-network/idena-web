@@ -1,22 +1,6 @@
 {
-  "[javascript]": {
-    "editor.formatOnPaste": false,
-    "editor.formatOnSave": false
-  },
-  "[javascriptreact]": {
-    "editor.formatOnPaste": false,
-    "editor.formatOnSave": false
-  },
-  "[typescript]": {
-    "editor.formatOnPaste": false,
-    "editor.formatOnSave": false
-  },
-  "[typescriptreact]": {
-    "editor.formatOnPaste": false,
-    "editor.formatOnSave": false
-  },
-  "editor.formatOnSaveMode": "modificationsIfAvailable",
   "editor.formatOnSave": true,
+  "editor.formatOnSaveMode": "modifications",
   "editor.codeActionsOnSave": {
     "source.fixAll": true
   },
