@@ -1,6 +1,7 @@
 /* eslint-disable import/prefer-default-export */
 import api from './api-client'
 import {strip} from '../utils/obj'
+import {callRpc, queryClient} from '../utils/utils'
 
 export async function fetchTx(hash) {
   const {data} = await api().post('/', {
@@ -104,15 +105,12 @@ export async function getBlockAt(block) {
 
 export async function loadKeyword(index) {
   try {
-    const {data} = await api().post('/', {
-      method: 'bcn_keyWord',
-      params: [index],
-      id: 1,
+    const resp = await queryClient.fetchQuery({
+      queryKey: ['bcn_keyWord', index],
+      queryFn: ({queryKey: [, wordIndex]}) => callRpc('bcn_keyWord', wordIndex),
+      staleTime: Infinity,
     })
-    const {result, error} = data
-    if (error) throw new Error(error.message)
-    const {Name: name, Desc: desc} = result
-    return {name, desc}
+    return {name: resp.Name, desc: resp.Desc}
   } catch (error) {
     return {name: '', desc: ''}
   }

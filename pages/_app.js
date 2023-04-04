@@ -1,7 +1,7 @@
 import React, {useEffect, useRef} from 'react'
 import {useRouter} from 'next/router'
 import Head from 'next/head'
-import {QueryClient, QueryClientProvider} from 'react-query'
+import {QueryClientProvider} from 'react-query'
 import ReactGA from 'react-ga'
 import {v4 as uuidv4} from 'uuid'
 import TagManager from 'react-gtm-module'
@@ -23,6 +23,7 @@ import {IdentityProvider} from '../shared/providers/identity-context'
 import {EpochProvider} from '../shared/providers/epoch-context'
 import {OnboardingProvider} from '../shared/providers/onboarding-context'
 import {TestValidationProvider} from '../shared/providers/test-validation-context'
+import {queryClient} from '../shared/utils/utils'
 
 // Workaround for https://github.com/zeit/next.js/issues/8592
 export default function MyApp({Component, pageProps, err}) {
@@ -268,9 +269,6 @@ export default function MyApp({Component, pageProps, err}) {
     </>
   )
 }
-
-// Create a client
-const queryClient = new QueryClient()
 
 // eslint-disable-next-line react/prop-types
 function AppProviders({tabId, ...props}) {

@@ -3,6 +3,7 @@ import {useBreakpointValue} from '@chakra-ui/react'
 import {isMobile} from 'react-device-detect'
 import duration from 'dayjs/plugin/duration'
 import relativeTime from 'dayjs/plugin/relativeTime'
+import {QueryClient} from 'react-query'
 import {getRpcParams} from '../api/api-client'
 import {IdentityStatus} from '../types'
 import {stripHexPrefix} from './buffers'
@@ -13,6 +14,8 @@ dayjs.extend(relativeTime)
 
 export const HASH_IN_MEMPOOL =
   '0x0000000000000000000000000000000000000000000000000000000000000000'
+
+export const queryClient = new QueryClient()
 
 export const dummyAddress = `0x${'2'.repeat(64)}`
 
