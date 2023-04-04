@@ -1137,13 +1137,19 @@ export const createValidationMachine = ({
                                 src: 'fetchWords',
                                 onDone: {
                                   target: 'check',
-                                  actions: assign({
-                                    longFlips: ({longFlips}, {data}) =>
-                                      mergeFlipsByHash(longFlips, data),
-                                  }),
                                 },
                                 onError: {
                                   target: 'check',
+                                },
+                              },
+                              on: {
+                                KEYWORD: {
+                                  actions: [
+                                    assign({
+                                      longFlips: ({longFlips}, {data}) =>
+                                        mergeFlipsByHash(longFlips, [data]),
+                                    }),
+                                  ],
                                 },
                               },
                             },
@@ -1457,9 +1463,10 @@ export const createValidationMachine = ({
           publicKeySent
             ? Promise.resolve()
             : sendPublicFlipKey(epoch, privateKey),
-        fetchWords: ({longFlips}) =>
+        fetchWords: ({longFlips}) => cb =>
           loadWords(
-            longFlips.filter(decodedWithoutKeywords).map(({hash}) => hash)
+            longFlips.filter(decodedWithoutKeywords).map(({hash}) => hash),
+            cb
           ),
         submitHash: ({shortHashes, shortFlips, shortHashSubmitted}) =>
           shortHashSubmitted
@@ -1735,22 +1742,30 @@ export const createValidationMachine = ({
     }
   )
 
-async function loadWords(hashes) {
-  return Promise.all(
-    hashes.map(async hash =>
-      fetchWords(hash)
-        .then(async ({result}) => ({
-          hash,
-          words: await Promise.all(
-            result?.words?.map(async id => ({
-              id,
-              ...(await loadKeyword(id)),
-            })) ?? []
-          ),
-        }))
-        .catch(() => ({hash}))
-    )
-  )
+function loadWords(hashes, cb) {
+  return forEachAsync(hashes, async hash => {
+    try {
+      const {result} = await fetchWords(hash)
+      if (result) {
+        cb({
+          type: 'KEYWORD',
+          data: {
+            hash,
+            words: await Promise.all(
+              result.words?.map(async id => ({
+                id,
+                ...(await loadKeyword(id)),
+              })) ?? []
+            ),
+          },
+        })
+      }
+    } catch {
+      // eslint-disable-next-line no-empty
+    } finally {
+      await wait(1000)
+    }
+  })
 }
 
 function fetchFlips(addr, privateKey, hashes, cb) {
