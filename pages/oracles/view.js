@@ -124,6 +124,7 @@ export default function ViewVotingPage() {
 
   const {
     data: {currentBlock},
+    refetch: refetchCurrentBlock,
   } = useSyncing()
 
   const [, {addVote}] = useDeferredVotes()
@@ -924,6 +925,7 @@ export default function ViewVotingPage() {
                       pr={3}
                       _focus={null}
                       onClick={() => {
+                        refetchCurrentBlock()
                         send('RELOAD', {missingVoteChecked: false})
                         refetchActions()
                       }}
