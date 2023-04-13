@@ -257,3 +257,7 @@ export function checkSignature(data, signature) {
     return null
   }
 }
+
+export function keccakHash(data) {
+  return sha3.keccak_256.array(data)
+}

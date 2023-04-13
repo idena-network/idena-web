@@ -39,7 +39,11 @@ import db from '../../shared/utils/db'
 
 import {VotingListFilter} from './types'
 import {loadPersistentStateValue, persistItem} from '../../shared/utils/persist'
-import {dnaSign, privateKeyToAddress} from '../../shared/utils/crypto'
+import {
+  dnaSign,
+  keccakHash,
+  privateKeyToAddress,
+} from '../../shared/utils/crypto'
 import {sendDna} from '../../shared/api/utils'
 import {toHexString} from '../../shared/utils/buffers'
 import {AdVotingOption, AdVotingOptionId} from '../ads/types'
@@ -1479,36 +1483,24 @@ export const viewVotingMachine = createMachine(
             }
           }
 
-          const salt = toHexString(
-            dnaSign(`salt-${contractHash}-${epoch}`, privateKey),
-            true
-          )
-
-          const readonlyCallContract = createContractReadonlyCaller({
-            contractHash,
-          })
-
+          const salt = dnaSign(`salt-${contractHash}-${epoch}`, privateKey)
           for (let i = 0; i < options.length; i += 1) {
             const optionId = options[i].id
-            const voteHash = await readonlyCallContract('voteHash', 'hex', [
-              {value: optionId, format: 'byte'},
-              {value: salt},
-            ])
+
+            const voteHash = toHexString(keccakHash([optionId, ...salt]), true)
 
             // we found selected option
             if (voteHash === currentVoteHash) {
-              const readContractData = createContractDataReader(contractHash)
-
               const [
-                votingMinPayment,
-                startBlock,
-                votingDuration,
-                publicVotingDuration,
-              ] = await Promise.all([
-                readContractData('votingMinPayment', 'dna'),
-                readContractData('startBlock', 'uint64'),
-                readContractData('votingDuration', 'uint64'),
-                readContractData('publicVotingDuration', 'uint64'),
+                {value: votingMinPayment},
+                {value: startBlock},
+                {value: votingDuration},
+                {value: publicVotingDuration},
+              ] = await callRpc('contract_batchReadData', contractHash, [
+                {key: 'votingMinPayment', format: 'dna'},
+                {key: 'startBlock', format: 'uint64'},
+                {key: 'votingDuration', format: 'uint64'},
+                {key: 'publicVotingDuration', format: 'uint64'},
               ])
 
               const startVoting = Number(startBlock) + Number(votingDuration)
@@ -1522,7 +1514,7 @@ export const viewVotingMachine = createMachine(
                     amount: Number(votingMinPayment),
                     args: [
                       {value: optionId.toString(), format: 'byte'},
-                      {value: salt},
+                      {value: toHexString(salt, true)},
                     ],
                   },
                 }
