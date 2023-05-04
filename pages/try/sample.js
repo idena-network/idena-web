@@ -180,8 +180,8 @@ function ValidationSession({
         ),
       sendPublicFlipKey: () => Promise.resolve({}),
       submitHash: () => Promise.resolve({}),
-      fetchWords: ({longFlips}) =>
-        loadWords(longFlips.filter(decodedWithoutKeywords)),
+      fetchWords: ({longFlips}) => cb =>
+        loadWords(longFlips.filter(decodedWithoutKeywords), cb),
       fetchWordsSeed: () => Promise.resolve('0x'),
       submitShortAnswers: () => Promise.resolve({}),
       submitLongAnswers: () => Promise.resolve({}),
