@@ -3,7 +3,7 @@ import {loadKeyword} from '../../shared/api'
 import {getFlip} from '../../shared/api/self'
 import {AnswerType, CertificateType} from '../../shared/types'
 import {shuffle} from '../../shared/utils/arr'
-import {forEachAsync} from '../../shared/utils/fn'
+import {forEachAsync, wait} from '../../shared/utils/fn'
 import {toBlob} from '../../shared/utils/utils'
 
 export function GetNextUTCValidationDate() {
@@ -50,18 +50,27 @@ export function GetAnswerTitle(t, answer) {
   }
 }
 
-export async function loadWords(flips) {
-  return Promise.all(
-    flips.map(async x => ({
-      hash: x.hash,
-      words: await Promise.all(
-        x.keywords?.map(async id => ({
-          id,
-          ...(await loadKeyword(id)),
-        })) ?? []
-      ),
-    }))
-  )
+export function loadWords(flips, cb) {
+  return forEachAsync(flips, async ({hash, keywords}) => {
+    try {
+      cb({
+        type: 'KEYWORD',
+        data: {
+          hash,
+          words: await Promise.all(
+            keywords?.map(async id => ({
+              id,
+              ...(await loadKeyword(id)),
+            })) ?? []
+          ),
+        },
+      })
+    } catch {
+      // eslint-disable-next-line no-empty
+    } finally {
+      await wait(100)
+    }
+  })
 }
 
 export async function fetchFlips(hashes, cb) {

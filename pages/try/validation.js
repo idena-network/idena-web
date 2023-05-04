@@ -153,8 +153,8 @@ function ValidationSession({
         ),
       sendPublicFlipKey: () => Promise.resolve({}),
       submitHash: () => Promise.resolve({}),
-      fetchWords: ({longFlips}) =>
-        loadWords(longFlips.filter(decodedWithoutKeywords)),
+      fetchWords: ({longFlips}) => cb =>
+        loadWords(longFlips.filter(decodedWithoutKeywords), cb),
       fetchWordsSeed: () => Promise.resolve('0x'),
       submitShortAnswers: ({shortFlips}) => {
         const answers = shortFlips.map(({option: answer = 0, hash}) => ({
