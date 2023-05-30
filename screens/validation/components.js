@@ -2237,24 +2237,24 @@ export function ValidationScreen({
 
   const reportsCount = Object.keys(reports).length
 
-  const [bestRewardTipOpen, setBestRewardTipOpen] = useState(false)
-  useEffect(() => {
-    if (currentFlip && currentFlip.relevance === RelevanceType.Relevant) {
-      setBestRewardTipOpen(true)
-    }
-  }, [currentFlip])
-  useEffect(() => {
-    if (bestFlipHashes[currentFlip?.hash]) {
-      setBestRewardTipOpen(false)
-    }
-  }, [bestFlipHashes, currentFlip])
-  useEffect(() => {
-    if (bestRewardTipOpen) {
-      setTimeout(() => {
-        setBestRewardTipOpen(false)
-      }, 5000)
-    }
-  }, [bestRewardTipOpen])
+  // const [bestRewardTipOpen, setBestRewardTipOpen] = useState(false)
+  // useEffect(() => {
+  //   if (currentFlip && currentFlip.relevance === RelevanceType.Relevant) {
+  //     setBestRewardTipOpen(true)
+  //   }
+  // }, [currentFlip])
+  // useEffect(() => {
+  //   if (bestFlipHashes[currentFlip?.hash]) {
+  //     setBestRewardTipOpen(false)
+  //   }
+  // }, [bestFlipHashes, currentFlip])
+  // useEffect(() => {
+  //   if (bestRewardTipOpen) {
+  //     setTimeout(() => {
+  //       setBestRewardTipOpen(false)
+  //     }, 5000)
+  //   }
+  // }, [bestRewardTipOpen])
 
   return (
     <ValidationScene
@@ -2592,7 +2592,7 @@ export function ValidationScreen({
             (Object.keys(bestFlipHashes).length < 1 ||
               bestFlipHashes[currentFlip.hash]) && (
               <Tooltip
-                isOpen={bestRewardTipOpen}
+                isOpen={false}
                 hasArrow={false}
                 label={t('You can mark this flip as the best')}
                 placement="top"
