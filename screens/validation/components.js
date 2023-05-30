@@ -2223,9 +2223,10 @@ export function ValidationScreen({
         scrollToCurrentFlip(currentIndex - 1)
       }
     },
-    delta: 100,
-    preventDefaultTouchmoveEvent: true,
+    delta: 50,
+    preventScrollOnSwipe: true,
     trackMouse: true,
+    swipeDuration: 250,
   })
 
   const flipTimerDetails = {
@@ -2237,24 +2238,24 @@ export function ValidationScreen({
 
   const reportsCount = Object.keys(reports).length
 
-  // const [bestRewardTipOpen, setBestRewardTipOpen] = useState(false)
-  // useEffect(() => {
-  //   if (currentFlip && currentFlip.relevance === RelevanceType.Relevant) {
-  //     setBestRewardTipOpen(true)
-  //   }
-  // }, [currentFlip])
-  // useEffect(() => {
-  //   if (bestFlipHashes[currentFlip?.hash]) {
-  //     setBestRewardTipOpen(false)
-  //   }
-  // }, [bestFlipHashes, currentFlip])
-  // useEffect(() => {
-  //   if (bestRewardTipOpen) {
-  //     setTimeout(() => {
-  //       setBestRewardTipOpen(false)
-  //     }, 5000)
-  //   }
-  // }, [bestRewardTipOpen])
+  const [bestRewardTipOpen, setBestRewardTipOpen] = useState(false)
+  useEffect(() => {
+    if (currentFlip && currentFlip.relevance === RelevanceType.Relevant) {
+      setBestRewardTipOpen(true)
+    }
+  }, [currentFlip])
+  useEffect(() => {
+    if (bestFlipHashes[currentFlip?.hash]) {
+      setBestRewardTipOpen(false)
+    }
+  }, [bestFlipHashes, currentFlip])
+  useEffect(() => {
+    if (bestRewardTipOpen) {
+      setTimeout(() => {
+        setBestRewardTipOpen(false)
+      }, 5000)
+    }
+  }, [bestRewardTipOpen])
 
   return (
     <ValidationScene

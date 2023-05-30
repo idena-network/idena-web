@@ -89,7 +89,7 @@
     "react-qr-reader": "^2.2.1",
     "react-query": "^3.9.8",
     "react-scroll": "^1.8.4",
-    "react-swipeable": "^6.2.0",
+    "react-swipeable": "^7.0.0",
     "redact-object": "^3.0.1",
     "rlp": "^2.2.2",
     "secp256k1": "^4.0.2",
