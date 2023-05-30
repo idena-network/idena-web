@@ -2212,7 +2212,7 @@ export function ValidationScreen({
 
   const handlers = useSwipeable({
     onSwipedLeft: () => {
-      if (!isDesktop) {
+      if (!isDesktop && !isLastFlip(state)) {
         send({type: 'NEXT'})
         scrollToCurrentFlip(currentIndex + 1)
       }
@@ -2223,7 +2223,7 @@ export function ValidationScreen({
         scrollToCurrentFlip(currentIndex - 1)
       }
     },
-    delta: 50,
+    delta: 100,
     preventDefaultTouchmoveEvent: true,
     trackMouse: true,
   })
