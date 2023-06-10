@@ -127,7 +127,7 @@ export function DnaSignInDialog({
             let win
             const canOpenCallbackUrl = isValidUrl(callbackUrl)
             if (canOpenCallbackUrl) {
-              win = window?.open('', props.callback_target ?? '_blank')
+              win = window?.open()
             }
 
             startSession(nonceEndpoint, {
@@ -143,6 +143,9 @@ export function DnaSignInDialog({
               )
               .then(() => {
                 if (canOpenCallbackUrl) {
+                  if (props.callback_target === '_self') {
+                    return (window.location.href = callbackUrl)
+                  }
                   if (win) {
                     win.location = callbackUrl
                     win.focus()
