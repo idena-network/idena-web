@@ -124,9 +124,11 @@ export function DnaSignInDialog({
           onClick={() => {
             setIsAuthenticating(true)
 
+            const isSelfTarget = props.callback_target === '_self'
+
             let win
             const canOpenCallbackUrl = isValidUrl(callbackUrl)
-            if (canOpenCallbackUrl) {
+            if (canOpenCallbackUrl && !isSelfTarget) {
               win = window?.open()
             }
 
@@ -143,7 +145,7 @@ export function DnaSignInDialog({
               )
               .then(() => {
                 if (canOpenCallbackUrl) {
-                  if (props.callback_target === '_self') {
+                  if (isSelfTarget) {
                     return (window.location.href = callbackUrl)
                   }
                   if (win) {
