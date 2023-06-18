@@ -2,9 +2,7 @@ import React, {useEffect, useRef} from 'react'
 import {useRouter} from 'next/router'
 import Head from 'next/head'
 import {QueryClientProvider} from 'react-query'
-import ReactGA from 'react-ga'
 import {v4 as uuidv4} from 'uuid'
-import TagManager from 'react-gtm-module'
 
 import '../i18n'
 import 'focus-visible/dist/focus-visible'
@@ -293,29 +291,18 @@ function AppProviders({tabId, ...props}) {
 }
 
 function IdenaApp(props) {
-  const router = useRouter()
+                           const router = useRouter()
 
-  const id = useRef(uuidv4())
+                           const id = useRef(uuidv4())
 
-  useEffect(() => {
-    TagManager.initialize({gtmId: 'GTM-P4K5GX4'})
-  }, [])
-
-  useEffect(() => {
-    const handleRouteChange = url => {
-      ReactGA.pageview(url)
-    }
-    router.events.on('routeChangeComplete', handleRouteChange)
-    return () => {
-      router.events.off('routeChangeComplete', handleRouteChange)
-    }
-  }, [router.events])
-
-  return ['/certificate/[id]', '/too-many-tabs'].includes(router.pathname) ? (
-    <QueryClientProvider client={queryClient}>
-      <Box {...props} />
-    </QueryClientProvider>
-  ) : (
-    <AppProviders tabId={id.current} {...props} />
-  )
-}
+                           return [
+                             '/certificate/[id]',
+                             '/too-many-tabs',
+                           ].includes(router.pathname) ? (
+                             <QueryClientProvider client={queryClient}>
+                               <Box {...props} />
+                             </QueryClientProvider>
+                           ) : (
+                             <AppProviders tabId={id.current} {...props} />
+                           )
+                         }
