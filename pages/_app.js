@@ -298,11 +298,6 @@ function IdenaApp(props) {
   const id = useRef(uuidv4())
 
   useEffect(() => {
-    ReactGA.initialize('UA-139651161-3')
-    ReactGA.pageview(window.location.pathname + window.location.search)
-  }, [])
-
-  useEffect(() => {
     TagManager.initialize({gtmId: 'GTM-P4K5GX4'})
   }, [])
 
