@@ -48,7 +48,7 @@ import {
   useSettings,
   useSettingsDispatch,
 } from '../../shared/providers/settings-context'
-import {EpochPeriod, IdentityStatus} from '../../shared/types'
+import {IdentityStatus} from '../../shared/types'
 import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
 import {signMessage} from '../../shared/utils/crypto'
 

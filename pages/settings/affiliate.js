@@ -12,7 +12,6 @@ import {
 } from '@chakra-ui/react'
 import React from 'react'
 import {Trans, useTranslation} from 'react-i18next'
-import {useRouter} from 'next/router'
 import SettingsLayout from './layout'
 import {SubHeading} from '../../shared/components'
 import {

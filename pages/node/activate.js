@@ -12,7 +12,6 @@ import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
 import {useFailToast} from '../../shared/hooks/use-toast'
 import {Transaction} from '../../shared/models/transaction'
 import {useAuthState} from '../../shared/providers/auth-context'
-import {sendActivateInvitation} from '../../shared/utils/analytics'
 import {
   privateKeyToAddress,
   privateKeyToPublicKey,
@@ -63,7 +62,6 @@ export default function Activate() {
 
       const result = await activateKey(coinbase, `0x${tx.toHex()}`, providers)
       savePurchase(result.id, result.provider)
-      sendActivateInvitation(coinbase)
     } catch (e) {
       failToast(
         `Failed to activate invite: ${

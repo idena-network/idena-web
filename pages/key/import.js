@@ -16,8 +16,6 @@ import {PrimaryButton, SecondaryButton} from '../../shared/components/button'
 import {QrScanIcon} from '../../shared/components/icons'
 import useApikeyPurchasing from '../../shared/hooks/use-apikey-purchasing'
 import {useSettingsState} from '../../shared/providers/settings-context'
-import {privateKeyToAddress} from '../../shared/utils/crypto'
-import {sendSignIn} from '../../shared/utils/analytics'
 import {useAppContext} from '../../shared/providers/app-context'
 
 export default function ImportKey() {
@@ -46,7 +44,6 @@ export default function ImportKey() {
       if (!apiKey) {
         setRestrictedKey()
       }
-      sendSignIn(privateKeyToAddress(key))
       resetRestrictedModal()
       if (isNewUser) {
         router.push('/welcome')

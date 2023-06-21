@@ -54,7 +54,6 @@ import {
   useSettingsState,
 } from '../../shared/providers/settings-context'
 import {IdentityStatus} from '../../shared/types'
-import {sendActivateInvitation} from '../../shared/utils/analytics'
 import {hexToUint8Array, toHexString} from '../../shared/utils/buffers'
 import {
   privateKeyToAddress,
@@ -168,7 +167,6 @@ export default function Offline() {
 
       const result = await activateKey(coinbase, `0x${tx.toHex()}`, providers)
       savePurchase(result.id, result.provider)
-      sendActivateInvitation(coinbase)
     } catch (e) {
       failToast(
         `Failed to activate invite: ${
