@@ -205,6 +205,11 @@ export default async (req, res) => {
     )
     return res.status(200).json({invitation: codeResponse})
   } catch (e) {
-    return res.status(400).send(e.message || 'Something went wrong')
+    return res
+      .status(400)
+      .send(
+        e.message ||
+          'Twitter API is unavailable. Please use Telegram or Discord to get an invite code.'
+      )
   }
 }
