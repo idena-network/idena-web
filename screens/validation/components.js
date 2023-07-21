@@ -2212,7 +2212,7 @@ export function ValidationScreen({
 
   const handlers = useSwipeable({
     onSwipedLeft: () => {
-      if (!isDesktop) {
+      if (!isDesktop && !isLastFlip(state)) {
         send({type: 'NEXT'})
         scrollToCurrentFlip(currentIndex + 1)
       }
@@ -2224,8 +2224,9 @@ export function ValidationScreen({
       }
     },
     delta: 50,
-    preventDefaultTouchmoveEvent: true,
+    preventScrollOnSwipe: true,
     trackMouse: true,
+    swipeDuration: 250,
   })
 
   const flipTimerDetails = {
@@ -2592,7 +2593,7 @@ export function ValidationScreen({
             (Object.keys(bestFlipHashes).length < 1 ||
               bestFlipHashes[currentFlip.hash]) && (
               <Tooltip
-                isOpen={bestRewardTipOpen}
+                isOpen={false}
                 hasArrow={false}
                 label={t('You can mark this flip as the best')}
                 placement="top"
