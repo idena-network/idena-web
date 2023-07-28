@@ -414,7 +414,7 @@
     "What is a bad flip": "什么是坏翻转",
     "What is a bad flip?": "什么是坏翻转？",
     "Whole network": "全网",
-    "Withraw stake, iDNA": "撤回股份，iDNA",
+    "Withdraw stake, iDNA": "撤回股份，iDNA",
     "Wrong answers": "Wrong answers",
     "Yes": "是",
     "You can also submit {{remainingOptionalFlips}} optional flips if you want.": "如果需要，您还可以提交 {{remainingOptionalFlips}} 可选翻转。",
@@ -458,5 +458,6 @@
     "{{committeeSize}} oracles": "{{committeeSize}} 位神谕者",
     "{{reportedFlipsCount}} out of {{availableReportsCount}}": "{{reportedFlipsCount}} 个，共 {{availableReportsCount}} 个",
     "{{score}} ({{point}} out of {{flipsCount}})": "{{score}} ({{point}} out of {{flipsCount}})",
-    "{{url}} responded with an unknown format": "{{url}} responded with an unknown format"
+    "{{url}} responded with an unknown format": "{{url}} responded with an unknown format",
+    "Get validated for {{epochs}} more epoch(s) to be able to withdraw the full amount of the stake.": "Get validated for {{epochs}} more epoch(s) to be able to withdraw the full amount of the stake."
 }

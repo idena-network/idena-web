@@ -1256,18 +1256,19 @@ export function DeactivateMiningDrawer({
 export function KillForm({isOpen, onClose}) {
   const {t} = useTranslation()
   const {privateKey, coinbase} = useAuthState()
-  const [, {killMe}] = useIdentity()
+  const [{age}, {killMe}] = useIdentity()
   const [submitting, setSubmitting] = useState(false)
   const toast = useToast()
 
   const [to, setTo] = useState()
 
   const {
-    data: {stake},
+    data: {stake, lockedStake},
   } = useQuery(['get-balance', coinbase], () => fetchBalance(coinbase), {
-    initialData: {balance: 0, stake: 0},
+    initialData: {balance: 0, stake: 0, lockedStake: 0},
     enabled: !!coinbase,
   })
+  const stakeToWithdraw = Number(lockedStake) > 0 ? stake - lockedStake : stake
 
   const terminate = async () => {
     try {
@@ -1320,8 +1321,21 @@ export function KillForm({isOpen, onClose}) {
           {t(`Terminate your identity and withdraw the stake. Your identity status
             will be reset to 'Not validated'.`)}
         </Text>
-        <FormControlWithLabel label={t('Withraw stake, iDNA')}>
-          <Input value={stake} isDisabled />
+        {Number(lockedStake) > 0 && (
+          <>
+            <FormControlWithLabel label={t('Burn, iDNA')}>
+              <Input value={lockedStake} isDisabled />
+            </FormControlWithLabel>
+            <Text fontSize="md" mb={6} mt={6}>
+              {t(
+                'Get validated for {{epochs}} more epoch(s) to be able to withdraw the full amount of the stake.',
+                {epochs: 10 - age}
+              )}
+            </Text>
+          </>
+        )}
+        <FormControlWithLabel label={t('Withdraw stake, iDNA')}>
+          <Input value={stakeToWithdraw} isDisabled />
         </FormControlWithLabel>
         <Text fontSize="md" mb={6} mt={6}>
           {t(

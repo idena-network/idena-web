@@ -414,7 +414,7 @@
     "What is a bad flip": "Что такое плохой флип",
     "What is a bad flip?": "Что такое плохой флип?",
     "Whole network": "Вся сеть",
-    "Withraw stake, iDNA": "Вывести стейк, iDNA",
+    "Withdraw stake, iDNA": "Вывести стейк, iDNA",
     "Wrong answers": "Неправильные ответы",
     "Yes": "Да",
     "You can also submit {{remainingOptionalFlips}} optional flips if you want.": "Вы также можете отправить  {{remainingOptionalFlips}} дополнительные флипы, если хотите.",
@@ -458,5 +458,6 @@
     "{{committeeSize}} oracles": "{{committeeSize}} оракулов",
     "{{reportedFlipsCount}} out of {{availableReportsCount}}": "{{reportedFlipsCount}} из {{availableReportsCount}}",
     "{{score}} ({{point}} out of {{flipsCount}})": "{{score}} ({{point}} из {{flipsCount}})",
-    "{{url}} responded with an unknown format": "{{url}} ответил в неизвестном формате"
+    "{{url}} responded with an unknown format": "{{url}} ответил в неизвестном формате",
+    "Get validated for {{epochs}} more epoch(s) to be able to withdraw the full amount of the stake.": "Get validated for {{epochs}} more epoch(s) to be able to withdraw the full amount of the stake."
 }
