@@ -13,8 +13,8 @@ export function GetNextUTCValidationDate() {
     dt.getUTCFullYear(),
     dt.getUTCMonth(),
     dt.getUTCDate() + 1,
-    13,
-    30,
+    15,
+    0,
     0,
     0
   )
