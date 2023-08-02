@@ -749,13 +749,18 @@ export function DnaSignDialog({
 
   const {coinbase, privateKey} = useAuthState()
 
-  const callbackUrlObject = React.useMemo(() => new URL(callbackUrl), [
-    callbackUrl,
-  ])
+  const isValidCallbackUrl = isValidUrl(callbackUrl)
+
+  const callbackUrlObject = React.useMemo(
+    () => isValidCallbackUrl && new URL(callbackUrl),
+    [callbackUrl, isValidCallbackUrl]
+  )
 
   const callbackFaviconUrl = React.useMemo(
-    () => faviconUrl || new URL('favicon.ico', callbackUrlObject.origin),
-    [callbackUrlObject.origin, faviconUrl]
+    () =>
+      faviconUrl ||
+      (callbackUrlObject && new URL('favicon.ico', callbackUrlObject.origin)),
+    [callbackUrlObject, faviconUrl]
   )
 
   return (
@@ -797,8 +802,7 @@ export function DnaSignDialog({
           wordBreak="break-all"
           onClick={() => {
             try {
-              const canOpenCallbackUrl = isValidUrl(callbackUrl)
-              if (!canOpenCallbackUrl) {
+              if (!isValidCallbackUrl) {
                 onSignError(`Invalid callback URL: ${callbackUrl}`)
                 return
               }

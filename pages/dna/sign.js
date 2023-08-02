@@ -19,7 +19,7 @@ export default function SignPage() {
   const {onOpen, ...dnaSignDisclosure} = useDisclosure()
 
   const {
-    params: {favicon_url: faviconUrl, ...dnaSignParams},
+    params: {favicon_url: faviconUrl, message, ...dnaSignParams},
   } = useDnaLinkMethod(DnaLinkMethod.Sign, {
     onReceive: onOpen,
   })
@@ -32,13 +32,16 @@ export default function SignPage() {
         <PageTitle>{t('Sign message with Idena')}</PageTitle>
         <Box>
           <Spinner />
-          <DnaSignDialog
-            faviconUrl={faviconUrl}
-            {...dnaSignParams}
-            {...dnaSignDisclosure}
-            onCompleteSign={dismissDnaAppLink}
-            onSignError={failToast}
-          />
+          {Boolean(message) && (
+            <DnaSignDialog
+              faviconUrl={faviconUrl}
+              message={message}
+              {...dnaSignParams}
+              {...dnaSignDisclosure}
+              onCompleteSign={dismissDnaAppLink}
+              onSignError={failToast}
+            />
+          )}
         </Box>
       </Page>
     </Layout>
