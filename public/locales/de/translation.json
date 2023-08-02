@@ -416,7 +416,7 @@
     "What is a bad flip": "What is a bad flip",
     "What is a bad flip?": "What is a bad flip?",
     "Whole network": "Whole network",
-    "Withraw stake, iDNA": "Withraw stake, iDNA",
+    "Withdraw stake, iDNA": "Withdraw stake, iDNA",
     "Wrong answers": "Wrong answers",
     "Yes": "Yes",
     "You can also submit {{remainingOptionalFlips}} optional flips if you want.": "You can also submit {{remainingOptionalFlips}} optional flips if you want.",
@@ -468,5 +468,6 @@
     "{{count}} votes_plural": "{{count}} votes",
     "{{reportedFlipsCount}} out of {{availableReportsCount}}": "{{reportedFlipsCount}} out of {{availableReportsCount}}",
     "{{score}} ({{point}} out of {{flipsCount}})": "{{score}} ({{point}} out of {{flipsCount}})",
-    "{{url}} responded with an unknown format": "{{url}} responded with an unknown format"
+    "{{url}} responded with an unknown format": "{{url}} responded with an unknown format",
+    "Get validated for {{epochs}} more epoch(s) to be able to withdraw the full amount of the stake.": "Get validated for {{epochs}} more epoch(s) to be able to withdraw the full amount of the stake."
 }

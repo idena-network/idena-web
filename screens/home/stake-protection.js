@@ -5,7 +5,16 @@ import {useIdentity} from '../../shared/providers/identity-context'
 import {IdentityStatus} from '../../shared/types'
 import {toPercent} from '../../shared/utils/utils'
 
-const calculateStakeLoss = age => Math.max(age === 4 ? 1 : (10 - age) / 100, 0)
+function calculateStakeLoss(age, stake, lockedStake) {
+  const stakeOrDefault = Number(stake) || 1
+  const lockedStakeOrDefault = Number(lockedStake) || 0
+  return Math.max(
+    age === 4
+      ? 1
+      : (10 - age + ((90 + age) * lockedStakeOrDefault) / stakeOrDefault) / 100,
+    0
+  )
+}
 
 /**
  * @typedef { "miss" | "fail" } Reason
@@ -27,6 +36,7 @@ function useProtectionLevel({type}) {
       state === IdentityStatus.Human ||
       (type === 'miss' &&
         [IdentityStatus.Verified, IdentityStatus.Suspended].includes(state)) ||
+      (type === 'miss' && state === IdentityStatus.Zombie && age > 9) ||
       (type === 'fail' &&
         [IdentityStatus.Suspended, IdentityStatus.Zombie].includes(state) &&
         age > 9)
@@ -34,10 +44,14 @@ function useProtectionLevel({type}) {
     if (isSafe) return 'safe'
 
     const isModerateRisk =
-      type === 'fail' &&
-      [IdentityStatus.Suspended, IdentityStatus.Zombie].includes(state) &&
-      age >= 5 &&
-      age <= 9
+      (type === 'miss' &&
+        state === IdentityStatus.Zombie &&
+        age >= 5 &&
+        age <= 9) ||
+      (type === 'fail' &&
+        [IdentityStatus.Suspended, IdentityStatus.Zombie].includes(state) &&
+        age >= 5 &&
+        age <= 9)
 
     if (isModerateRisk) return 'moderateRisk'
 
@@ -47,7 +61,6 @@ function useProtectionLevel({type}) {
         IdentityStatus.Newbie,
         IdentityStatus.Verified,
       ].includes(state) ||
-      (type === 'miss' && state === IdentityStatus.Zombie) ||
       (type === 'fail' &&
         (state === IdentityStatus.Verified ||
           (state === IdentityStatus.Suspended && age === 4)))
@@ -58,7 +71,7 @@ function useProtectionLevel({type}) {
 
 /** @param {{ type: Reason }} */
 function useProtectionValue({type}) {
-  const [{age}] = useIdentity()
+  const [{age, stake, lockedStake}] = useIdentity()
 
   const level = useProtectionLevel({type})
 
@@ -66,7 +79,7 @@ function useProtectionValue({type}) {
     case 'safe':
       return 1
     case 'moderateRisk':
-      return 1 - calculateStakeLoss(age)
+      return 1 - calculateStakeLoss(age, stake, lockedStake)
     case 'highRisk':
       return 0
     default:
@@ -76,7 +89,9 @@ function useProtectionValue({type}) {
 
 /** @param {{ type: Reason }} */
 function useProtectionProgress({type}) {
-  const [{state, age}] = useIdentity()
+  const [{state, age, stake, lockedStake}] = useIdentity()
+  const stakeOrDefault = Number(stake) || 1
+  const lockedStakeOrDefault = Number(lockedStake) || 0
 
   return useMemo(() => {
     switch (state) {
@@ -118,7 +133,10 @@ function useProtectionProgress({type}) {
             return 0.1
           }
           if (age >= 5 && age <= 9) {
-            return 0.9 + age / 100
+            return Math.max(
+              ((90 + age) * (1 - lockedStakeOrDefault / stakeOrDefault)) / 100,
+              0.1
+            )
           }
           if (age > 9) {
             return 1
@@ -128,16 +146,14 @@ function useProtectionProgress({type}) {
       }
 
       case IdentityStatus.Zombie: {
-        if (type === 'miss') {
-          return 0.1
+        if (age >= 5 && age <= 9) {
+          return Math.max(
+            ((90 + age) * (1 - lockedStakeOrDefault / stakeOrDefault)) / 100,
+            0.1
+          )
         }
-        if (type === 'fail') {
-          if (age >= 5 && age <= 9) {
-            return 0.9 + age / 100
-          }
-          if (age > 9) {
-            return 1
-          }
+        if (age > 9) {
+          return 1
         }
         break
       }
@@ -147,7 +163,7 @@ function useProtectionProgress({type}) {
     }
 
     return 0
-  }, [age, state, type])
+  }, [age, state, stakeOrDefault, lockedStakeOrDefault, type])
 }
 
 /** @param {{ type: Reason }} */
@@ -273,8 +289,7 @@ function TooltipLabel({type}) {
             </Text>
             <Text color="white" lineHeight="4">
               You will lose {toPercent(1 - protection)} of the stake if you{' '}
-              {action}
-              the upcoming validation
+              {action} the upcoming validation
             </Text>
           </Stack>
         </Stack>

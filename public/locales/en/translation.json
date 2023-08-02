@@ -862,7 +862,7 @@
     "When you click 'Spoil' the invitation code will be activated by a random address and wasted.": "When you click 'Spoil' the invitation code will be activated by a random address and wasted.",
     "Whole network": "Whole network",
     "Why do I need the training?": "Why do I need the training?",
-    "Withraw stake, iDNA": "Withraw stake, iDNA",
+    "Withdraw stake, iDNA": "Withdraw stake, iDNA",
     "Wrong": "Wrong",
     "Wrong answers": "Wrong answers",
     "Yes": "Yes",
@@ -967,5 +967,6 @@
     "{{score}} ({{point}} out of {{flipsCount}})": "{{score}} ({{point}} out of {{flipsCount}})",
     "{{shortFlipPoints}} out of {{qualifiedFlips}} ({{score}})": "{{shortFlipPoints}} out of {{qualifiedFlips}} ({{score}})",
     "{{totalShortFlipPoints}} out of {{totalQualifiedFlips}}": "{{totalShortFlipPoints}} out of {{totalQualifiedFlips}}",
-    "{{url}} responded with an unknown format": "{{url}} responded with an unknown format"
+    "{{url}} responded with an unknown format": "{{url}} responded with an unknown format",
+    "Get validated for {{epochs}} more epoch(s) to be able to withdraw the full amount of the stake.": "Get validated for {{epochs}} more epoch(s) to be able to withdraw the full amount of the stake."
 }
