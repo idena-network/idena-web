@@ -14,6 +14,7 @@ export const DnaLinkMethod = {
   RawTx: 'raw',
   Vote: 'vote',
   Invite: 'invite',
+  Sign: 'sign',
 }
 
 export function useDnaLink() {

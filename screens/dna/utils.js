@@ -65,8 +65,12 @@ export async function authenticate(authenticationEndpoint, {token, signature}) {
 }
 
 export function appendTxHash(url, hash) {
+  return appendParam(url, 'tx', hash)
+}
+
+export function appendParam(url, name, value) {
   const txUrl = new URL(url)
-  txUrl.searchParams.append('tx', hash)
+  txUrl.searchParams.append(name, value)
   return txUrl
 }
 

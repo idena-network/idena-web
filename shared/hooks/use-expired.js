@@ -59,6 +59,7 @@ export function useExpired() {
     '/dna/send',
     '/dna/signin',
     '/dna/vote',
+    '/dna/sign',
   ].includes(router.pathname)
 
   const needRedirect = !state.storage.dontShow || state.storage.epoch !== epoch

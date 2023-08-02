@@ -223,16 +223,39 @@ export function signMessage(data, key) {
   return Buffer.from([...signature, recid])
 }
 
-export function dnaSign(data, key) {
-  const hash = sha3.keccak_256.array(data)
-  const hash2 = sha3.keccak_256.array(hash)
+const SignedDataFormat = {
+  DoubleHash: 'doubleHash',
+  Prefix: 'prefix',
+}
 
-  const {signature, recid} = secp256k1.ecdsaSign(
-    new Uint8Array(hash2),
-    typeof key === 'string' ? hexToUint8Array(key) : new Uint8Array(key)
-  )
+export function dnaSign(data, key, format = SignedDataFormat.DoubleHash) {
+  switch (format) {
+    case SignedDataFormat.Prefix: {
+      const message = `\x00Idena Signed Message:\n${
+        data ? data.length + data : '0'
+      }`
+      const hash = sha3.keccak_256.array(message)
 
-  return Buffer.from([...signature, recid])
+      const {signature, recid} = secp256k1.ecdsaSign(
+        new Uint8Array(hash),
+        typeof key === 'string' ? hexToUint8Array(key) : new Uint8Array(key)
+      )
+      return Buffer.from([...signature, recid])
+    }
+    case SignedDataFormat.DoubleHash: {
+      const hash = sha3.keccak_256.array(data)
+      const hash2 = sha3.keccak_256.array(hash)
+
+      const {signature, recid} = secp256k1.ecdsaSign(
+        new Uint8Array(hash2),
+        typeof key === 'string' ? hexToUint8Array(key) : new Uint8Array(key)
+      )
+
+      return Buffer.from([...signature, recid])
+    }
+    default:
+      throw new Error(`Unknown format: ${format}`)
+  }
 }
 
 export function checkSignature(data, signature) {
