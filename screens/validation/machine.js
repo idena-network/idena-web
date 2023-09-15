@@ -17,7 +17,7 @@ import {sendRawTx, getRawTx, loadKeyword} from '../../shared/api/chain'
 import {FlipGrade, RelevanceType, SessionType} from '../../shared/types'
 import {fetchFlipKeys, fetchRawFlip} from '../../shared/api'
 import {fetchWordsSeed, fetchIdentity} from '../../shared/api/dna'
-import apiClient from '../../shared/api/api-client'
+import {callRpcAny} from '../../shared/api/api-client'
 import {
   filterRegularFlips,
   filterSolvableFlips,
@@ -2014,7 +2014,7 @@ function mergeFlipsByHash(flips, anotherFlips) {
 
 async function fetchWords(hash) {
   return (
-    await apiClient().post('/', {
+    await callRpcAny({
       method: 'flip_words',
       params: [hash],
       id: 1,

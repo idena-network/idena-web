@@ -58,7 +58,7 @@ export function EpochProvider(props) {
 
   const {data: epochData} = useQuery(
     ['get-epoch', apiKey, url],
-    () => fetchEpoch(),
+    () => fetchEpoch({usePrimaryKeyOnly: false}),
     {
       retryDelay: 5 * 1000,
       initialData: null,
