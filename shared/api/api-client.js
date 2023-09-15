@@ -2,7 +2,7 @@ import axios from 'axios'
 import {loadPersistentState} from '../utils/persist'
 
 export const BASE_NODE_URL = 'http://localhost:9009'
-export const INDEXER_API_URL = 'https://api.idena.io'
+export const INDEXER_API_URL = 'https://api.idena.io/api/'
 
 const MODE_BEST_TIMEOUT = 10000
 const PROXY_ERROR_BATCH_NOT_SUPPORTED = 'method not available'
