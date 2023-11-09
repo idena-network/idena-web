@@ -1,8 +1,9 @@
 import axios from 'axios'
+import {INDEXER_API_URL} from './api-client'
 
 function apiClient() {
   return axios.create({
-    baseURL: process.env.NEXT_PUBLIC_INDEXER_URL,
+    baseURL: INDEXER_API_URL,
   })
 }
 

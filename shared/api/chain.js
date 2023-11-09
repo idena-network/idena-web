@@ -1,7 +1,7 @@
 /* eslint-disable import/prefer-default-export */
-import api from './api-client'
+import api, {callRpcAny, callRpcBest} from './api-client'
 import {strip} from '../utils/obj'
-import {callRpc, queryClient} from '../utils/utils'
+import {queryClient} from '../utils/utils'
 
 export async function fetchTx(hash) {
   const {data} = await api().post('/', {
@@ -25,8 +25,8 @@ export async function fetchTx(hash) {
  *
  * @returns {SyncStatus} Sync status
  */
-export async function fetchSync() {
-  const {data} = await api().post('/', {
+export async function fetchSync({url, apiKey} = {}) {
+  const {data} = await api({url, apiKey}).post('/', {
     method: 'bcn_syncing',
     params: [],
     id: 1,
@@ -40,11 +40,14 @@ export async function fetchSync() {
  * Send raw tx
  */
 export async function sendRawTx(hex, useProxy) {
-  const {data} = await api(useProxy).post(useProxy ? '/api/node/proxy' : '/', {
-    method: 'bcn_sendRawTx',
-    params: [hex],
-    id: 1,
-  })
+  const {data} = await callRpcAny(
+    {
+      method: 'bcn_sendRawTx',
+      params: [hex],
+      id: 1,
+    },
+    {useProxy}
+  )
   const {result, error} = data
   if (error) throw new Error(error.message)
   return result
@@ -60,19 +63,22 @@ export async function getRawTx(
   tips,
   useProxy
 ) {
-  const {data} = await api(useProxy).post(useProxy ? '/api/node/proxy' : '/', {
+  const {data} = await callRpcBest({
     method: 'bcn_getRawTx',
     params: [
-      strip({
-        type,
-        from,
-        to,
-        amount,
-        maxFee,
-        payload,
-        tips,
-        useProto: true,
-      }),
+      strip(
+        {
+          type,
+          from,
+          to,
+          amount,
+          maxFee,
+          payload,
+          tips,
+          useProto: true,
+        },
+        useProxy
+      ),
     ],
     id: 1,
   })
@@ -107,10 +113,17 @@ export async function loadKeyword(index) {
   try {
     const resp = await queryClient.fetchQuery({
       queryKey: ['bcn_keyWord', index],
-      queryFn: ({queryKey: [, wordIndex]}) => callRpc('bcn_keyWord', wordIndex),
+      queryFn: ({queryKey: [, wordIndex]}) =>
+        callRpcAny({
+          method: 'bcn_keyWord',
+          params: [wordIndex],
+          id: 1,
+        }),
       staleTime: Infinity,
     })
-    return {name: resp.Name, desc: resp.Desc}
+    const {data} = resp
+    const {result} = data
+    return {name: result.Name, desc: result.Desc}
   } catch (error) {
     return {name: '', desc: ''}
   }

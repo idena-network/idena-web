@@ -17,9 +17,11 @@ import {isVercelProduction} from '../utils/utils'
 const SAVE_ENCRYPTED_KEY = 'SAVE_ENCRYPTED_KEY'
 const CLEAR_ENCRYPTED_KEY = 'CLEAR_ENCRYPTED_KEY'
 const SAVE_CONNECTION = 'SAVE_CONNECTION'
+const SAVE_SECONDARY_CONNECTION = 'SAVE_SECONDARY_CONNECTION'
 const SAVE_RESTRICTED_CONNECTION = 'SAVE_RESTRICTED_CONNECTION'
 const RESTORE_SETTINGS = 'RESTORE_SETTINGS'
 const SET_API_KEY_STATE = 'SET_API_KEY_STATE'
+const SET_SECONDARY_API_KEY_STATES = 'SET_SECONDARY_API_KEY_STATES'
 const ADD_PURCHASED_KEY = 'ADD_PURCHASED_KEY'
 const ADD_PURCHASE = 'ADD_PURCHASE'
 const SET_LANGUAGE = 'SET_LANGUAGE'
@@ -60,6 +62,17 @@ function settingsReducer(state, action) {
         isManualRemoteNode: action.data.isManual,
       }
     }
+    case SAVE_SECONDARY_CONNECTION: {
+      const s = {...state}
+      if (action.data.url) {
+        s.useSecondary = action.data.useSecondary
+        s.secondaryNodes = [{url: action.data.url, apiKey: action.data.key}]
+      } else {
+        s.useSecondary = false
+        delete s.secondaryNodes
+      }
+      return s
+    }
     case SAVE_RESTRICTED_CONNECTION: {
       const s = {...state}
       delete s.apiKeyData
@@ -82,6 +95,13 @@ function settingsReducer(state, action) {
         ...state,
         ...action.data,
       }
+    }
+    case SET_SECONDARY_API_KEY_STATES: {
+      const s = {...state}
+      for (let i = 0; i < action.data.states.length; i += 1) {
+        s.secondaryNodes[i].apiKeyState = action.data.states[i]
+      }
+      return s
     }
     case ADD_PURCHASE: {
       return {
@@ -153,6 +173,20 @@ function SettingsProvider({children}) {
     })
   }, [dispatch])
 
+  async function softCheckIsSyncing({url, apiKey} = {}) {
+    try {
+      const lastBlock = await getLastBlock()
+      const indexerResult = lastBlock?.height
+      if (!indexerResult) return false
+
+      const chain = await fetchSync({url, apiKey})
+
+      if (indexerResult - chain.currentBlock > SYNCING_DIFF) return true
+    } catch (e) {
+      return false
+    }
+  }
+
   const performCheck = useCallback(() => {
     async function softCheckKey(key) {
       try {
@@ -161,22 +195,9 @@ function SettingsProvider({children}) {
         return null
       }
     }
-    async function softCheckIsSyncing() {
-      try {
-        const lastBlock = await getLastBlock()
-        const indexerResult = lastBlock?.height
-        if (!indexerResult) return false
-
-        const chain = await fetchSync()
-
-        if (indexerResult - chain.currentBlock > SYNCING_DIFF) return true
-      } catch (e) {
-        return false
-      }
-    }
     async function loadData() {
       try {
-        const {epoch} = await fetchEpoch()
+        const {epoch} = await fetchEpoch({usePrimaryKeyOnly: true})
 
         if (isRestrictedAccess(state.url, state.apiKey)) {
           return dispatch({
@@ -262,6 +283,43 @@ function SettingsProvider({children}) {
 
   useInterval(performCheck, API_KEY_CHECK_INTERVAL)
 
+  const performCheckSecondary = useCallback(async () => {
+    async function determineState({url, apiKey}) {
+      try {
+        await fetchEpoch({url, apiKey})
+        // check node is syncing only in production
+        if (isVercelProduction)
+          if (await softCheckIsSyncing({url, apiKey})) {
+            return ApiKeyStates.OFFLINE
+          }
+        return ApiKeyStates.EXTERNAL
+      } catch (e) {
+        return ApiKeyStates.OFFLINE
+      }
+    }
+    if (!state.useSecondary || !state.secondaryNodes) {
+      return
+    }
+    const states = []
+    for (const secondaryNode of state.secondaryNodes) {
+      if (state.initialized) {
+        states.push(await determineState(secondaryNode))
+      } else {
+        states.push(ApiKeyStates.ONLINE)
+      }
+    }
+    dispatch({
+      type: SET_SECONDARY_API_KEY_STATES,
+      data: {states},
+    })
+  }, [dispatch, state.initialized, state.useSecondary, state.secondaryNodes])
+
+  useEffect(() => {
+    performCheckSecondary()
+  }, [performCheckSecondary, state.secondaryNodes])
+
+  useInterval(performCheckSecondary, API_KEY_CHECK_INTERVAL)
+
   const saveEncryptedKey = useCallback(
     (coinbase, key) => {
       dispatch({type: SAVE_ENCRYPTED_KEY, data: {coinbase, key}})
@@ -276,6 +334,16 @@ function SettingsProvider({children}) {
   const saveConnection = useCallback(
     (url, key, isManual) => {
       dispatch({type: SAVE_CONNECTION, data: {url, key, isManual}})
+    },
+    [dispatch]
+  )
+
+  const saveSecondaryConnection = useCallback(
+    (url, key, useSecondary) => {
+      dispatch({
+        type: SAVE_SECONDARY_CONNECTION,
+        data: {url, key, useSecondary},
+      })
     },
     [dispatch]
   )
@@ -314,6 +382,7 @@ function SettingsProvider({children}) {
           saveEncryptedKey,
           removeEncryptedKey,
           saveConnection,
+          saveSecondaryConnection,
           saveRestrictedConnection,
           addPurchase,
           addPurchasedKey,

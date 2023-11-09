@@ -10,6 +10,7 @@ import {
   Heading,
   Stack,
   useBreakpointValue,
+  Switch,
 } from '@chakra-ui/react'
 import SettingsLayout from './layout'
 import {
@@ -27,23 +28,50 @@ import {Link} from '../../shared/components'
 import {ChevronDownIcon} from '../../shared/components/icons'
 import {useSuccessToast} from '../../shared/hooks/use-toast'
 
+const extractSecondaryNode = settingsState => {
+  if (
+    !settingsState ||
+    !settingsState.secondaryNodes ||
+    !settingsState.secondaryNodes.length
+  ) {
+    return {}
+  }
+  return settingsState.secondaryNodes[0]
+}
+
 function Settings() {
   const {t} = useTranslation()
-  const [settingsState, {saveConnection}] = useSettings()
+  const [
+    settingsState,
+    {saveConnection, saveSecondaryConnection},
+  ] = useSettings()
 
   const size = useBreakpointValue(['lg', 'md'])
   const flexDirection = useBreakpointValue(['column', 'row'])
   const flexJustify = useBreakpointValue(['flex-start', 'space-between'])
 
+  const secondaryNode = extractSecondaryNode(settingsState)
   const [state, setState] = useState({
     url: settingsState.url || '',
     apiKey: settingsState.apiKey || '',
+    useSecondary: settingsState.useSecondary || false,
+    secondaryUrl: secondaryNode.url,
+    secondaryApiKey: secondaryNode.apiKey,
   })
 
   const [nodeProvider, setNodeProvider] = useState('')
 
   useEffect(() => {
-    setState({url: settingsState.url, apiKey: settingsState.apiKey})
+    const {url: secondaryUrl, apiKey: secondaryApiKey} = extractSecondaryNode(
+      settingsState
+    )
+    setState({
+      url: settingsState.url,
+      apiKey: settingsState.apiKey,
+      useSecondary: settingsState.useSecondary,
+      secondaryUrl,
+      secondaryApiKey,
+    })
   }, [settingsState])
 
   const toast = useSuccessToast()
@@ -218,12 +246,140 @@ function Settings() {
           </Alert>
         )}
 
+        <Flex>
+          <Box mt="11px">
+            <Switch
+              id="secondaryNode"
+              isChecked={state.useSecondary}
+              h={4}
+              className="toggle"
+              onChange={e =>
+                setState({...state, useSecondary: e.target.checked})
+              }
+            />
+          </Box>
+          <Box>
+            <FormLabel ml={3} mb={0} htmlFor="secondaryNode">
+              {t('Secondary node for validation')}{' '}
+              <Text as="span" color="green.500" verticalAlign="6px">
+                beta
+              </Text>
+            </FormLabel>
+            <FormLabel ml={3} fontWeight="normal" htmlFor="secondaryNode">
+              {t(
+                'Connect to a secondary node for validation in case the primary node crash'
+              )}
+            </FormLabel>
+          </Box>
+        </Flex>
+
+        {state.useSecondary && (
+          <>
+            {secondaryNode.apiKeyState === ApiKeyStates.OFFLINE &&
+              !!secondaryNode.url &&
+              !!secondaryNode.apiKey && (
+                <Alert
+                  status="error"
+                  bg="red.010"
+                  borderWidth="1px"
+                  borderColor="red.050"
+                  fontWeight={500}
+                  rounded="md"
+                  px={3}
+                  py={2}
+                >
+                  <AlertIcon name="info" color="red.500" size={5} mr={3} />
+                  <Text>
+                    {nodeProvider
+                      ? t(
+                          'This node is unavailable. Please contact the node owner:',
+                          {
+                            nsSeparator: 'null',
+                          }
+                        )
+                      : t('Node is unavailable.')}{' '}
+                    {nodeProvider && (
+                      <Link
+                        color="#578fff"
+                        href={`https://t.me/${nodeProvider}`}
+                        target="_blank"
+                        ml={1}
+                      >
+                        {nodeProvider}
+                      </Link>
+                    )}
+                  </Text>
+                </Alert>
+              )}
+            <Flex display={['none', 'flex']} justify="space-between">
+              <Heading as="h1" fontSize="lg" fontWeight={500} textAlign="start">
+                {t('Secondary node settings')}
+              </Heading>
+            </Flex>
+            <FormControl
+              as={Flex}
+              direction={flexDirection}
+              justify={flexJustify}
+              mt={[0, 5]}
+            >
+              <Flex justify="space-between">
+                <FormLabel
+                  fontSize={['base', 'md']}
+                  color={['brandGray.500', 'muted']}
+                  fontWeight={[500, 400]}
+                  mb={[2, 0]}
+                  lineHeight={[6, 8]}
+                >
+                  {t('Shared node URL')}
+                </FormLabel>
+              </Flex>
+              <Input
+                id="secondaryUrl"
+                w={['100%', '360px']}
+                size={size}
+                value={state.secondaryUrl}
+                onChange={e =>
+                  setState({...state, secondaryUrl: e.target.value})
+                }
+              />
+            </FormControl>
+            <FormControl
+              as={Flex}
+              direction={flexDirection}
+              justify={flexJustify}
+            >
+              <FormLabel
+                fontSize={['base', 'md']}
+                color={['brandGray.500', 'muted']}
+                fontWeight={[500, 400]}
+                mb={[2, 0]}
+                lineHeight={[6, 8]}
+              >
+                {t('Node API key')}
+              </FormLabel>
+              <PasswordInput
+                id="secondaryKey"
+                w={['100%', '360px']}
+                size={size}
+                value={state.secondaryApiKey}
+                onChange={e =>
+                  setState({...state, secondaryApiKey: e.target.value})
+                }
+              />
+            </FormControl>
+          </>
+        )}
         <Flex justify="space-between">
           <PrimaryButton
             size={size}
             w={['100%', 'auto']}
             onClick={() => {
               saveConnection(state.url, state.apiKey, true)
+              saveSecondaryConnection(
+                state.secondaryUrl,
+                state.secondaryApiKey,
+                state.useSecondary
+              )
               notify()
             }}
             ml="auto"

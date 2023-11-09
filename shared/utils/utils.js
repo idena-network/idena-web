@@ -42,7 +42,7 @@ export function createRpcCaller({url, key}) {
 }
 
 export function callRpc(method, ...params) {
-  return createRpcCaller(getRpcParams())(method, ...params)
+  return createRpcCaller(getRpcParams()[0])(method, ...params)
 }
 
 export function toPercent(value, locale) {

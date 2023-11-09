@@ -1,16 +1,6 @@
 /* eslint-disable import/prefer-default-export */
-import api from './api-client'
-import {strip} from '../utils/obj'
+import api, {callRpcAny, callRpcBest} from './api-client'
 import {callRpc} from '../utils/utils'
-
-export async function sendInvite({to, amount}) {
-  const {data} = await api().post('/', {
-    method: 'dna_sendInvite',
-    params: [strip({to, amount})],
-    id: 1,
-  })
-  return data
-}
 
 /**
  * Identity
@@ -38,11 +28,14 @@ export async function sendInvite({to, amount}) {
  * @returns {Identity} Identity details
  */
 export async function fetchIdentity(address, useProxy) {
-  const {data} = await api(useProxy).post(useProxy ? '/api/node/proxy' : '/', {
-    method: 'dna_identity',
-    params: address ? [address] : [],
-    id: 1,
-  })
+  const {data} = await callRpcBest(
+    {
+      method: 'dna_identity',
+      params: address ? [address] : [],
+      id: 1,
+    },
+    useProxy
+  )
   const {result, error} = data
   if (error) throw new Error(error.message)
   return result
@@ -62,15 +55,22 @@ export async function fetchIdentity(address, useProxy) {
  *
  * @returns {Epoch} Epoch details
  */
-export async function fetchEpoch(useProxy) {
-  const {data} = await api(useProxy).post(useProxy ? '/api/node/proxy' : '/', {
+export async function fetchEpoch({usePrimaryKeyOnly, url, apiKey}) {
+  const rpcBody = {
     method: 'dna_epoch',
     params: [],
     id: 1,
-  })
-  const {result, error} = data
-  if (error) throw new Error(error.message)
-  return result
+  }
+  if (usePrimaryKeyOnly || url) {
+    const {data} = await api({url, apiKey}).post('/', rpcBody)
+    const {result, error} = data
+    if (error) throw new Error(error.message)
+    return result
+  }
+  const {
+    data: {result: bestResult},
+  } = await callRpcBest(rpcBody)
+  return bestResult
 }
 
 /**
@@ -85,7 +85,7 @@ export async function fetchEpoch(useProxy) {
   }
  */
 export async function fetchCeremonyIntervals() {
-  const {data} = await api().post('/', {
+  const {data} = await callRpcAny({
     method: 'dna_ceremonyIntervals',
     params: [],
     id: 1,
@@ -137,7 +137,7 @@ export async function fetchFlip(hash) {
 
 export async function fetchRawFlip(hash) {
   console.debug(`flip_getRaw request`, hash)
-  const {data} = await api().post('/', {
+  const {data} = await callRpcAny({
     method: 'flip_getRaw',
     params: [hash],
     id: 1,
@@ -148,7 +148,7 @@ export async function fetchRawFlip(hash) {
 
 export async function fetchFlipKeys(addr, hash) {
   console.debug(`flip_getKeys request`, hash)
-  const {data} = await api().post('/', {
+  const {data} = await callRpcAny({
     method: 'flip_getKeys',
     params: [addr, hash],
     id: 1,
@@ -227,13 +227,12 @@ export async function importKey(key, password) {
 }
 
 export async function fetchWordsSeed() {
-  const {data} = await api().post('/', {
+  const {data} = await callRpcBest({
     method: 'dna_wordsSeed',
     params: [],
     id: 1,
   })
-  const {result, error} = data
-  if (error) throw new Error(error.message)
+  const {result} = data
   return result
 }
 

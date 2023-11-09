@@ -21,6 +21,7 @@ import {TerminateContractAttachment} from '../../shared/models/terminateContract
 import {Transaction} from '../../shared/models/transaction'
 import {privateKeyToAddress} from '../../shared/utils/crypto'
 import db from '../../shared/utils/db'
+import {INDEXER_API_URL} from '../../shared/api/api-client'
 
 Decimal.set({toExpPos: 10000})
 
@@ -42,7 +43,7 @@ export const setVotingStatus = status =>
   })
 
 export function apiUrl(path) {
-  return new URL(path, process.env.NEXT_PUBLIC_INDEXER_URL)
+  return new URL(path, INDEXER_API_URL)
 }
 
 export async function fetchVotings({
