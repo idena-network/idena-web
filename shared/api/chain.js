@@ -63,11 +63,11 @@ export async function getRawTx(
   tips,
   useProxy
 ) {
-  const {data} = await callRpcBest({
-    method: 'bcn_getRawTx',
-    params: [
-      strip(
-        {
+  const {data} = await callRpcBest(
+    {
+      method: 'bcn_getRawTx',
+      params: [
+        strip({
           type,
           from,
           to,
@@ -76,12 +76,12 @@ export async function getRawTx(
           payload,
           tips,
           useProto: true,
-        },
-        useProxy
-      ),
-    ],
-    id: 1,
-  })
+        }),
+      ],
+      id: 1,
+    },
+    useProxy
+  )
   const {result, error} = data
   if (error) throw new Error(error.message)
   return result
