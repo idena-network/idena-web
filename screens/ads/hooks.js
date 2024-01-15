@@ -302,7 +302,7 @@ export function useApprovedBurntCoins() {
 
             const ad = ads.find(({cid}) => cid === burn.cid)
 
-            if (ad) {
+            if (ad && ad.contract) {
               const voting = await getAdVoting(ad.contract)
               return isApprovedVoting(voting) ? burn : null
             }
