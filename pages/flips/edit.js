@@ -52,8 +52,9 @@ import {useEpoch} from '../../shared/providers/epoch-context'
 import {BadFlipDialog} from '../../screens/validation/components'
 import {InfoIcon, RefreshIcon} from '../../shared/components/icons'
 import {useTrackTx} from '../../screens/ads/hooks'
-import {useFailToast} from '../../shared/hooks/use-toast'
+import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
 import {eitherState} from '../../shared/utils/utils'
+import {writeTextToClipboard} from '../../shared/utils/clipboard'
 
 export default function EditFlipPage() {
   const {t, i18n} = useTranslation()
@@ -69,6 +70,7 @@ export default function EditFlipPage() {
   const [, {waitFlipsUpdate}] = useIdentity()
 
   const failToast = useFailToast()
+  const successToast = useSuccessToast()
 
   const [didShowShuffleAdversarial, setDidShowShuffleAdversarial] = useState(
     false
@@ -435,16 +437,35 @@ export default function EditFlipPage() {
             </PrimaryButton>
           )}
           {is('submit') && (
-            <PrimaryButton
-              isDisabled={is('submit.submitting')}
-              isLoading={is('submit.submitting')}
-              loadingText={t('Publishing')}
-              onClick={() => {
-                publishDrawerDisclosure.onOpen()
-              }}
-            >
-              {t('Submit')}
-            </PrimaryButton>
+            <>
+              <SecondaryButton
+                onClick={async () =>
+                  (await writeTextToClipboard(
+                    JSON.stringify({
+                      originalOrder,
+                      order,
+                      images: protectedImages,
+                    })
+                  ))
+                    ? successToast({
+                        title: t('Copied'),
+                      })
+                    : failToast('Failed to copy')
+                }
+              >
+                {t('Copy to clipboard')}
+              </SecondaryButton>
+              <PrimaryButton
+                isDisabled={is('submit.submitting')}
+                isLoading={is('submit.submitting')}
+                loadingText={t('Publishing')}
+                onClick={() => {
+                  publishDrawerDisclosure.onOpen()
+                }}
+              >
+                {t('Submit')}
+              </PrimaryButton>
+            </>
           )}
         </FlipMasterFooter>
 

@@ -31,3 +31,13 @@ export async function writeImageURLToClipboard(url) {
   const data = [new ClipboardItem({[blob.type]: blob})]
   return navigator.clipboard.write(data)
 }
+
+export async function writeTextToClipboard(text) {
+  try {
+    await navigator.clipboard.writeText(text)
+    return true
+  } catch (err) {
+    console.error('Failed to copy: ', err)
+    return false
+  }
+}
