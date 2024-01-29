@@ -14,8 +14,6 @@ import {
 } from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
-import {createMachine} from 'xstate'
-import {assign, log} from 'xstate/lib/actions'
 import {SearchIcon} from '@chakra-ui/icons'
 import {imageSearchMachine} from '../machines'
 import {PrimaryButton, SecondaryButton} from '../../../shared/components/button'

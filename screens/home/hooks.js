@@ -20,10 +20,6 @@ import {useEpoch} from '../../shared/providers/epoch-context'
 import {useIdentity} from '../../shared/providers/identity-context'
 import {IdentityStatus, TxType} from '../../shared/types'
 import {
-  sendActivateInvitation,
-  sendSuccessValidation,
-} from '../../shared/utils/analytics'
-import {
   privateKeyToAddress,
   privateKeyToPublicKey,
 } from '../../shared/utils/crypto'
@@ -81,8 +77,6 @@ export function useInviteActivation() {
 
       // need to wait identity state update manually, because nothing changes in memory
       waitStateUpdate()
-
-      sendActivateInvitation(coinbase)
     } catch (e) {
       failToast(
         `Failed to activate invite: ${
@@ -147,7 +141,6 @@ export function useValidationResults() {
 
   useEffect(() => {
     if (isValidationSucceeded && !analyticsSent) {
-      sendSuccessValidation(address)
       dispatch({type: 'analytics', value: true})
     }
   }, [isValidationSucceeded, address, dispatch, analyticsSent])

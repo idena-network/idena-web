@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from 'react'
+import React, {useRef} from 'react'
 import {useRouter} from 'next/router'
 import Head from 'next/head'
 import {QueryClientProvider} from 'react-query'
@@ -291,18 +291,15 @@ function AppProviders({tabId, ...props}) {
 }
 
 function IdenaApp(props) {
-                           const router = useRouter()
+  const router = useRouter()
 
-                           const id = useRef(uuidv4())
+  const id = useRef(uuidv4())
 
-                           return [
-                             '/certificate/[id]',
-                             '/too-many-tabs',
-                           ].includes(router.pathname) ? (
-                             <QueryClientProvider client={queryClient}>
-                               <Box {...props} />
-                             </QueryClientProvider>
-                           ) : (
-                             <AppProviders tabId={id.current} {...props} />
-                           )
-                         }
+  return ['/certificate/[id]', '/too-many-tabs'].includes(router.pathname) ? (
+    <QueryClientProvider client={queryClient}>
+      <Box {...props} />
+    </QueryClientProvider>
+  ) : (
+    <AppProviders tabId={id.current} {...props} />
+  )
+}
