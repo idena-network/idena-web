@@ -193,11 +193,11 @@ export async function fetchProfileAds(address) {
   }
 }
 
-export const isApprovedVoting = voting =>
+export const isApprovedVoting = (voting, adCid) =>
   isFinalVoting(voting) &&
   isApprovedAd(voting) &&
   voting.title === adVotingDefaults.title &&
-  voting.cid === voting.adCid
+  adCid === voting.adCid
 
 export const isRejectedVoting = voting =>
   isFinalVoting(voting) && isRejectedAd(voting)

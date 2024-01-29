@@ -96,7 +96,7 @@ export function useRotatingAds(limit = 3) {
   )
 
   const approvedProfileAdVotings = profileAdVotings?.filter(({data}) =>
-    isApprovedVoting(data)
+    isApprovedVoting(data, data?.cid)
   )
 
   const queryClient = useQueryClient()
@@ -304,7 +304,7 @@ export function useApprovedBurntCoins() {
 
             if (ad && ad.contract) {
               const voting = await getAdVoting(ad.contract)
-              return isApprovedVoting(voting) ? burn : null
+              return isApprovedVoting(voting, ad.cid) ? burn : null
             }
           }
         })
@@ -418,7 +418,7 @@ export function usePersistedAds(options) {
               // eslint-disable-next-line no-nested-ternary
               voting
                 ? // eslint-disable-next-line no-nested-ternary
-                  isApprovedVoting(voting)
+                  isApprovedVoting(voting, ad.cid)
                   ? AdStatus.Approved
                   : isRejectedVoting(voting)
                   ? AdStatus.Rejected
