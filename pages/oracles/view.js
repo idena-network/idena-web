@@ -403,7 +403,7 @@ export default function ViewVotingPage() {
                         />
                         {areSameCaseInsensitive(issuer, coinbase) &&
                           !isMaliciousAdVoting &&
-                          isApprovedVoting(adVoting) && (
+                          isApprovedVoting(adVoting, adCid) && (
                             <>
                               <VDivider />
                               <IconButton
