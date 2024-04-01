@@ -1,6 +1,13 @@
 import React, {useEffect, useState} from 'react'
 import {useRouter} from 'next/router'
-import {Box, Flex, useToast, Divider, useDisclosure} from '@chakra-ui/react'
+import {
+  Box,
+  Flex,
+  useToast,
+  Divider,
+  useDisclosure,
+  Stack,
+} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
 import {Page} from '../../screens/app/components'
@@ -408,36 +415,9 @@ export default function EditFlipPage() {
             </FlipMaster>
           )}
         </Flex>
-        <FlipMasterFooter>
-          {not('keywords') && (
-            <SecondaryButton
-              isDisabled={
-                is('images.painting') ||
-                is('protect.protecting') ||
-                is('protect.shuffling') ||
-                is('protect.preparing')
-              }
-              onClick={() => send('PREV')}
-            >
-              {t('Previous step')}
-            </SecondaryButton>
-          )}
-          {not('submit') && (
-            <PrimaryButton
-              isDisabled={
-                is('images.painting') ||
-                is('protect.protecting') ||
-                is('protect.shuffling') ||
-                is('protect.preparing') ||
-                is('keywords.loading')
-              }
-              onClick={() => send('NEXT')}
-            >
-              {t('Next step')}
-            </PrimaryButton>
-          )}
-          {is('submit') && (
-            <>
+        <FlipMasterFooter justify="space-between">
+          <Stack isInline spacing={2} ml={16}>
+            {is('submit') && (
               <SecondaryButton
                 onClick={async () =>
                   (await writeTextToClipboard(
@@ -455,6 +435,37 @@ export default function EditFlipPage() {
               >
                 {t('Copy to clipboard')}
               </SecondaryButton>
+            )}
+          </Stack>
+          <Stack isInline spacing={2}>
+            {not('keywords') && (
+              <SecondaryButton
+                isDisabled={
+                  is('images.painting') ||
+                  is('protect.protecting') ||
+                  is('protect.shuffling') ||
+                  is('protect.preparing')
+                }
+                onClick={() => send('PREV')}
+              >
+                {t('Previous step')}
+              </SecondaryButton>
+            )}
+            {not('submit') && (
+              <PrimaryButton
+                isDisabled={
+                  is('images.painting') ||
+                  is('protect.protecting') ||
+                  is('protect.shuffling') ||
+                  is('protect.preparing') ||
+                  is('keywords.loading')
+                }
+                onClick={() => send('NEXT')}
+              >
+                {t('Next step')}
+              </PrimaryButton>
+            )}
+            {is('submit') && (
               <PrimaryButton
                 isDisabled={is('submit.submitting')}
                 isLoading={is('submit.submitting')}
@@ -465,8 +476,8 @@ export default function EditFlipPage() {
               >
                 {t('Submit')}
               </PrimaryButton>
-            </>
-          )}
+            )}
+          </Stack>
         </FlipMasterFooter>
 
         <BadFlipDialog
