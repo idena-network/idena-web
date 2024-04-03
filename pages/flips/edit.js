@@ -1,6 +1,13 @@
 import React, {useEffect, useState} from 'react'
 import {useRouter} from 'next/router'
-import {Box, Flex, useToast, Divider, useDisclosure} from '@chakra-ui/react'
+import {
+  Box,
+  Flex,
+  useToast,
+  Divider,
+  useDisclosure,
+  Stack,
+} from '@chakra-ui/react'
 import {useTranslation} from 'react-i18next'
 import {useMachine} from '@xstate/react'
 import {Page} from '../../screens/app/components'
@@ -52,8 +59,9 @@ import {useEpoch} from '../../shared/providers/epoch-context'
 import {BadFlipDialog} from '../../screens/validation/components'
 import {InfoIcon, RefreshIcon} from '../../shared/components/icons'
 import {useTrackTx} from '../../screens/ads/hooks'
-import {useFailToast} from '../../shared/hooks/use-toast'
+import {useFailToast, useSuccessToast} from '../../shared/hooks/use-toast'
 import {eitherState} from '../../shared/utils/utils'
+import {writeTextToClipboard} from '../../shared/utils/clipboard'
 
 export default function EditFlipPage() {
   const {t, i18n} = useTranslation()
@@ -69,6 +77,7 @@ export default function EditFlipPage() {
   const [, {waitFlipsUpdate}] = useIdentity()
 
   const failToast = useFailToast()
+  const successToast = useSuccessToast()
 
   const [didShowShuffleAdversarial, setDidShowShuffleAdversarial] = useState(
     false
@@ -406,46 +415,69 @@ export default function EditFlipPage() {
             </FlipMaster>
           )}
         </Flex>
-        <FlipMasterFooter>
-          {not('keywords') && (
-            <SecondaryButton
-              isDisabled={
-                is('images.painting') ||
-                is('protect.protecting') ||
-                is('protect.shuffling') ||
-                is('protect.preparing')
-              }
-              onClick={() => send('PREV')}
-            >
-              {t('Previous step')}
-            </SecondaryButton>
-          )}
-          {not('submit') && (
-            <PrimaryButton
-              isDisabled={
-                is('images.painting') ||
-                is('protect.protecting') ||
-                is('protect.shuffling') ||
-                is('protect.preparing') ||
-                is('keywords.loading')
-              }
-              onClick={() => send('NEXT')}
-            >
-              {t('Next step')}
-            </PrimaryButton>
-          )}
-          {is('submit') && (
-            <PrimaryButton
-              isDisabled={is('submit.submitting')}
-              isLoading={is('submit.submitting')}
-              loadingText={t('Publishing')}
-              onClick={() => {
-                publishDrawerDisclosure.onOpen()
-              }}
-            >
-              {t('Submit')}
-            </PrimaryButton>
-          )}
+        <FlipMasterFooter justify="space-between">
+          <Stack isInline spacing={2} ml={16}>
+            {is('submit') && (
+              <SecondaryButton
+                onClick={async () =>
+                  (await writeTextToClipboard(
+                    JSON.stringify({
+                      originalOrder,
+                      order,
+                      images: protectedImages,
+                    })
+                  ))
+                    ? successToast({
+                        title: t('Copied'),
+                      })
+                    : failToast('Failed to copy')
+                }
+              >
+                {t('Copy to clipboard')}
+              </SecondaryButton>
+            )}
+          </Stack>
+          <Stack isInline spacing={2}>
+            {not('keywords') && (
+              <SecondaryButton
+                isDisabled={
+                  is('images.painting') ||
+                  is('protect.protecting') ||
+                  is('protect.shuffling') ||
+                  is('protect.preparing')
+                }
+                onClick={() => send('PREV')}
+              >
+                {t('Previous step')}
+              </SecondaryButton>
+            )}
+            {not('submit') && (
+              <PrimaryButton
+                isDisabled={
+                  is('images.painting') ||
+                  is('protect.protecting') ||
+                  is('protect.shuffling') ||
+                  is('protect.preparing') ||
+                  is('keywords.loading')
+                }
+                onClick={() => send('NEXT')}
+              >
+                {t('Next step')}
+              </PrimaryButton>
+            )}
+            {is('submit') && (
+              <PrimaryButton
+                isDisabled={is('submit.submitting')}
+                isLoading={is('submit.submitting')}
+                loadingText={t('Publishing')}
+                onClick={() => {
+                  publishDrawerDisclosure.onOpen()
+                }}
+              >
+                {t('Submit')}
+              </PrimaryButton>
+            )}
+          </Stack>
         </FlipMasterFooter>
 
         <BadFlipDialog
