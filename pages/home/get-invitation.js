@@ -166,7 +166,7 @@ export default function GetInvitation() {
                   <Trans t={t} i18nKey="joinIdenaDiscord">
                     Join{' '}
                     <Link
-                      href="https://discord.gg/8BusRj7"
+                      href="https://discord.gg/idena-community-634481767352369162"
                       target="_blank"
                       color="blue.500"
                     >
