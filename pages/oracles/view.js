@@ -480,7 +480,8 @@ export default function ViewVotingPage() {
                                       </Flex>
 
                                       <Text
-                                        whiteSpace="normal"
+                                        isTruncated
+                                        noOfLines={2}
                                         maxW="sm"
                                         title={value.length > 50 ? value : ''}
                                       >
@@ -535,7 +536,8 @@ export default function ViewVotingPage() {
                                     </Flex>
 
                                     <Text
-                                      whiteSpace="normal"
+                                      isTruncated
+                                      noOfLines={2}
                                       maxW="sm"
                                       title={value.length > 50 ? value : ''}
                                     >
