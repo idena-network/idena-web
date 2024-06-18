@@ -481,6 +481,7 @@ export default function ViewVotingPage() {
 
                                       <Text
                                         isTruncated
+                                        noOfLines={2}
                                         maxW="sm"
                                         title={value.length > 50 ? value : ''}
                                       >
@@ -536,6 +537,7 @@ export default function ViewVotingPage() {
 
                                     <Text
                                       isTruncated
+                                      noOfLines={2}
                                       maxW="sm"
                                       title={value.length > 50 ? value : ''}
                                     >
