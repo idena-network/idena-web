@@ -1078,14 +1078,13 @@ function VotingResultBar({
       textTransform="capitalize"
       position="relative"
       px={2}
-      h={6}
+      py={1}
       w="full"
       {...props}
     >
       <Box
         borderRadius="md"
         bg={isWinner ? 'blue.012' : 'gray.50'}
-        h={6}
         width={percentage > 0 ? `${percentage * 100}%` : 2}
         position="absolute"
         left={0}
@@ -1109,7 +1108,7 @@ function VotingResultBar({
             {isMine && <OkIcon boxSize={3} />}
           </Flex>
         )}
-        <Text isTruncated maxW="sm" title={label.length > 50 ? label : ''}>
+        <Text maxW="md" title={label.length > 50 ? label : ''}>
           {label}
         </Text>
       </Stack>
