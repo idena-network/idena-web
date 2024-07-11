@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "next dev",
     "start": "next start",
-    "postinstall": "npm install --legacy-peer-deps",
+    "postinstall": "npm install --force",
     "build": "next build",
     "test": "jest",
     "lint": "eslint .",
