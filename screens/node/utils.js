@@ -18,7 +18,9 @@ export function GetProviderPrice(data, state, age) {
     return data.prices[1]
 
   if (state === IdentityStatus.Newbie && age === 1) return 0.01
-  return data.prices[0]
+  if (state === IdentityStatus.Newbie) return data.prices[0]
+  
+  return data.prices[2]
 }
 
 export async function checkRestoringConnection(url, key) {
