@@ -470,7 +470,7 @@ export function hasWinner({
 }
 
 export function votingMinStake(feePerGas) {
-  return 3000000 * dnaFeePerGas(feePerGas)
+  return 3000000 * dnaFeePerGas(feePerGas) + 0.00001  // 0.00001 is added for the cases when floats lose precision
 }
 
 export function votingMinBalance(minReward, committeeSize) {
