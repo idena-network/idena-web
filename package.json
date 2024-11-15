@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "i18n:init": "npm run i18n:clean && npm run i18n:scan",
     "i18n:scan": "i18next-scanner",
-    "i18n:clean": "rm -rf public/locales/**"
+    "i18n:clean": "rm -rf public/locales/**",
+    "postinstall": "npx patch-package --exclude nothing"
   },
   "author": "",
   "license": "ISC",
