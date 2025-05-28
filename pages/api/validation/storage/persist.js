@@ -14,13 +14,13 @@ export default async (req, res) => {
 
     await pool.query(
       `
-      INSERT INTO "validation_storage" (coinbase, data)
+      INSERT INTO "validation-storage" (coinbase, data)
 VALUES ($1, $2, $3::timestamp)
 ON CONFLICT (coinbase)
 DO UPDATE SET 
     data = EXCLUDED.data,
     updated_at = EXCLUDED.updated_at
-WHERE validation_storage.updated_at < EXCLUDED.updated_at;
+WHERE "validation-storage".updated_at < EXCLUDED.updated_at;
 `,
       [coinbase, data, new Date(data.timestamp)]
     )
