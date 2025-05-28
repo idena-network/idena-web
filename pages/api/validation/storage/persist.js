@@ -14,7 +14,7 @@ export default async (req, res) => {
 
     await pool.query(
       `
-      INSERT INTO "validation-storage" (coinbase, data)
+      INSERT INTO "validation-storage" (coinbase, data, updated_at)
 VALUES ($1, $2, $3::timestamp)
 ON CONFLICT (coinbase)
 DO UPDATE SET 
