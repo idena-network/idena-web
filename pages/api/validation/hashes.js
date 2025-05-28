@@ -1,6 +1,5 @@
-import {query as q} from 'faunadb'
 import {SessionType} from '../../../shared/types'
-import {faunaClient} from '../../../shared/utils/faunadb'
+import {createPool} from '../../../shared/utils/pg'
 
 export default async (req, res) => {
   const {type, id} = req.query
@@ -11,11 +10,14 @@ export default async (req, res) => {
   try {
     const field = type === SessionType.Short ? 'shortFlips' : 'longFlips'
 
-    const flips = await faunaClient.query(
-      q.Select(['data', field], q.Get(q.Match(q.Index('validation_by_id'), id)))
+    const pool = createPool()
+
+    const data = await pool.query(
+      `select flips->'${field}' as flips from validations where id = $1`,
+      [id]
     )
 
-    return res.status(200).json(flips.map(x => x.hash))
+    return res.status(200).json(data.rows[0].flips.map(x => x.hash))
   } catch (e) {
     return res.status(400).send(e.toString())
   }

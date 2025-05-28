@@ -7,6 +7,7 @@ function api() {
   })
 }
 
+// +
 export function checkKey(key) {
   return api()
     .get('/api/key/check', {
@@ -15,18 +16,21 @@ export function checkKey(key) {
     .then(x => x.data)
 }
 
+// +
 export function checkSavedKey(coinbase, signature) {
   return api()
     .post('/api/key/restore', {coinbase, signature})
     .then(x => x.data)
 }
 
+// +
 export function getProviders() {
   return api()
     .get('/api/provider/list')
     .then(x => x.data)
 }
 
+// +
 export function getProvider(id) {
   return api()
     .get('/api/provider/get', {
@@ -35,6 +39,7 @@ export function getProvider(id) {
     .then(x => x.data)
 }
 
+// +
 export function getKeyById(id) {
   return api()
     .get('/api/key/get', {
@@ -43,6 +48,7 @@ export function getKeyById(id) {
     .then(x => x.data)
 }
 
+// +
 export function buyKey(coinbase, tx, provider) {
   return api()
     .post('/api/key/buy', {coinbase, tx, provider})

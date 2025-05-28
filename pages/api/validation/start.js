@@ -1,10 +1,9 @@
-import {query as q} from 'faunadb'
 import {v4 as uuidv4} from 'uuid'
 import {GetNextUTCValidationDate} from '../../../screens/try/utils'
 import {CertificateType} from '../../../shared/types'
 import {shuffle} from '../../../shared/utils/arr'
 import {checkSignature} from '../../../shared/utils/crypto'
-import {faunaClient} from '../../../shared/utils/faunadb'
+import {createPool} from '../../../shared/utils/pg'
 import {isVercelProduction} from '../../../shared/utils/utils'
 
 function calcDevValidationStart(type) {
@@ -45,21 +44,17 @@ export default async (req, res) => {
     if (!recoveredCoinbase || coinbase !== recoveredCoinbase)
       throw new Error('signature is invalid')
 
-    const {data} = await faunaClient.query(
-      q.Paginate(
-        q.Match(q.Index('flip_hashes_with_answer_reason_isDisabled')),
-        {
-          size: 500,
-        }
-      )
+    const pool = createPool()
+
+    const data = await pool.query(
+      'select hash, answer, is_reported as reason from flips where is_disabled = false'
     )
 
     const a = []
     const b = []
     const c = []
 
-    data.forEach(([hash, answer, reason, isDisabled]) => {
-      if (isDisabled) return
+    data.rows.forEach(({hash, answer, reason}) => {
       if (reason === 0) {
         a.push({hash, rightAnswer: answer, reason})
       } else if (reason === 1) {
@@ -93,26 +88,21 @@ export default async (req, res) => {
       active: true,
     }
 
-    await faunaClient.query(
-      q.Do(
-        q.Map(
-          q.Paginate(
-            q.Match(
-              q.Index('validation_by_coinbase_type_active'),
-              coinbase,
-              type,
-              true
-            ),
-            {
-              size: 10,
-            }
-          ),
-          q.Lambda('ref', q.Update(q.Var('ref'), {data: {active: false}}))
-        ),
-        q.Create(q.Collection('validations'), {
-          data: result,
-        })
-      )
+    await pool.query(
+      'update validations set is_active = false where coinbase = $1',
+      [coinbase]
+    )
+
+    await pool.query(
+      'insert into validations (id, coinbase, type, is_active, flips, time) values ($1, $2, $3, $4, $5, $6)',
+      [
+        result.id,
+        result.coinbase,
+        result.type,
+        true,
+        {shortFlips, longFlips},
+        new Date(result.time),
+      ]
     )
 
     return res.status(200).json({id: result.id, startTime: result.time})
