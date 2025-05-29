@@ -1,29 +1,30 @@
-import {query as q} from 'faunadb'
-import {faunaClient} from '../../../shared/utils/faunadb'
+import {createPool} from '../../../shared/utils/pg'
 
 export async function getCertificateData(id, full) {
-  const validation = await faunaClient.query(
-    q.Get(q.Match(q.Index('validation_by_id'), id))
-  )
+  const pool = createPool()
 
-  if (!validation.data.result) {
+  const data = await pool.query('select * from validations where id = $1', [id])
+
+  if (!data.rowCount) {
     throw new Error('result is missing')
   }
 
+  const validation = data.rows[0]
+
   const result = {
-    active: validation.data.active,
-    shortScore: validation.data.result.shortPoints,
-    longScore: validation.data.result.longPoints,
-    reportScore: validation.data.result.reports,
-    actionType: validation.data.result.actionType,
-    coinbase: validation.data.coinbase,
-    timestamp: validation.data.time,
-    type: validation.data.type,
+    active: validation.is_active,
+    shortScore: validation.result.shortPoints,
+    longScore: validation.result.longPoints,
+    reportScore: validation.result.reports,
+    actionType: validation.result.actionType,
+    coinbase: validation.coinbase,
+    timestamp: validation.time,
+    type: validation.type,
   }
 
   if (full) {
-    result.shortFlips = validation.data.shortFlips
-    result.longFlips = validation.data.longFlips
+    result.shortFlips = validation.flips.shortFlips
+    result.longFlips = validation.flips.longFlips
   }
 
   return result
@@ -42,6 +43,7 @@ export default async (req, res) => {
 
     return res.status(200).json(result)
   } catch (e) {
+    console.log(e)
     return res.status(400).send('validation missing')
   }
 }

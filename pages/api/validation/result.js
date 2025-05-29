@@ -1,6 +1,5 @@
-import {query as q} from 'faunadb'
 import {CertificateActionType} from '../../../shared/types'
-import {faunaClient} from '../../../shared/utils/faunadb'
+import {createPool} from '../../../shared/utils/pg'
 
 export default async (req, res) => {
   const {id} = req.body
@@ -9,24 +8,28 @@ export default async (req, res) => {
     return res.status(400).send('id is missing')
   }
   try {
-    const validation = await faunaClient.query(
-      q.Get(q.Match(q.Index('validation_by_id'), id))
-    )
+    const pool = createPool()
 
-    if (validation.data.result) {
-      return res.status(200).json(validation.data.result)
+    const data = await pool.query('select * from validations where id = $1', [
+      id,
+    ])
+
+    const validation = data.rows[0]
+
+    if (validation.result.actionType) {
+      return res.status(200).json(validation.result)
     }
 
-    if (new Date().getTime() < validation.data.time) {
+    if (new Date() < new Date(validation.time)) {
       return res.status(400).send('validation has not started yet')
     }
 
-    const shortFlips = validation.data.shortFlips.map(x => ({
+    const shortFlips = validation.flips.shortFlips.map(x => ({
       ...x,
       correct: x.rightAnswer === x.answer,
     }))
 
-    const longFlips = validation.data.longFlips.map(x => ({
+    const longFlips = validation.flips.longFlips.map(x => ({
       ...x,
       correct: x.rightAnswer === x.answer,
       correctReport: Boolean(
@@ -49,22 +52,36 @@ export default async (req, res) => {
       actionType = CertificateActionType.Failed
     }
 
-    const updated = await faunaClient.query(
-      q.Update(validation.ref, {
-        data: {
-          shortFlips,
-          longFlips,
-          result: {
-            shortPoints: correctShortAnswers,
-            longPoints: correctLongAnswers,
-            reports: correctReports,
-            actionType,
-          },
+    const result = {
+      shortPoints: correctShortAnswers,
+      longPoints: correctLongAnswers,
+      reports: correctReports,
+      actionType,
+    }
+
+    await pool.query(
+      `
+      update validations 
+        set flips = jsonb_set(
+                      jsonb_set(flips, '{shortFlips}', $2::jsonb),
+                      '{longFlips}', $3::jsonb
+                    ), 
+                    result = $4 
+                    where id = $1`,
+      [
+        id,
+        JSON.stringify(shortFlips),
+        JSON.stringify(longFlips),
+        {
+          shortPoints: correctShortAnswers,
+          longPoints: correctLongAnswers,
+          reports: correctReports,
+          actionType,
         },
-      })
+      ]
     )
 
-    return res.status(200).json(updated.data.result)
+    return res.status(200).json(result)
   } catch (e) {
     return res.status(400).send(e.toString())
   }

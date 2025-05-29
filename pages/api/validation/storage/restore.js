@@ -1,6 +1,5 @@
-import {query as q} from 'faunadb'
 import {checkSignature} from '../../../../shared/utils/crypto'
-import {faunaClient} from '../../../../shared/utils/faunadb'
+import {createPool} from '../../../../shared/utils/pg'
 
 export default async (req, res) => {
   try {
@@ -11,19 +10,18 @@ export default async (req, res) => {
     if (!recoveredCoinbase || coinbase !== recoveredCoinbase)
       throw new Error('signature is invalid')
 
-    const resut = await faunaClient.query(
-      q.Let(
-        {
-          match: q.Match(q.Index('validation-storage_by_coinbase'), coinbase),
-        },
-        q.If(
-          q.Exists(q.Var('match')),
-          q.Select('data', q.Get(q.Var('match'))),
-          null
-        )
-      )
+    const pool = createPool()
+
+    const data = await pool.query(
+      `select data from "validation-storage" where coinbase = $1`,
+      [coinbase]
     )
-    return res.status(200).json(resut?.value)
+
+    if (!data.rowCount) {
+      return res.status(200).json(null)
+    }
+
+    return res.status(200).json(data.rows[0].data)
   } catch (e) {
     return res.status(400).send(e.toString())
   }
