@@ -89,8 +89,8 @@ export default async (req, res) => {
     }
 
     await pool.query(
-      'update validations set is_active = false where coinbase = $1',
-      [coinbase]
+      'update validations set is_active = false where coinbase = $1 and is_active = true and type = $2',
+      [coinbase, result.type]
     )
 
     await pool.query(
