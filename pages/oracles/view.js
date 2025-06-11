@@ -535,8 +535,7 @@ export default function ViewVotingPage() {
                                     </Flex>
 
                                     <Text
-                                      isTruncated
-                                      maxW="sm"
+                                      maxW="md"
                                       title={value.length > 50 ? value : ''}
                                     >
                                       {value}

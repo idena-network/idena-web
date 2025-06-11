@@ -402,7 +402,7 @@ export const VotingOption = React.forwardRef(
         title={children.length > 50 ? children : ''}
         {...props}
       >
-        <Text maxW="xs" isTruncated>
+        <Text maxW="md">
           {children}
         </Text>
       </Radio>
